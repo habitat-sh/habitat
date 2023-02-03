@@ -76,7 +76,7 @@ macro_rules! from_str_impl_for_key {
                     lines.nth(1) // skip a blank line!
                     .ok_or_else(|| Error::CryptoError("Missing key material".to_string()))
                     .map(str::trim)
-                    .map(base64::decode)?
+                    .map(crate::base64::decode)?
                     .map_err(|_| Error::CryptoError("Invalid base64 key material".to_string()))
                     .map(|b| <Self as crate::crypto::keys::Key>::Crypto::from_slice(&b))?
                     .ok_or_else(|| {

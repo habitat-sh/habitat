@@ -66,7 +66,7 @@ pub fn generate_secret_key(out: &mut String) {
     let mut rng = rand::rngs::OsRng;
     let mut result = vec![0u8; CTL_SECRET_LEN];
     rng.fill_bytes(&mut result);
-    *out = base64::encode(&result);
+    *out = core::base64::encode(&result);
 }
 
 /// Read the secret key used to authenticate connections to the `CtlGateway` from disk and write

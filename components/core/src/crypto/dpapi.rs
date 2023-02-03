@@ -11,7 +11,7 @@ const COMPLEXITY: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/hab-crypt"))
 
 pub fn decrypt(secret: &str) -> Result<String> {
     unsafe {
-        let mut bytes = base64::decode(secret).unwrap();
+        let mut bytes = crate::base64::decode(secret).unwrap();
         let mut in_blob = CRYPTOAPI_BLOB { cbData: bytes.len() as DWORD,
                                            pbData: bytes.as_mut_ptr(), };
         let mut out_blob = CRYPTOAPI_BLOB { cbData: 0,
@@ -77,6 +77,6 @@ pub fn encrypt(secret: String) -> Result<String> {
         let mut dst: Vec<u8> = vec![0; sz];
         dst.set_len(sz);
         ptr::copy(out_blob.pbData, dst.as_mut_ptr(), sz);
-        Ok(base64::encode(&dst))
+        Ok(crate::base64::encode(&dst))
     }
 }

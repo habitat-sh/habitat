@@ -47,7 +47,7 @@ impl fmt::Display for AnonymousBox {
                "{}\n{}\n{}",
                ANONYMOUS_BOX_FORMAT_VERSION,
                self.key_pair(),
-               base64::encode(self.ciphertext()))
+               crate::base64::encode(self.ciphertext()))
     }
 }
 
@@ -80,7 +80,7 @@ impl FromStr for AnonymousBox {
                  .ok_or_else(|| {
                      Error::CryptoError("Corrupt payload, can't read ciphertext".to_string())
                  })
-                 .map(base64::decode)?
+                 .map(crate::base64::decode)?
                  .map_err(|e| Error::CryptoError(format!("Can't decode ciphertext: {}", e)))?;
 
         Ok(AnonymousBox { key_pair,
@@ -158,8 +158,8 @@ impl fmt::Display for SignedBox {
                BOX_FORMAT_VERSION,
                self.encryptor,
                self.decryptor,
-               base64::encode(self.nonce),
-               base64::encode(&self.ciphertext))
+               crate::base64::encode(self.nonce),
+               crate::base64::encode(&self.ciphertext))
     }
 }
 
@@ -198,7 +198,7 @@ impl FromStr for SignedBox {
         let nonce =
             lines.next()
                  .ok_or_else(|| Error::CryptoError("Corrupt payload, can't read nonce".to_string()))
-                 .map(base64::decode)?
+                 .map(crate::base64::decode)?
                  .map_err(|e| Error::CryptoError(format!("Can't decode nonce: {}", e)))
                  .map(|bytes| primitives::Nonce::from_slice(bytes.as_ref()))?
                  .ok_or_else(|| Error::CryptoError("Invalid size of nonce".to_string()))?;
@@ -208,7 +208,7 @@ impl FromStr for SignedBox {
                  .ok_or_else(|| {
                      Error::CryptoError("Corrupt payload, can't read ciphertext".to_string())
                  })
-                 .map(base64::decode)?
+                 .map(crate::base64::decode)?
                  .map_err(|e| Error::CryptoError(format!("Can't decode ciphertext: {}", e)))?;
 
         Ok(SignedBox { encryptor,

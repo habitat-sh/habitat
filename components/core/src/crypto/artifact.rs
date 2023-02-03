@@ -32,7 +32,7 @@ impl ArtifactHeader {
     /// Provide the signature as a base64-encoded string. This is how
     /// the signature appears in a HART file header, and is the most
     /// convenient form for passing around to external software.
-    pub fn encoded_signature(&self) -> String { base64::encode(&self.signature) }
+    pub fn encoded_signature(&self) -> String { crate::base64::encode(&self.signature) }
 }
 
 /// Generate and sign a package
@@ -48,7 +48,7 @@ pub fn sign<P1, P2>(src: &P1, dst: &P2, key: &SecretOriginSigningKey) -> Result<
            HART_FORMAT_VERSION,
            key.named_revision(),
            SIG_HASH_TYPE,
-           base64::encode(&signature))?;
+           crate::base64::encode(&signature))?;
     let mut file = File::open(src)?;
     io::copy(&mut file, &mut writer)?;
     Ok(())
@@ -127,9 +127,9 @@ fn artifact_header_and_archive<P>(path: P) -> Result<(ArtifactHeader, impl BufRe
         Err(Error::CryptoError("Corrupt payload, can't read signature".to_string()))
     } else {
         let line = line.trim();
-        base64::decode(line).map_err(|e| {
-                                Error::CryptoError(format!("Can't decode signature: {}", e))
-                            })
+        crate::base64::decode(line).map_err(|e| {
+                                       Error::CryptoError(format!("Can't decode signature: {}", e))
+                                   })
     }?;
 
     // Fifth line should be an empty delimiter line.
