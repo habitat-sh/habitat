@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.648 -->
-## [1.6.648](https://github.com/habitat-sh/habitat/tree/1.6.648) (2023-02-01)
+<!-- latest_release 1.6.649 -->
+## [1.6.649](https://github.com/habitat-sh/habitat/tree/1.6.649) (2023-02-03)
 
 #### Merged Pull Requests
-- fixes rolling update leader resetting pkg_incarnation [#8720](https://github.com/habitat-sh/habitat/pull/8720) ([atrniv](https://github.com/atrniv))
+- bump to base64 0.21 [#8724](https://github.com/habitat-sh/habitat/pull/8724) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.607 -->
 ### Changes since 1.6.607 release
 
 #### Merged Pull Requests
+- bump to base64 0.21 [#8724](https://github.com/habitat-sh/habitat/pull/8724) ([mwrock](https://github.com/mwrock)) <!-- 1.6.649 -->
 - fixes rolling update leader resetting pkg_incarnation [#8720](https://github.com/habitat-sh/habitat/pull/8720) ([atrniv](https://github.com/atrniv)) <!-- 1.6.648 -->
 - Fix windows 7 support [#8714](https://github.com/habitat-sh/habitat/pull/8714) ([atrniv](https://github.com/atrniv)) <!-- 1.6.647 -->
 - Bump rustls-pemfile from 1.0.1 to 1.0.2 [#8713](https://github.com/habitat-sh/habitat/pull/8713) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.646 -->
