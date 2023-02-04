@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.650 -->
-## [1.6.650](https://github.com/habitat-sh/habitat/tree/1.6.650) (2023-02-04)
+<!-- latest_release 1.6.651 -->
+## [1.6.651](https://github.com/habitat-sh/habitat/tree/1.6.651) (2023-02-04)
 
 #### Merged Pull Requests
-- Bump nix from 0.26.1 to 0.26.2 [#8715](https://github.com/habitat-sh/habitat/pull/8715) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.0.78 to 1.0.79 [#8722](https://github.com/habitat-sh/habitat/pull/8722) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.607 -->
 ### Changes since 1.6.607 release
 
 #### Merged Pull Requests
+- Bump cc from 1.0.78 to 1.0.79 [#8722](https://github.com/habitat-sh/habitat/pull/8722) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.651 -->
 - Bump nix from 0.26.1 to 0.26.2 [#8715](https://github.com/habitat-sh/habitat/pull/8715) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.650 -->
 - bump to base64 0.21 [#8724](https://github.com/habitat-sh/habitat/pull/8724) ([mwrock](https://github.com/mwrock)) <!-- 1.6.649 -->
 - fixes rolling update leader resetting pkg_incarnation [#8720](https://github.com/habitat-sh/habitat/pull/8720) ([atrniv](https://github.com/atrniv)) <!-- 1.6.648 -->
