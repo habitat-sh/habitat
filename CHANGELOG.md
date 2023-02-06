@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.651 -->
-## [1.6.651](https://github.com/habitat-sh/habitat/tree/1.6.651) (2023-02-04)
+<!-- latest_release 1.6.652 -->
+## [1.6.652](https://github.com/habitat-sh/habitat/tree/1.6.652) (2023-02-06)
 
 #### Merged Pull Requests
-- Bump cc from 1.0.78 to 1.0.79 [#8722](https://github.com/habitat-sh/habitat/pull/8722) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump anyhow from 1.0.68 to 1.0.69 [#8725](https://github.com/habitat-sh/habitat/pull/8725) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.607 -->
 ### Changes since 1.6.607 release
 
 #### Merged Pull Requests
+- Bump anyhow from 1.0.68 to 1.0.69 [#8725](https://github.com/habitat-sh/habitat/pull/8725) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.652 -->
 - Bump cc from 1.0.78 to 1.0.79 [#8722](https://github.com/habitat-sh/habitat/pull/8722) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.651 -->
 - Bump nix from 0.26.1 to 0.26.2 [#8715](https://github.com/habitat-sh/habitat/pull/8715) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.650 -->
 - bump to base64 0.21 [#8724](https://github.com/habitat-sh/habitat/pull/8724) ([mwrock](https://github.com/mwrock)) <!-- 1.6.649 -->
