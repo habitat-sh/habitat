@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.656 -->
-## [1.6.656](https://github.com/habitat-sh/habitat/tree/1.6.656) (2023-02-07)
+<!-- latest_release 1.6.657 -->
+## [1.6.657](https://github.com/habitat-sh/habitat/tree/1.6.657) (2023-02-07)
 
 #### Merged Pull Requests
-- Rustfmt and Nightly Rust Bump to nightly-2023-02-07 [#8730](https://github.com/habitat-sh/habitat/pull/8730) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+- Bump bytes from 1.3.0 to 1.4.0 [#8728](https://github.com/habitat-sh/habitat/pull/8728) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump bytes from 1.3.0 to 1.4.0 [#8728](https://github.com/habitat-sh/habitat/pull/8728) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.657 -->
 - Rustfmt and Nightly Rust Bump to nightly-2023-02-07 [#8730](https://github.com/habitat-sh/habitat/pull/8730) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.656 -->
 - Bump petgraph from 0.6.2 to 0.6.3 [#8727](https://github.com/habitat-sh/habitat/pull/8727) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.655 -->
 - update changelog for 1.6.652 release [#8729](https://github.com/habitat-sh/habitat/pull/8729) ([mwrock](https://github.com/mwrock)) <!-- 1.6.654 -->
