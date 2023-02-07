@@ -5,13 +5,23 @@
 
 #### Merged Pull Requests
 - Bump async-trait from 0.1.61 to 0.1.64 [#8726](https://github.com/habitat-sh/habitat/pull/8726) ([dependabot[bot]](https://github.com/dependabot[bot]))
+
+
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.607 -->
-### Changes since 1.6.607 release
+<!-- release_rollup since=1.6.652 -->
+### Changes since 1.6.652 release
 
 #### Merged Pull Requests
-- Bump async-trait from 0.1.61 to 0.1.64 [#8726](https://github.com/habitat-sh/habitat/pull/8726) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.653 -->
+- Bump async-trait from 0.1.61 to 0.1.64 [#8726](https://github.com/habitat-sh/habitat/pull/8726) ([dependabot[bot]](https://github.com/dependabot[bot]))
+
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.652 -->
+
+## [1.6.652](https://github.com/habitat-sh/habitat/tree/1.6.652) (2023-02-06)
+
+#### Merged Pull Requests
 - Bump anyhow from 1.0.68 to 1.0.69 [#8725](https://github.com/habitat-sh/habitat/pull/8725) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.652 -->
 - Bump cc from 1.0.78 to 1.0.79 [#8722](https://github.com/habitat-sh/habitat/pull/8722) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.651 -->
 - Bump nix from 0.26.1 to 0.26.2 [#8715](https://github.com/habitat-sh/habitat/pull/8715) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.650 -->
@@ -60,9 +70,6 @@
 - move release notes scripts to finish_release and document [#8670](https://github.com/habitat-sh/habitat/pull/8670) ([mwrock](https://github.com/mwrock)) <!-- 1.6.611 -->
 - Rustfmt and Nightly Rust Bump to nightly-2022-11-14 [#8667](https://github.com/habitat-sh/habitat/pull/8667) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.610 -->
 - updating changelog for 1.6.607 [#8668](https://github.com/habitat-sh/habitat/pull/8668) ([mwrock](https://github.com/mwrock)) <!-- 1.6.609 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.607 -->
 
 ## [1.6.607](https://github.com/habitat-sh/habitat/tree/1.6.607) (2022-11-10)
 
