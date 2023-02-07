@@ -1,20 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.653 -->
-## [1.6.653](https://github.com/habitat-sh/habitat/tree/1.6.653) (2023-02-06)
+<!-- latest_release 1.6.654 -->
+## [1.6.654](https://github.com/habitat-sh/habitat/tree/1.6.654) (2023-02-07)
 
 #### Merged Pull Requests
-- Bump async-trait from 0.1.61 to 0.1.64 [#8726](https://github.com/habitat-sh/habitat/pull/8726) ([dependabot[bot]](https://github.com/dependabot[bot]))
-
-
+- update changelog for 1.6.652 release [#8729](https://github.com/habitat-sh/habitat/pull/8729) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- update changelog for 1.6.652 release [#8729](https://github.com/habitat-sh/habitat/pull/8729) ([mwrock](https://github.com/mwrock)) <!-- 1.6.654 -->
 - Bump async-trait from 0.1.61 to 0.1.64 [#8726](https://github.com/habitat-sh/habitat/pull/8726) ([dependabot[bot]](https://github.com/dependabot[bot]))
-
 <!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.652 -->
