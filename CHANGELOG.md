@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.661 -->
-## [1.6.661](https://github.com/habitat-sh/habitat/tree/1.6.661) (2023-02-09)
+<!-- latest_release 1.6.662 -->
+## [1.6.662](https://github.com/habitat-sh/habitat/tree/1.6.662) (2023-02-10)
 
 #### Merged Pull Requests
-- Bump openssl-src from 111.22.0+1.1.1q to 111.25.0+1.1.1t [#8734](https://github.com/habitat-sh/habitat/pull/8734) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump blake2b_simd from 1.0.0 to 1.0.1 [#8736](https://github.com/habitat-sh/habitat/pull/8736) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump blake2b_simd from 1.0.0 to 1.0.1 [#8736](https://github.com/habitat-sh/habitat/pull/8736) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.662 -->
 - Bump openssl-src from 111.22.0+1.1.1q to 111.25.0+1.1.1t [#8734](https://github.com/habitat-sh/habitat/pull/8734) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.661 -->
 - Bump serde_json from 1.0.92 to 1.0.93 [#8735](https://github.com/habitat-sh/habitat/pull/8735) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.660 -->
 - Bump futures from 0.3.25 to 0.3.26 [#8733](https://github.com/habitat-sh/habitat/pull/8733) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.659 -->
