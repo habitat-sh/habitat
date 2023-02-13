@@ -8,7 +8,8 @@ use crate::{error::{Error,
                       sup_watcher::SupWatcher}};
 use log::{error,
           trace};
-use notify::{DebouncedEvent,
+use notify::{Config,
+             Event,
              RecursiveMode,
              Watcher};
 use std::{sync::mpsc::{self,
@@ -45,7 +46,7 @@ pub struct SpecWatcher {
     // purposes (`Drop` kills the threads that the watcher spawns to do
     // its work).
     _watcher: SupWatcher,
-    channel:  Receiver<DebouncedEvent>,
+    channel:  Receiver<notify::Result<Event>>,
 }
 
 impl SpecWatcher {
@@ -89,8 +90,9 @@ impl SpecWatcher {
     fn new(spec_dir: &SpecDir) -> Result<SpecWatcher> {
         let (tx, rx) = mpsc::channel();
         let delay = SpecWatcherDelay::configured_value();
-        let mut watcher = SupWatcher::new(tx, delay.0)?;
-        watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
+        let config = Config::default().with_poll_interval(delay.0);
+        let mut watcher = SupWatcher::new(tx, config)?;
+        watcher.watch(spec_dir.as_ref(), RecursiveMode::NonRecursive)?;
         Ok(SpecWatcher { _watcher: watcher,
                          channel:  rx, })
     }

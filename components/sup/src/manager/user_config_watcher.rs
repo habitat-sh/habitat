@@ -1,6 +1,6 @@
-use super::file_watcher::{create_file_watcher,
-                          Callbacks};
-use crate::manager::service::Service;
+use crate::manager::{file_watcher::{Callbacks,
+                                    FileWatcher},
+                     service::Service};
 use habitat_common::{liveliness_checker,
                      outputln,
                      templating::config::UserConfigPath};
@@ -198,9 +198,7 @@ impl Worker {
                                        path.display(),);
                                 let callbacks = UserConfigCallbacks { have_events };
                                 let mut file_watcher =
-                                    match create_file_watcher(&path,
-                                                               callbacks,
-                                                               false)
+                                    match FileWatcher::<UserConfigCallbacks>::new(&path, callbacks, false)
                                     {
                                         Ok(w) => w,
                                         Err(e) => {
@@ -445,7 +443,7 @@ mod tests {
 
     fn wait_for_events<T: Serviceable>(ucm: &UserConfigWatcher, service: &T) -> bool {
         let start = Instant::now();
-        let timeout = Duration::from_millis(WATCHER_DELAY_MS * 5);
+        let timeout = Duration::from_millis(WATCHER_DELAY_MS * 10);
 
         while start.elapsed() < timeout {
             if ucm.have_events_for(service) {
