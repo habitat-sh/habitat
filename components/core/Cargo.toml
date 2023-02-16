@@ -42,7 +42,6 @@ thiserror = "*"
 tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
 toml = { version = "*", features = [ "preserve_order" ] }
-typemap = "*"
 url = "*"
 webpki = "*"
 xz2 = "*"
