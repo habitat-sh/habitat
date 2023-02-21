@@ -9,12 +9,62 @@ services:
       - bastion
       - alpha
       - beta
+      - gamma1
+      - gamma2
+      - gamma3
   alpha:
     environment:
       HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
       HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      RUST_LOG: habitat_sup::manager::service_updater=debug
 
   beta:
     environment:
       HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
       HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      RUST_LOG: habitat_sup::manager::service_updater=debug
+
+  gamma1:
+    extends:
+      service: sup_base
+    hostname: gamma1
+    environment:
+      HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
+      HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      RUST_LOG: habitat_sup::manager::service_updater=debug
+    networks:
+      default:
+        aliases:
+        - gamma1.habitat.dev
+    depends_on:
+      - bastion
+
+  gamma2:
+    extends:
+      service: sup_base
+    hostname: gamma2
+    environment:
+      HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
+      HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      RUST_LOG: habitat_sup::manager::service_updater=debug
+    networks:
+      default:
+        aliases:
+        - gamma2.habitat.dev
+    depends_on:
+      - bastion
+
+  gamma3:
+    extends:
+      service: sup_base
+    hostname: gamma3
+    environment:
+      HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
+      HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      RUST_LOG: habitat_sup::manager::service_updater=debug
+    networks:
+      default:
+        aliases:
+        - gamma3.habitat.dev
+    depends_on:
+      - bastion
