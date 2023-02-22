@@ -1259,7 +1259,7 @@ dependencies = [
  "lazy_static 1.4.0",
  "log 0.4.17",
  "mktemp",
- "parking_lot 0.12.0",
+ "parking_lot",
  "prometheus",
  "prost",
  "prost-build",
@@ -1293,7 +1293,7 @@ dependencies = [
  "native-tls",
  "nix 0.26.2",
  "owning_ref",
- "parking_lot 0.12.0",
+ "parking_lot",
  "pbr",
  "petgraph",
  "regex 1.7.1",
@@ -1470,7 +1470,7 @@ dependencies = [
  "nix 0.26.2",
  "notify",
  "num_cpus",
- "parking_lot 0.12.0",
+ "parking_lot",
  "pin-project",
  "prometheus",
  "prost",
@@ -1735,15 +1735,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "instant"
-version = "0.1.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bee0328b1209d157ef001c94dd85b4f8f64139adb0eac2659f4b08382b2f474d"
-dependencies = [
- "cfg-if 1.0.0",
-]
-
-[[package]]
 name = "iovec"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1965,7 +1956,7 @@ dependencies = [
  "libc",
  "log 0.4.17",
  "log-mdc",
- "parking_lot 0.12.0",
+ "parking_lot",
  "serde",
  "serde-value",
  "serde_json",
@@ -2364,37 +2355,12 @@ dependencies = [
 
 [[package]]
 name = "parking_lot"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d17b78036a60663b797adeaee46f5c9dfebb86948d1255007a1d6be0271ff99"
-dependencies = [
- "instant",
- "lock_api",
- "parking_lot_core 0.8.5",
-]
-
-[[package]]
-name = "parking_lot"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "87f5ec2493a61ac0506c0f4199f99070cbe83857b0337006a30f3e6719b8ef58"
 dependencies = [
  "lock_api",
- "parking_lot_core 0.9.2",
-]
-
-[[package]]
-name = "parking_lot_core"
-version = "0.8.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d76e8e1493bcac0d2766c42737f34458f1c8c50c0d23bcb24ea953affb273216"
-dependencies = [
- "cfg-if 1.0.0",
- "instant",
- "libc",
- "redox_syscall",
- "smallvec",
- "winapi 0.3.9",
+ "parking_lot_core",
 ]
 
 [[package]]
@@ -2599,15 +2565,15 @@ dependencies = [
 
 [[package]]
 name = "prometheus"
-version = "0.12.0"
+version = "0.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5986aa8d62380092d2f50f8b1cdba9cb9b6731ffd4b25b51fd126b6c3e05b99c"
+checksum = "449811d15fbdf5ceb5c1144416066429cf82316e2ec8ce0c1f6f8a02e7bbcf8c"
 dependencies = [
  "cfg-if 1.0.0",
  "fnv",
  "lazy_static 1.4.0",
  "memchr",
- "parking_lot 0.11.2",
+ "parking_lot",
  "protobuf",
  "thiserror",
 ]
@@ -3575,7 +3541,7 @@ dependencies = [
  "memchr",
  "mio 0.8.6",
  "num_cpus",
- "parking_lot 0.12.0",
+ "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
  "socket2",
