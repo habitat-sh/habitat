@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.666 -->
-## [1.6.666](https://github.com/habitat-sh/habitat/tree/1.6.666) (2023-02-21)
+<!-- latest_release 1.6.667 -->
+## [1.6.667](https://github.com/habitat-sh/habitat/tree/1.6.667) (2023-02-22)
 
 #### Merged Pull Requests
-- get rid of traitobject and typemap deps [#8741](https://github.com/habitat-sh/habitat/pull/8741) ([mwrock](https://github.com/mwrock))
+- bump tokio and add dep contraints for winapi [#8743](https://github.com/habitat-sh/habitat/pull/8743) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- bump tokio and add dep contraints for winapi [#8743](https://github.com/habitat-sh/habitat/pull/8743) ([mwrock](https://github.com/mwrock)) <!-- 1.6.667 -->
 - get rid of traitobject and typemap deps [#8741](https://github.com/habitat-sh/habitat/pull/8741) ([mwrock](https://github.com/mwrock)) <!-- 1.6.666 -->
 - force basic rolling update/rollback e2e to terminate process [#8738](https://github.com/habitat-sh/habitat/pull/8738) ([mwrock](https://github.com/mwrock)) <!-- 1.6.665 -->
 - Bump mio from 0.8.5 to 0.8.6 [#8739](https://github.com/habitat-sh/habitat/pull/8739) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.664 -->
