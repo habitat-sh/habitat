@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.669 -->
-## [1.6.669](https://github.com/habitat-sh/habitat/tree/1.6.669) (2023-02-22)
+<!-- latest_release 1.6.670 -->
+## [1.6.670](https://github.com/habitat-sh/habitat/tree/1.6.670) (2023-02-22)
 
 #### Merged Pull Requests
-- remove checks for empty events in specwatcher tests [#8742](https://github.com/habitat-sh/habitat/pull/8742) ([mwrock](https://github.com/mwrock))
+- Bump reqwest from 0.11.4 to 0.11.9 [#8745](https://github.com/habitat-sh/habitat/pull/8745) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump reqwest from 0.11.4 to 0.11.9 [#8745](https://github.com/habitat-sh/habitat/pull/8745) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.670 -->
 - remove checks for empty events in specwatcher tests [#8742](https://github.com/habitat-sh/habitat/pull/8742) ([mwrock](https://github.com/mwrock)) <!-- 1.6.669 -->
 - Bump rcgen from 0.9.3 to 0.10.0 [#8746](https://github.com/habitat-sh/habitat/pull/8746) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.668 -->
 - bump tokio and add dep contraints for winapi [#8743](https://github.com/habitat-sh/habitat/pull/8743) ([mwrock](https://github.com/mwrock)) <!-- 1.6.667 -->
