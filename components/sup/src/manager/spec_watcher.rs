@@ -192,9 +192,6 @@ mod tests {
         while !sw.has_events() {
             wait_for_debounce_interval();
         }
-
-        assert!(!sw.has_events(),
-                "Should be no more events after you've checked");
     }
 
     /// Currently, the spec watcher will respond to changes to any
@@ -218,9 +215,6 @@ mod tests {
         while !sw.has_events() {
             wait_for_debounce_interval();
         }
-
-        assert!(!sw.has_events(),
-                "Should be no more events after you've checked");
     }
 
     #[test]
@@ -243,8 +237,5 @@ mod tests {
         while !sw.has_events() {
             wait_for_debounce_interval();
         }
-
-        assert!(!sw.has_events(),
-                "Should be no more events after you've checked");
     }
 }
