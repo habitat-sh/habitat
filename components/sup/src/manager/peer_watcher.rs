@@ -1,7 +1,8 @@
 use crate::{error::{Error,
                     Result},
-            manager::file_watcher::{create_file_watcher,
-                                    Callbacks}};
+            manager::file_watcher::{Callbacks,
+                                    FileWatcher}};
+
 use habitat_butterfly::member::Member;
 use habitat_common::{liveliness_checker,
                      outputln,
@@ -67,7 +68,7 @@ impl PeerWatcher {
 
     fn file_watcher_loop_body(path: &Path, have_events: Arc<AtomicBool>) -> bool {
         let callbacks = PeerCallbacks { have_events };
-        let mut file_watcher = match create_file_watcher(&path, callbacks, true) {
+        let mut file_watcher = match FileWatcher::<PeerCallbacks>::new(path, callbacks, true) {
             Ok(watcher) => watcher,
             Err(e) => {
                 match e {

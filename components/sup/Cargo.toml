@@ -38,7 +38,7 @@ lazy_static = "*"
 libc = "*"
 log = "*"
 log4rs = "*"
-notify = "*"
+multimap = "*"
 num_cpus = "*"
 parking_lot = "*"
 pin-project = "*"
@@ -65,18 +65,20 @@ toml = { version = "*", features = ["preserve_order"]}
 tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
 tokio-util = { version = "*", features = ["full"] }
+uuid = { version = "*", features = ["v4"] }
 url = "*"
 valico = "*"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
+notify = { version = "*", default-features = false }
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
 habitat-launcher-protocol = { path = "../launcher-protocol" }
-mio = { version = "*", features = ["os-ext"] }
-uuid = { version = "*", features = ["v4"] }
-winapi = { version = "*", features = ["namedpipeapi", "tlhelp32"] }
+notify = { version = "*", default-features = false }
+mio = { version = "^0.8", features = ["os-ext"] }
+winapi = { version = "^0.3", features = ["namedpipeapi", "tlhelp32"] }
 
 [dev-dependencies]
 habitat_core = { path = "../core" }

@@ -32,7 +32,7 @@ uuid = { version = "*", features = ["v4"] }
 zmq = { version = "*" }
 
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "*", features = ["handleapi", "winbase"] }
+winapi = { version = "^0.3", features = ["handleapi", "winbase"] }
 
 [dev-dependencies]
 mktemp = "*"

@@ -1093,7 +1093,7 @@ impl Service {
         (template_data_changed, template_update)
     }
 
-    pub fn to_rumor(&self, incarnation: u64, pkg_incarnation: Option<u64>) -> ServiceRumor {
+    pub fn to_rumor(&self, incarnation: u64, pkg_incarnation: u64) -> ServiceRumor {
         let exported = match self.cfg.to_exported(&self.pkg) {
             Ok(exported) => Some(exported),
             Err(err) => {
@@ -1109,9 +1109,7 @@ impl Service {
                                           self.sys.as_sys_info(),
                                           exported);
         rumor.incarnation = incarnation;
-        if let Some(pi) = pkg_incarnation {
-            rumor.pkg_incarnation = pi;
-        }
+        rumor.pkg_incarnation = pkg_incarnation;
         rumor
     }
 

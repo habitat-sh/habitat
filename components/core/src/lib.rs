@@ -47,3 +47,15 @@ impl ChannelIdent {
 impl fmt::Display for ChannelIdent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0) }
 }
+
+pub mod base64 {
+    use ::base64::{engine::{general_purpose::STANDARD,
+                            Engine},
+                   DecodeError};
+
+    pub fn encode<T: AsRef<[u8]>>(input: T) -> String { STANDARD.encode(input) }
+
+    pub fn decode<T: AsRef<[u8]>>(input: T) -> Result<Vec<u8>, DecodeError> {
+        STANDARD.decode(input)
+    }
+}

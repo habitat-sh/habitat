@@ -118,7 +118,8 @@ impl Credentials {
                 Ok(Credentials { token })
             }
             RegistryType::Docker | RegistryType::Azure => {
-                Ok(Credentials { token: base64::encode(&format!("{}:{}", username, password)), })
+                Ok(Credentials { token: habitat_core::base64::encode(&format!("{}:{}",
+                                                                              username, password)), })
             }
         }
     }

@@ -1,0 +1,11 @@
+_term() {
+  echo "run hook is terminating"
+  sleep 30
+}
+
+trap _term TERM
+
+while true; do
+      echo "Working"
+      sleep 3
+done
