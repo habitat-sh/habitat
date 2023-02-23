@@ -1261,6 +1261,9 @@ sys_ip_address = "7.8.9.0"
 
         #[test]
         fn test_hab_sup_run_config_file_peer() {
+            let lock = lock_var();
+            lock.unset();
+
             let temp_dir = TempDir::new().expect("Could not create tempdir");
 
             // Setup config file
