@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.673 -->
-## [1.6.673](https://github.com/habitat-sh/habitat/tree/1.6.673) (2023-02-24)
+<!-- latest_release 1.6.674 -->
+## [1.6.674](https://github.com/habitat-sh/habitat/tree/1.6.674) (2023-02-24)
 
 #### Merged Pull Requests
-- acquire lock for cache_key to fix a flaky unit test [#8753](https://github.com/habitat-sh/habitat/pull/8753) ([mwrock](https://github.com/mwrock))
+- Bump actix-web from 4.1.0 to 4.3.0 [#8754](https://github.com/habitat-sh/habitat/pull/8754) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump actix-web from 4.1.0 to 4.3.0 [#8754](https://github.com/habitat-sh/habitat/pull/8754) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.674 -->
 - acquire lock for cache_key to fix a flaky unit test [#8753](https://github.com/habitat-sh/habitat/pull/8753) ([mwrock](https://github.com/mwrock)) <!-- 1.6.673 -->
 - Bump parking_lot from 0.12.0 to 0.12.1 [#8750](https://github.com/habitat-sh/habitat/pull/8750) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.673 -->
 - Bump prost-build from 0.11.1 to 0.11.6 [#8749](https://github.com/habitat-sh/habitat/pull/8749) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.673 -->
