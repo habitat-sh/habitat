@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.675 -->
-## [1.6.675](https://github.com/habitat-sh/habitat/tree/1.6.675) (2023-02-24)
+<!-- latest_release 1.6.676 -->
+## [1.6.676](https://github.com/habitat-sh/habitat/tree/1.6.676) (2023-02-27)
 
 #### Merged Pull Requests
-- Bump native-tls from 0.2.10 to 0.2.11 [#8757](https://github.com/habitat-sh/habitat/pull/8757) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump actix-rt from 2.7.0 to 2.8.0 [#8759](https://github.com/habitat-sh/habitat/pull/8759) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump actix-rt from 2.7.0 to 2.8.0 [#8759](https://github.com/habitat-sh/habitat/pull/8759) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.676 -->
 - Bump native-tls from 0.2.10 to 0.2.11 [#8757](https://github.com/habitat-sh/habitat/pull/8757) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.675 -->
 - Bump prost-build from 0.11.6 to 0.11.7 [#8756](https://github.com/habitat-sh/habitat/pull/8756) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.675 -->
 - Bump actix-web from 4.1.0 to 4.3.0 [#8754](https://github.com/habitat-sh/habitat/pull/8754) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.674 -->
