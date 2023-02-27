@@ -29,7 +29,7 @@ tempfile = "*"
 threadpool = "*"
 toml = { version = "*", features = [ "preserve_order" ] }
 uuid = { version = "*", features = ["v4"] }
-zmq = { version = "*" }
+zmq = { git = "https://github.com/habitat-sh/rust-zmq", branch = "v0.9.2-symlinks-removed" }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "^0.3", features = ["handleapi", "winbase"] }
