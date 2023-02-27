@@ -614,12 +614,9 @@ mod test {
                                   PackageInstall}},
                 templating::{context::RenderContext,
                              test_helpers::*}};
-    #[cfg(not(
-        any(
-            all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
-            all(target_os = "windows", target_arch = "x86_64"),
-        )
-    ))]
+    #[cfg(not(any(all(target_os = "linux",
+                          any(target_arch = "x86_64", target_arch = "aarch64")),
+                      all(target_os = "windows", target_arch = "x86_64"),)))]
     use hcore::package::metadata::MetaFile;
     use std::{env,
               fs::{self,
@@ -1155,12 +1152,9 @@ mod test {
                             "config message is {{cfg.message}}");
 
         // Platforms without standard package support require all packages to be native packages
-        #[cfg(not(
-            any(
-                all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
-                all(target_os = "windows", target_arch = "x86_64"),
-            )
-        ))]
+        #[cfg(not(any(all(target_os = "linux",
+                          any(target_arch = "x86_64", target_arch = "aarch64")),
+                      all(target_os = "windows", target_arch = "x86_64"),)))]
         {
             create_with_content(pkg_dir.join(MetaFile::PackageType.to_string()), "native");
         }

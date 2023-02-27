@@ -11,10 +11,9 @@ use super::util::{self,
                   ExternalCommandArgsWithHelpAndVersion,
                   FullyQualifiedPkgIdent,
                   PkgIdent};
-#[cfg(any(
-    all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
-    all(target_os = "windows", target_arch = "x86_64"),
-))]
+#[cfg(any(all(target_os = "linux",
+                  any(target_arch = "x86_64", target_arch = "aarch64")),
+              all(target_os = "windows", target_arch = "x86_64"),))]
 use super::util::{ConfigOptExternalCommandArgs,
                   ExternalCommandArgs};
 use crate::cli::{dir_exists,
@@ -87,10 +86,9 @@ pub enum Pkg {
     Download(PkgDownload),
     Env(PkgEnv),
     Exec(PkgExec),
-    #[cfg(any(
-        all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
-        all(target_os = "windows", target_arch = "x86_64"),
-    ))]
+    #[cfg(any(all(target_os = "linux",
+                  any(target_arch = "x86_64", target_arch = "aarch64")),
+              all(target_os = "windows", target_arch = "x86_64"),))]
     Export(ExportCommand),
     Hash(PkgHash),
     Header(PkgHeader),
@@ -531,10 +529,9 @@ pub struct PkgInstall {
 }
 
 /// Exports the package to the specified format
-#[cfg(any(
-    all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
-    all(target_os = "windows", target_arch = "x86_64"),
-))]
+#[cfg(any(all(target_os = "linux",
+              any(target_arch = "x86_64", target_arch = "aarch64")),
+          all(target_os = "windows", target_arch = "x86_64"),))]
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "export", aliases = &["e", "ex", "exp", "expo", "expor"], no_version)]
 pub enum ExportCommand {

@@ -7,10 +7,9 @@ use clap::{value_t,
 use configopt::{ConfigOpt,
                 Error as ConfigOptError};
 use futures::stream::StreamExt;
-#[cfg(any(
-    all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
-    all(target_os = "windows", target_arch = "x86_64"),
-))]
+#[cfg(any(all(target_os = "linux",
+                  any(target_arch = "x86_64", target_arch = "aarch64")),
+              all(target_os = "windows", target_arch = "x86_64"),))]
 use hab::cli::hab::pkg::ExportCommand as PkgExportCommand;
 use hab::{cli::{self,
                 gateway_util,
@@ -205,13 +204,10 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                              update your automation and processes accordingly.")?;
                     return command::launcher::start(ui, sup_run, &args_after_first(1)).await;
                 }
-                #[cfg(any(
-                    target_os = "macos",
-                    any(
-                        all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
-                        all(target_os = "windows", target_arch = "x86_64"),
-                    )
-                ))]
+                #[cfg(any(target_os = "macos",
+                          any(all(target_os = "linux",
+                                  any(target_arch = "x86_64", target_arch = "aarch64")),
+                              all(target_os = "windows", target_arch = "x86_64"),)))]
                 Hab::Studio(studio) => {
                     return command::studio::enter::start(ui, studio.args()).await;
                 }
@@ -298,10 +294,9 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                     #[allow(clippy::collapsible_match)]
                     match pkg {
                         // package export is not available on platforms that have no package support
-                        #[cfg(any(
-                            all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
-                            all(target_os = "windows", target_arch = "x86_64"),
-                        ))]
+                        #[cfg(any(all(target_os = "linux",
+                                      any(target_arch = "x86_64", target_arch = "aarch64")),
+                                  all(target_os = "windows", target_arch = "x86_64"),))]
                         Pkg::Export(export) => {
                             match export {
                                 #[cfg(target_os = "linux")]

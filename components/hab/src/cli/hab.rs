@@ -14,10 +14,9 @@ pub mod svc;
 mod tests;
 pub mod user;
 pub mod util;
-#[cfg(any(
-    all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
-    all(target_os = "windows", target_arch = "x86_64"),
-))]
+#[cfg(any(all(target_os = "linux",
+                  any(target_arch = "x86_64", target_arch = "aarch64")),
+              all(target_os = "windows", target_arch = "x86_64"),))]
 use self::studio::{ConfigOptStudio,
                    Studio};
 use self::{bldr::*,
@@ -95,10 +94,9 @@ pub enum Hab {
     Plan(Plan),
     #[structopt(no_version)]
     Ring(Ring),
-    #[cfg(any(
-        all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
-        all(target_os = "windows", target_arch = "x86_64"),
-    ))]
+    #[cfg(any(all(target_os = "linux",
+                  any(target_arch = "x86_64", target_arch = "aarch64")),
+              all(target_os = "windows", target_arch = "x86_64"),))]
     #[structopt(no_version, aliases = &["stu", "stud", "studi"])]
     Studio(Studio),
     #[structopt(no_version)]
@@ -291,10 +289,9 @@ pub enum Pkg {
     Download(PkgDownload),
     Env(PkgEnv),
     Exec(PkgExec),
-    #[cfg(any(
-        all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
-        all(target_os = "windows", target_arch = "x86_64"),
-    ))]
+    #[cfg(any(all(target_os = "linux",
+                  any(target_arch = "x86_64", target_arch = "aarch64")),
+              all(target_os = "windows", target_arch = "x86_64"),))]
     Export(ExportCommand),
     #[structopt(no_version, aliases = &["ha", "has"])]
     Hash(PkgHash),
