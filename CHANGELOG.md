@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.677 -->
-## [1.6.677](https://github.com/habitat-sh/habitat/tree/1.6.677) (2023-02-27)
+<!-- latest_release 1.6.678 -->
+## [1.6.678](https://github.com/habitat-sh/habitat/tree/1.6.678) (2023-02-28)
 
 #### Merged Pull Requests
-- Bump errno from 0.2.7 to 0.3.0 [#8758](https://github.com/habitat-sh/habitat/pull/8758) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tar from 0.4.36 to 0.4.38 [#8762](https://github.com/habitat-sh/habitat/pull/8762) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump tar from 0.4.36 to 0.4.38 [#8762](https://github.com/habitat-sh/habitat/pull/8762) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.678 -->
 - Bump errno from 0.2.7 to 0.3.0 [#8758](https://github.com/habitat-sh/habitat/pull/8758) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.677 -->
 - Bump actix-rt from 2.7.0 to 2.8.0 [#8759](https://github.com/habitat-sh/habitat/pull/8759) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.676 -->
 - Bump native-tls from 0.2.10 to 0.2.11 [#8757](https://github.com/habitat-sh/habitat/pull/8757) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.675 -->
