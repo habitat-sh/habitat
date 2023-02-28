@@ -844,7 +844,11 @@ echo "The message is Hola Mundo"
     /// back a RenderContext. It may be possible, or we may want to
     /// refactor that code to make it possible. In the meantime, copy
     /// and paste of the code is how we're going to do it :(
+
     #[tokio::test]
+    // Skip test as it expects builder package on linux-aarch64,
+    // should be re-enabled once that happens
+    #[cfg(not(all(target_os = "linux", target_arch = "aarch64")))]
     async fn compile_and_run_a_hook() {
         let service_group = service_group();
         let concrete_path = rendered_hooks_path();

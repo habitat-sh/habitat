@@ -1130,6 +1130,9 @@ mod test {
     }
 
     #[tokio::test]
+    // Skip test as it expects builder package on linux-aarch64,
+    // should be re-enabled once that happens
+    #[cfg(not(all(target_os = "linux", target_arch = "aarch64")))]
     async fn test_compile_recursive_config_dir() {
         let root = TempDir::new().expect("create temp dir").into_path();
 
