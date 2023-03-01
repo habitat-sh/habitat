@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.679 -->
-## [1.6.679](https://github.com/habitat-sh/habitat/tree/1.6.679) (2023-02-28)
+<!-- latest_release 1.6.680 -->
+## [1.6.680](https://github.com/habitat-sh/habitat/tree/1.6.680) (2023-03-01)
 
 #### Merged Pull Requests
-- Bump tempfile from 3.2.0 to 3.4.0 [#8761](https://github.com/habitat-sh/habitat/pull/8761) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump prost-build from 0.11.7 to 0.11.8 [#8763](https://github.com/habitat-sh/habitat/pull/8763) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump prost-build from 0.11.7 to 0.11.8 [#8763](https://github.com/habitat-sh/habitat/pull/8763) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.680 -->
 - Bump tempfile from 3.2.0 to 3.4.0 [#8761](https://github.com/habitat-sh/habitat/pull/8761) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.679 -->
 - Bump tar from 0.4.36 to 0.4.38 [#8762](https://github.com/habitat-sh/habitat/pull/8762) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.678 -->
 - Bump errno from 0.2.7 to 0.3.0 [#8758](https://github.com/habitat-sh/habitat/pull/8758) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.677 -->
