@@ -269,7 +269,7 @@ impl RollingUpdateWorker {
             FollowerUpdateStartEvent::PromotedToLeader => {
                 return FollowerUpdateTurnEvent::PromotedToLeader
             }
-            FollowerUpdateStartEvent::UpdateTo(ident) => (ident),
+            FollowerUpdateStartEvent::UpdateTo(ident) => ident,
         };
         loop {
             {

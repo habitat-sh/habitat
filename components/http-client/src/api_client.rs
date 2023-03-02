@@ -92,7 +92,7 @@ impl ApiClient {
         client =
             habitat_core::tls::native_tls_wrapper::certificates_as_der(fs_root_path)?
                                        .into_iter()
-                                       .map(|raw| ReqwestCertificate::from_der(&*raw))
+                                       .map(|raw| ReqwestCertificate::from_der(&raw))
                                        .collect::<std::result::Result<Vec<_>, _>>()?
                                        .into_iter()
                                        .fold(client, |client, cert| {

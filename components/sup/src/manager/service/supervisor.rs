@@ -127,7 +127,7 @@ impl Supervisor {
                            if self.pid_source == ServicePidSource::Files {
                                read_pid(&self.pid_file)
                            } else {
-                               match launcher.pid_of(&self.service_group.to_string()) {
+                               match launcher.pid_of(&self.service_group) {
                                    Ok(maybe_pid) => maybe_pid,
                                    Err(err) => {
                                        error!("Error getting pid from launcher: {:#}",

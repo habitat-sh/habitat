@@ -22,7 +22,7 @@ impl HelperDef for EachAliveHelper {
             let local_path_root = value.path_root()
                                        .map(|p| format!("{}/{}", rc.get_path(), p));
             let rendered = match (value.value().is_truthy(), value.value()) {
-                (true, &Json::Array(ref list)) => {
+                (true, Json::Array(list)) => {
                     let alive_members: Vec<Json> = list.iter()
                                                        .filter_map(|m| {
                                                            m.as_object().and_then(|m| {
@@ -55,7 +55,7 @@ impl HelperDef for EachAliveHelper {
                     }
                     Ok(())
                 }
-                (true, &Json::Object(ref obj)) => {
+                (true, Json::Object(obj)) => {
                     let mut first: bool = true;
                     if !obj.contains_key("alive") || !obj["alive"].as_bool().unwrap() {
                         return Ok(());

@@ -286,7 +286,7 @@ impl Child {
                    stderr: pipes.stderr.map(ChildStderr::from_inner), })
     }
 
-    pub fn id(&self) -> u32 { unsafe { processthreadsapi::GetProcessId(self.handle.raw()) as u32 } }
+    pub fn id(&self) -> u32 { unsafe { processthreadsapi::GetProcessId(self.handle.raw()) } }
 
     pub fn kill(&mut self) -> io::Result<()> {
         cvt(unsafe { processthreadsapi::TerminateProcess(self.handle.raw(), 1) })?;

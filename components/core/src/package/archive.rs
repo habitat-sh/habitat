@@ -532,7 +532,7 @@ mod test {
         "ldflags": null,
         "cflags": null
               });
-        let actual = serde_json::to_value(&info).unwrap();
+        let actual = serde_json::to_value(info).unwrap();
         assert_eq!(actual, expected);
     }
 

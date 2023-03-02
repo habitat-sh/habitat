@@ -368,7 +368,7 @@ impl DatFile {
     {
         let mut bytes_read = 0;
         let mut size_buf = [0; 8];
-        let mut rumor_buf: Vec<u8> = vec![];
+        let mut rumor_buf: Vec<u8> = vec![0; 8];
 
         loop {
             if bytes_read >= offset {

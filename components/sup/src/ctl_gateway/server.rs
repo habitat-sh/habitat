@@ -134,9 +134,10 @@ pub struct CtlCommand {
     //
     // https://github.com/rust-lang/rust/issues/28796
     //
-    // This is now possible see https://github.com/habitat-sh/habitat/issues/6832
+    // TODO: This is now possible see https://github.com/habitat-sh/habitat/issues/6832
     // We held off on making the change to reduce the risk of a regression and to lump it in with
     // more general Future refactoring.
+    #[allow(clippy::type_complexity)]
     fun:     Box<dyn Fn(&ManagerState, &mut CtlRequest, ActionSender) -> NetResult<()> + Send>,
 }
 

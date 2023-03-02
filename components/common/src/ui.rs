@@ -519,7 +519,7 @@ impl UIWriter for UI {
 
     fn progress(&self) -> Option<Box<dyn DisplayProgress>> {
         if self.is_out_a_terminal() {
-            Some(Box::new(Self::ProgressBar::default()))
+            Some(Box::<Self::ProgressBar>::default())
         } else {
             None
         }

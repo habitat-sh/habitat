@@ -83,7 +83,7 @@ fn populate_cache(cache_path: &Path) -> Result<()> {
     if !cached_certs.exists() {
         debug!("Adding embedded cert file to Habitat SSL cache path {} as fallback",
                cached_certs.display());
-        fs::create_dir_all(&cache_path)?;
+        fs::create_dir_all(cache_path)?;
         fs::write(cached_certs, CACERT_PEM)?;
     }
     Ok(())

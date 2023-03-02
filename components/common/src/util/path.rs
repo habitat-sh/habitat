@@ -101,7 +101,7 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
                                                      &(ident.clone(),
                                                        PackageTarget::active_target())
                                                                                       .into(),
-                                                     &*PROGRAM_NAME,
+                                                     &PROGRAM_NAME,
                                                      VERSION,
                                                      FS_ROOT_PATH.as_path(),
                                                      &cache_artifact_path(None::<String>),

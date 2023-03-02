@@ -10,7 +10,7 @@ pub async fn start(st: &str, bldr_url: &str, limit: usize, token: Option<&str>) 
         0 => eprintln!("No packages found that match '{}'", st),
         _ => {
             for p in &packages {
-                if let (&Some(ref version), &Some(ref release)) = (&p.version, &p.release) {
+                if let (Some(version), Some(release)) = (&p.version, &p.release) {
                     println!("{}/{}/{}/{}", p.origin, p.name, version, release);
                 } else {
                     println!("{}/{}", p.origin, p.name);

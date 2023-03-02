@@ -175,7 +175,7 @@ impl fmt::Display for MetaFile {
 pub fn read_metafile<P: AsRef<Path>>(installed_path: P, file: MetaFile) -> Result<String> {
     match existing_metafile(installed_path, file) {
         Some(filepath) => {
-            match File::open(&filepath) {
+            match File::open(filepath) {
                 Ok(mut f) => {
                     let mut data = String::new();
                     if f.read_to_string(&mut data).is_err() {

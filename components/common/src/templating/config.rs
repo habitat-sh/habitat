@@ -198,7 +198,7 @@ impl Cfg {
     /// exports.
     pub fn to_exported(&self, pkg: &Pkg) -> Result<toml::value::Table> {
         let mut map = toml::value::Table::default();
-        let cfg = toml::Value::try_from(&self).expect("Cfg -> TOML conversion");
+        let cfg = toml::Value::try_from(self).expect("Cfg -> TOML conversion");
         for (key, path) in pkg.exports.iter() {
             let mut curr = &cfg;
             let mut found = false;
@@ -229,7 +229,7 @@ impl Cfg {
               T2: AsRef<Path>
     {
         let filename = file.as_ref();
-        let path = dir.as_ref().join(&filename);
+        let path = dir.as_ref().join(filename);
         let mut file = match File::open(&path) {
             Ok(file) => file,
             Err(e) => {
@@ -429,7 +429,7 @@ impl CfgRenderer {
         for template in self.0.get_templates().keys() {
             let compiled = self.0.render(template, ctx)?;
             let compiled_hash = Blake2bHash::from_bytes(&compiled);
-            let cfg_dest = render_path.as_ref().join(&template);
+            let cfg_dest = render_path.as_ref().join(template);
             let file_hash = match Blake2bHash::from_file(&cfg_dest) {
                 Ok(file_hash) => Some(file_hash),
                 Err(e) => {
@@ -536,7 +536,7 @@ fn set_permissions(path: &Path, user: &str, group: &str) -> hcore::error::Result
     } else {
         CONFIG_PERMISSIONS
     };
-    posix_perm::set_permissions(&path, permissions)
+    posix_perm::set_permissions(path, permissions)
 }
 
 #[cfg(windows)]
@@ -585,12 +585,12 @@ fn ensure_directory_structure(root: &Path, file: &Path, user: &str, group: &str)
     // that `root` exists, so that we don't create arbitrary directory
     // structures on disk
     assert!(root.is_dir());
-    assert!(file.starts_with(&root));
+    assert!(file.starts_with(root));
 
     let dir = file.parent().unwrap();
 
     if !dir.exists() {
-        std::fs::create_dir_all(&dir)?;
+        std::fs::create_dir_all(dir)?;
         for anc in dir.ancestors().take_while(|&d| d != root) {
             set_permissions(anc, user, group)?;
         }
@@ -967,7 +967,7 @@ mod test {
                                                     package_name: &str,
                                                     input_config: &str,
                                                     expected_config_as_toml: &str) {
-        env::set_var(env_key, &input_config);
+        env::set_var(env_key, input_config);
 
         let expected = toml_from_str(expected_config_as_toml);
         let result = Cfg::load_environment(package_name);
@@ -1006,7 +1006,7 @@ mod test {
         let key = "HAB_TESTING_TRASH";
         let config = "{\"port: 1234 what even is this!!!!?! =";
 
-        env::set_var(key, &config);
+        env::set_var(key, config);
 
         let result = Cfg::load_environment("testing-trash");
 

@@ -123,7 +123,7 @@ pub enum Error {
     /// Occurs when a call to OpenDesktopW fails
     OpenDesktopFailed(String),
     /// Occurs when a suitable installed package cannot be found.
-    PackageNotFound(package::PackageIdent),
+    PackageNotFound(Box<package::PackageIdent>),
     /// Occurs where trying to unpack a package
     PackageUnpackFailed(String),
     /// When an error occurs parsing an integer.

@@ -64,24 +64,24 @@ impl Engine for BuildahEngine {
     /// `buildah images -q mycompany/coolapp`
     fn image_id_command(&self, image_reference: &str) -> Command {
         let mut cmd = Command::new(&self.binary);
-        cmd.args(&["images", "-q", image_reference]);
+        cmd.args(["images", "-q", image_reference]);
         cmd
     }
 
     /// `buildah rmi mycompany/coolapp`
     fn image_removal_command(&self, image_reference: &str) -> Command {
         let mut cmd = Command::new(&self.binary);
-        cmd.args(&["rmi", image_reference]);
+        cmd.args(["rmi", image_reference]);
         cmd
     }
 
     /// `buildah push --authfile=/path/to/local/config.json push mycompany/mycoolapp`
     fn image_push_command(&self, image_reference: &str, config_dir: &Path) -> Command {
         let mut cmd = Command::new(&self.binary);
-        cmd.args(&["push",
-                   "--authfile",
-                   &config_dir.join("config.json").to_string_lossy(),
-                   image_reference]);
+        cmd.args(["push",
+                  "--authfile",
+                  &config_dir.join("config.json").to_string_lossy(),
+                  image_reference]);
         cmd
     }
 
@@ -105,7 +105,7 @@ impl Engine for BuildahEngine {
         // (This is only really a problem when *pushing* images, but
         // since DockerHub is the 800 lb gorilla, we'll defer to it
         // for now.)
-        cmd.args(&["--format", "docker"]);
+        cmd.args(["--format", "docker"]);
 
         // Have to override the policy file location because we don't
         // control /etc/containers/policy.json
@@ -116,7 +116,7 @@ impl Engine for BuildahEngine {
             cmd.arg("--memory").arg(mem);
         }
         for tag in tags {
-            cmd.arg("--tag").arg(&tag);
+            cmd.arg("--tag").arg(tag);
         }
         cmd.arg(".");
         cmd

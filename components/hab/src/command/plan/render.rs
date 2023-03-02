@@ -37,7 +37,7 @@ pub fn start(ui: &mut UI,
     }
 
     // read our template from file
-    let template = read_to_string(&template_path)?;
+    let template = read_to_string(template_path)?;
 
     // create a "data" json struct
     let mut data = json!({});
@@ -49,7 +49,7 @@ pub fn start(ui: &mut UI,
 
     // we should always have a default.toml, would be nice to "autodiscover" based on package name,
     // for now assume we're working in the plan dir if --default-toml not passed
-    let default_toml = read_to_string(&default_toml_path)?;
+    let default_toml = read_to_string(default_toml_path)?;
 
     // merge default into data struct
     merge(&mut data, toml_to_json(&default_toml)?);
@@ -144,7 +144,7 @@ fn create_with_template(ui: &mut UI,
                         template: &str,
                         quiet: bool)
                         -> Result<()> {
-    let path = Path::new(&render_dir).join(&file_name);
+    let path = Path::new(&render_dir).join(file_name);
     if !quiet {
         ui.status(Status::Creating, format!("file: {}", path.display()))?;
     }

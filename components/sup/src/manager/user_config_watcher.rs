@@ -343,7 +343,7 @@ mod tests {
 
         ucm.add(&service).expect("adding service");
         assert!(wait_for_watcher(&ucm, &service));
-        let mut file = File::create(&file_path).expect("creating file");
+        let mut file = File::create(file_path).expect("creating file");
 
         file.write_all(b"42").expect(USER_CONFIG_FILE);
 
@@ -361,7 +361,7 @@ mod tests {
 
         ucm.add(&service).expect("adding service");
         assert!(wait_for_watcher(&ucm, &service));
-        let mut file = File::create(&file_path).expect("creating file");
+        let mut file = File::create(file_path).expect("creating file");
 
         file.write_all(b"42").expect(USER_CONFIG_FILE);
 

@@ -81,6 +81,6 @@ impl Client {
     {
         let bytes = rumor.write_to_bytes()?;
         let wire_msg = message::generate_wire(bytes, self.ring_key.as_ref())?;
-        self.socket.send(&wire_msg, 0).map_err(Error::ZmqSendError)
+        self.socket.send(wire_msg, 0).map_err(Error::ZmqSendError)
     }
 }

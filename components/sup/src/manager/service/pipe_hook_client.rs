@@ -271,11 +271,11 @@ impl Drop for PipeHookClient {
 fn stream_output<T>(out: T, log_file: &Path, preamble_str: &str)
     where T: Read
 {
-    File::create(&log_file).unwrap_or_else(|_| {
-                               panic!("{}: couldn't create log output file {}",
-                                      preamble_str,
-                                      &log_file.to_string_lossy())
-                           });
+    File::create(log_file).unwrap_or_else(|_| {
+                              panic!("{}: couldn't create log output file {}",
+                                     preamble_str,
+                                     &log_file.to_string_lossy())
+                          });
 
     for line in BufReader::new(out).lines_lossy().flatten() {
         outputln!(preamble preamble_str, &line);
@@ -284,7 +284,7 @@ fn stream_output<T>(out: T, log_file: &Path, preamble_str: &str)
         // truncate the log on each hook execution so that the log only
         // holds the output of the last run. This mimics the behavior of
         // the HookOutput streaming.
-        match OpenOptions::new().write(true).append(true).open(&log_file) {
+        match OpenOptions::new().write(true).append(true).open(log_file) {
             Ok(mut log) => {
                 if let Err(e) = writeln!(log, "{}", line) {
                     outputln!(preamble preamble_str, "couldn't write line. {}", e);
@@ -336,7 +336,7 @@ mod test {
     #[tokio::test]
     async fn pipe_hook_client_exec_hook_returns_exit_status() {
         let var = pipe_service_path();
-        var.set(&named_pipe_service_ps1());
+        var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "exit 5000");
@@ -355,7 +355,7 @@ mod test {
     #[tokio::test]
     async fn pipe_hook_client_exec_hook_returns_exit_status_when_no_exit_in_script() {
         let var = pipe_service_path();
-        var.set(&named_pipe_service_ps1());
+        var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "write-host 'no exit here'");
@@ -374,7 +374,7 @@ mod test {
     #[tokio::test]
     async fn pipe_hook_client_exec_hook_logs_stdout() {
         let var = pipe_service_path();
-        var.set(&named_pipe_service_ps1());
+        var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "Write-Host 'you are my sunshine'");
@@ -396,7 +396,7 @@ mod test {
     #[tokio::test]
     async fn pipe_hook_client_exec_hook_logs_stderr() {
         let var = pipe_service_path();
-        var.set(&named_pipe_service_ps1());
+        var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "Write-Error 'you are not my sunshine'");
@@ -418,7 +418,7 @@ mod test {
     #[tokio::test]
     async fn pipe_hook_client_exec_hook_shares_server_accross_calls() {
         let var = pipe_service_path();
-        var.set(&named_pipe_service_ps1());
+        var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "exit $PID");
@@ -508,7 +508,7 @@ mod test {
     #[tokio::test]
     async fn pipe_hook_client_exec_hook_starts_new_service_if_current_instance_exits() {
         let var = pipe_service_path();
-        var.set(&named_pipe_service_ps1());
+        var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "exit $PID");
@@ -535,7 +535,7 @@ mod test {
     #[tokio::test]
     async fn pipe_hook_client_exec_hook_restores_environment() {
         let var = pipe_service_path();
-        var.set(&named_pipe_service_ps1());
+        var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
         create_with_content(&path,
@@ -558,7 +558,7 @@ mod test {
     #[tokio::test]
     async fn pipe_hook_client_drop_quits_service() {
         let var = pipe_service_path();
-        var.set(&named_pipe_service_ps1());
+        var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "exit $PID");
@@ -583,7 +583,7 @@ mod test {
     #[tokio::test]
     async fn pipe_hook_client_exec_hook_will_return_3_if_hook_throws_exception() {
         let var = pipe_service_path();
-        var.set(&named_pipe_service_ps1());
+        var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "throw 'an exception'");
@@ -602,7 +602,7 @@ mod test {
     #[tokio::test]
     async fn pipe_hook_client_exec_hook_clears_stdout_log() {
         let var = pipe_service_path();
-        var.set(&named_pipe_service_ps1());
+        var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "write-host 'you should only see me once in the log'");
@@ -627,7 +627,7 @@ mod test {
     #[tokio::test]
     async fn pipe_hook_client_exec_hook_clears_stderr_log() {
         let var = pipe_service_path();
-        var.set(&named_pipe_service_ps1());
+        var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "write-error 'I am the only error'");
@@ -653,7 +653,7 @@ mod test {
     #[tokio::test]
     async fn pipe_hook_client_exec_hook_passes_pid() {
         let var = pipe_service_path();
-        var.set(&named_pipe_service_ps1());
+        var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "exit $ParentPID");

@@ -84,8 +84,8 @@ pub trait Hook: fmt::Debug + Sized + Send {
         } else {
             None
         };
-        let concrete = concrete_path.as_ref().join(&file_name);
-        let template = template_path.as_ref().join(&file_name);
+        let concrete = concrete_path.as_ref().join(file_name);
+        let template = template_path.as_ref().join(file_name);
         let deprecated_template = deprecated_file_name.as_ref()
                                                       .map(|n| template_path.as_ref().join(n));
 
@@ -120,7 +120,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
                    template.display());
             return None;
         };
-        match RenderPair::new(concrete, &template_to_use, Self::FILE_NAME) {
+        match RenderPair::new(concrete, template_to_use, Self::FILE_NAME) {
             Ok(pair) => Some(Self::new(package_name, pair, feature_flags)),
             Err(err) => {
                 outputln!(preamble package_name, "Failed to load hook: {}", err);
@@ -274,11 +274,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
         Ok(cmd.spawn()?)
     }
 
-    fn handle_exit<'a>(&self,
-                       pkg: &Pkg,
-                       output: &'a HookOutput,
-                       status: ExitStatus)
-                       -> Self::ExitValue;
+    fn handle_exit(&self, pkg: &Pkg, output: &HookOutput, status: ExitStatus) -> Self::ExitValue;
 
     /// Return true if this hook should be retried provided the exit value of the previous run.
     fn should_retry(_exit_value: &Self::ExitValue) -> bool { false }
@@ -377,7 +373,7 @@ impl Hook for InstallHook {
                       stderr_log_path: stderr_log_path::<Self>(package_name), }
     }
 
-    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
+    fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
         let name = &pkg.name;
         if let Some(code) = status.code() {
             let path = pkg.path.join(InstallHook::STATUS_FILE);
@@ -447,7 +443,7 @@ impl Hook for UninstallHook {
                         stderr_log_path: stderr_log_path::<Self>(package_name), }
     }
 
-    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
+    fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
         let name = &pkg.name;
         match status.code() {
             Some(code) if !status.success() => {
@@ -494,7 +490,7 @@ fn hash_content<T>(path: T) -> Result<Option<Blake2bHash>>
 fn write_hook<T>(content: &str, path: T) -> Result<bool>
     where T: AsRef<Path>
 {
-    let content_hash = Blake2bHash::from_bytes(&content);
+    let content_hash = Blake2bHash::from_bytes(content);
     let existing_hash = hash_content(path.as_ref())?;
     if let Some(existing_hash) = existing_hash {
         if existing_hash == content_hash {
@@ -555,7 +551,7 @@ impl<'a> HookOutput<'a> {
     }
 
     pub fn stdout(&self) -> Result<BufReader<File>> {
-        Ok(BufReader::new(File::open(&self.stdout_log_file)?))
+        Ok(BufReader::new(File::open(self.stdout_log_file)?))
     }
 
     pub fn stdout_str(&self) -> Result<String> {
@@ -567,7 +563,7 @@ impl<'a> HookOutput<'a> {
     }
 
     pub fn stderr(&self) -> Result<BufReader<File>> {
-        Ok(BufReader::new(File::open(&self.stderr_log_file)?))
+        Ok(BufReader::new(File::open(self.stderr_log_file)?))
     }
 
     pub fn stderr_str(&self) -> Result<String> {
@@ -691,7 +687,7 @@ mod tests {
 
         let hook = InstallHook::load(&service_group,
                                      &concrete_path,
-                                     &template_path,
+                                     template_path,
                                      FeatureFlag::empty()).expect("Could not create testing \
                                                                    install hook");
 
@@ -713,7 +709,7 @@ echo "The message is Hello World"
         let template_path = hook_templates_path();
         let hook = InstallHook::load(&service_group,
                                      &concrete_path,
-                                     &template_path,
+                                     template_path,
                                      FeatureFlag::empty()).expect("Could not create testing \
                                                                    install hook");
 
@@ -728,7 +724,7 @@ echo "The message is Hello World"
 
         let hook = InstallHook::load(&service_group,
                                      &concrete_path,
-                                     &template_path,
+                                     template_path,
                                      FeatureFlag::empty()).expect("Could not create testing \
                                                                    install hook");
 
@@ -761,7 +757,7 @@ echo "The message is Hello World"
 
         let hook = InstallHook::load(&service_group,
                                      &concrete_path,
-                                     &template_path,
+                                     template_path,
                                      FeatureFlag::empty()).expect("Could not create testing \
                                                                    install hook");
 
@@ -791,7 +787,7 @@ echo "The message is Hello World"
 
         let hook = InstallHook::load(&service_group,
                                      &concrete_path,
-                                     &template_path,
+                                     template_path,
                                      FeatureFlag::empty()).expect("Could not create testing \
                                                                    install hook");
 

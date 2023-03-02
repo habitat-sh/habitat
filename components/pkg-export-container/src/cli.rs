@@ -15,7 +15,7 @@ const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 /// Create the Clap CLI for the container exporter
 pub fn cli<'a, 'b>() -> App<'a, 'b> {
-    let name: &str = &*PROGRAM_NAME;
+    let name: &str = &PROGRAM_NAME;
     let about = "Creates a container image from a set of Habitat packages (and optionally pushes \
                  to a remote repository)";
 
