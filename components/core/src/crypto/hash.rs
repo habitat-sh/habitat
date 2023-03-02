@@ -178,7 +178,7 @@ mod tests {
         let message = [0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8, 9u8];
         let expected =
             hash_from_hex("8b57a796a5d07cb04cc1614dfc2acb3f73edc712d7f433619ca3bbe66bb15f49");
-        let actual = Blake2bHash::from_bytes(&message);
+        let actual = Blake2bHash::from_bytes(message);
 
         assert_eq!(expected, actual);
     }
@@ -189,18 +189,18 @@ mod tests {
         // https://github.com/dchest/b2sum using the the `-s=32` option. For example:
         //      b2sum -s=32 signme.dat
 
-        let computed = Blake2bHash::from_file(&fixture("signme.dat")).unwrap();
+        let computed = Blake2bHash::from_file(fixture("signme.dat")).unwrap();
         let expected =
             hash_from_hex("20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233");
         assert_eq!(computed, expected);
 
         let computed =
-            Blake2bHash::from_file(&fixture("happyhumans-20160424223347.sig.key")).unwrap();
+            Blake2bHash::from_file(fixture("happyhumans-20160424223347.sig.key")).unwrap();
         let expected =
             hash_from_hex("e966844bbc50b7a3a6d81e94dd38e27b92814b944095a8e55f1780921bfcfbe1");
         assert_eq!(computed, expected);
 
-        let computed = Blake2bHash::from_file(&fixture("happyhumans-20160424223347.pub")).unwrap();
+        let computed = Blake2bHash::from_file(fixture("happyhumans-20160424223347.pub")).unwrap();
         let expected =
             hash_from_hex("b80c4f412f9a0a7727b6e6f115e1b5fa3bae79ad2fcf47f769ed4e42cfb12265");
         assert_eq!(computed, expected);

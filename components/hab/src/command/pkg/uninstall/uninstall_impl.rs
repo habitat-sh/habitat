@@ -265,7 +265,7 @@ fn launcher_is_running(fs_root_path: &Path) -> bool {
 }
 
 async fn supervisor_services() -> Result<Vec<PackageIdent>> {
-    if !launcher_is_running(&*FS_ROOT_PATH) {
+    if !launcher_is_running(&FS_ROOT_PATH) {
         return Ok(vec![]);
     }
 
@@ -355,11 +355,11 @@ async fn maybe_delete<U>(ui: &mut U,
 
     match strategy {
         ExecutionStrategy::DryRun => {
-            ui.status(Status::DryRunDeleting, &ident)?;
+            ui.status(Status::DryRunDeleting, ident)?;
             Ok(false)
         }
         ExecutionStrategy::Run => {
-            ui.status(Status::Deleting, &ident)?;
+            ui.status(Status::Deleting, ident)?;
             if uninstall_hook_mode == UninstallHookMode::Run {
                 maybe_run_uninstall_hook(ui, install).await?;
             }
@@ -407,7 +407,7 @@ fn do_clean_delete(pkg_root_path: &Path, real_install_path: &Path) -> Result<boo
         Some(real_install_base) => {
             let temp_install_path = temp_package_directory(real_install_path)?.path()
                                                                               .to_path_buf();
-            fs::rename(&real_install_path, &temp_install_path)?;
+            fs::rename(real_install_path, &temp_install_path)?;
             fs::remove_dir_all(&temp_install_path)?;
 
             for p in real_install_base.ancestors() {
@@ -419,7 +419,7 @@ fn do_clean_delete(pkg_root_path: &Path, real_install_path: &Path) -> Result<boo
                     Ok(contents) => {
                         // This will calculate the amount of items in the directory
                         match contents.count() {
-                            0 => fs::remove_dir(&p)?,
+                            0 => fs::remove_dir(p)?,
                             _ => break,
                         }
                     }

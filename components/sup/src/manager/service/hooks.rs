@@ -71,7 +71,7 @@ impl Hook for FileUpdatedHook {
                           stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
-    fn handle_exit<'a>(&self, _: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
+    fn handle_exit(&self, _: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
         status.success()
     }
 
@@ -157,11 +157,11 @@ impl Hook for HealthCheckHook {
         }
     }
 
-    fn handle_exit<'a>(&self,
-                       pkg: &Pkg,
-                       hook_output: &'a HookOutput,
-                       status: ExitStatus)
-                       -> Self::ExitValue {
+    fn handle_exit(&self,
+                   pkg: &Pkg,
+                   hook_output: &HookOutput,
+                   status: ExitStatus)
+                   -> Self::ExitValue {
         if status.code().is_none() {
             Self::output_termination_message(&pkg.name, status);
         }
@@ -195,7 +195,7 @@ impl Hook for InitHook {
                    stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
-    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
+    fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
         let pkg_name = &pkg.name;
         match status.code() {
             Some(0) => true,
@@ -246,7 +246,7 @@ impl Hook for RunHook {
                 run by the Supervisor module!");
     }
 
-    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
+    fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
@@ -283,7 +283,7 @@ impl Hook for PostRunHook {
                       stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
-    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
+    fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
@@ -326,7 +326,7 @@ impl Hook for ReloadHook {
                      stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
-    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
+    fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
         let pkg_name = &pkg.name;
         match status.code() {
             Some(0) => ExitCode(0),
@@ -369,7 +369,7 @@ impl Hook for ReconfigureHook {
                           stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
-    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
+    fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
@@ -433,11 +433,11 @@ impl Hook for SuitabilityHook {
                           stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
-    fn handle_exit<'a>(&self,
-                       pkg: &Pkg,
-                       hook_output: &'a HookOutput,
-                       status: ExitStatus)
-                       -> Self::ExitValue {
+    fn handle_exit(&self,
+                   pkg: &Pkg,
+                   hook_output: &HookOutput,
+                   status: ExitStatus)
+                   -> Self::ExitValue {
         let pkg_name = &pkg.name;
         match status.code() {
             Some(0) => {
@@ -489,7 +489,7 @@ impl Hook for PostStopHook {
                        stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
-    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
+    fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
         let pkg_name = &pkg.name;
         match status.code() {
             Some(0) => true,
@@ -852,16 +852,16 @@ mod tests {
         assert!(hook_table.compile(&service_group, &ctx).changed());
 
         // Verify init hook
-        let init_hook_content = file_content(&hook_table.init
-                                                        .as_ref()
-                                                        .map(convert::AsRef::as_ref)
-                                                        .expect("no init hook??"));
+        let init_hook_content = file_content(hook_table.init
+                                                       .as_ref()
+                                                       .map(convert::AsRef::as_ref)
+                                                       .expect("no init hook??"));
         let expected_init_hook = "#!/bin/bash\n\necho \"The message is Hello\"\n";
         let expected_run_hook = "#!/bin/bash\n\necho \"Running a program\"\n";
         assert_eq!(init_hook_content, expected_init_hook);
 
         // Verify run hook
-        let run_hook_content = file_content(&hook_table.run.as_ref().expect("no run hook??"));
+        let run_hook_content = file_content(hook_table.run.as_ref().expect("no run hook??"));
         assert_eq!(run_hook_content, expected_run_hook);
 
         // Recompiling again results in no changes
@@ -875,7 +875,7 @@ mod tests {
         assert_eq!(init_hook_content, expected_init_hook);
 
         // Re-Verify run hook
-        let run_hook_content = file_content(&hook_table.run.as_ref().expect("no run hook??"));
+        let run_hook_content = file_content(hook_table.run.as_ref().expect("no run hook??"));
         assert_eq!(run_hook_content, expected_run_hook);
     }
 
@@ -916,7 +916,7 @@ mod tests {
         let tmp_root = rendered_hooks_path().into_path();
         let hooks_path = tmp_root.clone().join("hooks");
         fs::create_dir_all(&hooks_path).unwrap();
-        fs::create_dir_all(svc_logs_path(&service_group.service())).unwrap();
+        fs::create_dir_all(svc_logs_path(service_group.service())).unwrap();
         let concrete_path = hooks_path.clone();
         let template_path = hook_templates_path();
 
@@ -962,7 +962,7 @@ mod tests {
         let tmp_root = rendered_hooks_path().into_path();
         let hooks_path = tmp_root.clone().join("hooks");
         fs::create_dir_all(&hooks_path).unwrap();
-        fs::create_dir_all(svc_logs_path(&service_group.service())).unwrap();
+        fs::create_dir_all(svc_logs_path(service_group.service())).unwrap();
         let concrete_path = hooks_path.clone();
         let template_path = hook_templates_path();
         let mut flags = FeatureFlag::empty();

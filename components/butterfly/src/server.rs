@@ -748,7 +748,7 @@ impl Server {
                     rumor_heat.lock_rhw().purge(member_id_to_depart);
                     rumor_heat.lock_rhw()
                               .start_hot_rumor(RumorKey::new(RumorType::Member,
-                                                             &*member_id_to_depart,
+                                                             member_id_to_depart,
                                                              ""));
                 }
             }

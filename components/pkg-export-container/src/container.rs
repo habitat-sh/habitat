@@ -180,7 +180,7 @@ impl BuildContext {
         {
             let file = "etc/passwd";
             let mut f = OpenOptions::new().append(true)
-                                          .open(ctx.rootfs().join(&file))?;
+                                          .open(ctx.rootfs().join(file))?;
             for user in users {
                 ui.status(Status::Creating,
                           format!("user '{}' in /{}", user.name, &file))?;
@@ -190,7 +190,7 @@ impl BuildContext {
         {
             let file = "etc/group";
             let mut f = OpenOptions::new().append(true)
-                                          .open(ctx.rootfs().join(&file))?;
+                                          .open(ctx.rootfs().join(file))?;
             for group in groups {
                 ui.status(Status::Creating,
                           format!("group '{}' in /{}", group.name, &file))?;

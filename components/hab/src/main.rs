@@ -868,7 +868,7 @@ fn sub_pkg_dependencies(m: &ArgMatches<'_>) -> Result<()> {
     } else {
         command::pkg::DependencyRelation::Requires
     };
-    command::pkg::dependencies::start(&ident, scope, direction, &*FS_ROOT_PATH)
+    command::pkg::dependencies::start(&ident, scope, direction, &FS_ROOT_PATH)
 }
 
 async fn sub_pkg_download(ui: &mut UI,
@@ -912,7 +912,7 @@ async fn sub_pkg_download(ui: &mut UI,
 
 fn sub_pkg_env(m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
-    command::pkg::env::start(&ident, &*FS_ROOT_PATH)
+    command::pkg::env::start(&ident, &FS_ROOT_PATH)
 }
 
 fn sub_pkg_hash(m: &ArgMatches<'_>) -> Result<()> {
@@ -956,7 +956,7 @@ async fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
     command::pkg::uninstall::start(ui,
                                    &ident,
-                                   &*FS_ROOT_PATH,
+                                   &FS_ROOT_PATH,
                                    execute_strategy,
                                    mode,
                                    scope,
@@ -1150,8 +1150,8 @@ async fn sub_pkg_install(ui: &mut UI,
                                                      install_source,
                                                      PRODUCT,
                                                      VERSION,
-                                                     &*FS_ROOT_PATH,
-                                                     &cache_artifact_path(Some(&*FS_ROOT_PATH)),
+                                                     &FS_ROOT_PATH,
+                                                     &cache_artifact_path(Some(FS_ROOT_PATH.as_path())),
                                                      token.as_deref(),
                                                      &install_mode,
                                                      &local_package_usage,
@@ -1171,7 +1171,7 @@ async fn sub_pkg_install(ui: &mut UI,
 
 fn sub_pkg_path(m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
-    command::pkg::path::start(&ident, &*FS_ROOT_PATH)
+    command::pkg::path::start(&ident, &FS_ROOT_PATH)
 }
 
 fn sub_pkg_list(m: &ArgMatches<'_>) -> Result<()> {
@@ -1186,7 +1186,7 @@ fn sub_pkg_provides(m: &ArgMatches<'_>) -> Result<()> {
     let full_releases = m.is_present("FULL_RELEASES");
     let full_paths = m.is_present("FULL_PATHS");
 
-    command::pkg::provides::start(filename, &*FS_ROOT_PATH, full_releases, full_paths)
+    command::pkg::provides::start(filename, &FS_ROOT_PATH, full_releases, full_paths)
 }
 
 async fn sub_pkg_search(m: &ArgMatches<'_>) -> Result<()> {
@@ -1550,7 +1550,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
                         .map(ToString::to_string)
                         .unwrap_or_else(|| "UKNOWN".to_string()),))?;
     ui.status(Status::Creating, "service file")?;
-    File::open(&file)?.read_to_end(&mut buf)?;
+    File::open(file)?.read_to_end(&mut buf)?;
     match (service_group.org(), user_param_or_env(m)) {
         (Some(_org), Some(username)) => {
             // That Some(_org) bit is really "was an org specified for
@@ -1925,7 +1925,7 @@ fn idents_from_toml_file(ui: &mut UI, filename: &str) -> Result<Vec<PackageSet>>
     ui.status(Status::Using,
               format!("File {}, '{}'",
                       filename,
-                      toml_data.file_descriptor.unwrap_or_else(|| "".to_string())))?;
+                      toml_data.file_descriptor.unwrap_or_default()))?;
 
     for (target, target_array) in toml_data.targets {
         for package_set_value in target_array {

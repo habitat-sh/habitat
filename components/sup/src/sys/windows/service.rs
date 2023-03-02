@@ -55,7 +55,7 @@ impl Process {
                   last_status: None }
     }
 
-    fn id(&self) -> u32 { unsafe { processthreadsapi::GetProcessId(self.handle.raw()) as u32 } }
+    fn id(&self) -> u32 { unsafe { processthreadsapi::GetProcessId(self.handle.raw()) } }
 
     /// Attempt to gracefully terminate a process and then forcefully kill it after
     /// 8 seconds if it has not terminated.

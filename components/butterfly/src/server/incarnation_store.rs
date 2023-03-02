@@ -97,7 +97,7 @@ mod tests {
                 "The path {:?} shouldn't exist, but it does",
                 path);
 
-        let i = IncarnationStore::new(&path);
+        let i = IncarnationStore::new(path);
         assert!(i.load().is_err());
     }
 
@@ -155,13 +155,13 @@ mod tests {
         let tempfile = Temp::new_file().expect("Could not create temp file");
         let path = tempfile.as_ref();
 
-        let mut buffer = File::create(&path).expect("could not create file");
+        let mut buffer = File::create(path).expect("could not create file");
         buffer.write_all(b"this, also, is not a u64")
               .expect("could not write file");
 
         assert!(path.exists());
 
-        let mut i = IncarnationStore::new(&path);
+        let mut i = IncarnationStore::new(path);
         assert!(i.initialize().is_err());
     }
 }

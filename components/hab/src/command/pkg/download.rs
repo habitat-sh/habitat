@@ -408,7 +408,7 @@ impl<'a> DownloadTask<'a> {
         // Otherwise, it might make sense to take this fetch out of the verification code.
         let signer = artifact::artifact_signer(&artifact.path)?;
 
-        let cache = KeyCache::new(&self.path_for_keys());
+        let cache = KeyCache::new(self.path_for_keys());
         cache.setup()?;
 
         if cache.public_signing_key(&signer).is_err() {

@@ -174,7 +174,7 @@ impl Default for Member {
 }
 
 impl From<Member> for RumorKey {
-    fn from(member: Member) -> RumorKey { RumorKey::new(RumorType::Member, &member.id, "") }
+    fn from(member: Member) -> RumorKey { RumorKey::new(RumorType::Member, member.id, "") }
 }
 
 impl<'a> From<&'a Member> for RumorKey {

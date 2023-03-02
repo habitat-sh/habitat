@@ -50,15 +50,15 @@ pub async fn compile_for_package_install(package: &PackageInstall,
     cfg_renderer.compile(&pkg.name, &pkg, &pkg.svc_config_install_path, &ctx)?;
 
     if let Some(ref hook) = InstallHook::load(&pkg.name,
-                                              &fs::svc_hooks_path(&pkg.name),
-                                              &package.installed_path.join("hooks"),
+                                              fs::svc_hooks_path(&pkg.name),
+                                              package.installed_path.join("hooks"),
                                               feature_flags)
     {
         hook.compile(&pkg.name, &ctx)?;
     };
     if let Some(ref hook) = UninstallHook::load(&pkg.name,
-                                                &fs::svc_hooks_path(&pkg.name),
-                                                &package.installed_path.join("hooks"),
+                                                fs::svc_hooks_path(&pkg.name),
+                                                package.installed_path.join("hooks"),
                                                 feature_flags)
     {
         hook.compile(&pkg.name, &ctx)?;
@@ -218,8 +218,8 @@ mod test {
     pub fn toml_to_json(value: toml::Value) -> serde_json::Value {
         match value {
             toml::Value::String(s) => serde_json::Value::String(s),
-            toml::Value::Integer(i) => serde_json::Value::from(i as i64),
-            toml::Value::Float(i) => serde_json::Value::from(i as f64),
+            toml::Value::Integer(i) => serde_json::Value::from(i),
+            toml::Value::Float(i) => serde_json::Value::from(i),
             toml::Value::Boolean(b) => serde_json::Value::Bool(b),
             toml::Value::Datetime(s) => serde_json::Value::String(s.to_string()),
             toml::Value::Array(a) => toml_vec_to_json(a),

@@ -48,7 +48,7 @@ pub fn sign<P1, P2>(src: &P1, dst: &P2, key: &SecretOriginSigningKey) -> Result<
            HART_FORMAT_VERSION,
            key.named_revision(),
            SIG_HASH_TYPE,
-           crate::base64::encode(&signature))?;
+           crate::base64::encode(signature))?;
     let mut file = File::open(src)?;
     io::copy(&mut file, &mut writer)?;
     Ok(())
@@ -389,7 +389,7 @@ mod test {
         #[test]
         fn get_artifact_header_works() {
             let hart_path = fixture("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart");
-            let header = get_artifact_header(&hart_path).unwrap();
+            let header = get_artifact_header(hart_path).unwrap();
 
             assert_eq!(header.format(), "HART-1");
             assert_eq!(header.signer().to_string(), "happyhumans-20160424223347");
@@ -405,7 +405,7 @@ mod test {
         #[test]
         fn get_named_revision_from_artifact() {
             let hart_path = fixture("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart");
-            let signer = artifact_signer(&hart_path).unwrap();
+            let signer = artifact_signer(hart_path).unwrap();
             let expected: NamedRevision = "happyhumans-20160424223347".parse().unwrap();
             assert_eq!(signer, expected);
         }
@@ -417,7 +417,7 @@ mod test {
             // be parsed by `artifact_signer`. It has an invalid
             // signing key identifier.
             let hart_path = fixture("bogus_and_corrupt.hart");
-            artifact_signer(&hart_path).unwrap();
+            artifact_signer(hart_path).unwrap();
         }
     }
 }

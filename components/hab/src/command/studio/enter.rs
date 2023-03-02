@@ -61,9 +61,9 @@ fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
         Some(cert_filename) => cert_filename,
         None => return Err(Error::CacheSslCertError(format!("{:?} is not a file", &cert_file))),
     };
-    let cache_file = cert_cache_dir.join(&cert_filename);
+    let cache_file = cert_cache_dir.join(cert_filename);
 
-    if cache_file.exists() && cert_path.exists() && is_same_file(&cache_file, &cert_path)? {
+    if cache_file.exists() && cert_path.exists() && is_same_file(&cache_file, cert_path)? {
         return Err(Error::CacheSslCertError("Source and destination certificate are the same \
                                              file"
                                                   .to_string()));
@@ -376,11 +376,11 @@ mod tests {
         let cert_name = "ssl-test-cert.pem";
 
         let cert_cache_dir = TempDir::new()?.into_path();
-        let cached_cert = cert_cache_dir.join(&cert_name);
+        let cached_cert = cert_cache_dir.join(cert_name);
         File::create(&cached_cert)?;
 
         let ssl_cert_dir = TempDir::new()?;
-        let ssl_cert_filepath = ssl_cert_dir.path().join(&cert_name);
+        let ssl_cert_filepath = ssl_cert_dir.path().join(cert_name);
         std::fs::write(&ssl_cert_filepath, "new cert from environment")?;
 
         cache_ssl_cert_file(ssl_cert_filepath.to_str().unwrap(), &cert_cache_dir).unwrap();

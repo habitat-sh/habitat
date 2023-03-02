@@ -154,7 +154,7 @@ mod tests {
         where C: Into<String>
     {
         let path = dir.path().join(filename);
-        let mut buffer = File::create(&path)?;
+        let mut buffer = File::create(path)?;
         buffer.write_all(contents.into().as_bytes())
     }
 

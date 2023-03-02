@@ -54,7 +54,7 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
 
     let local_cache_key_path = match henv::var(CACHE_KEY_PATH_ENV_VAR) {
         Ok(val) => PathBuf::from(val),
-        Err(_) => (&*CACHE_KEY_PATH).to_path_buf(),
+        Err(_) => (*CACHE_KEY_PATH).to_path_buf(),
     };
     if !local_cache_key_path.exists() {
         return Err(Error::FileNotFound(format!("{}\nRun `hab setup` to \

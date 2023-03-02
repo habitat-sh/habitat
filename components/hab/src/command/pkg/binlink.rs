@@ -35,7 +35,7 @@ impl Binlink {
         #[cfg(unix)]
         {
             Ok(Binlink { link:   path.to_path_buf(),
-                         target: fs::read_link(&path)?, })
+                         target: fs::read_link(path)?, })
         }
 
         #[cfg(windows)]

@@ -22,7 +22,7 @@ pub fn scaffold_check(ui: &mut UI, maybe_scaffold: Option<&str>) -> Result<Optio
     match maybe_scaffold {
         Some(scaffold) => {
             init()?;
-            match scaffold.to_lowercase().as_ref() {
+            match scaffold.to_lowercase().as_str() {
                 SCAFFOLDING_GO_IDENT | "go" => {
                     let ident = PackageIdent::from_str(SCAFFOLDING_GO_IDENT)?;
                     ui.status(Status::Using, &format!("Go Scaffolding '{}'", ident))?;
@@ -68,25 +68,25 @@ fn autodiscover_scaffolding(ui: &mut UI) -> Result<Option<PackageIdent>> {
     ui.para("No scaffolding type was provided. Let's see if we can figure out what kind of \
              application you're planning to package.")?;
     let current_path = Path::new(".");
-    if is_project_go(&current_path) {
+    if is_project_go(current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_GO_IDENT).unwrap();
         ui.begin("We've detected a Go codebase")?;
         ui.status(Status::Using, &format!("Scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
-    } else if is_project_gradle(&current_path) {
+    } else if is_project_gradle(current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_GRADLE_IDENT).unwrap();
         ui.begin("We've detected a Gradle codebase")?;
         ui.status(Status::Using, &format!("Scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
-    } else if is_project_node(&current_path) {
+    } else if is_project_node(current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_NODE_IDENT).unwrap();
         ui.begin("We've detected a Node.js codebase")?;
         ui.status(Status::Using, &format!("Scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
-    } else if is_project_ruby(&current_path) {
+    } else if is_project_ruby(current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_RUBY_IDENT).unwrap();
         ui.begin("We've detected a Ruby codebase")?;
         ui.status(Status::Using, &format!("Scaffolding package: '{}'", ident))?;

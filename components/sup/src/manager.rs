@@ -355,7 +355,7 @@ impl ManagerConfig {
 
         // JC: This mimics the logic from when we had composites.  But
         // should we check for Err ?
-        ServiceSpec::from_file(&spec_file).ok()
+        ServiceSpec::from_file(spec_file).ok()
     }
 }
 
@@ -713,7 +713,7 @@ impl Manager {
         let cfg_static = cfg.clone();
         let self_updater = if cfg.auto_update {
             if THIS_SUPERVISOR_IDENT.fully_qualified() {
-                Some(SelfUpdater::new(&*THIS_SUPERVISOR_IDENT,
+                Some(SelfUpdater::new(&THIS_SUPERVISOR_IDENT,
                                       cfg.update_url,
                                       cfg.update_channel,
                                       cfg.auto_update_period))
@@ -844,7 +844,7 @@ impl Manager {
     fn clean_dirty_state(fs_cfg: &FsCfg) -> Result<()> {
         let data_path = &fs_cfg.data_path;
         debug!("Cleaning cached health checks");
-        match fs::read_dir(&data_path) {
+        match fs::read_dir(data_path) {
             Ok(entries) => {
                 for entry in entries.flatten() {
                     match entry.path().extension().and_then(OsStr::to_str) {
@@ -866,12 +866,12 @@ impl Manager {
     fn create_state_path_dirs(fs_cfg: &FsCfg) -> Result<()> {
         let data_path = &fs_cfg.data_path;
         debug!("Creating data directory: {}", data_path.display());
-        if let Some(err) = fs::create_dir_all(&data_path).err() {
+        if let Some(err) = fs::create_dir_all(data_path).err() {
             return Err(Error::BadDataPath(data_path.clone(), err));
         }
         let specs_path = &fs_cfg.specs_path;
         debug!("Creating specs directory: {}", specs_path.display());
-        if let Some(err) = fs::create_dir_all(&specs_path).err() {
+        if let Some(err) = fs::create_dir_all(specs_path).err() {
             return Err(Error::BadSpecsPath(specs_path.clone(), err));
         }
 
@@ -1114,12 +1114,12 @@ impl Manager {
             // is possible to have no versions installed if a development build is being run.
             if let Some(latest) = pkg::installed(&*THIS_SUPERVISOR_FUZZY_IDENT) {
                 if *THIS_SUPERVISOR_IDENT == latest.ident {
-                    self.maybe_uninstall_old_packages(&*THIS_SUPERVISOR_FUZZY_IDENT)
+                    self.maybe_uninstall_old_packages(&THIS_SUPERVISOR_FUZZY_IDENT)
                         .await;
                 }
             }
 
-            let &(ref lock, ref cvar) = &*pair;
+            let (lock, cvar) = &*pair;
             let mut started = lock.lock().expect("Control mutex is poisoned");
 
             // This will block the current thread until the HTTP gateway thread either starts

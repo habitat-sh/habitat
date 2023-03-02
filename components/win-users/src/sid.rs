@@ -172,7 +172,7 @@ impl Sid {
             let mut buffer =
                 Vec::<std::mem::MaybeUninit<u8>>::with_capacity(dw_buffer_size as usize);
             buffer.set_len(dw_buffer_size as usize);
-            let p_token_user: PTOKEN_USER = std::mem::transmute_copy(&buffer);
+            let p_token_user = buffer.as_mut_ptr() as PTOKEN_USER;
 
             cvt(GetTokenInformation(token,
                                     TokenUser,
@@ -308,9 +308,9 @@ impl Sid {
                 // TODO JB: fix this clippy
                 #[allow(clippy::cast_ptr_alignment)]
                 let psize_info = &mut *(acl_size_buf.as_mut_ptr() as *mut ACL_SIZE_INFORMATION);
-                size_info.aceCount = (*psize_info).aceCount;
-                size_info.aclBytesInUse = (*psize_info).aclBytesInUse;
-                size_info.aclBytesFree = (*psize_info).aclBytesFree;
+                size_info.aceCount = (psize_info).aceCount;
+                size_info.aclBytesInUse = (psize_info).aclBytesInUse;
+                size_info.aclBytesFree = (psize_info).aclBytesFree;
             }
 
             let psid_length = GetLengthSid(self.raw.as_ptr() as PSID);

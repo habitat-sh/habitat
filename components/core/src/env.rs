@@ -61,16 +61,7 @@ pub fn var<K: AsRef<OsStr>>(key: K) -> std::result::Result<String, VarError> {
 /// }
 /// ```
 pub fn var_os<K: AsRef<OsStr>>(key: K) -> std::option::Option<OsString> {
-    match std::env::var_os(key) {
-        Some(val) => {
-            if val.to_string_lossy().as_ref().is_empty() {
-                None
-            } else {
-                Some(val)
-            }
-        }
-        None => None,
-    }
+    std::env::var_os(key).filter(|val| !val.to_string_lossy().as_ref().is_empty())
 }
 
 /// Declare a struct that implements the `Config` trait with a minimum of boilerplate.

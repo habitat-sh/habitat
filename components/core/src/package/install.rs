@@ -80,10 +80,10 @@ impl PackageInstall {
                                   -> Result<PackageInstall>
         where T: AsRef<Path>
     {
-        let fs_root_path = fs_root_path.map_or(PathBuf::from("/"), |p| p.as_ref().into());
+        let fs_root_path = fs_root_path.map_or_else(|| PathBuf::from("/"), |p| p.as_ref().into());
         let package_root_path = fs::pkg_root_path(Some(&fs_root_path));
         if !package_root_path.exists() {
-            return Err(Error::PackageNotFound(ident.clone()));
+            return Err(Error::PackageNotFound(Box::new(ident.clone())));
         }
 
         let pl = package_list_for_ident(&package_root_path, ident)?;
@@ -95,7 +95,7 @@ impl PackageInstall {
                                     package_root_path,
                                     ident: ident.clone() })
             } else {
-                Err(Error::PackageNotFound(ident.clone()))
+                Err(Error::PackageNotFound(Box::new(ident.clone())))
             }
         } else {
             let latest: Option<PackageIdent> =
@@ -121,7 +121,7 @@ impl PackageInstall {
                                     package_root_path,
                                     ident: id.clone() })
             } else {
-                Err(Error::PackageNotFound(ident.clone()))
+                Err(Error::PackageNotFound(Box::new(ident.clone())))
             }
         }
     }
@@ -135,7 +135,7 @@ impl PackageInstall {
         let original_ident = ident;
         // If the PackageIndent is does not have a version, use a reasonable minimum version that
         // will be satisfied by any installed package with the same origin/name
-        let ident = if None == ident.version {
+        let ident = if ident.version.is_none() {
             PackageIdent::new(ident.origin.clone(),
                               ident.name.clone(),
                               Some("0".into()),
@@ -143,10 +143,10 @@ impl PackageInstall {
         } else {
             ident.clone()
         };
-        let fs_root_path = fs_root_path.map_or(PathBuf::from("/"), |p| p.as_ref().into());
+        let fs_root_path = fs_root_path.map_or_else(|| PathBuf::from("/"), |p| p.as_ref().into());
         let package_root_path = fs::pkg_root_path(Some(&fs_root_path));
         if !package_root_path.exists() {
-            return Err(Error::PackageNotFound(original_ident.clone()));
+            return Err(Error::PackageNotFound(Box::new(original_ident.clone())));
         }
 
         let pl = package_list_for_ident(&package_root_path, original_ident)?;
@@ -177,7 +177,7 @@ impl PackageInstall {
                                     package_root_path,
                                     ident: id.clone() })
             }
-            None => Err(Error::PackageNotFound(original_ident.clone())),
+            None => Err(Error::PackageNotFound(Box::new(original_ident.clone()))),
         }
     }
 
@@ -548,7 +548,7 @@ impl PackageInstall {
         }
     }
 
-    pub fn installed_path(&self) -> &Path { &*self.installed_path }
+    pub fn installed_path(&self) -> &Path { &self.installed_path }
 
     /// Returns the user that the package is specified to run as
     /// or None if the package doesn't contain a SVC_USER Metafile
@@ -773,8 +773,8 @@ mod test {
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -813,8 +813,8 @@ mod test {
         let ident = PackageIdent::from_str("dream-theater/systematic-chaos").unwrap();
 
         match PackageInstall::load(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -860,8 +860,8 @@ mod test {
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -880,8 +880,8 @@ mod test {
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -916,8 +916,8 @@ mod test {
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -957,8 +957,8 @@ mod test {
         let ident = PackageIdent::from_str("dream-theater/systematic-chaos").unwrap();
 
         match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -1005,8 +1005,8 @@ mod test {
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -1025,8 +1025,8 @@ mod test {
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {

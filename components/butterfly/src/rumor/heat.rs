@@ -75,7 +75,7 @@ pub(crate) mod sync {
                     .collect();
 
             // Reverse sorting by heat; 0s come last!
-            rumor_heat.sort_by(|&(_, ref h1), &(_, ref h2)| h2.cmp(h1));
+            rumor_heat.sort_by(|(_, h1), (_, h2)| h2.cmp(h1));
 
             // We don't need the heat anymore, just return the rumors.
             rumor_heat.into_iter().map(|(k, _)| k).collect()

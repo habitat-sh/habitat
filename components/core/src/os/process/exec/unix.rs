@@ -1,10 +1,13 @@
 use crate::os::process::can_run_services_as_svc_user;
 #[cfg(not(target_os = "macos"))]
 use log::warn;
-use nix::unistd::{setgid,
-                  setuid,
-                  Gid,
-                  Uid};
+use nix::{sys::signal::{pthread_sigmask,
+                        SigSet,
+                        SigmaskHow},
+          unistd::{setgid,
+                   setuid,
+                   Gid,
+                   Uid}};
 use std::{ffi::OsStr,
           io,
           os::unix::process::CommandExt,
@@ -35,6 +38,17 @@ pub fn hook_command<X, I, K, V>(executable: X, env: I, ids: Option<(Uid, Gid)>) 
     with_own_process_group(&mut cmd);
     if let Some((uid, gid)) = ids {
         with_user_and_group_information(&mut cmd, uid, gid);
+    }
+
+    // https://github.com/rust-lang/rust/pull/101077/ drove this pre_exec call in which we we reset
+    // the spawned process to be able to receive all signals as this change prevented SIGTERM and 7
+    // other signals from reaching processes spawned via our launcher.
+    unsafe {
+        cmd.pre_exec(|| {
+               let newset = SigSet::all();
+               pthread_sigmask(SigmaskHow::SIG_UNBLOCK, Some(&newset), None)?;
+               Ok(())
+           });
     }
 
     cmd

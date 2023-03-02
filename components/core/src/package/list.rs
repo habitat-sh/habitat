@@ -73,7 +73,7 @@ pub fn all_packages(path: &Path) -> Result<Vec<PackageIdent>> {
 pub fn package_list_for_origin(base_pkg_path: &Path, origin: &str) -> Result<Vec<PackageIdent>> {
     let mut package_list: Vec<PackageIdent> = vec![];
     let mut package_path = PathBuf::from(base_pkg_path);
-    package_path.push(&origin);
+    package_path.push(origin);
 
     if !is_existing_dir(&package_path)? {
         return Ok(package_list);
@@ -284,7 +284,7 @@ fn filename_from_entry(entry: &fs::DirEntry) -> String {
 }
 
 fn is_existing_dir(path: &Path) -> Result<bool> {
-    match fs::metadata(&path) {
+    match fs::metadata(path) {
         Err(err) => {
             if err.kind() == io::ErrorKind::NotFound {
                 return Ok(false);
