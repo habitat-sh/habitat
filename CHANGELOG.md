@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.681 -->
-## [1.6.681](https://github.com/habitat-sh/habitat/tree/1.6.681) (2023-03-02)
+<!-- latest_release 1.6.682 -->
+## [1.6.682](https://github.com/habitat-sh/habitat/tree/1.6.682) (2023-03-02)
 
 #### Merged Pull Requests
-- Bump rusoto_core from 0.47.0 to 0.48.0 [#8755](https://github.com/habitat-sh/habitat/pull/8755) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Revved rust from 1.62.1 to 1.67.1 [#8737](https://github.com/habitat-sh/habitat/pull/8737) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Revved rust from 1.62.1 to 1.67.1 [#8737](https://github.com/habitat-sh/habitat/pull/8737) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.682 -->
 - Bump rusoto_core from 0.47.0 to 0.48.0 [#8755](https://github.com/habitat-sh/habitat/pull/8755) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.681 -->
 - Bump prost-build from 0.11.7 to 0.11.8 [#8763](https://github.com/habitat-sh/habitat/pull/8763) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.680 -->
 - Bump tempfile from 3.2.0 to 3.4.0 [#8761](https://github.com/habitat-sh/habitat/pull/8761) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.679 -->
