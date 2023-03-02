@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.683 -->
-## [1.6.683](https://github.com/habitat-sh/habitat/tree/1.6.683) (2023-03-02)
+<!-- latest_release 1.6.684 -->
+## [1.6.684](https://github.com/habitat-sh/habitat/tree/1.6.684) (2023-03-02)
 
 #### Merged Pull Requests
-- Bump dirs from 3.0.2 to 4.0.0 [#8768](https://github.com/habitat-sh/habitat/pull/8768) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tokio from 1.25.0 to 1.26.0 [#8767](https://github.com/habitat-sh/habitat/pull/8767) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump tokio from 1.25.0 to 1.26.0 [#8767](https://github.com/habitat-sh/habitat/pull/8767) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.684 -->
+- Bump env_logger from 0.9.3 to 0.10.0 [#8765](https://github.com/habitat-sh/habitat/pull/8765) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.684 -->
+- Bump rustls from 0.20.6 to 0.20.8 [#8766](https://github.com/habitat-sh/habitat/pull/8766) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.684 -->
 - Bump dirs from 3.0.2 to 4.0.0 [#8768](https://github.com/habitat-sh/habitat/pull/8768) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.683 -->
 - Revved rust from 1.62.1 to 1.67.1 [#8737](https://github.com/habitat-sh/habitat/pull/8737) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.682 -->
 - Bump rusoto_core from 0.47.0 to 0.48.0 [#8755](https://github.com/habitat-sh/habitat/pull/8755) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.681 -->
