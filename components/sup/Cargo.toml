@@ -39,6 +39,7 @@ libc = "*"
 log = "*"
 log4rs = "*"
 multimap = "*"
+notify = "*"
 num_cpus = "*"
 parking_lot = "*"
 pin-project = "*"
@@ -71,12 +72,10 @@ valico = "*"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
-notify = { version = "*", default-features = false }
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
 habitat-launcher-protocol = { path = "../launcher-protocol" }
-notify = { version = "*", default-features = false }
 mio = { version = "^0.8", features = ["os-ext"] }
 winapi = { version = "^0.3", features = ["namedpipeapi", "tlhelp32"] }
 
