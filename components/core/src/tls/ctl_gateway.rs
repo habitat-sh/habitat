@@ -70,7 +70,7 @@ pub fn generate_self_signed_certificate_and_key(subject_alternate_name: DnsNameR
     Ok(())
 }
 
-/// Search for files in `search_directory` that match `file_pattern` and return the last match  
+/// Search for files in `search_directory` that match `file_pattern` and return the last match
 fn get_last_path(search_directory: impl AsRef<Path>, file_pattern: &str) -> Result<PathBuf, Error> {
     let pattern = search_directory.as_ref().join(file_pattern);
     let pattern = pattern.to_string_lossy();
@@ -83,17 +83,17 @@ fn get_last_path(search_directory: impl AsRef<Path>, file_pattern: &str) -> Resu
 
 pub fn latest_certificates(path: impl AsRef<Path>) -> Result<Vec<Certificate>, Error> {
     let path = get_last_path(path, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION))?;
-    Ok(rustls_wrapper::certificates_from_file(&path)?)
+    Ok(rustls_wrapper::certificates_from_file(path)?)
 }
 
 pub fn latest_private_key(path: impl AsRef<Path>) -> Result<PrivateKey, Error> {
     let path = get_last_path(path, &format!("{}-*.{}", NAME_PREFIX, KEY_EXTENSION))?;
-    Ok(rustls_wrapper::private_key_from_file(&path)?)
+    Ok(rustls_wrapper::private_key_from_file(path)?)
 }
 
 pub fn latest_root_certificate_store(path: impl AsRef<Path>) -> Result<RootCertStore, Error> {
     let path = get_last_path(path, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION))?;
-    Ok(rustls_wrapper::root_certificate_store_from_file(&path)?)
+    Ok(rustls_wrapper::root_certificate_store_from_file(path)?)
 }
 
 #[cfg(test)]

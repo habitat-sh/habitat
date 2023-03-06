@@ -278,7 +278,7 @@ impl TestSup {
         let launcher_exe =
             find_exe("hab-launch").context("Failed to find 'hab-launch' executable")?;
 
-        let mut cmd = Command::new(&launcher_exe);
+        let mut cmd = Command::new(launcher_exe);
         let listen_host = "0.0.0.0";
 
         cmd.env(

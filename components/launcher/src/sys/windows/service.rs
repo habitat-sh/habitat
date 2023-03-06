@@ -46,7 +46,7 @@ impl Process {
                   last_status: None }
     }
 
-    pub fn id(&self) -> u32 { unsafe { processthreadsapi::GetProcessId(self.handle.raw()) as u32 } }
+    pub fn id(&self) -> u32 { unsafe { processthreadsapi::GetProcessId(self.handle.raw()) } }
 
     /// Attempt to gracefully terminate a process and then forcefully kill it after
     /// 8 seconds if it has not terminated.
@@ -152,7 +152,7 @@ pub fn run(msg: protocol::Spawn) -> Result<Service, ServiceRunError> {
 
     let new_env = msg.env.clone().into_iter().collect();
 
-    match util::spawn_pwsh(&ps_cmd, &new_env, &user, password) {
+    match util::spawn_pwsh(&ps_cmd, &new_env, user, password) {
         Ok(child) => {
             let process = Process::new(child.handle);
             Ok(Service::new(msg, process, child.stdout, child.stderr))

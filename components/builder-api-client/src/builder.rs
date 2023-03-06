@@ -190,7 +190,7 @@ impl BuilderAPIClient {
         let resp = self.maybe_add_authz(rb, token).send().await?;
         let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
-        fs::create_dir_all(&dst_path)?;
+        fs::create_dir_all(dst_path)?;
         let file_name = response::get_header(&resp, X_FILENAME)?;
         let dst_file_path = dst_path.join(file_name);
         let w = AtomicWriter::new_with_permissions(&dst_file_path, permissions)?;
@@ -1609,7 +1609,7 @@ mod tests {
                 (range, (range + step).min(last))
             };
             let filtered_range = filtered[start..=end].iter()
-                                                      .map(|s| get_test_ident(**s))
+                                                      .map(|s| get_test_ident(s))
                                                       .collect::<Vec<_>>();
             let result = PackageResults { range_start: start as isize,
                                           range_end:   end as isize,

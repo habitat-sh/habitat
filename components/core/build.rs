@@ -14,7 +14,7 @@ fn main() {
     let mut file =
         File::create(Path::new(&env::var("OUT_DIR").unwrap()).join("hab-crypt")).unwrap();
     if let Ok(key) = env::var("HAB_CRYPTO_KEY") {
-        file.write_all(&STANDARD.decode(&key).unwrap()).unwrap();
+        file.write_all(&STANDARD.decode(key).unwrap()).unwrap();
     }
 
     populate_cacert();

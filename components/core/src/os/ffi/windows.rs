@@ -50,7 +50,7 @@ impl OsStrExt2 for OsStr {
                         OsStr::from_bytes(&self.as_bytes()[i + 1..]));
             }
         }
-        (&*self, OsStr::from_bytes(&self.as_bytes()[self.len_()..self.len_()]))
+        (self, OsStr::from_bytes(&self.as_bytes()[self.len_()..self.len_()]))
     }
 
     fn trim_left_matches(&self, byte: u8) -> &OsStr {
@@ -59,7 +59,7 @@ impl OsStrExt2 for OsStr {
                 return OsStr::from_bytes(&self.as_bytes()[i..]);
             }
         }
-        &*self
+        self
     }
 
     fn split_at(&self, i: usize) -> (&OsStr, &OsStr) {

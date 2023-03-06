@@ -299,7 +299,7 @@ pub fn cache_ssl_path<T>(fs_root_path: Option<T>) -> PathBuf
 pub fn pkg_root_path<T>(fs_root: Option<T>) -> PathBuf
     where T: AsRef<Path>
 {
-    let mut buf = fs_root.map_or(PathBuf::from("/"), |p| p.as_ref().into());
+    let mut buf = fs_root.map_or_else(|| PathBuf::from("/"), |p| p.as_ref().into());
     buf.push(PKG_PATH);
     buf
 }
@@ -467,8 +467,8 @@ impl<'a> SvcDir<'a> {
     /// versions of a service that have been removed from the current
     /// version.
     pub fn purge_templated_content(&self) -> Result<()> {
-        for dir_path in &[svc_config_path(&self.service_name),
-                          svc_hooks_path(&self.service_name)]
+        for dir_path in &[svc_config_path(self.service_name),
+                          svc_hooks_path(self.service_name)]
         {
             debug!("Purging any old templated content from {}",
                    dir_path.display());
@@ -502,14 +502,14 @@ impl<'a> SvcDir<'a> {
         Ok(())
     }
 
-    fn create_svc_root(&self) -> Result<()> { Self::create_dir_all(svc_path(&self.service_name)) }
+    fn create_svc_root(&self) -> Result<()> { Self::create_dir_all(svc_path(self.service_name)) }
 
     /// Creates all to sub-directories in a service directory that are
     /// owned by the Supervisor (that is, the user the current thread
     /// is running as).
     fn create_all_sup_owned_dirs(&self) -> Result<()> {
-        Self::create_dir_all(svc_hooks_path(&self.service_name))?;
-        Self::create_dir_all(svc_logs_path(&self.service_name))?;
+        Self::create_dir_all(svc_hooks_path(self.service_name))?;
+        Self::create_dir_all(svc_logs_path(self.service_name))?;
         Ok(())
     }
 
@@ -521,12 +521,12 @@ impl<'a> SvcDir<'a> {
     /// ownership, however, they will be owned by the Supervisor
     /// instead.
     fn create_all_svc_owned_dirs(&self) -> Result<()> {
-        self.create_svc_owned_dir(svc_config_path(&self.service_name))?;
-        self.create_svc_owned_dir(svc_config_install_path(&self.service_name))?;
-        self.create_svc_owned_dir(svc_data_path(&self.service_name))?;
-        self.create_svc_owned_dir(svc_files_path(&self.service_name))?;
-        self.create_svc_owned_dir(svc_var_path(&self.service_name))?;
-        self.create_svc_owned_dir(svc_static_path(&self.service_name))?;
+        self.create_svc_owned_dir(svc_config_path(self.service_name))?;
+        self.create_svc_owned_dir(svc_config_install_path(self.service_name))?;
+        self.create_svc_owned_dir(svc_data_path(self.service_name))?;
+        self.create_svc_owned_dir(svc_files_path(self.service_name))?;
+        self.create_svc_owned_dir(svc_var_path(self.service_name))?;
+        self.create_svc_owned_dir(svc_static_path(self.service_name))?;
         Ok(())
     }
 
@@ -817,13 +817,13 @@ impl AtomicWriter {
             #[cfg(not(windows))]
             let permissions = *permissions;
 
-            set_permissions(&self.tempfile.path(), permissions).map_err(|e| {
+            set_permissions(self.tempfile.path(), permissions).map_err(|e| {
                 io::Error::new(io::ErrorKind::Other, e.to_string())
             })?;
         }
         self.tempfile.as_file().sync_all()?;
 
-        atomic_rename(self.tempfile.into_temp_path(), &self.dest.as_path())?;
+        atomic_rename(self.tempfile.into_temp_path(), self.dest.as_path())?;
 
         Ok(())
     }
@@ -980,7 +980,7 @@ mod test_find_command {
                              PathBuf::from(".COM"),
                              PathBuf::from(".EXE")];
         let new_path = env::join_paths(path_bufs).unwrap();
-        lock.set(&new_path);
+        lock.set(new_path);
     }
 
     fn setup_path() {
@@ -991,7 +991,7 @@ mod test_find_command {
         let mut path_bufs = vec![first_path, second_path];
         path_bufs.append(&mut os_paths);
         let new_path = env::join_paths(path_bufs).unwrap();
-        env::set_var("PATH", &new_path);
+        env::set_var("PATH", new_path);
     }
 
     mod without_pathext_set {
@@ -1203,7 +1203,6 @@ mod test_atomic_writer {
     use std::{fs::File,
               io::{Read,
                    Seek,
-                   SeekFrom,
                    Write}};
 
     const EXPECTED_CONTENT: &str = "A very good file format";
@@ -1235,7 +1234,7 @@ mod test_atomic_writer {
         let w = AtomicWriter::new(dest_file_path).expect("could not create AtomicWriter");
         let res = w.with_writer(|writer| {
                        writer.write_all(b"not the right content")?;
-                       writer.seek(SeekFrom::Start(0))?;
+                       writer.rewind()?;
                        writer.write_all(EXPECTED_CONTENT.as_bytes())?;
                        writer.flush() // not needed, just making sure we can call it
                    });

@@ -1155,7 +1155,7 @@ mod tests {
 
         /// Creates and syncs a file. The containing directory shuold exist before calling.
         pub fn create_file(path: &Path) -> io::Result<File> {
-            let file = std::fs::File::create(&path)?;
+            let file = std::fs::File::create(path)?;
             file.sync_all()?;
             Ok(file)
         }

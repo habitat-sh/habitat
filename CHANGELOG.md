@@ -1,16 +1,28 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.675 -->
-## [1.6.675](https://github.com/habitat-sh/habitat/tree/1.6.675) (2023-02-24)
+<!-- latest_release 1.6.685 -->
+## [1.6.685](https://github.com/habitat-sh/habitat/tree/1.6.685) (2023-03-03)
 
 #### Merged Pull Requests
-- Bump native-tls from 0.2.10 to 0.2.11 [#8757](https://github.com/habitat-sh/habitat/pull/8757) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- run arm builds in --release mode to reduce memory [#8774](https://github.com/habitat-sh/habitat/pull/8774) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- run arm builds in --release mode to reduce memory [#8774](https://github.com/habitat-sh/habitat/pull/8774) ([mwrock](https://github.com/mwrock)) <!-- 1.6.685 -->
+- Bump tokio from 1.25.0 to 1.26.0 [#8767](https://github.com/habitat-sh/habitat/pull/8767) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.684 -->
+- Bump env_logger from 0.9.3 to 0.10.0 [#8765](https://github.com/habitat-sh/habitat/pull/8765) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.684 -->
+- Bump rustls from 0.20.6 to 0.20.8 [#8766](https://github.com/habitat-sh/habitat/pull/8766) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.684 -->
+- Bump dirs from 3.0.2 to 4.0.0 [#8768](https://github.com/habitat-sh/habitat/pull/8768) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.683 -->
+- Revved rust from 1.62.1 to 1.67.1 [#8737](https://github.com/habitat-sh/habitat/pull/8737) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.682 -->
+- Bump rusoto_core from 0.47.0 to 0.48.0 [#8755](https://github.com/habitat-sh/habitat/pull/8755) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.681 -->
+- Bump prost-build from 0.11.7 to 0.11.8 [#8763](https://github.com/habitat-sh/habitat/pull/8763) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.680 -->
+- Bump tempfile from 3.2.0 to 3.4.0 [#8761](https://github.com/habitat-sh/habitat/pull/8761) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.679 -->
+- Bump tar from 0.4.36 to 0.4.38 [#8762](https://github.com/habitat-sh/habitat/pull/8762) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.678 -->
+- Bump errno from 0.2.7 to 0.3.0 [#8758](https://github.com/habitat-sh/habitat/pull/8758) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.677 -->
+- Bump actix-rt from 2.7.0 to 2.8.0 [#8759](https://github.com/habitat-sh/habitat/pull/8759) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.676 -->
 - Bump native-tls from 0.2.10 to 0.2.11 [#8757](https://github.com/habitat-sh/habitat/pull/8757) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.675 -->
 - Bump prost-build from 0.11.6 to 0.11.7 [#8756](https://github.com/habitat-sh/habitat/pull/8756) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.675 -->
 - Bump actix-web from 4.1.0 to 4.3.0 [#8754](https://github.com/habitat-sh/habitat/pull/8754) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.674 -->

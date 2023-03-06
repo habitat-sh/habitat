@@ -102,14 +102,14 @@ impl<'a> BuildSpec<'a> {
 
     async fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<PackageIdent> {
         ui.status(Status::Creating, "root filesystem")?;
-        rootfs::create(&rootfs)?;
-        self.create_symlink_to_artifact_cache(ui, &rootfs)?;
-        self.create_symlink_to_key_cache(ui, &rootfs)?;
+        rootfs::create(rootfs)?;
+        self.create_symlink_to_artifact_cache(ui, rootfs)?;
+        self.create_symlink_to_key_cache(ui, rootfs)?;
         self.install_base_pkgs(ui, rootfs).await?;
         let ident = self.install_user_pkg(ui, self.ident_or_archive, rootfs)
                         .await?;
-        self.remove_symlink_to_key_cache(ui, &rootfs)?;
-        self.remove_symlink_to_artifact_cache(ui, &rootfs)?;
+        self.remove_symlink_to_key_cache(ui, rootfs)?;
+        self.remove_symlink_to_artifact_cache(ui, rootfs)?;
 
         Ok(ident)
     }
@@ -219,7 +219,7 @@ impl<'a> BuildSpec<'a> {
                                                      url,
                                                      channel,
                                                      &install_source,
-                                                     &*PROGRAM_NAME,
+                                                     &PROGRAM_NAME,
                                                      VERSION,
                                                      fs_root_path,
                                                      &cache_artifact_path(Some(&fs_root_path)),

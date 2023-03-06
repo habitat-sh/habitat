@@ -559,11 +559,11 @@ impl Service {
             Service { spec,
                       sys,
                       cfg,
-                      config_renderer: CfgRenderer::new(&config_root)?,
+                      config_renderer: CfgRenderer::new(config_root)?,
                       health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
                       hooks: HookTable::load(&pkg.name,
-                                             &hooks_root,
-                                             svc_hooks_path(&service_group.service()),
+                                             hooks_root,
+                                             svc_hooks_path(service_group.service()),
                                              feature_flags),
                       last_election_status: ElectionStatus::None,
                       user_config_updated: false,
@@ -1268,7 +1268,7 @@ impl Service {
         match self.hooks.run {
             Some(ref hook) => {
                 fs::copy(hook.path(), &svc_run)?;
-                Self::set_hook_permissions(&svc_run.to_str().unwrap())?;
+                Self::set_hook_permissions(svc_run.to_str().unwrap())?;
             }
             None => {
                 let run = self.pkg.path.join(hooks::RunHook::FILE_NAME);
@@ -1478,7 +1478,7 @@ impl Service {
                 None
             }
         };
-        let new_checksum = Blake2bHash::from_bytes(&contents);
+        let new_checksum = Blake2bHash::from_bytes(contents);
 
         if let Some(current_checksum) = current_checksum {
             if new_checksum == current_checksum {

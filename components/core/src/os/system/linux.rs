@@ -14,7 +14,7 @@ unsafe fn uname_libc() -> Result<Uname> {
 
     if rv < 0 {
         let errno = errno();
-        let code = errno.0 as i32;
+        let code = errno.0;
         return Err(Error::UnameFailed(format!("Error {} when calling uname: \
                                                {}",
                                               code, errno)));

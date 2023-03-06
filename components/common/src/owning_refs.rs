@@ -15,11 +15,11 @@ unsafe impl<'a, T: ?Sized> StableAddress for StableMutexGuard<'a, T> {}
 impl<T: ?Sized> Deref for StableMutexGuard<'_, T> {
     type Target = T;
 
-    fn deref(&self) -> &T { &*self.0 }
+    fn deref(&self) -> &T { &self.0 }
 }
 
 impl<T: ?Sized> DerefMut for StableMutexGuard<'_, T> {
-    fn deref_mut(&mut self) -> &mut T { &mut *self.0 }
+    fn deref_mut(&mut self) -> &mut T { &mut self.0 }
 }
 
 impl<'a, T> From<MutexGuard<'a, T>> for StableMutexGuard<'a, T> {
@@ -35,7 +35,7 @@ unsafe impl<'a, T: ?Sized> StableAddress for StableRwLockReadGuard<'a, T> {}
 impl<T: ?Sized> Deref for StableRwLockReadGuard<'_, T> {
     type Target = T;
 
-    fn deref(&self) -> &T { &*self.0 }
+    fn deref(&self) -> &T { &self.0 }
 }
 
 impl<'a, T> From<RwLockReadGuard<'a, T>> for StableRwLockReadGuard<'a, T> {
@@ -51,11 +51,11 @@ unsafe impl<'a, T: ?Sized> StableAddress for StableRwLockWriteGuard<'a, T> {}
 impl<T: ?Sized> Deref for StableRwLockWriteGuard<'_, T> {
     type Target = T;
 
-    fn deref(&self) -> &T { &*self.0 }
+    fn deref(&self) -> &T { &self.0 }
 }
 
 impl<T: ?Sized> DerefMut for StableRwLockWriteGuard<'_, T> {
-    fn deref_mut(&mut self) -> &mut T { &mut *self.0 }
+    fn deref_mut(&mut self) -> &mut T { &mut self.0 }
 }
 
 impl<'a, T> From<RwLockWriteGuard<'a, T>> for StableRwLockWriteGuard<'a, T> {

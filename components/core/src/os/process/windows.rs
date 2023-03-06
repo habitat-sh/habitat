@@ -25,7 +25,7 @@ pub fn become_command(command: PathBuf, args: &[OsString]) -> Result<()> {
 }
 
 /// Get process identifier of calling process.
-pub fn current_pid() -> u32 { unsafe { processthreadsapi::GetCurrentProcessId() as u32 } }
+pub fn current_pid() -> u32 { unsafe { processthreadsapi::GetCurrentProcessId() } }
 
 pub fn handle_from_pid(pid: Pid) -> Option<HANDLE> {
     unsafe {

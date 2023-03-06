@@ -64,7 +64,7 @@ impl CliConfig {
     }
 
     /// Get a reference to the `CliConfig` cached at startup
-    pub fn cache() -> &'static Self { &*CACHED_CLI_CONFIG }
+    pub fn cache() -> &'static Self { &CACHED_CLI_CONFIG }
 
     /// Load an up to date `CliConfig` from disk
     pub fn load() -> Result<Self, Error> {
@@ -79,7 +79,7 @@ impl CliConfig {
 
     /// Save the `CliConfig` to disk
     pub fn save(&self) -> Result<(), Error> {
-        fs::create_dir_all(&*CLI_CONFIG_PATH_PARENT)?;
+        fs::create_dir_all(*CLI_CONFIG_PATH_PARENT)?;
         let raw = toml::ser::to_string(self)?;
         debug!("Raw config toml:\n---\n{}\n---", &raw);
         fs::write(&*CLI_CONFIG_PATH, raw)?;

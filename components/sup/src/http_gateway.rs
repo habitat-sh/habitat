@@ -278,7 +278,7 @@ impl Server {
                control: Arc<(Mutex<ServerStartup>, Condvar)>) {
         thread::spawn(move || {
             debug!("Entering http_gateway run thread");
-            let &(ref lock, ref cvar) = &*control;
+            let (lock, cvar) = &*control;
             let thread_count = match henv::var(HTTP_THREADS_ENVVAR) {
                 Ok(val) => {
                     match val.parse::<usize>() {
@@ -437,10 +437,10 @@ fn health_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -
         let http_status: StatusCode = health_check.into();
 
         body.status = health_check.to_string();
-        if let Ok(mut file) = File::open(&stdout_path) {
+        if let Ok(mut file) = File::open(stdout_path) {
             let _ = file.read_to_string(&mut body.stdout);
         }
-        if let Ok(mut file) = File::open(&stderr_path) {
+        if let Ok(mut file) = File::open(stderr_path) {
             let _ = file.read_to_string(&mut body.stderr);
         }
 

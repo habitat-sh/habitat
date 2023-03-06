@@ -15,7 +15,7 @@ useradd -rm -d /home/$TEST_USER -s /bin/bash -g root -G sudo -u 1001 $TEST_USER
 chown -R ubuntu:root /workdir
 
 # Build binaries to be used in integration test
-sudo -u $TEST_USER -H -E --preserve-env=PATH bash -c "cargo build"
+sudo -u $TEST_USER -H -E --preserve-env=PATH bash -c "cargo build --release"
 
 # Run all test cases without stopping for failures
-sudo -u $TEST_USER -H -E --preserve-env=PATH bash -c "cargo test --no-fail-fast"
+sudo -u $TEST_USER -H -E --preserve-env=PATH bash -c "cargo test --release --no-fail-fast"

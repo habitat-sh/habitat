@@ -61,7 +61,7 @@ pub fn is_toml_file(val: &str) -> bool {
 }
 
 pub fn file_into_idents(path: &str) -> Result<Vec<PackageIdent>, habitat_core::error::Error> {
-    let s = std::fs::read_to_string(&path).map_err(|_| {
+    let s = std::fs::read_to_string(path).map_err(|_| {
                 habitat_core::error::Error::FileNotFound(format!("Could not open file {}", path))
             })?;
 
