@@ -2,9 +2,9 @@ use anyhow::{anyhow,
              bail,
              Context,
              Result};
-#[cfg(not(any(all(target_os = "linux",
-                      any(target_arch = "x86_64", target_arch = "aarch64")),
-                  all(target_os = "windows", target_arch = "x86_64"))))]
+#[cfg(any(all(target_os = "linux",
+                  any(target_arch = "x86_64", target_arch = "aarch64")),
+              all(target_os = "windows", target_arch = "x86_64")))]
 use habitat_core::package::PackageTarget;
 use habitat_core::{crypto::Blake2bHash,
                    package::PackageInstall,
@@ -365,14 +365,22 @@ async fn write_default_metafiles(hab_root: &HabRoot,
 
     // Write metafiles to convert the package to a native package on platforms without package
     // support
-    #[cfg(not(any(all(target_os = "linux",
-                      any(target_arch = "x86_64", target_arch = "aarch64")),
+    // TODO: We intentionally use native packages on aarch64-linux platform as the interpreter
+    // packages core/busybox-static are not yet available publicly on builder. This will cause
+    // The package to fail when the supervisor attempts to load it. We should use standard
+    // packages on aarch64-linux once the interpreter package is made publicly available.
+    #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
                   all(target_os = "windows", target_arch = "x86_64"))))]
     {
-        let target_metafile = hab_root.target_path(pkg_origin, pkg_name);
         let pkg_type_metafile = hab_root.pkg_type_path(pkg_origin, pkg_name);
-
         write_metafile(pkg_type_metafile, "native").await?;
+    }
+    // Write the TARGET metafile on all platforms that we support building packages for
+    #[cfg(any(all(target_os = "linux",
+                  any(target_arch = "x86_64", target_arch = "aarch64")),
+              all(target_os = "windows", target_arch = "x86_64")))]
+    {
+        let target_metafile = hab_root.target_path(pkg_origin, pkg_name);
         write_metafile(target_metafile,
                        PackageTarget::active_target().to_string().as_str()).await?;
     }
