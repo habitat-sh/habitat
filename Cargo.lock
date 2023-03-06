@@ -477,7 +477,7 @@ dependencies = [
  "lazy_static 1.4.0",
  "serde",
  "structopt",
- "toml 0.5.10",
+ "toml 0.5.11",
 ]
 
 [[package]]
@@ -1142,7 +1142,7 @@ dependencies = [
  "termcolor",
  "thiserror",
  "tokio",
- "toml 0.5.10",
+ "toml 0.7.2",
  "url",
  "uuid 1.2.2",
  "walkdir",
@@ -1240,7 +1240,7 @@ dependencies = [
  "tempfile",
  "tokio",
  "tokio-util 0.7.7",
- "toml 0.5.10",
+ "toml 0.7.2",
 ]
 
 [[package]]
@@ -1289,7 +1289,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "threadpool",
- "toml 0.5.10",
+ "toml 0.7.2",
  "uuid 1.2.2",
  "winapi 0.3.9",
  "zmq",
@@ -1329,7 +1329,7 @@ dependencies = [
  "termcolor",
  "thiserror",
  "tokio",
- "toml 0.5.10",
+ "toml 0.7.2",
  "uuid 1.2.2",
  "valico",
  "winapi 0.3.9",
@@ -1377,7 +1377,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-rustls",
- "toml 0.5.10",
+ "toml 0.7.2",
  "url",
  "webpki",
  "widestring 1.0.2",
@@ -1516,7 +1516,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tokio-util 0.7.7",
- "toml 0.5.10",
+ "toml 0.7.2",
  "url",
  "uuid 1.2.2",
  "valico",
@@ -1562,12 +1562,6 @@ dependencies = [
  "serde",
  "serde_json",
 ]
-
-[[package]]
-name = "hashbrown"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
 
 [[package]]
 name = "hashbrown"
@@ -1733,12 +1727,12 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "1.7.0"
+version = "1.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc633605454125dec4b66843673f01c7df2b89479b32e0ed634e43a91cff62a5"
+checksum = "1885e79c1fc4b10f0e172c475f458b7f7b93061064d98c3293e98c5ba0c8b399"
 dependencies = [
  "autocfg",
- "hashbrown 0.11.2",
+ "hashbrown",
 ]
 
 [[package]]
@@ -3265,6 +3259,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_spanned"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0efd8caf556a6cebd3b285caf480045fcc1ac04f6bd786b09a6f11af30c4fcf4"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "serde_test"
 version = "1.0.152"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3511,7 +3514,7 @@ dependencies = [
  "clap",
  "serde",
  "serde_json",
- "toml 0.5.10",
+ "toml 0.7.2",
 ]
 
 [[package]]
@@ -3697,7 +3700,7 @@ dependencies = [
  "futures-io",
  "futures-sink",
  "futures-util",
- "hashbrown 0.12.3",
+ "hashbrown",
  "pin-project-lite",
  "slab",
  "tokio",
@@ -3712,12 +3715,46 @@ checksum = "736b60249cb25337bc196faa43ee12c705e426f3d55c214d73a4e7be06f92cb4"
 
 [[package]]
 name = "toml"
-version = "0.5.10"
+version = "0.5.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1333c76748e868a4d9d1017b5ab53171dfd095f70c712fdb4653a406547f598f"
+checksum = "f4f7f0dd8d50a853a531c426359045b1998f04219d88799810762cd4ad314234"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "toml"
+version = "0.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f7afcae9e3f0fe2c370fd4657108972cbb2fa9db1b9f84849cefd80741b01cb6"
 dependencies = [
  "indexmap",
  "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "toml_edit",
+]
+
+[[package]]
+name = "toml_datetime"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ab8ed2edee10b50132aed5f331333428b011c99402b5a534154ed15746f9622"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "toml_edit"
+version = "0.19.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a1eb0622d28f4b9c90adc4ea4b2b46b47663fde9ac5fafcb14a1369d5508825"
+dependencies = [
+ "indexmap",
+ "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "winnow",
 ]
 
 [[package]]
@@ -4251,6 +4288,15 @@ name = "windows_x86_64_msvc"
 version = "0.42.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "447660ad36a13288b1db4d4248e857b510e8c3a225c822ba4fb748c0aafecffd"
+
+[[package]]
+name = "winnow"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c95fb4ff192527911dd18eb138ac30908e7165b8944e528b6af93aa4c842d345"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "winreg"
