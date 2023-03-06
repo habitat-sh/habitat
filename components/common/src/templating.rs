@@ -178,8 +178,7 @@ mod test {
                              FS_ROOT_PATH},
                         package::PackageIdent},
                 templating::test_helpers::*};
-    #[cfg(not(any(all(target_os = "linux",
-                          any(target_arch = "x86_64", target_arch = "aarch64")),
+    #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
                       all(target_os = "windows", target_arch = "x86_64"),)))]
     use habitat_core::package::metadata::MetaFile;
     use std::{collections::BTreeMap,
@@ -414,9 +413,6 @@ test: something
     }
 
     #[tokio::test]
-    // Skip test as it expects builder package on linux-aarch64,
-    // should be re-enabled once that happens
-    #[cfg(not(all(target_os = "linux", target_arch = "aarch64")))]
     async fn render_package_install() {
         let root = TempDir::new().expect("create temp dir").into_path();
         env::set_var(fs::FS_ROOT_ENVVAR, &root);
@@ -425,10 +421,11 @@ test: something
         let pkg_install =
             PackageInstall::new_from_parts(pg_id, root.clone(), root.clone(), root.clone());
         // Platforms without standard package support require all packages to be native packages
-        #[cfg(not(any(all(target_os = "linux",
-                          any(target_arch = "x86_64", target_arch = "aarch64")),
+        #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
                       all(target_os = "windows", target_arch = "x86_64"))))]
         {
+            tokio::fs::create_dir_all(pkg_install.installed_path()).await
+                                                                   .unwrap();
             create_with_content(pkg_install.installed_path()
                                            .join(MetaFile::PackageType.to_string()),
                                 "native");

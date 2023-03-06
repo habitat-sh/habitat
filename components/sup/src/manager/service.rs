@@ -1712,9 +1712,6 @@ mod tests {
     // to test it on other platforms as the schema of a API response is likely to be the same
     // across all non-x86_64 unix platforms.
     #[tokio::test]
-    // Skip test as it expects builder package on linux-aarch64,
-    // should be re-enabled once that happens
-    #[cfg(not(all(target_os = "linux", target_arch = "aarch64")))]
     async fn service_proxy_conforms_to_the_schema() {
         let service_wrapper = initialize_test_service().await;
 

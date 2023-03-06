@@ -614,8 +614,7 @@ mod test {
                                   PackageInstall}},
                 templating::{context::RenderContext,
                              test_helpers::*}};
-    #[cfg(not(any(all(target_os = "linux",
-                          any(target_arch = "x86_64", target_arch = "aarch64")),
+    #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
                       all(target_os = "windows", target_arch = "x86_64"),)))]
     use hcore::package::metadata::MetaFile;
     use std::{env,
@@ -1130,15 +1129,12 @@ mod test {
     }
 
     #[tokio::test]
-    // Skip test as it expects builder package on linux-aarch64,
-    // should be re-enabled once that happens
-    #[cfg(not(all(target_os = "linux", target_arch = "aarch64")))]
     async fn test_compile_recursive_config_dir() {
         let root = TempDir::new().expect("create temp dir").into_path();
 
         // Setup a dummy package directory with a config file inside
         // a directory structure
-        let pkg_dir = root.join("pkg/testing/test");
+        let pkg_dir = root.join("/hab/pkgs/testing/test/1.0.0/20170712000000");
         fs::create_dir_all(&pkg_dir).expect("create pkg dir");
         let pg_id = PackageIdent::new("testing", "test", Some("1.0.0"), Some("20170712000000"));
         let pkg_install = PackageInstall::new_from_parts(pg_id,
@@ -1155,8 +1151,7 @@ mod test {
                             "config message is {{cfg.message}}");
 
         // Platforms without standard package support require all packages to be native packages
-        #[cfg(not(any(all(target_os = "linux",
-                          any(target_arch = "x86_64", target_arch = "aarch64")),
+        #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
                       all(target_os = "windows", target_arch = "x86_64"))))]
         {
             create_with_content(pkg_dir.join(MetaFile::PackageType.to_string()), "native");
