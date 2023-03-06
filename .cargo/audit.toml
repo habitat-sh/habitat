@@ -1,0 +1,44 @@
+# cargo audit config file
+# https://github.com/rustsec/rustsec/blob/main/cargo-audit/audit.toml.example
+#
+# All of the options which can be passed via CLI arguments can also be
+# permanently specified in this file.
+
+[advisories]
+# JAH: We are grandfathering the existing warnings so that we can deal
+# JAH: with them over time instead of forcing an immediate reckoning
+# advisory IDs to ignore e.g. ["RUSTSEC-2019-0001", ...]
+ignore = [
+    "RUSTSEC-2020-0016",    # Unmaintained: net2
+    "RUSTSEC-2020-0071",    # Vulerability, 6.2 Medium: time
+    "RUSTSEC-2020-0159",    # Vulnerability (???): chrono
+    "RUSTSEC-2021-0137",    # Unmaintained: sodiumoxide
+    "RUSTSEC-2021-0139",    # Unmaintained: ansi_term
+    "RUSTSEC-2021-0145",    # Unsound, Unmaintained: atty
+    "RUSTSEC-2022-0006",    # Vulnerability (???): thread_local
+    "RUSTSEC-2022-0013",    # Vulnerability (7.5 High), regex
+    "RUSTSEC-2022-0040",    # Vulnerability (???): owning_ref
+    "RUSTSEC-2022-0041",    # Unsound: crossbeam-utils
+    "RUSTSEC-2022-0048",    # Unmaintained: xml-rs
+    "RUSTSEC-2022-0071"     # Unmaintained: rusoto
+]
+informational_warnings = ["notice", "unmaintained", "unsound"] # warn for categories of informational advisories
+severity_threshold = "none" # CVSS severity ("none", "low", "medium", "high", "critical")
+
+# Advisory Database Configuration
+[database]
+path = "~/.cargo/advisory-db" # Path where advisory git repo will be cloned
+url = "https://github.com/RustSec/advisory-db.git" # URL to git repo
+fetch = true # Perform a `git fetch` before auditing (default: true)
+stale = false # Allow stale advisory DB (i.e. no commits for 90 days, default: false)
+
+# Output Configuration
+[output]
+deny = ["warnings", "unmaintained", "unsound", "yanked"] # exit on error if these are found
+format = "terminal" # "terminal" (human readable report) or "json"
+quiet = false # Only print information on error
+show_tree = true # Show inverse dependency trees along with advisories (default: true)
+
+[yanked]
+enabled = true # Warn for yanked crates in Cargo.lock (default: true)
+update_index = true # Auto-update the crates.io index (default: true)
