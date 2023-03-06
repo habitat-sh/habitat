@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.685 -->
-## [1.6.685](https://github.com/habitat-sh/habitat/tree/1.6.685) (2023-03-03)
+<!-- latest_release 1.6.686 -->
+## [1.6.686](https://github.com/habitat-sh/habitat/tree/1.6.686) (2023-03-06)
 
 #### Merged Pull Requests
-- run arm builds in --release mode to reduce memory [#8774](https://github.com/habitat-sh/habitat/pull/8774) ([mwrock](https://github.com/mwrock))
+- cargo audit github action [#8773](https://github.com/habitat-sh/habitat/pull/8773) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- cargo audit github action [#8773](https://github.com/habitat-sh/habitat/pull/8773) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.686 -->
 - run arm builds in --release mode to reduce memory [#8774](https://github.com/habitat-sh/habitat/pull/8774) ([mwrock](https://github.com/mwrock)) <!-- 1.6.685 -->
 - Bump tokio from 1.25.0 to 1.26.0 [#8767](https://github.com/habitat-sh/habitat/pull/8767) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.684 -->
 - Bump env_logger from 0.9.3 to 0.10.0 [#8765](https://github.com/habitat-sh/habitat/pull/8765) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.684 -->
