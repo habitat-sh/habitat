@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.687 -->
-## [1.6.687](https://github.com/habitat-sh/habitat/tree/1.6.687) (2023-03-06)
+<!-- latest_release 1.6.688 -->
+## [1.6.688](https://github.com/habitat-sh/habitat/tree/1.6.688) (2023-03-06)
 
 #### Merged Pull Requests
-- Bump tokio-util from 0.7.3 to 0.7.7 [#8770](https://github.com/habitat-sh/habitat/pull/8770) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump state from 0.5.2 to 0.5.3 [#8772](https://github.com/habitat-sh/habitat/pull/8772) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump state from 0.5.2 to 0.5.3 [#8772](https://github.com/habitat-sh/habitat/pull/8772) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.688 -->
+- Bump actix-web from 4.3.0 to 4.3.1 [#8771](https://github.com/habitat-sh/habitat/pull/8771) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.688 -->
+- Bump pbr from 1.0.4 to 1.1.1 [#8769](https://github.com/habitat-sh/habitat/pull/8769) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.688 -->
 - Bump tokio-util from 0.7.3 to 0.7.7 [#8770](https://github.com/habitat-sh/habitat/pull/8770) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.687 -->
 - cargo audit github action [#8773](https://github.com/habitat-sh/habitat/pull/8773) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.686 -->
 - run arm builds in --release mode to reduce memory [#8774](https://github.com/habitat-sh/habitat/pull/8774) ([mwrock](https://github.com/mwrock)) <!-- 1.6.685 -->
