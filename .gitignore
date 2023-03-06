@@ -2,6 +2,7 @@
 *.rustfmt
 *.sig.key
 *.sym.key
+.cargo/advisory-db/
 .DS_Store
 .envrc
 .secrets
