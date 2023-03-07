@@ -1,7 +1,7 @@
 expeditor:
   defaults:
     buildkite:
-      timeout_in_minutes: 30
+      timeout_in_minutes: 60
 
 steps:
 #######################################################################
@@ -16,7 +16,7 @@ steps:
     plugins:
       - docker#v3.13.0:
           image: "rust:1.62.1-buster"
-  
+
   - label: "[lint] :linux: :bash: Shellcheck"
     command:
       - .expeditor/scripts/verify/shellcheck.sh
