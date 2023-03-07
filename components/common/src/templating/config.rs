@@ -1134,7 +1134,7 @@ mod test {
 
         // Setup a dummy package directory with a config file inside
         // a directory structure
-        let pkg_dir = root.join("/hab/pkgs/testing/test/1.0.0/20170712000000");
+        let pkg_dir = root.join("pkg/testing/test");
         fs::create_dir_all(&pkg_dir).expect("create pkg dir");
         let pg_id = PackageIdent::new("testing", "test", Some("1.0.0"), Some("20170712000000"));
         let pkg_install = PackageInstall::new_from_parts(pg_id,

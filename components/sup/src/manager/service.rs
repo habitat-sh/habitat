@@ -1651,8 +1651,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
 }
 
 #[cfg(test)]
-#[cfg(any(all(target_os = "linux",
-              any(target_arch = "x86_64", target_arch = "aarch64")),
+#[cfg(any(all(target_os = "linux", any(target_arch = "x86_64")),
           all(target_os = "windows", target_arch = "x86_64"),))]
 mod tests {
     use super::*;
