@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.688 -->
-## [1.6.688](https://github.com/habitat-sh/habitat/tree/1.6.688) (2023-03-06)
+<!-- latest_release 1.6.689 -->
+## [1.6.689](https://github.com/habitat-sh/habitat/tree/1.6.689) (2023-03-07)
 
 #### Merged Pull Requests
-- Bump state from 0.5.2 to 0.5.3 [#8772](https://github.com/habitat-sh/habitat/pull/8772) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump hyper from 0.14.20 to 0.14.24 [#8780](https://github.com/habitat-sh/habitat/pull/8780) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump hyper from 0.14.20 to 0.14.24 [#8780](https://github.com/habitat-sh/habitat/pull/8780) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.689 -->
 - Bump state from 0.5.2 to 0.5.3 [#8772](https://github.com/habitat-sh/habitat/pull/8772) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.688 -->
 - Bump actix-web from 4.3.0 to 4.3.1 [#8771](https://github.com/habitat-sh/habitat/pull/8771) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.688 -->
 - Bump pbr from 1.0.4 to 1.1.1 [#8769](https://github.com/habitat-sh/habitat/pull/8769) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.688 -->
