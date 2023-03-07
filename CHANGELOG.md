@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.690 -->
-## [1.6.690](https://github.com/habitat-sh/habitat/tree/1.6.690) (2023-03-07)
+<!-- latest_release 1.6.691 -->
+## [1.6.691](https://github.com/habitat-sh/habitat/tree/1.6.691) (2023-03-07)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.93 to 1.0.94 [#8779](https://github.com/habitat-sh/habitat/pull/8779) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Correction to audit.toml used by `cargo audit`  [#8775](https://github.com/habitat-sh/habitat/pull/8775) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Correction to audit.toml used by `cargo audit`  [#8775](https://github.com/habitat-sh/habitat/pull/8775) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.691 -->
+- Bump paste from 1.0.11 to 1.0.12 [#8778](https://github.com/habitat-sh/habitat/pull/8778) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.691 -->
 - Bump serde_json from 1.0.93 to 1.0.94 [#8779](https://github.com/habitat-sh/habitat/pull/8779) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.690 -->
 - Bump hyper from 0.14.20 to 0.14.24 [#8780](https://github.com/habitat-sh/habitat/pull/8780) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.689 -->
 - Bump state from 0.5.2 to 0.5.3 [#8772](https://github.com/habitat-sh/habitat/pull/8772) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.688 -->
