@@ -188,6 +188,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "addr"
+version = "0.11.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "936697e9caf938eb2905036100edf8e1269da8291f8a02f5fe7b37073784eec0"
+dependencies = [
+ "no-std-net",
+ "psl",
+ "psl-types",
+]
+
+[[package]]
 name = "addr2line"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1721,17 +1732,6 @@ dependencies = [
 
 [[package]]
 name = "idna"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "418a0a6fab821475f634efe3ccc45c013f742efe03d853e8d3355d5cb850ecf8"
-dependencies = [
- "matches",
- "unicode-bidi",
- "unicode-normalization",
-]
-
-[[package]]
-name = "idna"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e14ddfc70884202db2244c223200c204c2bda1bc6e0998d11b5e024d657209e6"
@@ -2270,6 +2270,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "no-std-net"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1bcece43b12349917e096cddfa66107277f123e6c96a5aea78711dc601a47152"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "nom"
 version = "7.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2723,14 +2732,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "020f86b07722c5c4291f7c723eac4676b3892d47d9a7708dc2779696407f039b"
 
 [[package]]
-name = "publicsuffix"
-version = "1.5.6"
+name = "psl"
+version = "2.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95b4ce31ff0a27d93c8de1849cf58162283752f065a90d508f1105fa6c9a213f"
+checksum = "2ac31add97d7c393248c273c9f862bcfd396e870db1ff5dec63e0e707db82ae4"
 dependencies = [
- "idna 0.2.3",
- "url",
+ "psl-types",
 ]
+
+[[package]]
+name = "psl-types"
+version = "2.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33cb294fe86a74cbcf50d4445b37da762029549ebeea341421c7c70370f86cac"
 
 [[package]]
 name = "quick-error"
@@ -3857,7 +3871,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d68c799ae75762b8c3fe375feb6600ef5602c883c5d21eb51c09f22b83c4643"
 dependencies = [
  "form_urlencoded",
- "idna 0.3.0",
+ "idna",
  "percent-encoding",
  "serde",
 ]
@@ -3888,10 +3902,11 @@ dependencies = [
 
 [[package]]
 name = "valico"
-version = "3.6.0"
+version = "3.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d81a70f930f9e6cd04669d38abcf232f96b193acceb0f4c006427ddec6e08b10"
+checksum = "647856408e327686b6640397d19f60fac3e64c3bfaa6afc409da63ef7da45edb"
 dependencies = [
+ "addr",
  "base64 0.13.1",
  "chrono",
  "json-pointer",
@@ -3899,7 +3914,6 @@ dependencies = [
  "percent-encoding",
  "phf",
  "phf_codegen",
- "publicsuffix",
  "regex 1.7.1",
  "serde",
  "serde_json",
