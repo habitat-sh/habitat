@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.695 -->
-## [1.6.695](https://github.com/habitat-sh/habitat/tree/1.6.695) (2023-03-09)
+<!-- latest_release 1.6.696 -->
+## [1.6.696](https://github.com/habitat-sh/habitat/tree/1.6.696) (2023-03-09)
 
 #### Merged Pull Requests
-- Bump valico from 3.6.0 to 3.6.1 [#8784](https://github.com/habitat-sh/habitat/pull/8784) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump ctrlc from 3.2.3 to 3.2.5 [#8783](https://github.com/habitat-sh/habitat/pull/8783) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump ctrlc from 3.2.3 to 3.2.5 [#8783](https://github.com/habitat-sh/habitat/pull/8783) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.696 -->
 - Bump valico from 3.6.0 to 3.6.1 [#8784](https://github.com/habitat-sh/habitat/pull/8784) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.695 -->
 - Bump async-trait from 0.1.64 to 0.1.66 [#8782](https://github.com/habitat-sh/habitat/pull/8782) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.694 -->
 - bumped buildkit timeout from 30 to 60  [#8776](https://github.com/habitat-sh/habitat/pull/8776) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.693 -->
