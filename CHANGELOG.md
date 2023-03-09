@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.693 -->
-## [1.6.693](https://github.com/habitat-sh/habitat/tree/1.6.693) (2023-03-07)
+<!-- latest_release 1.6.694 -->
+## [1.6.694](https://github.com/habitat-sh/habitat/tree/1.6.694) (2023-03-09)
 
 #### Merged Pull Requests
-- bumped buildkit timeout from 30 to 60  [#8776](https://github.com/habitat-sh/habitat/pull/8776) ([jasonheath](https://github.com/jasonheath))
+- Bump async-trait from 0.1.64 to 0.1.66 [#8782](https://github.com/habitat-sh/habitat/pull/8782) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.64 to 0.1.66 [#8782](https://github.com/habitat-sh/habitat/pull/8782) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.694 -->
 - bumped buildkit timeout from 30 to 60  [#8776](https://github.com/habitat-sh/habitat/pull/8776) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.693 -->
 - Restore notify crate for all OSes [#8777](https://github.com/habitat-sh/habitat/pull/8777) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.692 -->
 - Correction to audit.toml used by `cargo audit`  [#8775](https://github.com/habitat-sh/habitat/pull/8775) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.691 -->
