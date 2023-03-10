@@ -1169,7 +1169,7 @@ dependencies = [
  "webpki",
  "widestring 1.0.2",
  "winapi 0.3.9",
- "winreg 0.9.0",
+ "winreg 0.11.0",
 ]
 
 [[package]]
@@ -4275,10 +4275,11 @@ dependencies = [
 
 [[package]]
 name = "winreg"
-version = "0.9.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16cdb3898397cf7f624c294948669beafaeebc5577d5ec53d0afb76633593597"
+checksum = "76a1a57ff50e9b408431e8f97d5456f2807f8eb2a2cd79b06068fc87f8ecf189"
 dependencies = [
+ "cfg-if 1.0.0",
  "winapi 0.3.9",
 ]
 
