@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.696 -->
-## [1.6.696](https://github.com/habitat-sh/habitat/tree/1.6.696) (2023-03-09)
+<!-- latest_release 1.6.697 -->
+## [1.6.697](https://github.com/habitat-sh/habitat/tree/1.6.697) (2023-03-10)
 
 #### Merged Pull Requests
-- Bump ctrlc from 3.2.3 to 3.2.5 [#8783](https://github.com/habitat-sh/habitat/pull/8783) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump winreg from 0.9.0 to 0.11.0 [#8785](https://github.com/habitat-sh/habitat/pull/8785) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump winreg from 0.9.0 to 0.11.0 [#8785](https://github.com/habitat-sh/habitat/pull/8785) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.697 -->
 - Bump ctrlc from 3.2.3 to 3.2.5 [#8783](https://github.com/habitat-sh/habitat/pull/8783) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.696 -->
 - Bump valico from 3.6.0 to 3.6.1 [#8784](https://github.com/habitat-sh/habitat/pull/8784) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.695 -->
 - Bump async-trait from 0.1.64 to 0.1.66 [#8782](https://github.com/habitat-sh/habitat/pull/8782) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.694 -->
