@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.697 -->
-## [1.6.697](https://github.com/habitat-sh/habitat/tree/1.6.697) (2023-03-10)
+<!-- latest_release 1.6.698 -->
+## [1.6.698](https://github.com/habitat-sh/habitat/tree/1.6.698) (2023-03-10)
 
 #### Merged Pull Requests
-- Bump winreg from 0.9.0 to 0.11.0 [#8785](https://github.com/habitat-sh/habitat/pull/8785) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump thiserror from 1.0.38 to 1.0.39 [#8786](https://github.com/habitat-sh/habitat/pull/8786) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump thiserror from 1.0.38 to 1.0.39 [#8786](https://github.com/habitat-sh/habitat/pull/8786) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.698 -->
+- Bump os_info from 3.0.6 to 3.6.0 [#8787](https://github.com/habitat-sh/habitat/pull/8787) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.698 -->
 - Bump winreg from 0.9.0 to 0.11.0 [#8785](https://github.com/habitat-sh/habitat/pull/8785) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.697 -->
 - Bump ctrlc from 3.2.3 to 3.2.5 [#8783](https://github.com/habitat-sh/habitat/pull/8783) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.696 -->
 - Bump valico from 3.6.0 to 3.6.1 [#8784](https://github.com/habitat-sh/habitat/pull/8784) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.695 -->
