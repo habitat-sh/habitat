@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@1.67.1
+      - uses: dtolnay/rust-toolchain@1.70.0
       - uses: ClementTsang/cargo-action@v0.0.3
         with:
           command: install
