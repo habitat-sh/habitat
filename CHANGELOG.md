@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.699 -->
-## [1.6.699](https://github.com/habitat-sh/habitat/tree/1.6.699) (2023-03-10)
+<!-- latest_release 1.6.700 -->
+## [1.6.700](https://github.com/habitat-sh/habitat/tree/1.6.700) (2023-03-13)
 
 #### Merged Pull Requests
-- Bump chrono from 0.4.19 to 0.4.23 [#8781](https://github.com/habitat-sh/habitat/pull/8781) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump semver from 1.0.16 to 1.0.17 [#8789](https://github.com/habitat-sh/habitat/pull/8789) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump semver from 1.0.16 to 1.0.17 [#8789](https://github.com/habitat-sh/habitat/pull/8789) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.700 -->
 - Bump chrono from 0.4.19 to 0.4.23 [#8781](https://github.com/habitat-sh/habitat/pull/8781) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.699 -->
 - Bump thiserror from 1.0.38 to 1.0.39 [#8786](https://github.com/habitat-sh/habitat/pull/8786) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.698 -->
 - Bump os_info from 3.0.6 to 3.6.0 [#8787](https://github.com/habitat-sh/habitat/pull/8787) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.698 -->
