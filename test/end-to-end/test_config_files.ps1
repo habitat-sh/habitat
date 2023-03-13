@@ -73,7 +73,7 @@ Describe "reading from supervisor and service config files" {
         Wait-SupervisorService $svcName
     }
 
-    Unload-SupervisorService -PackageName $pkgName -Timeout 10
+    Unload-SupervisorService -PackageName $pkgName -Timeout 20
     Remove-Item -Force -Recurse -ErrorAction Ignore $svcConfig
 
     It "service starts with bulkload" {
@@ -82,7 +82,7 @@ Describe "reading from supervisor and service config files" {
         Wait-SupervisorService $svcName
     }
 
-    Unload-SupervisorService -PackageName $pkgName -Timeout 10
+    Unload-SupervisorService -PackageName $pkgName -Timeout 20
     Stop-Supervisor
 
     It "service starts on Supervisor startup" {
@@ -94,6 +94,6 @@ Describe "reading from supervisor and service config files" {
     Remove-Item -Force -Recurse -ErrorAction Ignore $supConfig
     Remove-Item -Force -Recurse -ErrorAction Ignore $svcConfig
     Remove-Item -Force -Recurse -ErrorAction Ignore $svcDirConfig
-    Unload-SupervisorService -PackageName $pkgName -Timeout 10
+    Unload-SupervisorService -PackageName $pkgName -Timeout 20
     Stop-Supervisor
 }
