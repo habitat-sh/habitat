@@ -13,6 +13,10 @@ Install-Habitat
 & "$(hab pkg path core/powershell)\bin\pwsh" -WorkingDirectory $PSScriptRoot -Command {
     Import-Module (Join-Path -Path "$(hab pkg path core/psscriptanalyzer)" -ChildPath "module\PSScriptAnalyzer.psd1")
 
+    if (!$?) {
+        exit 1
+    }
+
     $excludeAnalyzeScripts = @(
         'plan.ps1',
         'template_plan.ps1',
