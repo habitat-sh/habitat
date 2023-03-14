@@ -429,6 +429,9 @@ function Get-RuntimePath() {
 }
 
 function Write-EnvironmentFiles {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '')]
+    param()
+
     $runtime_path = Get-RuntimePath
     if ($runtime_path) {
         "$runtime_path" | Out-File "$pkg_prefix\RUNTIME_PATH" -Encoding ascii
