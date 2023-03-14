@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.704 -->
-## [1.6.704](https://github.com/habitat-sh/habitat/tree/1.6.704) (2023-03-14)
+<!-- latest_release 1.6.705 -->
+## [1.6.705](https://github.com/habitat-sh/habitat/tree/1.6.705) (2023-03-14)
 
 #### Merged Pull Requests
-- ARM Support [#8752](https://github.com/habitat-sh/habitat/pull/8752) ([atrniv](https://github.com/atrniv))
+- fail psscriptanalyzer if import-module fails and fix ps lint errors [#8794](https://github.com/habitat-sh/habitat/pull/8794) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- fail psscriptanalyzer if import-module fails and fix ps lint errors [#8794](https://github.com/habitat-sh/habitat/pull/8794) ([mwrock](https://github.com/mwrock)) <!-- 1.6.705 -->
 - ARM Support [#8752](https://github.com/habitat-sh/habitat/pull/8752) ([atrniv](https://github.com/atrniv)) <!-- 1.6.704 -->
 - extend timeout unloading service in test_config_file e2e test [#8793](https://github.com/habitat-sh/habitat/pull/8793) ([mwrock](https://github.com/mwrock)) <!-- 1.6.703 -->
 - Bump serde from 1.0.152 to 1.0.155 [#8792](https://github.com/habitat-sh/habitat/pull/8792) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.703 -->
