@@ -20,7 +20,7 @@ steps:
     expeditor:
       secrets:
         GITHUB_TOKEN:
-          account: github
+          account: github/habitat-sh
           field: token
       executor:
         docker:
