@@ -633,8 +633,8 @@ mod tests {
                             context::RenderContext,
                             package::Pkg,
                             test_helpers::*};
-    #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
-                      target_arch = "x86_64")))]
+    #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
+                      all(target_os = "windows", target_arch = "x86_64"),)))]
     use habitat_core::package::metadata::MetaFile;
     use habitat_core::{package::{PackageIdent,
                                  PackageInstall},
@@ -839,6 +839,7 @@ echo "The message is Hola Mundo"
     /// back a RenderContext. It may be possible, or we may want to
     /// refactor that code to make it possible. In the meantime, copy
     /// and paste of the code is how we're going to do it :(
+
     #[tokio::test]
     async fn compile_and_run_a_hook() {
         let service_group = service_group();
@@ -866,9 +867,11 @@ echo "The message is Hola Mundo"
                                                          PathBuf::from("/tmp"));
 
         // Platforms without standard package support require all packages to be native packages
-        #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
-                      target_arch = "x86_64")))]
+        #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
+                      all(target_os = "windows", target_arch = "x86_64"))))]
         {
+            tokio::fs::create_dir_all(pkg_install.installed_path()).await
+                                                                   .unwrap();
             create_with_content(pkg_install.installed_path()
                                            .join(MetaFile::PackageType.to_string()),
                                 "native");

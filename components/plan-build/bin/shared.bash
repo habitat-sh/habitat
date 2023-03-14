@@ -62,7 +62,7 @@ _render_metadata_EXPOSES() {
       exit_with "Bad value in pkg_exposes; No pkg_export found matching key: ${export}"
     fi
     key=${pkg_exports[$export]}
-    port=$($_rq_cmd -t < "$PLAN_CONTEXT"/default.toml "at \"${key}\"" | tr -d '"')
+    port=$($_toml_cmd get "$PLAN_CONTEXT"/default.toml "${key}" --raw)
     if ! _port_is_valid "$port"; then
       exit_with "Bad pkg_export in pkg_exposes; Value of key \"${key}\" does not contain a valid TCP or UDP port number: ${port}"
     fi

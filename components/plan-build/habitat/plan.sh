@@ -14,7 +14,7 @@ pkg_deps=(core/bash
           core/grep
           core/gzip
           core/hab
-          core/rq
+          core/toml-cli
           core/sed
           core/tar
           core/unzip

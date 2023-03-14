@@ -292,20 +292,22 @@ install_hab() {
 
           # If the user who invoked the script has a home directory
           # we try and add the hab env variables to the user's environment
-          home_dir=$(eval echo "~$SUDO_USER")
-          if [ -d "$home_dir" ]; then
-            files+=("$home_dir/.bashrc")
-            if [ -f "$home_dir/.bash_profile" ]; then
-              files+=("$home_dir/.bash_profile")
-            elif [ -f "$home_dir/.bash_login" ]; then
-              files+=("$home_dir/.bash_login")
-            elif [ -f "$home_dir/.profile" ]; then
-              files+=("$home_dir/.profile")
-            else
-              files+=("$home_dir/.bash_profile")
-            fi
-            if [ -f "$(which zsh 2>/dev/null)" ]; then
-              files+=("$home_dir/.zshrc")
+          if [[ -n "${SUDO_USER:-}" ]]; then
+            home_dir=$(eval echo "~$SUDO_USER")
+            if [ -d "$home_dir" ]; then
+              files+=("$home_dir/.bashrc")
+              if [ -f "$home_dir/.bash_profile" ]; then
+                files+=("$home_dir/.bash_profile")
+              elif [ -f "$home_dir/.bash_login" ]; then
+                files+=("$home_dir/.bash_login")
+              elif [ -f "$home_dir/.profile" ]; then
+                files+=("$home_dir/.profile")
+              else
+                files+=("$home_dir/.bash_profile")
+              fi
+              if [ -f "$(command -v zsh 2>/dev/null)" ]; then
+                files+=("$home_dir/.zshrc")
+              fi
             fi
           fi
 

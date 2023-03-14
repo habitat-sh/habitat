@@ -86,7 +86,7 @@ finish_setup() {
   # easy to create an unstable studio.)
   _hab pkg install "$HAB_STUDIO_BACKLINE_PKG"
 
-  bash_path=$(_pkgpath_for core/build-tools-bash)
+  bash_path=$(_pkgpath_for core/build-tools-bash-static)
   coreutils_path=$(_pkgpath_for core/build-tools-coreutils)
 
   # shellcheck disable=2086,2154
@@ -96,8 +96,8 @@ finish_setup() {
   _hab pkg binlink --dest "$HAB_ROOT_PATH"/bin core/build-tools-hab hab
 
   # Create `/bin/{sh,bash}` for software that hardcodes these shells
-  _hab pkg binlink core/build-tools-bash bash
-  _hab pkg binlink core/build-tools-bash sh
+  _hab pkg binlink core/build-tools-bash-static bash
+  _hab pkg binlink core/build-tools-bash-static sh
 
   # Create a wrapper to `build` so that any calls to it have a super-stripped
   # `$PATH` and not whatever augmented version is currently in use. This should
@@ -152,9 +152,13 @@ PROFILE_ENTER
 
   studio_env_command="$coreutils_path/bin/env"
 
-  if [[ -n "${HAB_PKG_DEPS:-}" ]]; then
-    echo "Installing additional dependencies"
-    deps=$(echo "$HAB_PKG_DEPS" | "$coreutils_path"/bin/tr ":" "\n")
+  # This installs any additional packages before starting the studio.
+  # It is useful in scenarios where you have a newer version of a package
+  # and want habitat to pick the newer locally installed version during 
+  # a studio build. We do exactly this during the package refresh process.
+  if [ -n "${HAB_STUDIO_INSTALL_PKGS:-}" ]; then
+    echo "Installing additional packages in bootstrap studio"
+    deps=$(echo "$HAB_STUDIO_INSTALL_PKGS" | "$coreutils_path"/bin/tr ":" "\n")
     for dep in $deps; do
       _hab pkg install "$dep"
     done
