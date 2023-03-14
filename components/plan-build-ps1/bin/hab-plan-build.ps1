@@ -204,6 +204,9 @@ function Test-Command {
 # If the commands are not found, `exit_with` is called and the program is
 # terminated.
 function Set-SystemCommands {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '')]
+    param()
+
     if (Test-Command hab) {
         $script:_hab_cmd = (Get-Command hab.exe).Source
     } else {
@@ -1372,6 +1375,9 @@ $(Get-Content "$PLAN_CONTEXT\plan.ps1" -Raw)
 # * `$pkg_prefix/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
 # * `$pkg_prefix/PATH` - Any PATH entries for things that link against us
 function Write-Metadata {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '')]
+    param()
+
     Write-BuildLine "Building package metadata"
 
     $strippedPrefix = Get-UnrootedPath $pkg_prefix

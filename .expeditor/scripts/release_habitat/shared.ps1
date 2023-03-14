@@ -65,7 +65,10 @@ function GetLatestPkgVersionFromChannel($PackageName) {
 # Note that there is no corresponding `IdentHasTarget` function
 # because *that* can be called from Linux hosts, so there's no need
 # for a Windows-only implementation.
-function Set-TargetMetadata($PackageIdent) {
+function Set-TargetMetadata {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '')]
+    param($PackageIdent)
+
     Invoke-Expression "buildkite-agent meta-data set $PackageIdent-x86_64-windows true"
 }
 
