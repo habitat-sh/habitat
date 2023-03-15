@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.707 -->
-## [1.6.707](https://github.com/habitat-sh/habitat/tree/1.6.707) (2023-03-15)
+<!-- latest_release 1.6.708 -->
+## [1.6.708](https://github.com/habitat-sh/habitat/tree/1.6.708) (2023-03-15)
 
 #### Merged Pull Requests
-- Bump serde_test from 1.0.155 to 1.0.156 [#8801](https://github.com/habitat-sh/habitat/pull/8801) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde from 1.0.155 to 1.0.156 [#8802](https://github.com/habitat-sh/habitat/pull/8802) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump serde from 1.0.155 to 1.0.156 [#8802](https://github.com/habitat-sh/habitat/pull/8802) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.708 -->
 - Bump serde_test from 1.0.155 to 1.0.156 [#8801](https://github.com/habitat-sh/habitat/pull/8801) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.707 -->
 - Bump chrono from 0.4.23 to 0.4.24 [#8799](https://github.com/habitat-sh/habitat/pull/8799) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.706 -->
 - fix credentials for creating github release [#8740](https://github.com/habitat-sh/habitat/pull/8740) ([mwrock](https://github.com/mwrock)) <!-- 1.6.706 -->
