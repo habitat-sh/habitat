@@ -193,18 +193,15 @@ enum InitializationState {
     Initialized,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Default, PartialEq, Eq)]
 pub enum RestartState {
+    #[default]
     None,
     NeedsRestart,
     NeedsImmediateRestart,
     Restarting,
     RestartingImmediately,
     Restarted,
-}
-
-impl Default for RestartState {
-    fn default() -> Self { RestartState::None }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

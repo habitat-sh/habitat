@@ -11,7 +11,6 @@
 ignore = [
     "RUSTSEC-2020-0016",    # Unmaintained: net2
     "RUSTSEC-2020-0071",    # Vulerability, 6.2 Medium: time
-    "RUSTSEC-2020-0159",    # Vulnerability (???): chrono
     "RUSTSEC-2021-0137",    # Unmaintained: sodiumoxide
     "RUSTSEC-2021-0139",    # Unmaintained: ansi_term
     "RUSTSEC-2021-0145",    # Unsound, Unmaintained: atty

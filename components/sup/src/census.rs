@@ -249,16 +249,13 @@ impl<'a> Serialize for CensusRingProxy<'a> {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum ElectionStatus {
+    #[default]
     None,
     ElectionInProgress,
     ElectionNoQuorum,
     ElectionFinished,
-}
-
-impl Default for ElectionStatus {
-    fn default() -> ElectionStatus { ElectionStatus::None }
 }
 
 impl fmt::Display for ElectionStatus {

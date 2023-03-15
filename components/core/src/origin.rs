@@ -45,8 +45,9 @@ impl AsRef<str> for Origin {
     fn as_ref(&self) -> &str { &self.0 }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize)]
 pub enum OriginMemberRole {
+    #[default]
     ReadonlyMember,
     Member,
     Maintainer,
@@ -60,10 +61,6 @@ impl OriginMemberRole {
     pub const MEMBER: &'static str = "member";
     pub const OWNER: &'static str = "owner";
     pub const READONLY_MEMBER: &'static str = "readonly_member";
-}
-
-impl Default for OriginMemberRole {
-    fn default() -> OriginMemberRole { OriginMemberRole::ReadonlyMember }
 }
 
 impl fmt::Display for OriginMemberRole {

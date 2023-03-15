@@ -221,28 +221,22 @@ impl AsRef<PackageIdent> for InstallSource {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Default, Eq, PartialEq)]
 pub enum InstallMode {
+    #[default]
     Online,
     Offline,
 }
 
-impl Default for InstallMode {
-    fn default() -> Self { InstallMode::Online }
-}
-
 /// Governs how install hooks behave when loading packages
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum InstallHookMode {
     /// Run the install hook and all install hooks of dependent packages
     /// that have not yet been run or have previously failed
+    #[default]
     Run,
     /// Do not run any install hooks when loading a package
     Ignore,
-}
-
-impl Default for InstallHookMode {
-    fn default() -> Self { InstallHookMode::Run }
 }
 
 /// When querying Builder, we may not find a package that satisfies
