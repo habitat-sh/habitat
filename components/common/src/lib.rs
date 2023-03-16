@@ -65,6 +65,7 @@ bitflags::bitflags! {
     /// constant here, as well as a mapping from the feature to the
     /// environment variable to which it corresponds in the `ENV_VARS`
     /// map below.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct FeatureFlag: u32 {
         const LIST                       = 0b0000_0000_0001;
         const TEST_EXIT                  = 0b0000_0000_0010;
