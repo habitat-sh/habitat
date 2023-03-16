@@ -96,7 +96,7 @@ pub const DEFAULT_SECRET_KEY_PERMISSIONS: Permissions = Permissions::Standard;
 
 /// An `Option`-like abstraction over platform-specific ways to model
 /// file permissions.
-#[derive(PartialEq)]
+#[derive(Default, PartialEq)]
 pub enum Permissions {
     /// Don't take any special action to set permissions beyond what
     /// they are "normally" set to when they are created. Here,
@@ -105,6 +105,7 @@ pub enum Permissions {
     ///
     /// Think of this as a more semantically-descriptive and
     /// permission-specific version of `Option::None`.
+    #[default]
     Standard,
     /// Indicates that a file should be created with very specific
     /// permissions.
@@ -115,10 +116,6 @@ pub enum Permissions {
     Explicit(Vec<win_perm::PermissionEntry>),
     #[cfg(not(windows))]
     Explicit(u32),
-}
-
-impl Default for Permissions {
-    fn default() -> Permissions { Permissions::Standard }
 }
 
 // Explicitly implementing this so we can get octal formatting on

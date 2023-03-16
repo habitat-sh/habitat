@@ -24,16 +24,13 @@ use std::{fs,
           str::FromStr};
 
 /// Governs how uninstall hooks behave when uninstalling packages
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum UninstallHookMode {
     /// Run the uninstall hook
+    #[default]
     Run,
     /// Do not run any uninstall hooks when uninstalling a package
     Ignore,
-}
-
-impl Default for UninstallHookMode {
-    fn default() -> Self { UninstallHookMode::Run }
 }
 
 /// `Force` indictates that the package should be uninstalled even if it is loaded by the

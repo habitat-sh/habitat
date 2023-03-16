@@ -35,14 +35,19 @@ use std::{collections::HashSet,
 static DEFAULT_GROUP: &str = "default";
 const SPEC_FILE_EXT: &str = "spec";
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Copy,
+         Clone,
+         Debug,
+         Default,
+         Deserialize,
+         Eq,
+         Hash,
+         PartialEq,
+         Serialize)]
 pub enum DesiredState {
     Down,
+    #[default]
     Up,
-}
-
-impl Default for DesiredState {
-    fn default() -> DesiredState { DesiredState::Up }
 }
 
 impl fmt::Display for DesiredState {

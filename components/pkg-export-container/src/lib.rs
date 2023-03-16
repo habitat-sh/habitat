@@ -45,10 +45,11 @@ const BUSYBOX_IDENT: &str = "core/busybox-static";
 /// The Habitat Package Identifier string for SSL certificate authorities (CA) certificates package.
 const CACERTS_IDENT: &str = "core/cacerts";
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub enum RegistryType {
     Amazon,
     Azure,
+    #[default]
     Docker,
 }
 
@@ -78,10 +79,6 @@ impl fmt::Display for RegistryType {
         };
         write!(f, "{}", disp)
     }
-}
-
-impl Default for RegistryType {
-    fn default() -> Self { RegistryType::Docker }
 }
 
 /// A credentials username and password pair.
