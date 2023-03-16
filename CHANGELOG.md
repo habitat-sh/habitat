@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.709 -->
-## [1.6.709](https://github.com/habitat-sh/habitat/tree/1.6.709) (2023-03-16)
+<!-- latest_release 1.6.710 -->
+## [1.6.710](https://github.com/habitat-sh/habitat/tree/1.6.710) (2023-03-16)
 
 #### Merged Pull Requests
-- Bump bitflags from 1.3.2 to 2.0.0 [#8795](https://github.com/habitat-sh/habitat/pull/8795) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump bitflags from 2.0.0 to 2.0.1 [#8803](https://github.com/habitat-sh/habitat/pull/8803) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump bitflags from 2.0.0 to 2.0.1 [#8803](https://github.com/habitat-sh/habitat/pull/8803) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.710 -->
 - Bump bitflags from 1.3.2 to 2.0.0 [#8795](https://github.com/habitat-sh/habitat/pull/8795) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.709 -->
 - Bump serde from 1.0.155 to 1.0.156 [#8802](https://github.com/habitat-sh/habitat/pull/8802) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.708 -->
 - Bump serde_test from 1.0.155 to 1.0.156 [#8801](https://github.com/habitat-sh/habitat/pull/8801) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.707 -->
