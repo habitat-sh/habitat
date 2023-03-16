@@ -53,10 +53,10 @@ impl From<Color> for termcolor::Color {
     }
 }
 
-#[derive(Clone, Copy, Default)]
 pub enum GlyphStyle {
-    #[default]
+    #[cfg_attr(cfg("unix"), default)]
     Full,
+    #[cfg_attr(cfg("windows"), default)]
     Limited,
     Ascii,
 }
