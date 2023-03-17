@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.711 -->
-## [1.6.711](https://github.com/habitat-sh/habitat/tree/1.6.711) (2023-03-16)
+<!-- latest_release 1.6.712 -->
+## [1.6.712](https://github.com/habitat-sh/habitat/tree/1.6.712) (2023-03-17)
 
 #### Merged Pull Requests
-- Jah/rust 1.68.0 [#8800](https://github.com/habitat-sh/habitat/pull/8800) ([jasonheath](https://github.com/jasonheath))
+- Bump walkdir from 2.3.2 to 2.3.3 [#8804](https://github.com/habitat-sh/habitat/pull/8804) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump walkdir from 2.3.2 to 2.3.3 [#8804](https://github.com/habitat-sh/habitat/pull/8804) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.712 -->
 - Jah/rust 1.68.0 [#8800](https://github.com/habitat-sh/habitat/pull/8800) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.711 -->
 - Bump bitflags from 2.0.0 to 2.0.1 [#8803](https://github.com/habitat-sh/habitat/pull/8803) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.710 -->
 - Bump bitflags from 1.3.2 to 2.0.0 [#8795](https://github.com/habitat-sh/habitat/pull/8795) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.709 -->
