@@ -82,18 +82,18 @@ macro_rules! ok_trace {
     };
 }
 
-/// This macro implements `TryFrom<&str>` and `Into<String>` for a list of types implementing
+/// This macro implements `TryFrom<String>` and `Into<String>` for a list of types implementing
 /// `FromStr` and `Display`. The traits `FromStr` and `Display` are preferred. However, occasionally
-/// there are instances where type bounds require `TryFrom<&str>` and `Into<String>`. For example,
-/// using the serde tag `#[serde(try_from = "&str", into = "String")]`
+/// there are instances where type bounds require `TryFrom<String>` and `Into<String>`. For example,
+/// using the serde tag `#[serde(try_from = "String", into = "String")]`
 #[macro_export]
-macro_rules! impl_try_from_str_and_into_string {
+macro_rules! impl_try_from_string_and_into_string {
     ($($ty:ty),*) => {
         $(
-            impl std::convert::TryFrom<&str> for $ty {
+            impl std::convert::TryFrom<String> for $ty {
                 type Error = Error;
 
-                fn try_from(s: &str) -> Result<Self, Self::Error> { Self::from_str(s) }
+                fn try_from(s: String) -> Result<Self, Self::Error> { Self::from_str(&s) }
             }
 
             impl From<$ty> for String {

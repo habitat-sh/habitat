@@ -464,7 +464,6 @@ impl Server {
     ///
     /// * Returns `Error::CannotBind` if the socket cannot be bound
     /// * Returns `Error::SocketSetReadTimeout` if the socket read timeout cannot be set
-    /// * Returns `Error::SocketSetWriteTimeout` if the socket write timeout cannot be set
     pub fn start_rsw_mlw_smw_rhw_msr(&mut self, timing: &timing::Timing) -> Result<()> {
         debug!("entering habitat_butterfly::server::Server::start");
         let (tx_outbound, rx_inbound) = channel();

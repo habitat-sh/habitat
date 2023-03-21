@@ -325,8 +325,8 @@ impl Cfg {
                     let mut buffer = String::new();
                     let mut deserializer = serde_json::Deserializer::from_str(&config);
                     let res = {
-                        let mut serializer = toml::Serializer::new(&mut buffer);
-                        serde_transcode::transcode(&mut deserializer, &mut serializer)
+                        let serializer = toml::Serializer::new(&mut buffer);
+                        serde_transcode::transcode(&mut deserializer, serializer)
                     };
                     (buffer, res)
                 };
@@ -385,7 +385,7 @@ impl Serialize for Cfg {
             }
         }
 
-        toml::ser::tables_last(&table, serializer)
+        serializer.collect_map(&table)
     }
 }
 

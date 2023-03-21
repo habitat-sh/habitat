@@ -28,7 +28,8 @@ use std::{borrow::Cow,
           fmt,
           iter::IntoIterator,
           result,
-          str::FromStr};
+          str::{self,
+                FromStr}};
 
 static LOGKEY: &str = "CE";
 
@@ -596,10 +597,6 @@ pub struct CensusMember {
     pub suspect: bool,
     pub confirmed: bool,
     pub departed: bool,
-    // Maps must be represented last in a serializable struct for the current version of the toml
-    // crate. Additionally, this deserialization method is required to correct any ordering issues
-    // with the table being serialized - https://docs.rs/toml/0.4.0/toml/ser/fn.tables_last.html
-    #[serde(serialize_with = "toml::ser::tables_last")]
     pub cfg: toml::value::Table,
 }
 
@@ -617,7 +614,8 @@ impl CensusMember {
         };
         self.pkg_incarnation = rumor.pkg_incarnation;
         self.sys = rumor.sys.clone();
-        self.cfg = toml::from_slice(&rumor.cfg).unwrap_or_default();
+        self.cfg =
+            toml::from_str(str::from_utf8(&rumor.cfg).unwrap_or_default()).unwrap_or_default();
     }
 
     fn update_from_election_rumor(&mut self, election: &ElectionRumor) -> bool {

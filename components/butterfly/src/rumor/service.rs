@@ -19,7 +19,8 @@ use std::{cmp::Ordering,
           fmt,
           mem,
           result,
-          str::FromStr};
+          str::{self,
+                FromStr}};
 
 #[derive(Debug, Clone)]
 pub struct Service {
@@ -47,7 +48,8 @@ impl Serialize for Service {
         where S: Serializer
     {
         let mut strukt = serializer.serialize_struct("service", 7)?;
-        let cfg: toml::value::Table = toml::from_slice(&self.cfg).unwrap_or_default();
+        let cfg: toml::value::Table =
+            toml::from_str(str::from_utf8(&self.cfg).unwrap_or_default()).unwrap_or_default();
         strukt.serialize_field("member_id", &self.member_id)?;
         strukt.serialize_field("service_group", &self.service_group)?;
         strukt.serialize_field("package", &self.pkg)?;
@@ -106,8 +108,8 @@ impl Service {
                               // Directly serializing a toml::value::Table can lead to an error
                               // Wrapping it in a toml::value::Value makes this operation safe
                               // See https://github.com/alexcrichton/toml-rs/issues/142
-                              toml::ser::to_vec(&toml::value::Value::Table(v))
-                        .expect("Struct should serialize to bytes")
+                              toml::ser::to_string(&toml::value::Value::Table(v))
+                        .expect("Struct should serialize to toml").into_bytes()
                           })
                           .unwrap_or_default() }
     }

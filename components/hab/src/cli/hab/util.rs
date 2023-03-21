@@ -142,7 +142,7 @@ pub struct CacheKeyPath {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(try_from = "&str", into = "String")]
+#[serde(try_from = "String", into = "String")]
 struct PkgIdentStringySerde(PackageIdent);
 
 impl FromStr for PkgIdentStringySerde {
@@ -151,10 +151,10 @@ impl FromStr for PkgIdentStringySerde {
     fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(Self(s.parse()?)) }
 }
 
-impl std::convert::TryFrom<&str> for PkgIdentStringySerde {
+impl std::convert::TryFrom<String> for PkgIdentStringySerde {
     type Error = habitat_core::Error;
 
-    fn try_from(s: &str) -> Result<Self, Self::Error> { Self::from_str(s) }
+    fn try_from(s: String) -> Result<Self, Self::Error> { Self::from_str(&s) }
 }
 
 impl std::fmt::Display for PkgIdentStringySerde {
@@ -321,7 +321,7 @@ pub struct ExternalCommandArgsWithHelpAndVersion {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(try_from = "&str", into = "String")]
+#[serde(try_from = "String", into = "String")]
 pub struct SubjectAlternativeName(DnsName);
 
 impl FromStr for SubjectAlternativeName {
@@ -346,4 +346,4 @@ impl SubjectAlternativeName {
     pub fn inner(&self) -> DnsNameRef { self.0.as_ref() }
 }
 
-habitat_core::impl_try_from_str_and_into_string!(SubjectAlternativeName);
+habitat_core::impl_try_from_string_and_into_string!(SubjectAlternativeName);

@@ -18,7 +18,7 @@ use std::{path::PathBuf,
           str::FromStr};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(try_from = "&str", into = "String")]
+#[serde(try_from = "String", into = "String")]
 pub struct CertificateChainCli {
     path:         PathBuf,
     certificates: Vec<Certificate>,
@@ -49,7 +49,7 @@ impl std::fmt::Display for CertificateChainCli {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(try_from = "&str", into = "String")]
+#[serde(try_from = "String", into = "String")]
 pub struct PrivateKeyCli {
     path:        PathBuf,
     private_key: RustlsPrivateKey,
@@ -80,7 +80,7 @@ impl std::fmt::Display for PrivateKeyCli {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(try_from = "&str", into = "String")]
+#[serde(try_from = "String", into = "String")]
 pub struct RootCertificateStoreCli {
     path:                   PathBuf,
     root_certificate_store: RootCertStore,
@@ -111,6 +111,6 @@ impl std::fmt::Display for RootCertificateStoreCli {
     }
 }
 
-crate::impl_try_from_str_and_into_string!(CertificateChainCli,
-                                          PrivateKeyCli,
-                                          RootCertificateStoreCli);
+crate::impl_try_from_string_and_into_string!(CertificateChainCli,
+                                             PrivateKeyCli,
+                                             RootCertificateStoreCli);
