@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.715 -->
-## [1.6.715](https://github.com/habitat-sh/habitat/tree/1.6.715) (2023-03-20)
+<!-- latest_release 1.6.716 -->
+## [1.6.716](https://github.com/habitat-sh/habitat/tree/1.6.716) (2023-03-21)
 
 #### Merged Pull Requests
-- Bump dirs from 4.0.0 to 5.0.0 [#8808](https://github.com/habitat-sh/habitat/pull/8808) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump os_info from 3.6.0 to 3.7.0 [#8812](https://github.com/habitat-sh/habitat/pull/8812) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump os_info from 3.6.0 to 3.7.0 [#8812](https://github.com/habitat-sh/habitat/pull/8812) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.716 -->
 - Bump dirs from 4.0.0 to 5.0.0 [#8808](https://github.com/habitat-sh/habitat/pull/8808) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.715 -->
 - Bump thiserror from 1.0.39 to 1.0.40 [#8807](https://github.com/habitat-sh/habitat/pull/8807) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.714 -->
 - Bump serde_test from 1.0.156 to 1.0.157 [#8806](https://github.com/habitat-sh/habitat/pull/8806) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.714 -->
