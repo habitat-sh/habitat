@@ -110,7 +110,7 @@ pub struct LocalArchive {
 
 /// Encapsulate all possible sources we can install packages from.
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
-#[serde(try_from = "&str", into = "String")]
+#[serde(try_from = "String", into = "String")]
 pub enum InstallSource {
     /// We can install from a package identifier
     Ident(PackageIdent, PackageTarget),
@@ -168,10 +168,10 @@ impl FromStr for InstallSource {
     }
 }
 
-impl std::convert::TryFrom<&str> for InstallSource {
+impl std::convert::TryFrom<String> for InstallSource {
     type Error = habitat_core::Error;
 
-    fn try_from(s: &str) -> StdResult<Self, Self::Error> { InstallSource::from_str(s) }
+    fn try_from(s: String) -> StdResult<Self, Self::Error> { InstallSource::from_str(&s) }
 }
 
 impl std::fmt::Display for InstallSource {

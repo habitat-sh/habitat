@@ -9,6 +9,7 @@ use anyhow::{Context,
 use habitat_butterfly::client::Client as ButterflyClient;
 use habitat_core::service::ServiceGroup;
 use std::{net::SocketAddr,
+          str,
           time::{SystemTime,
                  UNIX_EPOCH}};
 
@@ -43,7 +44,7 @@ impl Client {
         let config = config.as_bytes();
 
         // Validate the TOML, to save you from typos in your tests
-        toml::de::from_slice::<toml::value::Value>(config).with_context(|| {
+        toml::de::from_str::<toml::value::Value>(str::from_utf8(config).unwrap()).with_context(|| {
                                                               format!("Invalid TOML: {}",
                                                                       applied_config)
                                                           })?;

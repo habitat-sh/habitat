@@ -89,7 +89,8 @@ impl ServiceConfig {
                                   })
                                   .map(toml::from_str)?
                                   .map_err(|e| {
-                                      Error::ServiceConfigDecode(self.service_group.to_string(), e)
+                                      Error::ServiceConfigDecode(self.service_group.to_string(),
+                                                                 e.to_string())
                                   })?;
 
         Ok(config)

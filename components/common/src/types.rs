@@ -47,7 +47,7 @@ pub struct UserInfo {
 // TODO (DM): This is unnecessarily difficult due to this issue in serde
 // https://github.com/serde-rs/serde/issues/723. The easiest way to get around the issue is to use
 // these proxy types.
-#[serde(try_from = "&str", into = "String")]
+#[serde(try_from = "String", into = "String")]
 pub struct EventStreamMetaPair(String, String);
 
 impl FromStr for EventStreamMetaPair {
@@ -72,10 +72,10 @@ impl fmt::Display for EventStreamMetaPair {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}={} ", self.0, self.1) }
 }
 
-impl std::convert::TryFrom<&str> for EventStreamMetaPair {
+impl std::convert::TryFrom<String> for EventStreamMetaPair {
     type Error = Error;
 
-    fn try_from(s: &str) -> Result<Self, Self::Error> { Ok(EventStreamMetaPair::from_str(s)?) }
+    fn try_from(s: String) -> Result<Self, Self::Error> { Ok(EventStreamMetaPair::from_str(&s)?) }
 }
 
 #[allow(clippy::from_over_into)]
@@ -232,7 +232,7 @@ impl Into<Option<Duration>> for EventStreamConnectMethod {
 // TODO (DM): This is unnecessarily difficult due to this issue in serde
 // https://github.com/serde-rs/serde/issues/723. The easiest way to get around the issue is to use
 // these proxy types.
-#[serde(try_from = "&str", into = "PathBuf")]
+#[serde(try_from = "String", into = "PathBuf")]
 pub struct EventStreamServerCertificate {
     path:        PathBuf,
     certificate: Certificate,
@@ -268,10 +268,12 @@ impl FromStr for EventStreamServerCertificate {
     }
 }
 
-impl std::convert::TryFrom<&str> for EventStreamServerCertificate {
+impl std::convert::TryFrom<String> for EventStreamServerCertificate {
     type Error = Error;
 
-    fn try_from(s: &str) -> Result<Self, Self::Error> { EventStreamServerCertificate::from_str(s) }
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        EventStreamServerCertificate::from_str(&s)
+    }
 }
 
 #[allow(clippy::from_over_into)]
@@ -312,7 +314,7 @@ impl PartialEq<EventStreamServerCertificate> for EventStreamServerCertificate {
 /// A wrapper around `ListenCtlAddr` that keeps track of the domain the socket address was resolved
 /// from. Ideally this would be done by `env_config_socketaddr`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(try_from = "&str", into = "String")]
+#[serde(try_from = "String", into = "String")]
 pub struct ResolvedListenCtlAddr {
     domain: String,
     addr:   ListenCtlAddr,
@@ -349,7 +351,7 @@ impl From<ResolvedListenCtlAddr> for ListenCtlAddr {
     fn from(r: ResolvedListenCtlAddr) -> Self { r.addr }
 }
 
-habitat_core::impl_try_from_str_and_into_string!(ResolvedListenCtlAddr);
+habitat_core::impl_try_from_string_and_into_string!(ResolvedListenCtlAddr);
 
 habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug, Deserialize, Serialize)]
                                      pub GossipListenAddr,

@@ -11,7 +11,6 @@ pub type Result<T> = result::Result<T, Error>;
 #[derive(Debug)]
 pub enum Error {
     BadDataPath(PathBuf, io::Error),
-    BadDatFile(PathBuf, io::Error),
     CannotBind(io::Error),
     DatFileIO(PathBuf, io::Error),
     DecodeError(prost::DecodeError),
@@ -19,15 +18,12 @@ pub enum Error {
     HabitatCore(habitat_core::error::Error),
     IncarnationIO(PathBuf, io::Error),
     IncarnationParse(PathBuf, num::ParseIntError),
-    InvalidRumorShareLimit,
     NonExistentRumor(String, String),
     OsError(io::Error),
     ProtocolMismatch(&'static str),
-    ServiceConfigDecode(String, toml::de::Error),
+    ServiceConfigDecode(String, String),
     ServiceConfigNotUtf8(String, str::Utf8Error),
-    SocketCloneError,
     SocketSetReadTimeout(io::Error),
-    SocketSetWriteTimeout(io::Error),
     Timeout(String),
     UnknownMember(String),
     ZmqConnectError(zmq::Error),
@@ -40,11 +36,6 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::BadDataPath(ref path, ref err) => {
                 format!("Unable to read or write to data directory, {}, {}",
-                        path.display(),
-                        err)
-            }
-            Error::BadDatFile(ref path, ref err) => {
-                format!("Unable to decode contents of DatFile, {}, {}",
                         path.display(),
                         err)
             }
@@ -68,9 +59,6 @@ impl fmt::Display for Error {
                         path.display(),
                         err)
             }
-            Error::InvalidRumorShareLimit => {
-                "Rumor share limit should be a positive integer".to_string()
-            }
             Error::NonExistentRumor(ref member_id, ref rumor_id) => {
                 format!("Non existent rumor asked to be written to bytes: {} {}",
                         member_id, rumor_id)
@@ -81,17 +69,13 @@ impl fmt::Display for Error {
                         field)
             }
             Error::ServiceConfigDecode(ref sg, ref err) => {
-                format!("Cannot decode service config: group={}, {:?}", sg, err)
+                format!("Cannot decode service config: group={}, {}", sg, err)
             }
             Error::ServiceConfigNotUtf8(ref sg, ref err) => {
                 format!("Cannot read service configuration: group={}, {}", sg, err)
             }
-            Error::SocketCloneError => "Cannot clone the underlying UDP socket".to_string(),
             Error::SocketSetReadTimeout(ref err) => {
                 format!("Cannot set UDP socket read timeout: {}", err)
-            }
-            Error::SocketSetWriteTimeout(ref err) => {
-                format!("Cannot set UDP socket write timeout: {}", err)
             }
             Error::Timeout(ref msg) => format!("Timed out {}", msg),
             Error::UnknownMember(ref member_id) => format!("Unknown member ID: {}", member_id),

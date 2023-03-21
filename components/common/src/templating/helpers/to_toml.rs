@@ -17,12 +17,13 @@ impl HelperDef for ToTomlHelper {
         // `serde_json` has been compiled with the `preserve_order`
         // feature, since order *is* important for TOML (values must
         // be emitted before tables).
-        let bytes = toml::ser::to_vec(&param).map_err(|e| {
-                                                 RenderError::new(format!("Can't serialize \
-                                                                           parameter to TOML: {}",
-                                                                          e))
-                                             })?;
-        rc.writer.write_all(bytes.as_ref())?;
+        let toml = toml::ser::to_string(&param).map_err(|e| {
+                                                   RenderError::new(format!("Can't serialize \
+                                                                             parameter to TOML: \
+                                                                             {}",
+                                                                            e))
+                                               })?;
+        rc.writer.write_all(toml.into_bytes().as_ref())?;
         Ok(())
     }
 }

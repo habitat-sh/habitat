@@ -26,6 +26,7 @@ use serde::Deserialize;
 use std::{convert::TryFrom,
           fmt,
           result,
+          str,
           sync::atomic::Ordering,
           time::{Duration,
                  SystemTime}};
@@ -72,12 +73,16 @@ pub fn service_cfg_validate(_mgr: &ManagerState,
                             format!("Configuration format {} not available.",
                                     format)));
     }
-    let _new_cfg: toml::value::Table = toml::from_slice(&cfg).map_err(|e| {
-                                                                 net::err(
-            ErrCode::BadPayload,
-            format!("Unable to decode configuration as {}, {}", format, e),
-        )
-                                                             })?;
+    let cfg_str =
+        str::from_utf8(&cfg).map_err(|e| {
+                                net::err(ErrCode::BadPayload,
+                                         format!("Unable to decode configuration to string, {}", e))
+                            })?;
+    let _new_cfg: toml::value::Table = toml::from_str(cfg_str).map_err(|e| {
+                                                                  net::err(ErrCode::BadPayload,
+                                            format!("Unable to decode configuration as {}, {}",
+                                                    format, e))
+                                                              })?;
     req.reply_complete(net::ok());
     Ok(())
     // JW TODO: Hold off on validation until we can validate services which aren't currently
