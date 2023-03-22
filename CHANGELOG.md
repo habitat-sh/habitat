@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.721 -->
-## [1.6.721](https://github.com/habitat-sh/habitat/tree/1.6.721) (2023-03-22)
+<!-- latest_release 1.6.722 -->
+## [1.6.722](https://github.com/habitat-sh/habitat/tree/1.6.722) (2023-03-22)
 
 #### Merged Pull Requests
-- Bump multimap from 0.8.3 to 0.9.0 [#8815](https://github.com/habitat-sh/habitat/pull/8815) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump async-trait from 0.1.66 to 0.1.67 [#8813](https://github.com/habitat-sh/habitat/pull/8813) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.66 to 0.1.67 [#8813](https://github.com/habitat-sh/habitat/pull/8813) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.722 -->
 - Bump multimap from 0.8.3 to 0.9.0 [#8815](https://github.com/habitat-sh/habitat/pull/8815) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.721 -->
 - Bump bitflags from 2.0.1 to 2.0.2 [#8816](https://github.com/habitat-sh/habitat/pull/8816) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.720 -->
 - Bump toml from 0.5.10 to 0.7.3 [#8796](https://github.com/habitat-sh/habitat/pull/8796) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.719 -->
