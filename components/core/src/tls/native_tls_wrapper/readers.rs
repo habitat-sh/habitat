@@ -132,7 +132,7 @@ fn certs_from_pem_file(buf: &[u8]) -> Result<Vec<Certificate>> {
     // rest.
     Certificate::from_pem(buf)?;
     pem::parse_many(buf)?.iter()
-                         .map(|cert| Ok(Certificate::from_der(&cert.contents)?))
+                         .map(|cert| Ok(Certificate::from_der(cert.contents())?))
                          .collect()
 }
 
