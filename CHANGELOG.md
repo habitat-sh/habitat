@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.725 -->
-## [1.6.725](https://github.com/habitat-sh/habitat/tree/1.6.725) (2023-03-25)
+<!-- latest_release 1.6.726 -->
+## [1.6.726](https://github.com/habitat-sh/habitat/tree/1.6.726) (2023-03-27)
 
 #### Merged Pull Requests
-- Bump openssl from 0.10.35 to 0.10.48 [#8820](https://github.com/habitat-sh/habitat/pull/8820) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump async-trait from 0.1.67 to 0.1.68 [#8822](https://github.com/habitat-sh/habitat/pull/8822) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.67 to 0.1.68 [#8822](https://github.com/habitat-sh/habitat/pull/8822) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.726 -->
 - Bump openssl from 0.10.35 to 0.10.48 [#8820](https://github.com/habitat-sh/habitat/pull/8820) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.725 -->
 - Bump pem from 1.1.1 to 2.0.0 [#8817](https://github.com/habitat-sh/habitat/pull/8817) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.724 -->
 - Bump regex from 1.7.1 to 1.7.2 [#8818](https://github.com/habitat-sh/habitat/pull/8818) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.723 -->
