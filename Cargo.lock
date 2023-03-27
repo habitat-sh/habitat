@@ -76,7 +76,7 @@ dependencies = [
  "firestorm",
  "http",
  "log 0.4.17",
- "regex 1.7.2",
+ "regex 1.7.3",
  "serde",
 ]
 
@@ -177,7 +177,7 @@ dependencies = [
  "mime",
  "once_cell",
  "pin-project-lite",
- "regex 1.7.2",
+ "regex 1.7.3",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -850,7 +850,7 @@ dependencies = [
  "humantime",
  "is-terminal",
  "log 0.4.17",
- "regex 1.7.2",
+ "regex 1.7.3",
  "termcolor",
 ]
 
@@ -1349,7 +1349,7 @@ dependencies = [
  "pbr",
  "percent-encoding",
  "rand 0.8.5",
- "regex 1.7.2",
+ "regex 1.7.3",
  "reqwest",
  "serde",
  "serde_json",
@@ -1408,7 +1408,7 @@ dependencies = [
  "parking_lot",
  "pbr",
  "petgraph",
- "regex 1.7.2",
+ "regex 1.7.3",
  "reqwest",
  "retry",
  "rustls",
@@ -1454,7 +1454,7 @@ dependencies = [
  "pin-project",
  "rand 0.8.5",
  "rcgen",
- "regex 1.7.2",
+ "regex 1.7.3",
  "reqwest",
  "rustls",
  "rustls-pemfile",
@@ -1590,7 +1590,7 @@ dependencies = [
  "prost-types",
  "rand 0.8.5",
  "rants",
- "regex 1.7.2",
+ "regex 1.7.3",
  "reqwest",
  "rustls",
  "rustls-pemfile",
@@ -2811,7 +2811,7 @@ dependencies = [
  "prettyplease",
  "prost",
  "prost-types",
- "regex 1.7.2",
+ "regex 1.7.3",
  "syn 1.0.104",
  "tempfile",
  "which",
@@ -3024,9 +3024,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.7.2"
+version = "1.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cce168fea28d3e05f158bda4576cf0c844d5045bc2cc3620fa0292ed5bb5814c"
+checksum = "8b1f693b24f6ac912f4893ef08244d70b6067480d2f1a46e950c9691e6749d1d"
 dependencies = [
  "aho-corasick 0.7.18",
  "memchr",
@@ -4026,7 +4026,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bcde98d1fc3f528255b1ecb22fb688ee0d23deb672a8c57127df10b98b4bd18c"
 dependencies = [
- "regex 1.7.2",
+ "regex 1.7.3",
 ]
 
 [[package]]
@@ -4079,7 +4079,7 @@ dependencies = [
  "percent-encoding",
  "phf",
  "phf_codegen",
- "regex 1.7.2",
+ "regex 1.7.3",
  "serde",
  "serde_json",
  "uritemplate-next",
