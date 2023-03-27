@@ -254,86 +254,24 @@ install_hab() {
       install -v "${archive_dir}"/hab /usr/local/bin/hab
       ;;
     linux)
-      case "${arch}" in
-        x86_64)
-          local _ident="core/hab"
+      local _ident="core/hab"
 
-          if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
-            _ident+="/$version";
-          fi
+      if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
+        _ident+="/$version";
+      fi
 
-          info "Installing Habitat package using temporarily downloaded hab"
-          # NOTE: For people (rightly) wondering why we download hab only to use it
-          # to install hab from Builder, the main reason is because it allows /bin/hab
-          # to be a binlink, meaning that future upgrades can be easily done via
-          # hab pkg install core/hab -bf and everything will Just Work. If we put
-          # the hab we downloaded into /bin, then future hab upgrades done via hab
-          # itself won't work - you'd need to run this script every time you wanted
-          # to upgrade hab, which is not intuitive. Putting it into a place other than
-          # /bin means now you have multiple copies of hab on your system and pathing
-          # shenanigans might ensue. Rather than deal with that mess, we do it this
-          # way.
-          "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
-          ;;
-        aarch64)
-          need_cmd mkdir
-          need_cmd install
-
-          target_dir=${INSTALL_DIR:-"/bin"}
-          info "Installing hab into ${target_dir}"
-
-          mkdir -pv "$target_dir"
-          install -v "${archive_dir}"/hab "${target_dir}/hab"
-          install -v "${archive_dir}"/hab-sup "${target_dir}/hab-sup"
-          install -v "${archive_dir}"/hab-launch "${target_dir}/hab-launch"
-
-          # We add the hab env variables to root's environment
-          files=("/etc/environment")
-
-          # If the user who invoked the script has a home directory
-          # we try and add the hab env variables to the user's environment
-          if [[ -n "${SUDO_USER:-}" ]]; then
-            home_dir=$(eval echo "~$SUDO_USER")
-            if [ -d "$home_dir" ]; then
-              files+=("$home_dir/.bashrc")
-              if [ -f "$home_dir/.bash_profile" ]; then
-                files+=("$home_dir/.bash_profile")
-              elif [ -f "$home_dir/.bash_login" ]; then
-                files+=("$home_dir/.bash_login")
-              elif [ -f "$home_dir/.profile" ]; then
-                files+=("$home_dir/.profile")
-              else
-                files+=("$home_dir/.bash_profile")
-              fi
-              if [ -f "$(command -v zsh 2>/dev/null)" ]; then
-                files+=("$home_dir/.zshrc")
-              fi
-            fi
-          fi
-
-          for file in "${files[@]}"
-          do
-            touch "${file}"
-            if ! grep -qc 'HAB_SUP_BINARY' "${file}"; then
-              echo "Adding HAB_SUP_BINARY environment variable to ${file}"
-              printf "export HAB_SUP_BINARY=%s\n" "${target_dir}/hab-sup" >> "${file}"
-            else
-              echo "Updated HAB_SUP_BINARY environment variable to ${file}"
-              sed -i "/export HAB_SUP_BINARY=/c\\export HAB_SUP_BINARY=${target_dir}/hab-sup" "${file}"
-            fi
-            if ! grep -qc 'HAB_LAUNCH_BINARY' "${file}"; then
-              echo "Adding HAB_LAUNCH_BINARY environment variable to ${file}"
-              printf "export HAB_LAUNCH_BINARY=%s\n" "${target_dir}/hab-launch" >> "${file}"
-            else
-              echo "Updated HAB_LAUNCH_BINARY environment variable to ${file}"
-              sed -i "/export HAB_LAUNCH_BINARY=/c\\export HAB_LAUNCH_BINARY=${target_dir}/hab-launch" "${file}"
-            fi
-          done
-          ;;
-        *)
-          exit_with "Unsupported arch when installing: ${arch}" 7
-          ;;
-      esac 
+      info "Installing Habitat package using temporarily downloaded hab"
+      # NOTE: For people (rightly) wondering why we download hab only to use it
+      # to install hab from Builder, the main reason is because it allows /bin/hab
+      # to be a binlink, meaning that future upgrades can be easily done via
+      # hab pkg install core/hab -bf and everything will Just Work. If we put
+      # the hab we downloaded into /bin, then future hab upgrades done via hab
+      # itself won't work - you'd need to run this script every time you wanted
+      # to upgrade hab, which is not intuitive. Putting it into a place other than
+      # /bin means now you have multiple copies of hab on your system and pathing
+      # shenanigans might ensue. Rather than deal with that mess, we do it this
+      # way.
+      "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
       ;;
     *)
       exit_with "Unrecognized sys when installing: ${sys}" 5
