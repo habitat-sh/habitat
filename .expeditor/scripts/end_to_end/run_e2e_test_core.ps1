@@ -281,6 +281,7 @@ Function Invoke-BuildAndInstall($PackageName) {
     Invoke-Build $PackageName
     . ./results/last_build.ps1
     hab pkg install ./results/$pkg_artifact
+    hab studio run "rm /hab/pkgs/$pkg_ident/hooks"
 }
 
 function Stop-ComposeSupervisor($Remote) {
