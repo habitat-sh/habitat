@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.729 -->
-## [1.6.729](https://github.com/habitat-sh/habitat/tree/1.6.729) (2023-03-28)
+<!-- latest_release 1.6.730 -->
+## [1.6.730](https://github.com/habitat-sh/habitat/tree/1.6.730) (2023-03-29)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.94 to 1.0.95 [#8824](https://github.com/habitat-sh/habitat/pull/8824) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tempfile from 3.4.0 to 3.5.0 [#8828](https://github.com/habitat-sh/habitat/pull/8828) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump tempfile from 3.4.0 to 3.5.0 [#8828](https://github.com/habitat-sh/habitat/pull/8828) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.730 -->
 - Bump serde_json from 1.0.94 to 1.0.95 [#8824](https://github.com/habitat-sh/habitat/pull/8824) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.729 -->
 - Bump tokio from 1.26.0 to 1.27.0 [#8826](https://github.com/habitat-sh/habitat/pull/8826) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.728 -->
 - Bump regex from 1.7.2 to 1.7.3 [#8821](https://github.com/habitat-sh/habitat/pull/8821) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.727 -->
