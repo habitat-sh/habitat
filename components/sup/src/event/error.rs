@@ -1,7 +1,7 @@
 //! Event subsystem-specific error handling
 
 use rants::{error::Error as RantsError,
-            native_tls};
+            rustls};
 use std::{error,
           fmt,
           result};
@@ -12,7 +12,7 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     ConnectNatsServer,
     HabitatCore(habitat_core::Error),
-    NativeTls(native_tls::Error),
+    RustTls(rustls::Error),
     Rants(RantsError),
 }
 
@@ -29,7 +29,7 @@ impl fmt::Display for Error {
         match self {
             Error::ConnectNatsServer => "Could not establish connection to NATS server".fmt(f),
             Error::HabitatCore(_) => "{}".fmt(f),
-            Error::NativeTls(e) => format!("{}", e).fmt(f),
+            Error::RustTls(e) => format!("{}", e).fmt(f),
             Error::Rants(e) => format!("{}", e).fmt(f),
         }
     }
@@ -41,7 +41,7 @@ impl error::Error for Error {
             Error::ConnectNatsServer => None,
             Error::HabitatCore(ref e) => Some(e),
             Error::Rants(ref e) => Some(e),
-            Error::NativeTls(ref e) => Some(e),
+            Error::RustTls(ref e) => Some(e),
         }
     }
 }
@@ -54,6 +54,6 @@ impl From<RantsError> for Error {
     fn from(error: RantsError) -> Self { Error::Rants(error) }
 }
 
-impl From<native_tls::Error> for Error {
-    fn from(error: native_tls::Error) -> Self { Error::NativeTls(error) }
+impl From<rustls::Error> for Error {
+    fn from(error: rustls::Error) -> Self { Error::RustTls(error) }
 }

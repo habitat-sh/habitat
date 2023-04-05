@@ -43,6 +43,7 @@ tempfile = "*"
 thiserror = "*"
 retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
 rustls = "*"
+rustls-pemfile = "*"
 termcolor = "*"
 tokio = { version = "*", features = ["full"] }
 toml = { version = "*", features = ["preserve_order"] }

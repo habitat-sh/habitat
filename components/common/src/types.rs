@@ -1,13 +1,13 @@
 use crate::{error::Error,
             util};
 use clap::ArgMatches;
-use native_tls::Certificate;
+use rustls::Certificate;
 use serde::{Deserialize,
             Serialize};
 use std::{collections::HashMap,
           fmt,
-          fs,
-          io,
+          fs::File,
+          io::{self, BufReader},
           net::{IpAddr,
                 Ipv4Addr,
                 SocketAddr,
@@ -262,9 +262,14 @@ impl FromStr for EventStreamServerCertificate {
     /// Treat the string as a file path. Try and read the file as a PEM certificate.
     fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
         let path = PathBuf::from_str(s).expect("Infallible conversion");
-        let contents = fs::read(&path)?;
+        let mut reader = BufReader::new(File::open(&path)?);
+        let certs = rustls_pemfile::certs(&mut reader).unwrap();
+        let mut cert_buffer = Vec::new();
+        for cert in certs {
+            cert_buffer.extend_from_slice(&cert.as_ref());
+        }
         Ok(EventStreamServerCertificate { path,
-                                          certificate: Certificate::from_pem(&contents)? })
+                                          certificate: Certificate(cert_buffer) })
     }
 }
 
@@ -304,10 +309,7 @@ impl fmt::Display for EventStreamServerCertificate {
 // a different crate.
 impl PartialEq<EventStreamServerCertificate> for EventStreamServerCertificate {
     fn eq(&self, other: &EventStreamServerCertificate) -> bool {
-        match (self.certificate.to_der(), other.certificate.to_der()) {
-            (Ok(s), Ok(o)) => s == o,
-            _ => false,
-        }
+        self.certificate == other.certificate
     }
 }
 
