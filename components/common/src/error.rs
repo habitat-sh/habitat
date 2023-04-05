@@ -85,7 +85,6 @@ pub enum Error {
     ListenCtlResolutionError(String, io::Error),
     MissingCLIInputError(String),
     NamedPipeTimeoutOnStart(String, String, io::Error),
-    NativeTls(native_tls::Error),
     NetParseError(net::AddrParseError),
     OfflineArtifactNotFound(PackageIdent),
     OfflineOriginKeyNotFound(String),
@@ -182,7 +181,6 @@ impl fmt::Display for Error {
                 format!("Unable to start powershell named pipe for {} hook of {}: {}",
                         hook, group, err)
             }
-            Error::NativeTls(ref err) => format!("TLS error '{}'", err),
             Error::NetParseError(ref err) => format!("{}", err),
             Error::OfflineArtifactNotFound(ref ident) => {
                 format!("Cached artifact not found in offline mode: {}", ident)
@@ -272,8 +270,4 @@ impl From<toml::ser::Error> for Error {
 
 impl From<net::AddrParseError> for Error {
     fn from(err: net::AddrParseError) -> Self { Error::NetParseError(err) }
-}
-
-impl From<native_tls::Error> for Error {
-    fn from(error: native_tls::Error) -> Self { Error::NativeTls(error) }
 }

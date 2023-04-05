@@ -28,7 +28,6 @@ handlebars = { version = "= 0.28.3", default-features = false }
 lazy_static = "*"
 libc = "*"
 log = "*"
-native-tls = { version = "*", features = ["vendored"] }
 owning_ref = "*"
 parking_lot = "*"
 pbr = "*"

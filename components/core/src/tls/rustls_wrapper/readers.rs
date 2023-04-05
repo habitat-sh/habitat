@@ -5,7 +5,8 @@ use log::debug;
 use rustls::{Certificate,
              PrivateKey,
              RootCertStore};
-use std::{fs::{self, File},
+use std::{fs::{self,
+               File},
           io::{self,
                BufReader},
           path::{Path,
@@ -17,7 +18,7 @@ use thiserror::Error;
 use crate::package::{PackageIdent,
                      PackageInstall};
 
-                     #[cfg(not(target_os = "macos"))]
+#[cfg(not(target_os = "macos"))]
 const CACERTS_PKG_IDENT: &str = "core/cacerts";
 #[cfg(not(target_os = "macos"))]
 const CACERT_PEM: &str = include_str!(concat!(env!("OUT_DIR"), "/cacert.pem"));
@@ -112,8 +113,8 @@ fn process_cert_file(certificates: &mut Vec<Certificate>, file_path: &Path) {
 
 // fn certs_from_file(file_path: &Path) -> Result<Vec<Certificate>, Error> {
 //     let buf = fs::read(file_path)?;
-//     // Try and interpret the file as a pem cert. If that fails try and interpret it as a der cert.
-//     certs_from_pem_file(&buf).or_else(|_| Ok(vec![Certificate::from_der(&buf)?]))
+//     // Try and interpret the file as a pem cert. If that fails try and interpret it as a der
+// cert.     certs_from_pem_file(&buf).or_else(|_| Ok(vec![Certificate::from_der(&buf)?]))
 // }
 
 #[cfg(not(target_os = "macos"))]

@@ -14,6 +14,7 @@ pub enum Error {
     HabitatCore(habitat_core::Error),
     RustTls(rustls::Error),
     Rants(RantsError),
+    WebPki(webpki::Error),
 }
 
 // TODO (CM): I would have like to have derived Fail on our Error
@@ -31,6 +32,7 @@ impl fmt::Display for Error {
             Error::HabitatCore(_) => "{}".fmt(f),
             Error::RustTls(e) => format!("{}", e).fmt(f),
             Error::Rants(e) => format!("{}", e).fmt(f),
+            Error::WebPki(e) => format!("{}", e).fmt(f),
         }
     }
 }
@@ -42,6 +44,7 @@ impl error::Error for Error {
             Error::HabitatCore(ref e) => Some(e),
             Error::Rants(ref e) => Some(e),
             Error::RustTls(ref e) => Some(e),
+            Error::WebPki(ref e) => Some(e),
         }
     }
 }
@@ -56,4 +59,8 @@ impl From<RantsError> for Error {
 
 impl From<rustls::Error> for Error {
     fn from(error: rustls::Error) -> Self { Error::RustTls(error) }
+}
+
+impl From<webpki::Error> for Error {
+    fn from(error: webpki::Error) -> Self { Error::WebPki(error) }
 }

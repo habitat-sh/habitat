@@ -7,7 +7,8 @@ use serde::{Deserialize,
 use std::{collections::HashMap,
           fmt,
           fs::File,
-          io::{self, BufReader},
+          io::{self,
+               BufReader},
           net::{IpAddr,
                 Ipv4Addr,
                 SocketAddr,
@@ -263,10 +264,10 @@ impl FromStr for EventStreamServerCertificate {
     fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
         let path = PathBuf::from_str(s).expect("Infallible conversion");
         let mut reader = BufReader::new(File::open(&path)?);
-        let certs = rustls_pemfile::certs(&mut reader).unwrap();
+        let certs = rustls_pemfile::certs(&mut reader)?;
         let mut cert_buffer = Vec::new();
         for cert in certs {
-            cert_buffer.extend_from_slice(&cert.as_ref());
+            cert_buffer.extend_from_slice(cert.as_ref());
         }
         Ok(EventStreamServerCertificate { path,
                                           certificate: Certificate(cert_buffer) })

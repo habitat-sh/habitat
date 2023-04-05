@@ -69,6 +69,7 @@ tokio-util = { version = "*", features = ["full"] }
 uuid = { version = "*", features = ["v4"] }
 url = "*"
 valico = "*"
+webpki = "*"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"

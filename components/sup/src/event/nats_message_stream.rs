@@ -7,7 +7,8 @@ use futures::{channel::{mpsc as futures_mpsc,
 use log::{error,
           trace};
 use rants::{error::Error as RantsError,
-            rustls::{ClientConfig, RootCertStore},
+            rustls::{ClientConfig,
+                     RootCertStore},
             Client,
             Subject};
 use tokio::time;
@@ -54,15 +55,14 @@ impl NatsMessageStream {
         // Configure the tls connector
         let mut root_certs = RootCertStore::empty();
         for certificate in habitat_core::tls::rustls_wrapper::certificates(None).unwrap() {
-            root_certs.add(&certificate).unwrap();
+            root_certs.add(&certificate)?;
         }
         if let Some(certificate) = server_certificate {
-            root_certs.add(&certificate.into()).unwrap();
+            root_certs.add(&certificate.into())?;
         }
-        let tls_config = ClientConfig::builder()
-            .with_safe_defaults()
-            .with_root_certificates(root_certs)
-            .with_no_client_auth();
+        let tls_config = ClientConfig::builder().with_safe_defaults()
+                                                .with_root_certificates(root_certs)
+                                                .with_no_client_auth();
         client.set_tls_config(tls_config).await;
 
         // Connect to the server. If a timeout was set, we want to ensure we establish a connection

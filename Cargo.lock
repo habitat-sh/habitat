@@ -1402,7 +1402,6 @@ dependencies = [
  "lazy_static 1.4.0",
  "libc",
  "log 0.4.17",
- "native-tls",
  "nix",
  "owning_ref",
  "parking_lot",
@@ -1612,6 +1611,7 @@ dependencies = [
  "url",
  "uuid 1.2.2",
  "valico",
+ "webpki",
  "winapi 0.3.9",
 ]
 
