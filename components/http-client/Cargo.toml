@@ -8,7 +8,6 @@ workspace = "../../"
 [dependencies]
 base64 = "*"
 log = "*"
-native-tls = { version = "*", features = ["vendored"] }
 pem = "*"
 httparse = "*"
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }

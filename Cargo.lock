@@ -1445,7 +1445,6 @@ dependencies = [
  "lazy_static 1.4.0",
  "libc",
  "log 0.4.17",
- "native-tls",
  "nix",
  "num_cpus",
  "os_info",
@@ -1486,7 +1485,6 @@ dependencies = [
  "habitat_core",
  "httparse",
  "log 0.4.17",
- "native-tls",
  "pem 2.0.0",
  "reqwest",
  "serde",
@@ -2497,15 +2495,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28988d872ab76095a6e6ac88d99b54fd267702734fd7ffe610ca27f533ddb95a"
 
 [[package]]
-name = "openssl-src"
-version = "111.25.0+1.1.1t"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3173cd3626c43e3854b1b727422a276e568d9ec5fe8cec197822cf52cfb743d6"
-dependencies = [
- "cc",
-]
-
-[[package]]
 name = "openssl-sys"
 version = "0.9.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2514,7 +2503,6 @@ dependencies = [
  "autocfg",
  "cc",
  "libc",
- "openssl-src",
  "pkg-config",
  "vcpkg",
 ]

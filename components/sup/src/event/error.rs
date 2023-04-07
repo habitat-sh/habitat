@@ -1,5 +1,6 @@
 //! Event subsystem-specific error handling
 
+use habitat_core::tls::rustls_wrapper::Error as RustlsReaderError;
 use rants::{error::Error as RantsError,
             rustls};
 use std::{error,
@@ -14,6 +15,7 @@ pub enum Error {
     HabitatCore(habitat_core::Error),
     RustTls(rustls::Error),
     Rants(RantsError),
+    RustlsReader(RustlsReaderError),
     WebPki(webpki::Error),
 }
 
@@ -32,6 +34,7 @@ impl fmt::Display for Error {
             Error::HabitatCore(_) => "{}".fmt(f),
             Error::RustTls(e) => format!("{}", e).fmt(f),
             Error::Rants(e) => format!("{}", e).fmt(f),
+            Error::RustlsReader(e) => format!("{}", e).fmt(f),
             Error::WebPki(e) => format!("{}", e).fmt(f),
         }
     }
@@ -44,6 +47,7 @@ impl error::Error for Error {
             Error::HabitatCore(ref e) => Some(e),
             Error::Rants(ref e) => Some(e),
             Error::RustTls(ref e) => Some(e),
+            Error::RustlsReader(ref e) => Some(e),
             Error::WebPki(ref e) => Some(e),
         }
     }
@@ -63,4 +67,8 @@ impl From<rustls::Error> for Error {
 
 impl From<webpki::Error> for Error {
     fn from(error: webpki::Error) -> Self { Error::WebPki(error) }
+}
+
+impl From<RustlsReaderError> for Error {
+    fn from(err: RustlsReaderError) -> Self { Error::RustlsReader(err) }
 }

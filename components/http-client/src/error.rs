@@ -1,4 +1,5 @@
-use habitat_core as hab_core;
+use habitat_core::{self as hab_core,
+                   tls::rustls_wrapper::Error as RustlsReaderError};
 use std::{error,
           fmt,
           io,
@@ -12,6 +13,7 @@ pub enum Error {
     ReqwestError(reqwest::Error),
     IO(io::Error),
     Json(serde_json::Error),
+    RustlsReader(RustlsReaderError),
     UrlParseError(url::ParseError),
 }
 
@@ -22,6 +24,7 @@ impl fmt::Display for Error {
             Error::ReqwestError(ref err) => format!("{}", err),
             Error::IO(ref e) => format!("{}", e),
             Error::Json(ref e) => format!("{}", e),
+            Error::RustlsReader(ref e) => format!("{}", e),
             Error::UrlParseError(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -44,4 +47,8 @@ impl From<io::Error> for Error {
 
 impl From<url::ParseError> for Error {
     fn from(err: url::ParseError) -> Self { Error::UrlParseError(err) }
+}
+
+impl From<RustlsReaderError> for Error {
+    fn from(err: RustlsReaderError) -> Self { Error::RustlsReader(err) }
 }

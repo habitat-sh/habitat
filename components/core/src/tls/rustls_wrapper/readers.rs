@@ -98,25 +98,6 @@ fn process_cert_file(certificates: &mut Vec<Certificate>, file_path: &Path) {
     }
 }
 
-// fn certs_from_pem_file(buf: &[u8]) -> Result<Vec<Certificate>, Error> {
-//     if buf.is_empty() {
-//         return Ok(Vec::new());
-//     }
-//     // Try to decode the first certificate as a pem file. This is necessary because
-//     // `pem::parse_many` does not return an error. It simply parses what it can and ignores the
-//     // rest.
-//     Certificate::from_pem(buf)?;
-//     pem::parse_many(buf)?.iter()
-//                          .map(|cert| Ok(Certificate::from_der(cert.contents())?))
-//                          .collect()
-// }
-
-// fn certs_from_file(file_path: &Path) -> Result<Vec<Certificate>, Error> {
-//     let buf = fs::read(file_path)?;
-//     // Try and interpret the file as a pem cert. If that fails try and interpret it as a der
-// cert.     certs_from_pem_file(&buf).or_else(|_| Ok(vec![Certificate::from_der(&buf)?]))
-// }
-
 #[cfg(not(target_os = "macos"))]
 fn populate_cache(cache_path: &Path) -> Result<(), Error> {
     let cached_certs = cache_path.join("cert.pem");
