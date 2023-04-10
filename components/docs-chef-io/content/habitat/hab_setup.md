@@ -6,8 +6,8 @@ gh_repo = "habitat"
 [menu]
   [menu.habitat]
     title = "Set up the Chef Habitat CLI"
-    identifier = "habitat/get_started/hab-setup Install Chef Habitat"
-    parent = "habitat/get_started"
+    identifier = "habitat/install/hab-setup Install Chef Habitat"
+    parent = "habitat/install"
     weight = 20
 +++
 
