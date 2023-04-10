@@ -1,0 +1,1 @@
+A service is a Chef Habitat package that is run and managed by a Supervisor. Services can be joined together into a [service group]({{< relref "/habitat/service_groups" >}}), which is a collection of services with the same package and topology type that are connected together across a Supervisor network.
