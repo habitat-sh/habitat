@@ -1174,9 +1174,9 @@ checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
 name = "h2"
-version = "0.3.13"
+version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37a82c6d637fc9515a4694bbf1cb2457b79d81ce52b3108bdeea58b07dd34a57"
+checksum = "66b91535aa35fea1523ad1b86cb6b53c28e0ae566ba4a460f4457e936cad7c6f"
 dependencies = [
  "bytes",
  "fnv",
@@ -1216,7 +1216,7 @@ dependencies = [
  "handlebars 0.29.1",
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.17",
+ "log 0.3.9",
  "pbr",
  "rants",
  "reqwest",
@@ -1254,7 +1254,7 @@ dependencies = [
  "habitat_core",
  "ipc-channel",
  "libc",
- "log 0.4.17",
+ "log 0.3.9",
  "nix",
  "prost",
  "semver 1.0.17",
@@ -1273,7 +1273,7 @@ dependencies = [
  "habitat_core",
  "ipc-channel",
  "libc",
- "log 0.4.17",
+ "log 0.3.9",
  "prost",
  "serde",
  "thiserror",
@@ -1296,7 +1296,7 @@ dependencies = [
  "clap",
  "env_logger",
  "habitat_butterfly",
- "log 0.4.17",
+ "log 0.3.9",
 ]
 
 [[package]]
@@ -1307,12 +1307,12 @@ dependencies = [
  "habitat-sup-protocol",
  "habitat_common",
  "habitat_core",
- "log 0.4.17",
+ "log 0.3.9",
  "prost",
  "rustls",
  "termcolor",
  "tokio",
- "tokio-util 0.7.7",
+ "tokio-util 0.6.10",
 ]
 
 [[package]]
@@ -1323,14 +1323,14 @@ dependencies = [
  "bytes",
  "habitat_core",
  "lazy_static 1.4.0",
- "log 0.4.17",
+ "log 0.3.9",
  "prost",
  "prost-build",
  "rand 0.8.5",
  "serde",
  "tempfile",
  "tokio",
- "tokio-util 0.7.7",
+ "tokio-util 0.6.10",
  "toml 0.7.3",
 ]
 
@@ -1345,7 +1345,7 @@ dependencies = [
  "futures",
  "habitat_core",
  "habitat_http_client",
- "log 0.4.17",
+ "log 0.3.9",
  "pbr",
  "percent-encoding",
  "rand 0.8.5",
@@ -1355,7 +1355,7 @@ dependencies = [
  "serde_json",
  "tee",
  "tokio",
- "tokio-util 0.7.7",
+ "tokio-util 0.6.10",
  "url",
 ]
 
@@ -1369,7 +1369,7 @@ dependencies = [
  "habitat_common",
  "habitat_core",
  "lazy_static 1.4.0",
- "log 0.4.17",
+ "log 0.3.9",
  "mktemp",
  "parking_lot",
  "prometheus",
@@ -1401,7 +1401,7 @@ dependencies = [
  "handlebars 0.28.3",
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.17",
+ "log 0.3.9",
  "native-tls",
  "nix",
  "owning_ref",
@@ -1444,7 +1444,7 @@ dependencies = [
  "hex",
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.17",
+ "log 0.3.9",
  "native-tls",
  "nix",
  "num_cpus",
@@ -1485,7 +1485,7 @@ dependencies = [
  "env_proxy",
  "habitat_core",
  "httparse",
- "log 0.4.17",
+ "log 0.3.9",
  "native-tls",
  "pem 2.0.0",
  "reqwest",
@@ -1509,7 +1509,7 @@ dependencies = [
  "handlebars 0.29.1",
  "lazy_static 1.4.0",
  "linked-hash-map",
- "log 0.4.17",
+ "log 0.3.9",
  "rusoto_core",
  "rusoto_credential",
  "rusoto_ecr",
@@ -1534,7 +1534,7 @@ dependencies = [
  "habitat_core",
  "handlebars 0.29.1",
  "lazy_static 1.4.0",
- "log 0.4.17",
+ "log 0.3.9",
  "mktemp",
  "serde",
  "serde_json",
@@ -1575,7 +1575,7 @@ dependencies = [
  "hyper",
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.17",
+ "log 0.3.9",
  "log4rs",
  "mio 0.8.6",
  "multimap 0.9.0",
@@ -1606,7 +1606,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-rustls",
- "tokio-util 0.7.7",
+ "tokio-util 0.6.10",
  "toml 0.7.3",
  "url",
  "uuid 1.2.2",
@@ -1619,7 +1619,7 @@ name = "habitat_win_users"
 version = "0.0.0"
 dependencies = [
  "cc",
- "log 0.4.17",
+ "log 0.3.9",
  "widestring 1.0.2",
  "winapi 0.3.9",
 ]
@@ -1659,9 +1659,6 @@ name = "hashbrown"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
-dependencies = [
- "ahash",
-]
 
 [[package]]
 name = "heck"
@@ -3872,9 +3869,11 @@ checksum = "36943ee01a6d67977dd3f84a5a1d2efeb4ada3a1ae771cadfaa535d9d9fc6507"
 dependencies = [
  "bytes",
  "futures-core",
+ "futures-io",
  "futures-sink",
  "log 0.4.17",
  "pin-project-lite",
+ "slab",
  "tokio",
 ]
 
@@ -3886,12 +3885,8 @@ checksum = "5427d89453009325de0d8f342c9490009f76e999cb7672d77e46267448f7e6b2"
 dependencies = [
  "bytes",
  "futures-core",
- "futures-io",
  "futures-sink",
- "futures-util",
- "hashbrown",
  "pin-project-lite",
- "slab",
  "tokio",
  "tracing",
 ]
