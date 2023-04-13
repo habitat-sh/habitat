@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.735 -->
-## [1.6.735](https://github.com/habitat-sh/habitat/tree/1.6.735) (2023-04-13)
+<!-- latest_release 1.6.736 -->
+## [1.6.736](https://github.com/habitat-sh/habitat/tree/1.6.736) (2023-04-13)
 
 #### Merged Pull Requests
-- Bump winreg from 0.11.0 to 0.50.0 [#8833](https://github.com/habitat-sh/habitat/pull/8833) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump bitflags from 2.0.2 to 2.1.0 [#8841](https://github.com/habitat-sh/habitat/pull/8841) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump bitflags from 2.0.2 to 2.1.0 [#8841](https://github.com/habitat-sh/habitat/pull/8841) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.736 -->
 - Bump winreg from 0.11.0 to 0.50.0 [#8833](https://github.com/habitat-sh/habitat/pull/8833) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.735 -->
 - Bump futures from 0.3.27 to 0.3.28 [#8831](https://github.com/habitat-sh/habitat/pull/8831) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.735 -->
 - bump crossbeam-channel to 0.5.8 [#8839](https://github.com/habitat-sh/habitat/pull/8839) ([mwrock](https://github.com/mwrock)) <!-- 1.6.734 -->
