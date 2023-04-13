@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.737 -->
-## [1.6.737](https://github.com/habitat-sh/habitat/tree/1.6.737) (2023-04-13)
+<!-- latest_release 1.6.738 -->
+## [1.6.738](https://github.com/habitat-sh/habitat/tree/1.6.738) (2023-04-13)
 
 #### Merged Pull Requests
-- Bump errno from 0.3.0 to 0.3.1 [#8840](https://github.com/habitat-sh/habitat/pull/8840) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- bump h2 to 0.3.17 [#8843](https://github.com/habitat-sh/habitat/pull/8843) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- bump h2 to 0.3.17 [#8843](https://github.com/habitat-sh/habitat/pull/8843) ([mwrock](https://github.com/mwrock)) <!-- 1.6.738 -->
 - Bump errno from 0.3.0 to 0.3.1 [#8840](https://github.com/habitat-sh/habitat/pull/8840) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.737 -->
 - Bump bitflags from 2.0.2 to 2.1.0 [#8841](https://github.com/habitat-sh/habitat/pull/8841) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.736 -->
 - Bump winreg from 0.11.0 to 0.50.0 [#8833](https://github.com/habitat-sh/habitat/pull/8833) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.735 -->
