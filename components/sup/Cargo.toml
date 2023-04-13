@@ -36,7 +36,7 @@ habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 lazy_static = "*"
 libc = "*"
-log = "*"
+log = "0.4"
 log4rs = "*"
 multimap = "*"
 notify = "*"
@@ -65,7 +65,7 @@ anyhow = { version = "*", features = ["backtrace"] }
 toml = { version = "*", features = ["preserve_order"]}
 tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
-tokio-util = { version = "*", features = ["full"] }
+tokio-util = { version = "0.7", features = ["full"] }
 uuid = { version = "*", features = ["v4"] }
 url = "*"
 valico = "*"

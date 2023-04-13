@@ -27,7 +27,7 @@ habitat_core = { path = "../core" }
 handlebars = { version = "= 0.28.3", default-features = false }
 lazy_static = "*"
 libc = "*"
-log = "*"
+log = "0.4"
 native-tls = { version = "*", features = ["vendored"] }
 owning_ref = "*"
 parking_lot = "*"

@@ -23,7 +23,7 @@ habitat-launcher-protocol = { path = "../launcher-protocol" }
 # The commit that introduced the change can be found here: https://github.com/servo/ipc-channel/commit/eb08381a30bc71a534a0a73ab98c05bca7a12f82
 ipc-channel = { version = "0.15.0" }
 libc = "*"
-log = "*"
+log = "0.4"
 prost = "*"
 semver = "*"
 thiserror = "*"
