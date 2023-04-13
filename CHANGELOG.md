@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.734 -->
-## [1.6.734](https://github.com/habitat-sh/habitat/tree/1.6.734) (2023-04-13)
+<!-- latest_release 1.6.735 -->
+## [1.6.735](https://github.com/habitat-sh/habitat/tree/1.6.735) (2023-04-13)
 
 #### Merged Pull Requests
-- bump crossbeam-channel to 0.5.8 [#8839](https://github.com/habitat-sh/habitat/pull/8839) ([mwrock](https://github.com/mwrock))
+- Bump winreg from 0.11.0 to 0.50.0 [#8833](https://github.com/habitat-sh/habitat/pull/8833) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump winreg from 0.11.0 to 0.50.0 [#8833](https://github.com/habitat-sh/habitat/pull/8833) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.735 -->
+- Bump futures from 0.3.27 to 0.3.28 [#8831](https://github.com/habitat-sh/habitat/pull/8831) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.735 -->
 - bump crossbeam-channel to 0.5.8 [#8839](https://github.com/habitat-sh/habitat/pull/8839) ([mwrock](https://github.com/mwrock)) <!-- 1.6.734 -->
 - Bump serde from 1.0.156 to 1.0.159 [#8827](https://github.com/habitat-sh/habitat/pull/8827) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.733 -->
 - fix flaky pkg uninstall e2e test  [#8823](https://github.com/habitat-sh/habitat/pull/8823) ([mwrock](https://github.com/mwrock)) <!-- 1.6.733 -->
