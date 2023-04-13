@@ -286,8 +286,7 @@ mod test {
 
         assert_eq!(
                    r.ok().unwrap(),
-                   r#"---
-test: something
+                   r#"test: something
 "#.to_string()
         );
     }
