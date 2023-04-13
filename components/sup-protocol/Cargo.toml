@@ -11,12 +11,12 @@ base64 = "*"
 bytes = "*"
 habitat_core = { path = "../core" }
 lazy_static = "*"
-log = "*"
+log = "0.4"
 prost = { version = "*", features = ["prost-derive"] }
 rand = "*"
 serde = {version = "*", features = ["derive"] }
 tokio = { version = "*", features = ["full"] }
-tokio-util = { version = "*", features = ["full"] }
+tokio-util = { version = "0.7", features = ["full"] }
 
 [build-dependencies]
 prost-build = "*"

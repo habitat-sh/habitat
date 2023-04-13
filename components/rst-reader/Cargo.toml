@@ -14,4 +14,4 @@ doc = false
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
 env_logger = "*"
 habitat_butterfly = { path = "../butterfly", default-features = false }
-log = "*"
+log = "0.4"

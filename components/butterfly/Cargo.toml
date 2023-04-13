@@ -17,7 +17,7 @@ bytes = "*"
 env_logger = "*"
 habitat_core = { path = "../core" }
 habitat_common = { path = "../common" }
-log = "*"
+log = "0.4"
 lazy_static = "*"
 prometheus = "*"
 parking_lot = "*"

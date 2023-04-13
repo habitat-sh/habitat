@@ -33,7 +33,7 @@ habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 handlebars = { version = "0.29.1", default-features = false }
 lazy_static = "*"
 libc = "*"
-log = "*"
+log = "0.4"
 pbr = "*"
 rants = { git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }
