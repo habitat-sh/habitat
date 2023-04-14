@@ -1225,7 +1225,7 @@ dependencies = [
  "same-file",
  "serde",
  "serde_json",
- "serde_yaml",
+ "serde_yaml 0.9.21",
  "structopt",
  "tabwriter",
  "tar",
@@ -1415,7 +1415,7 @@ dependencies = [
  "serde",
  "serde-transcode",
  "serde_json",
- "serde_yaml",
+ "serde_yaml 0.9.21",
  "tempfile",
  "termcolor",
  "thiserror",
@@ -1598,7 +1598,7 @@ dependencies = [
  "serde-transcode",
  "serde_derive",
  "serde_json",
- "serde_yaml",
+ "serde_yaml 0.9.21",
  "state",
  "structopt",
  "tempfile",
@@ -2137,7 +2137,7 @@ dependencies = [
  "serde",
  "serde-value",
  "serde_json",
- "serde_yaml",
+ "serde_yaml 0.8.26",
  "thiserror",
  "thread-id",
  "typemap-ors",
@@ -3480,6 +3480,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_yaml"
+version = "0.9.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9d684e3ec7de3bf5466b32bd75303ac16f0736426e5a4e0d6e489559ce1249c"
+dependencies = [
+ "indexmap",
+ "itoa 1.0.1",
+ "ryu",
+ "serde",
+ "unsafe-libyaml",
+]
+
+[[package]]
 name = "sha1"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4041,6 +4054,12 @@ checksum = "e0a303d30665362d9680d7d91d78b23f5f899504d4f08b3c4cf08d055d87c0ad"
 dependencies = [
  "destructure_traitobject",
 ]
+
+[[package]]
+name = "unsafe-libyaml"
+version = "0.2.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1865806a559042e51ab5414598446a5871b561d21b6764f2eabb0dd481d880a6"
 
 [[package]]
 name = "untrusted"
