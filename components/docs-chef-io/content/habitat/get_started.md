@@ -40,7 +40,7 @@ Before getting started with this tutorial, you will need:
 
 The [plan file]({{< relref "/habitat/plan_writing" >}}) instructs Chef Habitat in how to build, deploy, and manage your application.
 
-Edit the plan file to user your origin:
+Edit the plan file to use your origin:
 
 1. Open the `sample-node-app/habitat/plan.sh` file with your editor of choice.
 1. Update the value of `pkg_origin` with the name of the origin in your Habitat Builder account.
@@ -73,10 +73,18 @@ Use the Habitat Studio to generate a Habitat package and preview the running Nod
    $env:HAB_DOCKER_OPTS="-p 8000:8000"
    ```
 
-1. Enter the Habitat Studio:
+1. Enter the Habitat Studio.
+
+   On macOS run:
 
    ```bash
    hab studio enter
+   ```
+
+   On Linux or Windows run:
+
+   ```bash
+   hab studio enter -D
    ```
 
 1. Now build the package:
