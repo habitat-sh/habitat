@@ -26,15 +26,18 @@ In order to explain why that is, so that there is a common starting point, my go
 
 ## Customizing Studio
 
-When you enter a Studio, Chef Habitat will attempt to locate `/src/.studiorc` and
-source it. Think `~/.bashrc`. This file can be used to export any
-environment variables like the ones in `/reference/environment-variables`, as well as any other shell
-customizations to help you develop your plans from within the Studio.
+When you enter a Studio, Chef Habitat will attempt to locate `/src/.studiorc` on Linux or `/src/studio_profile.ps1` on Windows and source it.
+Think `~/.bashrc` or `$PROFILE`.
+This file can be used to export any environment variables like the ones in `/reference/environment-variables`, as well as any other shell customizations to help you develop your plans from within the Studio.
 
-To use this feature, place a `.studiorc` in the current working directory
+To use this feature, place a `.studiorc` (Linux) or `studio_profile.ps1` (Windows) in the current working directory
 where you will run `hab studio enter`.
 
-Note that a `.studiorc` will only be sourced when using `hab studio enter`--it will not be sourced when calling `hab studio run` or `hab studio build` (also `hab pkg build`).
+{{< note >}}
+
+Chef Habitat will only source `.studiorc` or `studio_profile.ps1` when you run `hab studio enter`--it will not be sourced when calling `hab studio run`, `hab studio build`, or `hab pkg build`.
+
+{{< /note >}}
 
 ### Why do we need it (Linux)
 
@@ -56,7 +59,7 @@ There are currently four implementations of the studio provided by the Habitat t
 
 Built using chroot and bind mounts to provide access to required paths from the host. This is the default studio on Linux, and only functions on Linux based systems.  This requires root privileges to invoke, and the `hab studio` command will attempt to use `sudo` to elevate the users privileges, if they are not already root. In addition, the installation of this package requires root privileges, as `/hab/pkgs` is owned by the root user. Specifically, chroot requires CAP_SYS_CHROOT and mounts require CAP_SYS_ADMIN. In addition to the bind mounts, `/proc` is required to be mounted for builds to function.
 
-### Linux "Docker Studio" aka `rootless_studio`
+### Linux "Docker Studio"
 
 The Linux Docker Studio is a completely separate implementation from the native studio, sharing no code aside from the common `hab studio` entrypoint. This difference in implementation includes available subcommands and help documentation, often leading to confusion.  `hab studio -D` provides the necessary conversion to the required Docker CLI arguments, such as mounting volumes from the host into the container and setting the image to run. You can invoke this studio using only Docker commands,  but requires additional effort in setting all the correct options.
 
@@ -92,9 +95,6 @@ It's possible that if the users are able to provide credentials to access a remo
 We also want to be careful about exposing build functionality directly to CI agents without requiring the studio boundary.  We'd likely start (for example) fielding support questions around our package quality from user software segfaulting, when the underlying issue was the package was built on an Ubuntu host and it linked against the wrong libraries.
 
 Today, users can configure their agents to run the Docker studio image directly, but that requires them to perform all the set up `hab pkg build` would normally do for them, creating a point of friction.
-
-- `hab studio build` is a synonym for `hab pkg build`
-- Does Windows suffer from this same issue?
 
 ## Building packages cross platform
 
