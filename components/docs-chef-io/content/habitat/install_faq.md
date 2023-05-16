@@ -7,8 +7,8 @@ gh_repo = "habitat"
 [menu]
   [menu.habitat]
     title = "Download and Install FAQ"
-    identifier = "habitat/get_started/install-faq Install Frequently Asked Questions FAQ"
-    parent = "habitat/get_started"
+    identifier = "habitat/install/install-faq Install Frequently Asked Questions FAQ"
+    parent = "habitat/install"
     weight = 30
 +++
 
