@@ -209,7 +209,7 @@ From here you can try updating the service by making a change to the sample-node
 
 1. Commit the change into the default branch of the sample-node-app repository and push the commit up to your fork of sample-node-app.
 
-1. If your terminal is still running the Supervisor log, continue to the next step; otherwise, rerun the steps from the previous sections of this guide:
+1. If your terminal is still running the Supervisor log, continue to the next step. Otherwise, rerun the steps to load the service and view the Supervisor log.
 
    1. Expose port 8000.
 
@@ -217,24 +217,27 @@ From here you can try updating the service by making a change to the sample-node
       export HAB_DOCKER_OPTS="-p 8000:8000"
       ```
 
-   ```bash
-   hab studio enter
-   hab svc load ORIGIN_NAME/sample-node-app --strategy at-once
-   ```
+   1. Enter the Studio and load the service using the at-once update strategy.
 
-   View the Supervisor log.
+      ```bash
+      hab studio enter
+      hab svc load ORIGIN_NAME/sample-node-app --strategy at-once
+      ```
 
-   ```bash
-   sup-log
-   ```
+   1. View the Supervisor log.
+
+      ```bash
+      sup-log
+      ```
 
 1. In [Habitat Builder](https://bldr.habitat.sh/), select **Build latest version** of your package again, then **View the output**, and select the **View build job** button ({{< svg file="/static/images/habitat/builder-view-build-job-icon.svg" >}}).
 
    {{< note >}}
+
    If you get an error after selecting **Build latest version**, wait a few minutes and try again. It can take Builder a few minutes to update after changes are made in a GitHub repository.
+
    {{< /note >}}
 
 1. After Habitat Builder has finished building the new version of your package, select the **Versions** tab, select the **1.2.0** row, and then select **Promote to stable** and **Yes, promote it**.
 
    The Supervisor should show a log in your terminal of the package updating to the latest version. After the Supervisor is done updating the service, navigate to **localhost:8000** in your browser and the webpage should show the updated version number and text.
-
