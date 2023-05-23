@@ -16,11 +16,12 @@ This getting started guide will show you how to use Chef Habitat to build and de
 
 Before getting started with this tutorial, you will need:
 
-- A [GitHub account](https://github.com/join)
+- a workstation running Linux or macOS
+- a [GitHub account](https://github.com/join)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed locally (optional)
-- The [Chef Habitat CLI]({{< relref "/habitat/install_habitat" >}}) installed locally
-- An account on [Chef Habitat Builder]({{< relref "builder_account" >}})
-- A [profile on you Builder account]({{< relref "builder_profile" >}})
+- the [Chef Habitat CLI]({{< relref "/habitat/install_habitat" >}}) installed locally
+- an account on [Chef Habitat Builder]({{< relref "builder_account" >}})
+- a [profile on your Builder account]({{< relref "builder_profile" >}})
 
 ### Create an origin and set up the Habitat CLI
 
@@ -61,16 +62,10 @@ Use the Habitat Studio to generate a Habitat package and preview the running Nod
 
 1. If you're using Docker, expose port 8000 so you can preview the application in a browser.
 
-   To expose port 8000 on a macOS or Linux workstation, run:
+   To expose port 8000, run:
 
    ```bash
    export HAB_DOCKER_OPTS="-p 8000:8000"
-   ```
-
-   To expose port 8000 on a Windows workstation, run:
-
-   ```bash
-   $env:HAB_DOCKER_OPTS="-p 8000:8000"
    ```
 
 1. Enter the Habitat Studio.
@@ -81,13 +76,13 @@ Use the Habitat Studio to generate a Habitat package and preview the running Nod
    hab studio enter
    ```
 
-   On Linux or Windows run:
+   On Linux run:
 
    ```bash
    hab studio enter -D
    ```
 
-1. Now build the package:
+1. Now build the package.
 
    ```bash
    build
@@ -96,13 +91,13 @@ Use the Habitat Studio to generate a Habitat package and preview the running Nod
    The Studio will generate a package (a `.hart` file) and place it in the `results` directory.
    You will also find a `last_build.env` file in the `results` directory that has metadata about the last package build.
 
-1. Start the service:
+1. Start the service.
 
    ```bash
    hab svc load ORIGIN_NAME/sample-node-app
    ```
 
-1. Verify that the service is running in the Habitat Studio:
+1. Verify that the service is running in the Habitat Studio.
 
    ```bash
    hab svc status
@@ -119,19 +114,19 @@ Use the Habitat Studio to generate a Habitat package and preview the running Nod
 
 ### Shut Down the Service
 
-1. Stop the service by running:
+1. Stop the service.
 
    ```bash
    hab svc stop ORIGIN_NAME/sample-node-app
    ```
 
-1. Verify that the service has stopped running:
+1. Verify that the service has stopped running.
 
    ```bash
    hab svc status
    ```
 
-1. And exit the Studio:
+1. And exit the Studio.
 
    ```bash
    exit
@@ -168,13 +163,13 @@ Add your package to your Builder origin and then connect that package to your cl
 
 Now that the Node.js app is under management by the Chef Habitat Builder, you can update the service from Habitat Builder.
 
-1. From a local terminal, enter the Habitat Studio:
+1. From a local terminal, enter the Habitat Studio.
 
    ```bash
    hab studio enter
    ```
 
-1. Verify that a service is not running in the Studio:
+1. Verify that a service is not running in the Studio.
 
    ```bash
    hab svc status
@@ -190,16 +185,8 @@ Now that the Node.js app is under management by the Chef Habitat Builder, you ca
 
 1. Now monitor the Habitat Supervisor to watch it update when a new version of the package is created.
 
-   On macOS or Linux, run:
-
    ```bash
    sup-log
-   ```
-
-   On Windows, run:
-
-   ```bash
-   Get-SupervisorLog
    ```
 
    This will show you a streaming log of the Habitat Supervisor output.
@@ -224,16 +211,10 @@ From here you can try updating the service by making a change to the sample-node
 
 1. If your terminal is still running the Supervisor log, continue to the next step; otherwise, rerun the steps from the previous sections of this guide:
 
-   1. Expose port 8000 on a macOS or Linux workstation:
+   1. Expose port 8000.
 
       ```bash
       export HAB_DOCKER_OPTS="-p 8000:8000"
-      ```
-
-      Expose port 8000 on a Windows workstation:
-
-      ```bash
-      $env:HAB_DOCKER_OPTS="-p 8000:8000"
       ```
 
    ```bash
@@ -241,22 +222,16 @@ From here you can try updating the service by making a change to the sample-node
    hab svc load ORIGIN_NAME/sample-node-app --strategy at-once
    ```
 
-   To view the Supervisor log on macOS or Linux, run:
+   View the Supervisor log.
 
    ```bash
    sup-log
    ```
 
-   To view the Supervisor log on Windows, run:
-
-   ```bash
-   Get-SupervisorLog
-   ```
-
 1. In [Habitat Builder](https://bldr.habitat.sh/), select **Build latest version** of your package again, then **View the output**, and select the **View build job** button ({{< svg file="/static/images/habitat/builder-view-build-job-icon.svg" >}}).
 
    {{< note >}}
-   If you get an error after selecting **Build latest version**, wait a few minutes and try again. It can take Builder a few minutes to update after changes are made to a GitHub repository.
+   If you get an error after selecting **Build latest version**, wait a few minutes and try again. It can take Builder a few minutes to update after changes are made in a GitHub repository.
    {{< /note >}}
 
 1. After Habitat Builder has finished building the new version of your package, select the **Versions** tab, select the **1.2.0** row, and then select **Promote to stable** and **Yes, promote it**.
