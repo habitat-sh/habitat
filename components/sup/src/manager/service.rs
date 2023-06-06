@@ -1634,7 +1634,7 @@ impl ServiceQueryModel {
                                 (*service.health_check_result
                                          .lock()
                                          .expect("Couldn't lock health check result for \
-                                                  serialization")).clone(),
+                                                  serialization")),
                             hooks:                  HookTableQueryModel::new(&service.hooks),
                             initialized:            service.initialized(),
                             last_election_status:   service.last_election_status,
@@ -1664,7 +1664,7 @@ impl ServiceQueryModel {
                             spec_ident:             service.spec.ident.clone(),
                             spec_identifier:        service.spec.ident.to_string(),
                             svc_encrypted_password: service.spec.svc_encrypted_password.clone(),
-                            health_check_interval:  service.spec.health_check_interval.clone(),
+                            health_check_interval:  service.spec.health_check_interval,
                             sys:                    service.sys.clone(),
                             topology:               service.spec.topology,
                             update_strategy:        service.spec.update_strategy,
@@ -1747,9 +1747,9 @@ mod tests {
         let service_wrapper = initialize_test_service().await;
 
         // With config
-        let proxy_with_config = ServiceProxy::new(service_wrapper.service().unwrap(),
-                                                  service_wrapper.service_run_state(),
-                                                  ConfigRendering::Full);
+        let proxy_with_config = ServiceQueryModel::new(service_wrapper.service().unwrap(),
+                                                       service_wrapper.service_run_state(),
+                                                       ConfigRendering::Full);
         let proxies_with_config = vec![proxy_with_config];
         let json_with_config =
             serde_json::to_string(&proxies_with_config).expect("Expected to convert \
@@ -1758,9 +1758,9 @@ mod tests {
         assert_valid(&json_with_config, "http_gateway_services_schema.json");
 
         // Without config
-        let proxy_without_config = ServiceProxy::new(service_wrapper.service().unwrap(),
-                                                     service_wrapper.service_run_state(),
-                                                     ConfigRendering::Redacted);
+        let proxy_without_config = ServiceQueryModel::new(service_wrapper.service().unwrap(),
+                                                          service_wrapper.service_run_state(),
+                                                          ConfigRendering::Redacted);
         let proxies_without_config = vec![proxy_without_config];
         let json_without_config =
             serde_json::to_string(&proxies_without_config).expect("Expected  to convert \

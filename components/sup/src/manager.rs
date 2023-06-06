@@ -449,7 +449,7 @@ pub(crate) mod sync {
 
         pub fn census_data(&self) -> &str { &self.0.census_data }
 
-        pub fn services_data(&self) -> &[ServiceQueryModel] { &self.0.services_data.as_slice() }
+        pub fn services_data(&self) -> &[ServiceQueryModel] { self.0.services_data.as_slice() }
     }
 
     pub struct GatewayStateWriteGuard<'a>(WriteGuard<'a, GatewayStateInner>);
