@@ -31,9 +31,7 @@ use habitat_launcher_protocol as protocol;
 use log::{debug,
           error,
           warn};
-use serde::{ser::SerializeStruct,
-            Serialize,
-            Serializer};
+use serde::Serialize;
 #[cfg(windows)]
 use std::env;
 use std::{fs::File,
@@ -42,7 +40,6 @@ use std::{fs::File,
                Write},
           path::{Path,
                  PathBuf},
-          result,
           time::{Duration,
                  SystemTime}};
 
@@ -72,6 +69,31 @@ impl PidUpdate {
     /// Check if the process is still running
     pub fn is_running(&self) -> bool { self.new_pid.is_some() }
 }
+
+/// Represents the queryable state of the supervised process
+#[derive(Debug, Clone, Serialize)]
+pub struct SupervisedProcessQueryModel {
+    pub pid:           Option<Pid>,
+    pub state:         ProcessState,
+    pub state_entered: u64,
+}
+
+impl SupervisedProcessQueryModel {
+    pub fn new(supervisor: &Supervisor) -> Self {
+        Self { pid:           supervisor.pid,
+               state:         supervisor.state,
+               state_entered: supervisor.since_epoch().as_secs(), }
+    }
+}
+
+impl From<&SupervisedProcessQueryModel> for habitat_sup_protocol::types::ProcessStatus {
+    fn from(process: &SupervisedProcessQueryModel) -> Self {
+        Self { elapsed: Some(SystemTime::UNIX_EPOCH.checked_add(Duration::from_secs(process.state_entered)).and_then(|timestamp| timestamp.elapsed().ok()).map(|timestamp| timestamp.as_secs()).unwrap_or_default()),
+               state:   process.state.into(),
+               pid:     process.pid.map(|value| value as u32), }
+    }
+}
+
 #[derive(Debug)]
 pub struct Supervisor {
     service_group: ServiceGroup,
@@ -377,19 +399,6 @@ impl Supervisor {
         self.state_entered
             .duration_since(SystemTime::UNIX_EPOCH)
             .expect("our time should ALWAYS be after the UNIX Epoch")
-    }
-}
-
-// This is used to generate the output of the HTTP gateway
-impl Serialize for Supervisor {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let mut strukt = serializer.serialize_struct("supervisor", 3)?;
-        strukt.serialize_field("pid", &self.pid)?;
-        strukt.serialize_field("state", &self.state)?;
-        strukt.serialize_field("state_entered", &self.since_epoch().as_secs())?;
-        strukt.end()
     }
 }
 
