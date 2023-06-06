@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.742 -->
-## [1.6.742](https://github.com/habitat-sh/habitat/tree/1.6.742) (2023-05-23)
+<!-- latest_release 1.6.743 -->
+## [1.6.743](https://github.com/habitat-sh/habitat/tree/1.6.743) (2023-06-06)
 
 #### Merged Pull Requests
-- Add get_started page [#8838](https://github.com/habitat-sh/habitat/pull/8838) ([IanMadd](https://github.com/IanMadd))
+- update yanked h2 v0.3.17 to 0.3.19 [#8846](https://github.com/habitat-sh/habitat/pull/8846) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- update yanked h2 v0.3.17 to 0.3.19 [#8846](https://github.com/habitat-sh/habitat/pull/8846) ([mwrock](https://github.com/mwrock)) <!-- 1.6.743 -->
 - Add get_started page [#8838](https://github.com/habitat-sh/habitat/pull/8838) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.742 -->
 - Docs Hab landing page [#8837](https://github.com/habitat-sh/habitat/pull/8837) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.741 -->
 - use rust 1.68.2 [#8844](https://github.com/habitat-sh/habitat/pull/8844) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.740 -->
