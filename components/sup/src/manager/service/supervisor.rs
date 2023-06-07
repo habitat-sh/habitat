@@ -90,7 +90,7 @@ impl From<&SupervisedProcessQueryModel> for habitat_sup_protocol::types::Process
     fn from(process: &SupervisedProcessQueryModel) -> Self {
         // The process id is already u32 on windows, but that is not the case for other platforms
         #[cfg(target_os = "windows")]
-        let pid: Option<u32> = process.pid.map(|value| value);
+        let pid: Option<u32> = process.pid;
         #[cfg(not(target_os = "windows"))]
         let pid: Option<u32> = process.pid.map(|value| value as u32);
 
