@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.744 -->
-## [1.6.744](https://github.com/habitat-sh/habitat/tree/1.6.744) (2023-06-07)
+<!-- latest_release 1.6.745 -->
+## [1.6.745](https://github.com/habitat-sh/habitat/tree/1.6.745) (2023-06-07)
 
 #### Merged Pull Requests
-- Refactor Supervisor HTTP Gateway to eliminate service data inconsistencies [#8845](https://github.com/habitat-sh/habitat/pull/8845) ([atrniv](https://github.com/atrniv))
+- add a rust-toolchain.toml to appease dependabot [#8847](https://github.com/habitat-sh/habitat/pull/8847) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- add a rust-toolchain.toml to appease dependabot [#8847](https://github.com/habitat-sh/habitat/pull/8847) ([mwrock](https://github.com/mwrock)) <!-- 1.6.745 -->
 - Refactor Supervisor HTTP Gateway to eliminate service data inconsistencies [#8845](https://github.com/habitat-sh/habitat/pull/8845) ([atrniv](https://github.com/atrniv)) <!-- 1.6.744 -->
 - update yanked h2 v0.3.17 to 0.3.19 [#8846](https://github.com/habitat-sh/habitat/pull/8846) ([mwrock](https://github.com/mwrock)) <!-- 1.6.743 -->
 - Add get_started page [#8838](https://github.com/habitat-sh/habitat/pull/8838) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.742 -->
