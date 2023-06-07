@@ -12,7 +12,7 @@ pkg_build_deps=(core/coreutils
                 core/cacerts
                 core/make
                 core/perl # Needed for vendored openssl-sys
-                core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
+                core/rust/"$(tail -n 1 "$SRC_PATH/../../rust-toolchain"  | cut -d'"' -f 2)"
                 core/gcc
                 core/raml2html
                 core/protobuf)
