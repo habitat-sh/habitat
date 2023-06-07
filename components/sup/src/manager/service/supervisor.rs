@@ -88,9 +88,15 @@ impl SupervisedProcessQueryModel {
 
 impl From<&SupervisedProcessQueryModel> for habitat_sup_protocol::types::ProcessStatus {
     fn from(process: &SupervisedProcessQueryModel) -> Self {
+        // The process id is already u32 on windows, but that is not the case for other platforms
+        #[cfg(target_os = "windows")]
+        let pid: Option<u32> = process.pid.map(|value| value);
+        #[cfg(not(target_os = "windows"))]
+        let pid: Option<u32> = process.pid.map(|value| value as u32);
+
         Self { elapsed: Some(SystemTime::UNIX_EPOCH.checked_add(Duration::from_secs(process.state_entered)).and_then(|timestamp| timestamp.elapsed().ok()).map(|timestamp| timestamp.as_secs()).unwrap_or_default()),
                state:   process.state.into(),
-               pid:     process.pid.map(|value| value as u32), }
+               pid }
     }
 }
 
