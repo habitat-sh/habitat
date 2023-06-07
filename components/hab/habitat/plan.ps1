@@ -8,7 +8,7 @@ $pkg_deps=@(
 $pkg_bin_dirs = @("bin")
 $pkg_build_deps = @(
     "core/visual-cpp-build-tools-2015",
-    "core/rust/$(Get-Content "$PLAN_CONTEXT/../../../rust-toolchain")",
+    "core/rust/$((ConvertFrom-StringData (Get-Content "$PLAN_CONTEXT/../../../rust-toolchain")[1]).channel.Replace('"', ''))",
     "core/cacerts",
     "core/protobuf"
 )

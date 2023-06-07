@@ -49,7 +49,7 @@ install_rustup() {
 
 get_toolchain() {
     dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-    cat "$dir/../../rust-toolchain"
+    tail -n 1 "$dir/../../rust-toolchain" | cut -d'"' -f 2
 }
 
 # Chef's GPG key for generating signatures. See `import_gpg_keys`

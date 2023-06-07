@@ -41,7 +41,7 @@ if [ "$BUILD_PKG_TARGET" == "aarch64-darwin" ]; then
 fi
 
 # set the rust toolchain
-rust_toolchain="$(cat rust-toolchain)"
+rust_toolchain="$(tail -n 1 rust-toolchain  | cut -d'"' -f 2)"
 echo "--- :rust: Using Rust toolchain ${rust_toolchain}"
 rustc --version # just 'cause I'm paranoid and I want to double check
 
