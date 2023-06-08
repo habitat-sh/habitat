@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.747 -->
-## [1.6.747](https://github.com/habitat-sh/habitat/tree/1.6.747) (2023-06-07)
+<!-- latest_release 1.6.748 -->
+## [1.6.748](https://github.com/habitat-sh/habitat/tree/1.6.748) (2023-06-08)
 
 #### Merged Pull Requests
-- Bump xml-rs from 0.8.4 to 0.8.14 [#8849](https://github.com/habitat-sh/habitat/pull/8849) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump chrono from 0.4.24 to 0.4.26 [#8854](https://github.com/habitat-sh/habitat/pull/8854) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump chrono from 0.4.24 to 0.4.26 [#8854](https://github.com/habitat-sh/habitat/pull/8854) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.748 -->
 - Bump xml-rs from 0.8.4 to 0.8.14 [#8849](https://github.com/habitat-sh/habitat/pull/8849) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.747 -->
 - replace plain test rust-toolchain with toml [#8848](https://github.com/habitat-sh/habitat/pull/8848) ([mwrock](https://github.com/mwrock)) <!-- 1.6.746 -->
 - add a rust-toolchain.toml to appease dependabot [#8847](https://github.com/habitat-sh/habitat/pull/8847) ([mwrock](https://github.com/mwrock)) <!-- 1.6.745 -->
