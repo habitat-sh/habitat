@@ -12,7 +12,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-sink",
- "log 0.4.17",
+ "log 0.4.18",
  "memchr",
  "pin-project-lite",
  "tokio",
@@ -75,7 +75,7 @@ dependencies = [
  "bytestring",
  "firestorm",
  "http",
- "log 0.4.17",
+ "log 0.4.18",
  "regex 1.7.3",
  "serde",
 ]
@@ -131,7 +131,7 @@ dependencies = [
  "actix-service",
  "actix-utils",
  "futures-core",
- "log 0.4.17",
+ "log 0.4.18",
  "pin-project-lite",
  "tokio-rustls",
  "tokio-util 0.7.7",
@@ -173,7 +173,7 @@ dependencies = [
  "http",
  "itoa 1.0.1",
  "language-tags",
- "log 0.4.17",
+ "log 0.4.18",
  "mime",
  "once_cell",
  "pin-project-lite",
@@ -849,7 +849,7 @@ checksum = "85cdab6a89accf66733ad5a1693a4dcced6aeff64602b634530dd73c1f3ee9f0"
 dependencies = [
  "humantime",
  "is-terminal",
- "log 0.4.17",
+ "log 0.4.18",
  "regex 1.7.3",
  "termcolor",
 ]
@@ -860,7 +860,7 @@ version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a5019be18538406a43b5419a5501461f0c8b49ea7dfda0cfc32f4e51fc44be1"
 dependencies = [
- "log 0.4.17",
+ "log 0.4.18",
  "url",
 ]
 
@@ -1123,7 +1123,7 @@ checksum = "c1d9279ca822891c1a4dae06d185612cf8fc6acfe5dff37781b41297811b12ee"
 dependencies = [
  "cc",
  "libc",
- "log 0.4.17",
+ "log 0.4.18",
  "rustversion",
  "winapi 0.3.9",
 ]
@@ -1216,7 +1216,7 @@ dependencies = [
  "handlebars 0.29.1",
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.17",
+ "log 0.4.18",
  "pbr",
  "rants",
  "reqwest",
@@ -1254,7 +1254,7 @@ dependencies = [
  "habitat_core",
  "ipc-channel",
  "libc",
- "log 0.4.17",
+ "log 0.4.18",
  "nix",
  "prost",
  "semver 1.0.17",
@@ -1273,7 +1273,7 @@ dependencies = [
  "habitat_core",
  "ipc-channel",
  "libc",
- "log 0.4.17",
+ "log 0.4.18",
  "prost",
  "serde",
  "thiserror",
@@ -1296,7 +1296,7 @@ dependencies = [
  "clap",
  "env_logger",
  "habitat_butterfly",
- "log 0.4.17",
+ "log 0.4.18",
 ]
 
 [[package]]
@@ -1307,7 +1307,7 @@ dependencies = [
  "habitat-sup-protocol",
  "habitat_common",
  "habitat_core",
- "log 0.4.17",
+ "log 0.4.18",
  "prost",
  "rustls",
  "termcolor",
@@ -1323,7 +1323,7 @@ dependencies = [
  "bytes",
  "habitat_core",
  "lazy_static 1.4.0",
- "log 0.4.17",
+ "log 0.4.18",
  "prost",
  "prost-build",
  "rand 0.8.5",
@@ -1345,7 +1345,7 @@ dependencies = [
  "futures",
  "habitat_core",
  "habitat_http_client",
- "log 0.4.17",
+ "log 0.4.18",
  "pbr",
  "percent-encoding",
  "rand 0.8.5",
@@ -1369,7 +1369,7 @@ dependencies = [
  "habitat_common",
  "habitat_core",
  "lazy_static 1.4.0",
- "log 0.4.17",
+ "log 0.4.18",
  "mktemp",
  "parking_lot",
  "prometheus",
@@ -1401,7 +1401,7 @@ dependencies = [
  "handlebars 0.28.3",
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.17",
+ "log 0.4.18",
  "native-tls",
  "nix",
  "owning_ref",
@@ -1444,7 +1444,7 @@ dependencies = [
  "hex",
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.17",
+ "log 0.4.18",
  "native-tls",
  "nix",
  "num_cpus",
@@ -1485,7 +1485,7 @@ dependencies = [
  "env_proxy",
  "habitat_core",
  "httparse",
- "log 0.4.17",
+ "log 0.4.18",
  "native-tls",
  "pem 2.0.0",
  "reqwest",
@@ -1509,7 +1509,7 @@ dependencies = [
  "handlebars 0.29.1",
  "lazy_static 1.4.0",
  "linked-hash-map",
- "log 0.4.17",
+ "log 0.4.18",
  "rusoto_core",
  "rusoto_credential",
  "rusoto_ecr",
@@ -1534,7 +1534,7 @@ dependencies = [
  "habitat_core",
  "handlebars 0.29.1",
  "lazy_static 1.4.0",
- "log 0.4.17",
+ "log 0.4.18",
  "mktemp",
  "serde",
  "serde_json",
@@ -1575,7 +1575,7 @@ dependencies = [
  "hyper",
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.17",
+ "log 0.4.18",
  "log4rs",
  "mio 0.8.6",
  "multimap 0.9.0",
@@ -1619,7 +1619,7 @@ name = "habitat_win_users"
 version = "0.0.0"
 dependencies = [
  "cc",
- "log 0.4.17",
+ "log 0.4.18",
  "widestring 1.0.2",
  "winapi 0.3.9",
 ]
@@ -2099,16 +2099,15 @@ version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e19e8d5c34a3e0e2223db8e060f9e8264aeeb5c5fc64a4ee9965c062211c024b"
 dependencies = [
- "log 0.4.17",
+ "log 0.4.18",
 ]
 
 [[package]]
 name = "log"
-version = "0.4.17"
+version = "0.4.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "abb12e687cfb44aa40f41fc3978ef76448f9b6038cad6aef4259d3c095a2382e"
+checksum = "518ef76f2f87365916b142844c16d8fefd85039bc5699050210a7778ee1cd1de"
 dependencies = [
- "cfg-if 1.0.0",
  "serde",
 ]
 
@@ -2131,7 +2130,7 @@ dependencies = [
  "fnv",
  "humantime",
  "libc",
- "log 0.4.17",
+ "log 0.4.18",
  "log-mdc",
  "parking_lot",
  "serde",
@@ -2269,7 +2268,7 @@ dependencies = [
  "iovec",
  "kernel32-sys",
  "libc",
- "log 0.4.17",
+ "log 0.4.18",
  "miow",
  "net2",
  "slab",
@@ -2283,7 +2282,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b9d9a46eff5b4ff64b45a9e316a6d1e0bc719ef429cbec4dc630684212bfdf9"
 dependencies = [
  "libc",
- "log 0.4.17",
+ "log 0.4.18",
  "wasi 0.11.0+wasi-snapshot-preview1",
  "windows-sys 0.45.0",
 ]
@@ -2332,7 +2331,7 @@ checksum = "07226173c32f2926027b63cce4bcd8076c3552846cbe7925f3aaffeac0a3b92e"
 dependencies = [
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.17",
+ "log 0.4.18",
  "openssl",
  "openssl-probe",
  "openssl-sys",
@@ -2533,7 +2532,7 @@ version = "3.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "006e42d5b888366f1880eda20371fedde764ed2213dc8496f49622fa0c99cd5e"
 dependencies = [
- "log 0.4.17",
+ "log 0.4.18",
  "serde",
  "winapi 0.3.9",
 ]
@@ -2811,7 +2810,7 @@ dependencies = [
  "heck 0.4.0",
  "itertools",
  "lazy_static 1.4.0",
- "log 0.4.17",
+ "log 0.4.18",
  "multimap 0.8.3",
  "petgraph",
  "prettyplease",
@@ -2969,7 +2968,7 @@ source = "git+https://github.com/habitat-sh/rants.git#7fd1434ecaaf9af743ccab1840
 dependencies = [
  "bytes",
  "futures",
- "log 0.4.17",
+ "log 0.4.18",
  "native-tls",
  "nom",
  "owning_ref",
@@ -3082,7 +3081,7 @@ dependencies = [
  "ipnet",
  "js-sys",
  "lazy_static 1.4.0",
- "log 0.4.17",
+ "log 0.4.18",
  "mime",
  "native-tls",
  "percent-encoding",
@@ -3139,7 +3138,7 @@ dependencies = [
  "hyper",
  "hyper-tls",
  "lazy_static 1.4.0",
- "log 0.4.17",
+ "log 0.4.18",
  "rusoto_credential",
  "rusoto_signature",
  "rustc_version 0.4.0",
@@ -3196,7 +3195,7 @@ dependencies = [
  "hmac",
  "http",
  "hyper",
- "log 0.4.17",
+ "log 0.4.18",
  "md-5",
  "percent-encoding",
  "pin-project-lite",
@@ -3265,7 +3264,7 @@ version = "0.20.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fff78fc74d175294f4e83b28343315ffcfb114b156f0185e9741cb5570f50e2f"
 dependencies = [
- "log 0.4.17",
+ "log 0.4.18",
  "ring",
  "sct",
  "webpki",
@@ -3886,7 +3885,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-sink",
- "log 0.4.17",
+ "log 0.4.18",
  "pin-project-lite",
  "tokio",
 ]
@@ -3963,7 +3962,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a400e31aa60b9d44a52a8ee0343b5b18566b03a8321e0d321f695cf56e940160"
 dependencies = [
  "cfg-if 1.0.0",
- "log 0.4.17",
+ "log 0.4.18",
  "pin-project-lite",
  "tracing-core",
 ]
@@ -4168,7 +4167,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ce8a968cb1cd110d136ff8b819a556d6fb6d919363c61534f6860c7eb172ba0"
 dependencies = [
- "log 0.4.17",
+ "log 0.4.18",
  "try-lock",
 ]
 
@@ -4208,7 +4207,7 @@ checksum = "580aa3a91a63d23aac5b6b267e2d13cb4f363e31dce6c352fca4752ae12e479f"
 dependencies = [
  "bumpalo",
  "lazy_static 1.4.0",
- "log 0.4.17",
+ "log 0.4.18",
  "proc-macro2",
  "quote",
  "syn 1.0.104",
@@ -4646,7 +4645,7 @@ source = "git+https://github.com/habitat-sh/rust-zmq?branch=v0.9.2-symlinks-remo
 dependencies = [
  "bitflags 1.3.2",
  "libc",
- "log 0.4.17",
+ "log 0.4.18",
  "zmq-sys",
 ]
 
