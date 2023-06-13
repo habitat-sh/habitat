@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.756 -->
-## [1.6.756](https://github.com/habitat-sh/habitat/tree/1.6.756) (2023-06-13)
+<!-- latest_release 1.6.757 -->
+## [1.6.757](https://github.com/habitat-sh/habitat/tree/1.6.757) (2023-06-13)
 
 #### Merged Pull Requests
-- Bump valico from 3.6.1 to 4.0.0 [#8867](https://github.com/habitat-sh/habitat/pull/8867) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump bitflags from 2.1.0 to 2.3.2 [#8870](https://github.com/habitat-sh/habitat/pull/8870) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump bitflags from 2.1.0 to 2.3.2 [#8870](https://github.com/habitat-sh/habitat/pull/8870) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.757 -->
 - Bump valico from 3.6.1 to 4.0.0 [#8867](https://github.com/habitat-sh/habitat/pull/8867) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.756 -->
 - Bump prost from 0.11.8 to 0.11.9 [#8868](https://github.com/habitat-sh/habitat/pull/8868) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.756 -->
 - Bump prost-build from 0.11.8 to 0.11.9 [#8866](https://github.com/habitat-sh/habitat/pull/8866) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.756 -->
