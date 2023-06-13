@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.754 -->
-## [1.6.754](https://github.com/habitat-sh/habitat/tree/1.6.754) (2023-06-12)
+<!-- latest_release 1.6.755 -->
+## [1.6.755](https://github.com/habitat-sh/habitat/tree/1.6.755) (2023-06-13)
 
 #### Merged Pull Requests
-- Bump state from 0.5.3 to 0.6.0 [#8853](https://github.com/habitat-sh/habitat/pull/8853) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump mio from 0.8.6 to 0.8.8 [#8865](https://github.com/habitat-sh/habitat/pull/8865) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump mio from 0.8.6 to 0.8.8 [#8865](https://github.com/habitat-sh/habitat/pull/8865) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.755 -->
 - Bump state from 0.5.3 to 0.6.0 [#8853](https://github.com/habitat-sh/habitat/pull/8853) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.754 -->
 - Bump base64 from 0.21.0 to 0.21.2 [#8859](https://github.com/habitat-sh/habitat/pull/8859) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.753 -->
 - Bump serde from 1.0.159 to 1.0.164 [#8860](https://github.com/habitat-sh/habitat/pull/8860) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.752 -->
