@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.758 -->
-## [1.6.758](https://github.com/habitat-sh/habitat/tree/1.6.758) (2023-06-14)
+<!-- latest_release 1.6.759 -->
+## [1.6.759](https://github.com/habitat-sh/habitat/tree/1.6.759) (2023-06-14)
 
 #### Merged Pull Requests
-- Bump toml from 0.7.3 to 0.7.4 [#8871](https://github.com/habitat-sh/habitat/pull/8871) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump dns-lookup from 1.0.8 to 2.0.2 [#8874](https://github.com/habitat-sh/habitat/pull/8874) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump dns-lookup from 1.0.8 to 2.0.2 [#8874](https://github.com/habitat-sh/habitat/pull/8874) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.759 -->
 - Bump toml from 0.7.3 to 0.7.4 [#8871](https://github.com/habitat-sh/habitat/pull/8871) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.758 -->
 - Bump bitflags from 2.1.0 to 2.3.2 [#8870](https://github.com/habitat-sh/habitat/pull/8870) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.757 -->
 - Bump valico from 3.6.1 to 4.0.0 [#8867](https://github.com/habitat-sh/habitat/pull/8867) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.756 -->
