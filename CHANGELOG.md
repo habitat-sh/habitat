@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.760 -->
-## [1.6.760](https://github.com/habitat-sh/habitat/tree/1.6.760) (2023-06-14)
+<!-- latest_release 1.6.761 -->
+## [1.6.761](https://github.com/habitat-sh/habitat/tree/1.6.761) (2023-06-14)
 
 #### Merged Pull Requests
-- Bump hyper from 0.14.25 to 0.14.26 [#8873](https://github.com/habitat-sh/habitat/pull/8873) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tempfile from 3.5.0 to 3.6.0 [#8875](https://github.com/habitat-sh/habitat/pull/8875) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump tempfile from 3.5.0 to 3.6.0 [#8875](https://github.com/habitat-sh/habitat/pull/8875) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.761 -->
 - Bump hyper from 0.14.25 to 0.14.26 [#8873](https://github.com/habitat-sh/habitat/pull/8873) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.760 -->
 - Bump flate2 from 1.0.25 to 1.0.26 [#8872](https://github.com/habitat-sh/habitat/pull/8872) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.760 -->
 - Bump dns-lookup from 1.0.8 to 2.0.2 [#8874](https://github.com/habitat-sh/habitat/pull/8874) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.759 -->
