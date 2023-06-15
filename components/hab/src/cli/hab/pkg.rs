@@ -335,7 +335,7 @@ pub struct PkgBuild {
     #[structopt(flatten)]
     cache_key_path:  CacheKeyPath,
     /// Build a native package on the host system without a studio
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     #[structopt(name = "NATIVE_PACKAGE", short = "N", long = "native-package", conflicts_with_all = &["REUSE", "DOCKER"])]
     native_package:  bool,
     #[cfg(any(target_os = "linux", target_os = "windows"))]
