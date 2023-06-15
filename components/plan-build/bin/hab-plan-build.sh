@@ -606,10 +606,11 @@ _ensure_origin_key_present() {
 # If the commands are not found, `exit_with` is called and the program is
 # terminated.
 _find_system_commands() {
-  if exists stat; then    
-    if stat -f '%Su:%g' . 2>/dev/null 1>/dev/null; then
+  if exists stat; then
+    _stat_cmd=$(command -v stat)
+    if $_stat_cmd -f '%Su:%g' . 2>/dev/null 1>/dev/null; then
       _stat_variant="bsd"
-    elif stat -c '%u:%g' . 2>/dev/null 1>/dev/null; then
+    elif $_stat_cmd -c '%u:%g' . 2>/dev/null 1>/dev/null; then
       _stat_variant="gnu"
     else
       exit_with "Failed to determine stat variant, we require GNU or BSD stat to determine user and group owners of files; aborting" 1
@@ -1538,9 +1539,9 @@ _set_build_path() {
 _write_pre_build_file() {
   local plan_owner
   if [[ $_stat_variant == "bsd" ]]; then
-    plan_owner="$(stat -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+    plan_owner="$($_stat_cmd -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
   else
-    plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+    plan_owner="$($_stat_cmd -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
   fi
   pre_build_file="$pkg_output_path/pre_build.env"
 
@@ -2272,9 +2273,9 @@ _prepare_build_outputs() {
   _pkg_sha256sum=$($_shasum_cmd "$pkg_artifact" | cut -d " " -f 1)
   _pkg_blake2bsum=$($HAB_BIN pkg hash "$pkg_artifact" | cut -d " " -f 1)
   if [[ $_stat_variant == "bsd" ]]; then
-    plan_owner="$(stat -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+    plan_owner="$($_stat_cmd -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
   else
-    plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+    plan_owner="$($_stat_cmd -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
   fi
 
   mkdir -pv "$pkg_output_path"
