@@ -522,6 +522,9 @@ steps:
     soft_fail: true
 
   - label: "[unit] :windows: sup lock_as_rwlock"
+    env:
+    # Avoids timeouts creating health check named pipe in tests
+      HAB_START_PIPE_TIMEOUT_SECS: 60
     command:
       # This test has test (not code) concurrency issues and will fail if we don't limit it
       - .expeditor/scripts/verify/run_cargo_test.ps1 sup -Features "lock_as_rwlock" -TestOptions "--test-threads=1"
