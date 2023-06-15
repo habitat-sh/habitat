@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.762 -->
-## [1.6.762](https://github.com/habitat-sh/habitat/tree/1.6.762) (2023-06-15)
+<!-- latest_release 1.6.763 -->
+## [1.6.763](https://github.com/habitat-sh/habitat/tree/1.6.763) (2023-06-15)
 
 #### Merged Pull Requests
-- increase timeout for named pipe creation in sup verify test [#8876](https://github.com/habitat-sh/habitat/pull/8876) ([mwrock](https://github.com/mwrock))
+- Bump log from 0.4.18 to 0.4.19 [#8877](https://github.com/habitat-sh/habitat/pull/8877) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump log from 0.4.18 to 0.4.19 [#8877](https://github.com/habitat-sh/habitat/pull/8877) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.763 -->
 - increase timeout for named pipe creation in sup verify test [#8876](https://github.com/habitat-sh/habitat/pull/8876) ([mwrock](https://github.com/mwrock)) <!-- 1.6.762 -->
 - Bump tempfile from 3.5.0 to 3.6.0 [#8875](https://github.com/habitat-sh/habitat/pull/8875) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.761 -->
 - Bump hyper from 0.14.25 to 0.14.26 [#8873](https://github.com/habitat-sh/habitat/pull/8873) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.760 -->
