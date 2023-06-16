@@ -1,0 +1,152 @@
+(version 1)
+
+; Import standard system defined support for dynamic linking
+(import "dyld-support.sb")
+
+(define HAB_CACHE_CERT_PATH (param "HAB_CACHE_CERT_PATH"))
+(define HAB_CACHE_ARTIFACT_PATH (param "HAB_CACHE_ARTIFACT_PATH"))
+(define PLAN_CONTEXT_DIR (param "PLAN_CONTEXT_DIR"))
+(define WORK_DIR (param "WORK_DIR"))
+
+(deny default)
+
+; Disallow creating setuid/setgid binaries, since that
+; would allow breaking build user isolation.
+(deny file-write-setugid)
+
+; Allow forking.
+(allow process-fork)
+
+; Allow reading system information like #CPUs, etc.
+(allow sysctl-read)
+
+; Allow POSIX semaphores and shared memory.
+(allow ipc-posix*)
+
+; Allow socket creation.
+(allow system-socket)
+
+; Allow sending signals within the sandbox.
+(allow signal (target same-sandbox))
+
+; Allow getpwuid.
+(allow mach-lookup (global-name "com.apple.system.opendirectoryd.libinfo"))
+
+; Access to /tmp.
+; The network-outbound/network-inbound ones are for unix domain sockets, which
+; we allow access to in PLAN_CONTEXT_DIR (but if we allow them more broadly, you could in
+; theory escape the sandbox)
+(allow file* process-exec process-fork network-outbound network-inbound
+       (literal "/tmp") (subpath "/hab") (subpath HAB_CACHE_ARTIFACT_PATH))
+
+; Access to the plan context and it's ancestors
+(allow file-read* file-test-existence
+    (path-ancestors PLAN_CONTEXT_DIR) (subpath PLAN_CONTEXT_DIR))
+; Access to the current working dir to write results
+(allow file* (subpath WORK_DIR))
+
+; Some packages like to read the system version.
+(allow file-read*
+       (literal "/System/Library/CoreServices/SystemVersion.plist")
+       (literal "/System/Library/CoreServices/SystemVersionCompat.plist"))
+
+; Without this line clang cannot write to /dev/null, breaking some configure tests.
+(allow file-read-metadata (literal "/dev"))
+
+; Many packages like to do local networking in their test suites, but let's only
+; allow it if the package explicitly asks for it.
+(if (param "ALLOW_LOCAL_NETWORKING")
+    (begin
+      (allow network* (local ip) (local tcp) (local udp))
+
+      ; Allow access to /etc/resolv.conf (which is a symlink to
+      ; /private/var/run/resolv.conf).
+      ; TODO: deduplicate with sandbox-network.sb
+      (allow file-read-metadata
+             (literal "/var")
+             (literal "/etc")
+             (literal "/etc/resolv.conf")
+             (literal "/private/etc/resolv.conf"))
+
+      (allow file-read*
+             (literal "/private/var/run/resolv.conf"))
+
+      ; Allow DNS lookups. This is even needed for localhost, which lots of tests rely on
+      (allow file-read-metadata (literal "/etc/hosts"))
+      (allow file-read*         (literal "/private/etc/hosts"))
+      (allow network-outbound (remote unix-socket (path-literal "/private/var/run/mDNSResponder")))))
+
+; Standard devices.
+(allow file*
+       (literal "/dev/null")
+       (literal "/dev/random")
+       (literal "/dev/stdin")
+       (literal "/dev/stdout")
+       (literal "/dev/tty")
+       (literal "/dev/urandom")
+       (literal "/dev/zero")
+       (subpath "/dev/fd"))
+
+; Allow pseudo-terminals.
+(allow file*
+       (literal "/dev/ptmx")
+       (regex "^/dev/pty")
+       (regex "^/dev/ttys"))
+
+; Does nothing, but reduces build noise.
+(allow file* (literal "/dev/dtracehelper"))
+
+; Allow access to zoneinfo since libSystem needs it.
+(allow file-read* (subpath "/usr/share/zoneinfo"))
+
+(allow file-read* (subpath "/usr/share/locale"))
+
+; This is mostly to get more specific log messages when builds try to
+; access something in /etc or /var.
+(allow file-read-metadata
+       (literal "/etc")
+       (literal "/var")
+       (literal "/private/var/tmp"))
+
+; This is used by /bin/sh on macOS 10.15 and later.
+(allow file*
+       (literal "/private/var/select/sh"))
+
+; Allow Rosetta 2 to run x86_64 binaries on aarch64-darwin (and vice versa).
+(allow file-read*
+       (subpath "/Library/Apple/usr/libexec/oah")
+       (subpath "/System/Library/Apple/usr/libexec/oah")
+       (subpath "/System/Library/LaunchDaemons/com.apple.oahd.plist")
+       (subpath "/Library/Apple/System/Library/LaunchDaemons/com.apple.oahd.plist"))
+
+; Allow read access to the SSL certificates
+(allow file-read* (subpath HAB_CACHE_CERT_PATH))
+; Allow local and remote network traffic.
+(allow network* (local ip) (remote ip))
+
+; Allow access to /etc/resolv.conf (which is a symlink to
+; /private/var/run/resolv.conf).
+(allow file-read-metadata
+       (literal "/var")
+       (literal "/etc")
+       (literal "/etc/resolv.conf")
+       (literal "/private/etc/resolv.conf"))
+
+(allow file-read*
+       (literal "/private/var/run/resolv.conf"))
+
+; Allow DNS lookups.
+(allow network-outbound (remote unix-socket (path-literal "/private/var/run/mDNSResponder")))
+
+; Allow access to trustd.
+(allow mach-lookup
+    (global-name "com.apple.trustd")
+    (global-name "com.apple.trustd.agent")
+    (global-name "com.apple.SecurityServer")
+    (global-name "com.apple.system.opendirectoryd.membership"))
+
+; Allow use of mds (Module Directory Services) to search for SSL certificates
+; https://developer.apple.com/documentation/security/1562858-secpolicysearchcreate?language=objc
+(allow file-read* (subpath "/private/var/db/mds"))
+; Allow use of var folders for temporary data
+(allow file* (subpath "/private/var/folders"))
