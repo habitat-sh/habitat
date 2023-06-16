@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.766 -->
-## [1.6.766](https://github.com/habitat-sh/habitat/tree/1.6.766) (2023-06-15)
+<!-- latest_release 1.6.767 -->
+## [1.6.767](https://github.com/habitat-sh/habitat/tree/1.6.767) (2023-06-16)
 
 #### Merged Pull Requests
-- Bump tokio-util from 0.7.7 to 0.7.8 [#8880](https://github.com/habitat-sh/habitat/pull/8880) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_json from 1.0.96 to 1.0.97 [#8884](https://github.com/habitat-sh/habitat/pull/8884) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.96 to 1.0.97 [#8884](https://github.com/habitat-sh/habitat/pull/8884) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.767 -->
 - Bump tokio-util from 0.7.7 to 0.7.8 [#8880](https://github.com/habitat-sh/habitat/pull/8880) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.766 -->
 - Bump tokio from 1.27.0 to 1.28.2 [#8881](https://github.com/habitat-sh/habitat/pull/8881) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.765 -->
 - Bump ClementTsang/cargo-action from 0.0.3 to 0.0.4 [#8882](https://github.com/habitat-sh/habitat/pull/8882) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.764 -->
