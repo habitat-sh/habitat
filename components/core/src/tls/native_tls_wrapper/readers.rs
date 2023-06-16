@@ -126,10 +126,6 @@ fn certs_from_pem_file(buf: &[u8]) -> Result<Vec<Certificate>> {
     if buf.is_empty() {
         return Ok(Vec::new());
     }
-    // Try to decode the first certificate as a pem file. This is necessary because
-    // `pem::parse_many` does not return an error. It simply parses what it can and ignores the
-    // rest.
-    Certificate::from_pem(buf)?;
     pem::parse_many(buf)?.iter()
                          .map(|cert| Ok(Certificate::from_der(cert.contents())?))
                          .collect()

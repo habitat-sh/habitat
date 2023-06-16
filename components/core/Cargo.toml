@@ -9,6 +9,7 @@ build = "build.rs"
 [build-dependencies]
 base64 = "*"
 cc = "*"
+pem = "*"
 
 [dependencies]
 base64 = "*"
