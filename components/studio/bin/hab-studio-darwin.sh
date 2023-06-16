@@ -39,7 +39,7 @@ build_sandbox_env
 HAB_PACKAGE="core/build-tools-hab"
 HAB_PLAN_BUILD_PACKAGE="core/build-tools-hab-plan-build"
 
-sandbox_exec_cmd="$(command -v sandbox-exec)"
+sandbox_exec_cmd="/usr/bin/sandbox-exec"
 readlink_cmd="$(command -v readlink)"
 pwd_cmd="$(command -v pwd)"
 env_cmd="$(command -v env)"
@@ -54,7 +54,7 @@ script_path="$(
 script_path=$($readlink_cmd -f "$script_path")
 script_dir="${script_path%/*}"
 
-plan_context="$1"
+plan_context="$2"
 plan_context="$(
     cd "$plan_context" || exit
     $pwd_cmd
