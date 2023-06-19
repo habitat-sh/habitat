@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.768 -->
-## [1.6.768](https://github.com/habitat-sh/habitat/tree/1.6.768) (2023-06-16)
+<!-- latest_release 1.6.769 -->
+## [1.6.769](https://github.com/habitat-sh/habitat/tree/1.6.769) (2023-06-19)
 
 #### Merged Pull Requests
-- Bump notify from 5.1.0 to 6.0.1 [#8883](https://github.com/habitat-sh/habitat/pull/8883) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rcgen from 0.10.0 to 0.11.1 [#8887](https://github.com/habitat-sh/habitat/pull/8887) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump rcgen from 0.10.0 to 0.11.1 [#8887](https://github.com/habitat-sh/habitat/pull/8887) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.769 -->
 - Bump notify from 5.1.0 to 6.0.1 [#8883](https://github.com/habitat-sh/habitat/pull/8883) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.768 -->
 - Bump pem from 2.0.0 to 2.0.1 [#8885](https://github.com/habitat-sh/habitat/pull/8885) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.768 -->
 - Bump dirs from 5.0.0 to 5.0.1 [#8886](https://github.com/habitat-sh/habitat/pull/8886) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.768 -->
