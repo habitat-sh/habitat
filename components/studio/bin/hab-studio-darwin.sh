@@ -28,6 +28,11 @@ build_sandbox_env() {
     if [ -n "${HAB_ORIGIN:-}" ]; then
         sandbox_env="$sandbox_env HAB_ORIGIN=$HAB_ORIGIN"
     fi
+    # If a Habitat output path is set, then propagate it into the Studio's
+    # sandbox_environment.
+    if [ -n "${HAB_OUTPUT_PATH-}" ]; then
+        sandbox_env="$sandbox_env HAB_OUTPUT_PATH=$HAB_OUTPUT_PATH"
+    fi
     # If DO_CHECK is set, then propagate it into the Studio's sandbox_environment.
     if [ -n "${DO_CHECK:-}" ]; then
         sandbox_env="$sandbox_env DO_CHECK=$DO_CHECK"
