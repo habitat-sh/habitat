@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.769 -->
-## [1.6.769](https://github.com/habitat-sh/habitat/tree/1.6.769) (2023-06-19)
+<!-- latest_release 1.6.770 -->
+## [1.6.770](https://github.com/habitat-sh/habitat/tree/1.6.770) (2023-06-21)
 
 #### Merged Pull Requests
-- Bump rcgen from 0.10.0 to 0.11.1 [#8887](https://github.com/habitat-sh/habitat/pull/8887) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump openssl from 0.10.48 to 0.10.55 [#8890](https://github.com/habitat-sh/habitat/pull/8890) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump openssl from 0.10.48 to 0.10.55 [#8890](https://github.com/habitat-sh/habitat/pull/8890) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.770 -->
 - Bump rcgen from 0.10.0 to 0.11.1 [#8887](https://github.com/habitat-sh/habitat/pull/8887) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.769 -->
 - Bump notify from 5.1.0 to 6.0.1 [#8883](https://github.com/habitat-sh/habitat/pull/8883) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.768 -->
 - Bump pem from 2.0.0 to 2.0.1 [#8885](https://github.com/habitat-sh/habitat/pull/8885) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.768 -->
