@@ -39,6 +39,7 @@ do_build() {
 do_install() {
   install -v -D "$CARGO_TARGET_DIR/$rustc_target/debug/$bin" \
     "$pkg_prefix/bin/$bin"
+  install -v -D "$PLAN_CONTEXT/health_exit" "$pkg_prefix"
 }
 
 do_strip() {

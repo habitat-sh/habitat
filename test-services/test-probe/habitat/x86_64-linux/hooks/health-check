@@ -3,3 +3,4 @@
 echo "Running health_check hook: {{pkg.ident}} (PID: $$, PPID: $PPID, PGID: $(ps h -o pgid -p $$))"
 sleep 2
 echo "health_check finished!"
+exit $(cat {{pkg.path}}/health_exit)

@@ -33,4 +33,5 @@ function Invoke-Build {
 
 function Invoke-Install {
     Copy-Item "$env:CARGO_TARGET_DIR/debug/test-probe.exe" "$pkg_prefix/bin/test-probe.exe"
+    Copy-Item "$PLAN_CONTEXT/health_exit" "$pkg_prefix"
 }
