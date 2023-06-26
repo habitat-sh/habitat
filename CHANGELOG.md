@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.770 -->
-## [1.6.770](https://github.com/habitat-sh/habitat/tree/1.6.770) (2023-06-21)
+<!-- latest_release 1.6.771 -->
+## [1.6.771](https://github.com/habitat-sh/habitat/tree/1.6.771) (2023-06-26)
 
 #### Merged Pull Requests
-- Bump openssl from 0.10.48 to 0.10.55 [#8890](https://github.com/habitat-sh/habitat/pull/8890) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- add tests for http_gateway health sync [#8891](https://github.com/habitat-sh/habitat/pull/8891) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- add tests for http_gateway health sync [#8891](https://github.com/habitat-sh/habitat/pull/8891) ([mwrock](https://github.com/mwrock)) <!-- 1.6.771 -->
 - Bump openssl from 0.10.48 to 0.10.55 [#8890](https://github.com/habitat-sh/habitat/pull/8890) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.770 -->
 - Bump rcgen from 0.10.0 to 0.11.1 [#8887](https://github.com/habitat-sh/habitat/pull/8887) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.769 -->
 - Bump notify from 5.1.0 to 6.0.1 [#8883](https://github.com/habitat-sh/habitat/pull/8883) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.768 -->
