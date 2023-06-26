@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.772 -->
-## [1.6.772](https://github.com/habitat-sh/habitat/tree/1.6.772) (2023-06-26)
+<!-- latest_release 1.6.773 -->
+## [1.6.773](https://github.com/habitat-sh/habitat/tree/1.6.773) (2023-06-26)
 
 #### Merged Pull Requests
-- Bump toml from 0.7.4 to 0.7.5 [#8896](https://github.com/habitat-sh/habitat/pull/8896) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_json from 1.0.97 to 1.0.99 [#8895](https://github.com/habitat-sh/habitat/pull/8895) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.97 to 1.0.99 [#8895](https://github.com/habitat-sh/habitat/pull/8895) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.773 -->
+- Bump libc from 0.2.146 to 0.2.147 [#8892](https://github.com/habitat-sh/habitat/pull/8892) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.773 -->
 - Bump toml from 0.7.4 to 0.7.5 [#8896](https://github.com/habitat-sh/habitat/pull/8896) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.772 -->
 - add tests for http_gateway health sync [#8891](https://github.com/habitat-sh/habitat/pull/8891) ([mwrock](https://github.com/mwrock)) <!-- 1.6.771 -->
 - Bump openssl from 0.10.48 to 0.10.55 [#8890](https://github.com/habitat-sh/habitat/pull/8890) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.770 -->
