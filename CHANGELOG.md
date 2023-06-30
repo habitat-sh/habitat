@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.779 -->
-## [1.6.779](https://github.com/habitat-sh/habitat/tree/1.6.779) (2023-06-30)
+<!-- latest_release 1.6.780 -->
+## [1.6.780](https://github.com/habitat-sh/habitat/tree/1.6.780) (2023-06-30)
 
 #### Merged Pull Requests
-- Bump pin-project from 1.1.0 to 1.1.1 [#8904](https://github.com/habitat-sh/habitat/pull/8904) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tokio from 1.29.0 to 1.29.1 [#8902](https://github.com/habitat-sh/habitat/pull/8902) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump tokio from 1.29.0 to 1.29.1 [#8902](https://github.com/habitat-sh/habitat/pull/8902) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.780 -->
+- Bump num_cpus from 1.15.0 to 1.16.0 [#8903](https://github.com/habitat-sh/habitat/pull/8903) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.780 -->
 - Bump pin-project from 1.1.0 to 1.1.1 [#8904](https://github.com/habitat-sh/habitat/pull/8904) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.779 -->
 - Bump rustls-pemfile from 1.0.2 to 1.0.3 [#8901](https://github.com/habitat-sh/habitat/pull/8901) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.778 -->
 - Bump tokio from 1.28.2 to 1.29.0 [#8900](https://github.com/habitat-sh/habitat/pull/8900) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.777 -->
