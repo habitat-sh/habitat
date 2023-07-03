@@ -81,7 +81,7 @@ You can also develop your application if you are unsure of the infrastructure yo
 
 ### Download
 
-- [Download Chef Habitat](https://www.chef.io/downloads/tools/habitat)
+- [Download Chef Habitat](https://www.chef.io/downloads)
 - [Install documentation]({{< relref "/habitat/install_habitat" >}})
 
 ### Learning
