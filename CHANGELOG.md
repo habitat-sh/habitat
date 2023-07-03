@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.782 -->
-## [1.6.782](https://github.com/habitat-sh/habitat/tree/1.6.782) (2023-07-03)
+<!-- latest_release 1.6.783 -->
+## [1.6.783](https://github.com/habitat-sh/habitat/tree/1.6.783) (2023-07-03)
 
 #### Merged Pull Requests
-- Bump pin-project from 1.1.1 to 1.1.2 [#8905](https://github.com/habitat-sh/habitat/pull/8905) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- CHEF-3466 Replace download links [#8907](https://github.com/habitat-sh/habitat/pull/8907) ([IanMadd](https://github.com/IanMadd))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- CHEF-3466 Replace download links [#8907](https://github.com/habitat-sh/habitat/pull/8907) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.783 -->
 - Bump pin-project from 1.1.1 to 1.1.2 [#8905](https://github.com/habitat-sh/habitat/pull/8905) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.782 -->
 - Bump async-trait from 0.1.68 to 0.1.69 [#8906](https://github.com/habitat-sh/habitat/pull/8906) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.781 -->
 - Bump tokio from 1.29.0 to 1.29.1 [#8902](https://github.com/habitat-sh/habitat/pull/8902) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.780 -->
