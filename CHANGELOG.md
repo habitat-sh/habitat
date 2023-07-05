@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.784 -->
-## [1.6.784](https://github.com/habitat-sh/habitat/tree/1.6.784) (2023-07-05)
+<!-- latest_release 1.6.785 -->
+## [1.6.785](https://github.com/habitat-sh/habitat/tree/1.6.785) (2023-07-05)
 
 #### Merged Pull Requests
-- Bump thiserror from 1.0.40 to 1.0.41 [#8911](https://github.com/habitat-sh/habitat/pull/8911) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump async-trait from 0.1.69 to 0.1.70 [#8912](https://github.com/habitat-sh/habitat/pull/8912) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.69 to 0.1.70 [#8912](https://github.com/habitat-sh/habitat/pull/8912) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.785 -->
+- Bump paste from 1.0.12 to 1.0.13 [#8909](https://github.com/habitat-sh/habitat/pull/8909) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.785 -->
+- Bump serde_test from 1.0.164 to 1.0.166 [#8910](https://github.com/habitat-sh/habitat/pull/8910) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.785 -->
 - Bump thiserror from 1.0.40 to 1.0.41 [#8911](https://github.com/habitat-sh/habitat/pull/8911) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.784 -->
 - CHEF-3466 Replace download links [#8907](https://github.com/habitat-sh/habitat/pull/8907) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.783 -->
 - Bump pin-project from 1.1.1 to 1.1.2 [#8905](https://github.com/habitat-sh/habitat/pull/8905) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.782 -->
