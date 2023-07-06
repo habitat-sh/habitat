@@ -11,8 +11,9 @@ Describe "HTTP gateway" {
     }
 
     $supLog = New-SupervisorLogFile("test_health_check_output_of_http_gateway")
-    $env:health_check_interval = 10
-    Start-Supervisor -LogFile $supLog -Timeout 45
+    Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
+            "--health-check-interval=10"
+    ) | Out-Null
     Load-SupervisorService $test_probe_release
     Wait-Release -Ident $test_probe_release
 
@@ -39,7 +40,7 @@ Describe "HTTP gateway" {
 
     Context "with a service that changes status" {
         Set-Content -Path "/hab/pkgs/$test_probe_release/health_exit" -Value 1
-        Start-Sleep 15
+        Start-Sleep 30
 
         It "returns status of the hook when queried" {
             $status = (Invoke-WebRequest "http://localhost:9631/services/test-probe/default/health" | ConvertFrom-Json).status
