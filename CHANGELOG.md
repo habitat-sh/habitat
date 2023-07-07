@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.790 -->
-## [1.6.790](https://github.com/habitat-sh/habitat/tree/1.6.790) (2023-07-07)
+<!-- latest_release 1.6.791 -->
+## [1.6.791](https://github.com/habitat-sh/habitat/tree/1.6.791) (2023-07-07)
 
 #### Merged Pull Requests
-- Bump thiserror from 1.0.41 to 1.0.43 [#8920](https://github.com/habitat-sh/habitat/pull/8920) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_test from 1.0.166 to 1.0.167 [#8918](https://github.com/habitat-sh/habitat/pull/8918) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump serde_test from 1.0.166 to 1.0.167 [#8918](https://github.com/habitat-sh/habitat/pull/8918) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.791 -->
 - Bump thiserror from 1.0.41 to 1.0.43 [#8920](https://github.com/habitat-sh/habitat/pull/8920) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.790 -->
 - update yanked hermit-abi crate and fix e2e test [#8913](https://github.com/habitat-sh/habitat/pull/8913) ([mwrock](https://github.com/mwrock)) <!-- 1.6.789 -->
 - Bump async-trait from 0.1.70 to 0.1.71 [#8917](https://github.com/habitat-sh/habitat/pull/8917) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.788 -->
