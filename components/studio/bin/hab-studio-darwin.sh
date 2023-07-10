@@ -371,7 +371,7 @@ new_studio() {
   . "$studio_type_dir/hab-studio-type-darwin-${STUDIO_TYPE}.sh"
 
   # Invoke the type's implementation
-  # finish_setup
+  finish_setup
 
   # Add a Studio configuration file at the root of the filesystem
   $cat_cmd <<EOF >"$studio_config"
