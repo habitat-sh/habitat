@@ -264,11 +264,14 @@ subcommand_enter() {
 subcommand_build() {
   OPTIND=1
   # Parse command line flags and options
-  while getopts ":h" opt; do
+  while getopts ":hR" opt; do
     case $opt in
     h)
       print_build_help
       exit 0
+      ;;
+    R)
+      reuse=true
       ;;
     \?)
       print_build_help
@@ -281,6 +284,13 @@ subcommand_build() {
 
   trap cleanup_studio EXIT
 
+  if [ -z "${reuse:-}" ]; then
+    _STUDIO_TYPE="$STUDIO_TYPE"
+    rm_studio
+    STUDIO_TYPE="$_STUDIO_TYPE"
+    unset _STUDIO_TYPE
+  fi
+  new_studio
   build_studio "$@"
 }
 
