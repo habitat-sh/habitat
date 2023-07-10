@@ -444,8 +444,7 @@ build_studio() {
     set -x
   fi
 
-  # Run the build command in the `chroot` environment
-  # Note: studio_run_command, env and studio_run_command must NOT be quoted
+  # Run the build command in the `sandbox` environment
   # shellcheck disable=2086
   $studio_env_command -i \
     $sandbox_env \
@@ -655,7 +654,11 @@ cleanup_studio() {
 # directory not to be owned by root.
 chown_artifacts() {
   if [ -d "$ARTIFACT_PATH" ]; then
-    artifact_path_owner="$("$stat_cmd" -f '%Su:%g' "$ARTIFACT_PATH")" || echo "stat on $ARTIFACT_PATH failed with $?"
+    if [ "$stat_variant" = "bsd" ]; then
+      artifact_path_owner="$("$stat_cmd" -f '%Su:%g' "$ARTIFACT_PATH")" || echo "stat on $ARTIFACT_PATH failed with $?"
+    else
+      artifact_path_owner="$("$stat_cmd" -c '%u:%g' "$ARTIFACT_PATH")" || echo "stat on $ARTIFACT_PATH failed with $?"
+    fi
     "$chown_cmd" -R "$artifact_path_owner" "$ARTIFACT_PATH"
   fi
 }
@@ -666,7 +669,11 @@ chown_artifacts() {
 # directory not to be owned by root.
 chown_certs() {
   if [ -d "$CERT_PATH" ]; then
-    cert_path_owner="$($stat_cmd -f '%Su:%g' "$CERT_PATH")" || echo "stat on $CERT_PATH failed with $?"
+    if [ "$stat_variant" = "bsd" ]; then
+      cert_path_owner="$($stat_cmd -f '%Su:%g' "$CERT_PATH")" || echo "stat on $CERT_PATH failed with $?"
+    else
+      cert_path_owner="$($stat_cmd -c '%u:%g' "$CERT_PATH")" || echo "stat on $CERT_PATH failed with $?"
+    fi
     "$chown_cmd" -R "$cert_path_owner" "$CERT_PATH"
   fi
 }
@@ -680,7 +687,14 @@ find_system_cmds() {
   grep_cmd="$(command -v grep)"
   cut_cmd="$(command -v cut)"
   chown_cmd="$(command -v chown)"
-  stat_cmd="$(command -v stat)"
+  stat_cmd=$(command -v stat)
+  if $stat_cmd -f '%Su:%g' . 2>/dev/null 1>/dev/null; then
+    stat_variant="bsd"
+  elif $stat_cmd -c '%u:%g' . 2>/dev/null 1>/dev/null; then
+    stat_variant="gnu"
+  else
+    exit_with "Failed to determine stat variant, we require GNU or BSD stat to determine user and group owners of files; aborting" 1
+  fi
   sed_cmd="$(command -v sed)"
   rm_cmd="$(command -v rm)"
   readlink_cmd="$(command -v readlink)"
