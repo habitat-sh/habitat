@@ -7,6 +7,7 @@
 (define HAB_CACHE_ARTIFACT_PATH (param "HAB_CACHE_ARTIFACT_PATH"))
 (define PLAN_CONTEXT_DIR (param "PLAN_CONTEXT_DIR"))
 (define WORK_DIR (param "WORK_DIR"))
+(define STUDIO_HAB (param "STUDIO_HAB"))
 
 (deny default)
 
@@ -44,6 +45,9 @@
     (path-ancestors PLAN_CONTEXT_DIR) (subpath PLAN_CONTEXT_DIR))
 ; Access to the current working dir to write results
 (allow file* (subpath WORK_DIR))
+
+; Access to the habitat used by the studio
+(allow file-read* process-exec process-fork (literal STUDIO_HAB))
 
 ; Some packages like to read the system version.
 (allow file-read*
