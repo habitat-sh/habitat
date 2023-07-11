@@ -1273,7 +1273,7 @@ dependencies = [
  "rants",
  "reqwest",
  "retry",
- "rustls",
+ "rustls 0.21.5",
  "same-file",
  "serde",
  "serde_json",
@@ -1361,7 +1361,7 @@ dependencies = [
  "habitat_core",
  "log 0.4.19",
  "prost",
- "rustls",
+ "rustls 0.21.5",
  "termcolor",
  "tokio",
  "tokio-util 0.7.8",
@@ -1463,7 +1463,7 @@ dependencies = [
  "regex 1.7.3",
  "reqwest",
  "retry",
- "rustls",
+ "rustls 0.21.5",
  "serde",
  "serde-transcode",
  "serde_json",
@@ -1508,7 +1508,7 @@ dependencies = [
  "rcgen",
  "regex 1.7.3",
  "reqwest",
- "rustls",
+ "rustls 0.21.5",
  "rustls-pemfile",
  "serde",
  "serde_json",
@@ -1644,7 +1644,7 @@ dependencies = [
  "rants",
  "regex 1.7.3",
  "reqwest",
- "rustls",
+ "rustls 0.21.5",
  "rustls-pemfile",
  "serde",
  "serde-transcode",
@@ -3292,12 +3292,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustls"
+version = "0.21.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "79ea77c539259495ce8ca47f53e66ae0330a8819f67e23ac96ca02f50e7b7d36"
+dependencies = [
+ "log 0.4.19",
+ "ring",
+ "rustls-webpki",
+ "sct",
+]
+
+[[package]]
 name = "rustls-pemfile"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d3987094b1d07b653b7dfdc3f70ce9a1da9c51ac18c1b06b662e4f9a0e9f4b2"
 dependencies = [
  "base64 0.21.2",
+]
+
+[[package]]
+name = "rustls-webpki"
+version = "0.101.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15f36a6828982f422756984e47912a7a51dcbc2a197aa791158f8ca61cd8204e"
+dependencies = [
+ "ring",
+ "untrusted",
 ]
 
 [[package]]
@@ -3892,7 +3914,7 @@ version = "0.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c43ee83903113e03984cb9e5cebe6c04a5116269e900e3ddba8f068a62adda59"
 dependencies = [
- "rustls",
+ "rustls 0.20.8",
  "tokio",
  "webpki",
 ]
