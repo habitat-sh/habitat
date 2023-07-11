@@ -386,19 +386,19 @@ EOF
 
   # If `/etc/profile` is not present, create a minimal version with convenient
   # helper functions. "bare" studio doesn't need an /etc/profile
-  # pfile="$HAB_STUDIO_ROOT/etc/profile"
-  # if [ ! -f "$pfile" ] || ! "$grep_cmd" -q '^record() {$' "$pfile"; then
-  #   if [ -n "$VERBOSE" ]; then
-  #     echo "> Creating /etc/profile"
-  #   fi
+  pfile="$HAB_STUDIO_ROOT/etc/profile"
+  if [ ! -f "$pfile" ] || ! "$grep_cmd" -q '^record() {$' "$pfile"; then
+    if [ -n "$VERBOSE" ]; then
+      echo "> Creating /etc/profile"
+    fi
 
-  #   if [ -n "${HAB_STUDIO_BINARY:-}" ]; then
-  #     studio_profile_dir="$studio_binary_libexec_path"
-  #   else
-  #     studio_profile_dir="$libexec_path"
-  #   fi
-  #   "$cat_cmd" "$studio_profile_dir/hab-studio-profile.sh" >>"$pfile"
-  # fi
+    if [ -n "${HAB_STUDIO_BINARY:-}" ]; then
+      studio_profile_dir="$studio_binary_libexec_path"
+    else
+      studio_profile_dir="$libexec_path"
+    fi
+    "$cat_cmd" "$studio_profile_dir/hab-studio-darwin-profile.sh" >>"$pfile"
+  fi
 
 }
 
@@ -407,7 +407,7 @@ enter_studio() {
   exit_if_no_studio_config
   source_studio_type_config
 
-  sandbox_env=$(build_sandbox_env)
+  sandbox_env=$(build_sandbox_env "$studio_enter_environment")
   work_dir=$($pwd_cmd)
   work_dir=$($readlink_cmd -f "$work_dir")
   sandbox_profile_path="$libexec_path/darwin-sandbox.sb"
@@ -442,7 +442,7 @@ build_studio() {
     exit_with "Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE) does not support 'build'" 10
   fi
 
-  sandbox_env=$(build_sandbox_env)
+  sandbox_env=$(build_sandbox_env "$studio_build_environment")
   work_dir=$($pwd_cmd)
   work_dir=$($readlink_cmd -f "$work_dir")
   sandbox_profile_path="$libexec_path/darwin-sandbox.sb"
@@ -566,10 +566,35 @@ exit_with() {
   exit "$2"
 }
 
+# **Internal** Removes any potential malicious secrets
+sanitize_secrets() {
+  for x in HAB_BINLINK_DIR HAB_ORIGIN HOME LC_ALL PATH PWD STUDIO_TYPE TERM TERMINFO; do
+    unset "HAB_STUDIO_SECRET_$x"
+  done
+}
+
+# **Internal** Builds up a secret environment based on the prefix `HAB_STUDIO_SECRET_`
+# to pass into the studio
+load_secrets() {
+  sanitize_secrets
+  $env_cmd | $awk_cmd -F '=' '/^HAB_STUDIO_SECRET_/ {gsub(/HAB_STUDIO_SECRET_/, ""); print}'
+}
+
 build_sandbox_env() {
-  sandbox_env="LC_ALL=POSIX TERM=${TERM:-} HAB_LICENSE=accept-no-persist"
-  if [ -n "${HAB_BLDR_URL:-}" ]; then
-    sandbox_env="$sandbox_env HAB_BLDR_URL=$HAB_BLDR_URL"
+  extra_env="$1"
+
+  sandbox_env="LC_ALL=POSIX TERM=${TERM:-} PATH=${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}/bin"
+  # Add `STUDIO_TYPE` to the environment
+  sandbox_env="$sandbox_env STUDIO_TYPE=$STUDIO_TYPE"
+  # Add any additional environment variables from the Studio config, based on
+  # type
+  if [ -n "$extra_env" ]; then
+    sandbox_env="$sandbox_env $extra_env"
+  fi
+  # If a Habitat config filetype ignore string is set, then propagate it
+  # into the Studio's sandbox environment.
+  if [ -n "${HAB_CONFIG_EXCLUDE:-}" ]; then
+    sandbox_env="$sandbox_env HAB_CONFIG_EXCLUDE=$HAB_CONFIG_EXCLUDE"
   fi
   # If a Habitat Auth Token is set, then propagate it into the Studio's
   # sandbox_environment.
@@ -586,10 +611,31 @@ build_sandbox_env() {
   if [ -n "${HAB_BLDR_CHANNEL:-}" ]; then
     sandbox_env="$sandbox_env HAB_BLDR_CHANNEL=$HAB_BLDR_CHANNEL"
   fi
+  # If a no coloring environment variable is set, then propagate it into the Studio's
+  # sandbox environment.
+  if [ -n "${HAB_NOCOLORING:-}" ]; then
+    sandbox_env="$sandbox_env HAB_NOCOLORING=$HAB_NOCOLORING"
+  fi
+  # If a noninteractive environment variable is set, then propagate it into the Studio's
+  # sandbox environment.
+  if [ -n "${HAB_NONINTERACTIVE:-}" ]; then
+    sandbox_env="$sandbox_env HAB_NONINTERACTIVE=$HAB_NONINTERACTIVE"
+  fi
+  # If the hab license is set, then propagate that into the Studio's environment
+  if [ -f "/hab/accepted-licenses/habitat" ] || [ -f "$HOME/.hab/accepted-licenses/habitat" ]; then
+    sandbox_env="$sandbox_env HAB_LICENSE=accept-no-persist"
+  elif [ -n "${HAB_LICENSE:-}" ]; then
+    sandbox_env="$sandbox_env HAB_LICENSE=$HAB_LICENSE"
+  fi
   # If a Habitat origin name is set, then propagate it into the Studio's
   # sandbox_environment.
   if [ -n "${HAB_ORIGIN:-}" ]; then
     sandbox_env="$sandbox_env HAB_ORIGIN=$HAB_ORIGIN"
+  fi
+  # If a skip .studiorc environment variable is set, then propagate it into the
+  # Studio's environment.
+  if [ -n "${HAB_STUDIO_NOSTUDIORC:-}" ]; then
+    env="$env HAB_STUDIO_NOSTUDIORC=$HAB_STUDIO_NOSTUDIORC"
   fi
   # If a Habitat output path is set, then propagate it into the Studio's
   # sandbox_environment.
@@ -600,7 +646,10 @@ build_sandbox_env() {
   if [ -n "${DO_CHECK:-}" ]; then
     sandbox_env="$sandbox_env DO_CHECK=$DO_CHECK"
   fi
+  sandbox_env="$sandbox_env $(load_secrets)"
+
   echo "$sandbox_env"
+  return 0
 }
 
 # **Internal** Prints out any important environment variables that will be used
@@ -646,16 +695,15 @@ report_env_vars() {
     info "Exported: no_proxy=$no_proxy"
   fi
 
-  # for secret_name in $(load_secrets | $bb cut -d = -f 1); do
-  #   info "Exported: $secret_name=[redacted]"
-  # done
+  for secret_name in $(load_secrets | $cut_cmd -d = -f 1); do
+    info "Exported: $secret_name=[redacted]"
+  done
 }
 
 # **Internal** Run when an interactive studio exits.
 cleanup_studio() {
   chown_artifacts
   chown_certs
-
 }
 
 # **Internal** Updates file ownership on files under the artifact cache path
@@ -695,8 +743,10 @@ find_system_cmds() {
   mkdir_cmd="$(command -v mkdir)"
   cat_cmd="$(command -v cat)"
   grep_cmd="$(command -v grep)"
+  awk_cmd="$(command -v awk)"
   cut_cmd="$(command -v cut)"
   chown_cmd="$(command -v chown)"
+  chmod_cmd="$(command -v chmod)"
   stat_cmd=$(command -v stat)
   if $stat_cmd -f '%Su:%g' . 2>/dev/null 1>/dev/null; then
     stat_variant="bsd"
@@ -708,7 +758,7 @@ find_system_cmds() {
   sed_cmd="$(command -v sed)"
   rm_cmd="$(command -v rm)"
   readlink_cmd="$(command -v readlink)"
-  system_hab="$(command -v hab)"
+  system_hab_cmd="$(command -v hab)"
   id_cmd="$(command -v id)"
 }
 
