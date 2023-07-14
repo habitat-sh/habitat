@@ -826,7 +826,7 @@ chroot_env() {
 
   # Set the environment which will be passed to `env(1)` to initialize the
   # session.
-  env="LC_ALL=POSIX HOME=/root TERM=${TERM:-} PATH=$studio_path"
+  env="LC_ALL=POSIX HOME=/root TERM=${TERM:-} PATH=$studio_path HAB_LICENSE=$HAB_LICENSE"
   # Add `STUDIO_TYPE` to the environment
   env="$env STUDIO_TYPE=$STUDIO_TYPE"
   # Add any additional environment variables from the Studio config, based on
@@ -863,12 +863,6 @@ chroot_env() {
   # environment.
   if [ -n "${HAB_NONINTERACTIVE:-}" ]; then
     env="$env HAB_NONINTERACTIVE=$HAB_NONINTERACTIVE"
-  fi
-  # If the hab license is set, then propagate that into the Studio's environment
-  if [ -f "/hab/accepted-licenses/habitat" ] || [ -f "$HOME/.hab/accepted-licenses/habitat" ]; then
-    env="$env HAB_LICENSE=accept-no-persist"
-  elif [ -n "${HAB_LICENSE:-}" ]; then
-    env="$env HAB_LICENSE=$HAB_LICENSE"
   fi
   # If a Habitat origin name is set, then propagate it into the Studio's
   # environment.
@@ -1232,6 +1226,18 @@ HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 
 # The default root path for SSL certs
 HAB_CACHE_CERT_PATH=$HAB_ROOT_PATH/cache/ssl
+
+# This block ensures the `HAB_LICENSE` environment variable is properly set before invoking the hab binary. 
+# It first checks if `HAB_LICENSE` is already 'accept' or 'accept-no-persist'. If not, it searches for an 
+# acceptance file ('habitat') in '/hab/accepted-licenses' and '$HOME/.hab/accepted-licenses'. 
+# If none of these conditions are met, it assigns 'deny' to `HAB_LICENSE`. This prevents any interactive 
+# license acceptance prompts from halting the studio operation by ensuring `HAB_LICENSE` is always either 
+# accepted or denied prior to each hab invocation.
+if [ "${HAB_LICENSE:-}" = "accept" ] || [ "${HAB_LICENSE:-}" = "accept-no-persist" ] || [ -f "/hab/accepted-licenses/habitat" ] || [ -f "$HOME/.hab/accepted-licenses/habitat" ]; then
+  HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}"
+else
+  HAB_LICENSE="deny"
+fi
 
 # The exit code for a coding error that manifests at runtime
 ERR_RUNTIME_CODING_ERROR=70
