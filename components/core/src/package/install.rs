@@ -32,6 +32,7 @@ use toml::{self,
 
 pub const DEFAULT_CFG_FILE: &str = "default.toml";
 const PATH_KEY: &str = "PATH";
+const HAB_LD_LIBRARY_PATH_KEY: &str = "HAB_LD_LIBRARY_PATH";
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PackageInstall {
@@ -213,17 +214,20 @@ impl PackageInstall {
     /// environment variables needed to properly run a command from the context of this package.
     pub fn environment_for_command(&self) -> Result<BTreeMap<String, String>> {
         let mut env = self.runtime_environment_file_map(MetaFile::RuntimeEnvironment)?;
-        // Remove any pre-existing PATH key as this is either from an older package or is
+        // Remove any pre-existing PATH / HAB_LD_LIBRARY_PATH key as this is either from an older package or is
         // present for backwards compatibility with older Habitat releases.
         env.remove(PATH_KEY);
+        env.remove(HAB_LD_LIBRARY_PATH_KEY);
 
         let mut paths = self.runtime_paths()?;
+        let mut hab_ld_library_paths = self.runtime_hab_ld_library_paths()?;
 
         // Let's join the paths to the FS_ROOT
         // In most cases, this does nothing and should only mutate
         // the paths in a windows studio where FS_ROOT_PATH will
         // be the studio root path (ie c:\hab\studios\...)
         let rooted_path = self.root_paths(&mut paths)?;
+        let rooted_hab_ld_library_path = self.root_paths(&mut hab_ld_library_paths)?;
 
         // Only insert a PATH entry if the resulting path string is non-empty
         if !rooted_path.is_empty() {
@@ -237,6 +241,12 @@ impl PackageInstall {
                 env.insert(PATH_KEY.to_string(), joined.to_string_lossy().to_string());
             } else {
                 env.insert(PATH_KEY.to_string(), rooted_path);
+            }
+        }
+
+        if !rooted_hab_ld_library_path.is_empty() {
+            if cfg!(unix) {
+                env.insert(HAB_LD_LIBRARY_PATH_KEY.to_string(), rooted_hab_ld_library_path);
             }
         }
 
@@ -480,6 +490,20 @@ impl PackageInstall {
                 Ok(env::split_paths(&body).collect())
             }
             Err(Error::MetaFileNotFound(MetaFile::RuntimePath)) => self.legacy_runtime_paths(),
+            Err(e) => Err(e),
+        }
+    }
+
+    fn runtime_hab_ld_library_paths(&self) -> Result<Vec<PathBuf>> {
+        match self.read_metafile(MetaFile::RuntimeHabLdLibraryPath) {
+            Ok(body) => {
+                if body.is_empty() {
+                    return Ok(vec![]);
+                }
+
+                Ok(env::split_paths(&body).collect())
+            }
+            Err(Error::MetaFileNotFound(MetaFile::RuntimeHabLdLibraryPath)) => Ok(vec![]),
             Err(e) => Err(e),
         }
     }

@@ -567,6 +567,46 @@ _assemble_runtime_path() {
   join_by ':' "${paths[@]}"
 }
 
+
+# **Internal**  Build a `HAB_LD_LIBRARY_PATH` string suitable for entering into this package's
+# `RUNTIME_PATH` metadata file. The ordering of this path is important as this
+# value will ultimately be consumed by other programs such as the Supervisor
+# when constructing the `HAB_LD_LIBRARY_PATH` environment variable before spawning a process.
+#
+# The path is constructed by taking all `LD_RUN_PATH` metadata file entries from this
+# package (in for the form of `$pkg_lib_dirs[@]`), followed by entries from the
+# *direct* dependencies first (in declared order), and then from any remaining
+# transitive dependencies last (in lexically sorted order). All entries are
+# present only once in the order of their first appearance.
+_assemble_hab_ld_runtime_path() {
+  local paths=()
+  local dir dep data
+
+  # Add element for each entry in `$pkg_lib_dirs[@]` first
+  for dir in "${pkg_lib_dirs[@]}"; do
+    paths+=("$pkg_prefix/$dir")
+  done
+
+  # Iterate through all direct direct run dependencies following by all
+  # remaining transitive run dependencies and for each, append each path entry
+  # onto the result, assuming it hasn't already been added. In this way, all
+  # direct dependencies will match first and any libraries that are loaded by a
+  # direct dependency will also be present on HAB_LD_LIBRARY_PATH, albeit at the very end of
+  # the HAB_LD_LIBRARY_PATH.
+  for dep_prefix in "${pkg_deps_resolved[@]}" "${pkg_tdeps_resolved[@]}"; do
+    if [[ -f "$dep_prefix/LD_RUN_PATH" ]]; then
+      data="$(cat "$dep_prefix/LD_RUN_PATH")"
+      data="$(trim "$data")"
+      while read -r entry; do
+        read -r -a paths <<< "$(_return_or_append_to_set "$entry" "${paths[@]}")" # See syntax note @ _return_or_append_to_set
+      done <<< "$(echo "$data" | tr ':' '\n' | grep "^$dep_prefix")"
+    fi
+  done
+
+  # Return the elements of the result, joined with a colon
+  join_by ':' "${paths[@]}"
+}
+
 _ensure_origin_key_present() {
   local cache="$HAB_CACHE_KEY_PATH"
   local keys_found
@@ -1575,6 +1615,40 @@ _set_build_path() {
   build_line "Setting PATH=$PATH"
 }
 
+# **Internal**  Build and export `$HAB_LD_LIBRARY_PATH` containing each path in our own
+# `${pkg_lib_dirs[@]}` array, and then any dependency's `HAB_LD_LIBRARY_PATH` entry (direct or
+# transitive) if one exists. The ordering of the path is specific to
+# `${pkg_all_tdeps_resolved[@]}` which is further explained in the
+# `_resolve_dependencies()` function.
+#
+_set_hab_ld_library_path() {
+  local paths=()
+  local dir dep data
+
+  # Add element for each entry in `$pkg_bin_dirs[@]` first
+  for dir in "${pkg_lib_dirs[@]}"; do
+    paths+=("$pkg_prefix/$dir")
+  done
+
+  # Iterate through all build and run dependencies in the order present in
+  # `${pkg_all_tdeps_resolved[@]}` and for each, append each path entry onto
+  # the result, assuming it hasn't already been added.
+  for dep_prefix in "${pkg_all_tdeps_resolved[@]}"; do
+    if [[ -f "$dep_prefix/LD_RUN_PATH" ]]; then
+      data="$(cat "$dep_prefix/LD_RUN_PATH")"
+      data="$(trim "$data")"
+      while read -r entry; do
+        read -r -a paths <<< "$(_return_or_append_to_set "$entry" "${paths[@]}")" # See syntax note @ _return_or_append_to_set
+      done <<< "$(echo "$data" | tr ':' '\n' | grep "^$dep_prefix")"
+    fi
+  done
+
+  HAB_LD_LIBRARY_PATH="$(join_by ':' "${paths[@]}")"
+  export HAB_LD_LIBRARY_PATH
+
+  build_line "Setting HAB_LD_LIBRARY_PATH=$HAB_LD_LIBRARY_PATH"
+}
+
 # **Internal** This writes out a pre_build.env file, similar to the last_build.env
 # that gets written at the end of a build. The purpose of pre_build.env is to provide
 # metadata about what package we're trying to build before we build it. This is useful
@@ -2012,6 +2086,7 @@ _build_metadata() {
   _render_metadata_TARGET
   _render_metadata_IDENT
   _render_metadata_RUNTIME_PATH
+  _render_metadata_RUNTIME_HAB_LD_LIBRARY_PATH
   _render_metadata_RUNTIME_ENVIRONMENT
   _render_metadata_RUNTIME_ENVIRONMENT_PROVENANCE
   _render_metadata_SHUTDOWN_SIGNAL
@@ -2689,6 +2764,9 @@ do_setup_environment_wrapper
 # Set up the `PATH` environment variable so that commands will be found
 # for all subsequent phases
 _set_build_path
+# Set up the `HAB_LD_LIBRARY_PATH` environment variable so that dynamically 
+# loaded libraries will be found by any binary compiled inside Habitat
+_set_hab_ld_library_path
 
 mkdir -pv "$HAB_CACHE_SRC_PATH"
 

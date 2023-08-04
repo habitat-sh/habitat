@@ -17,6 +17,9 @@ declare -A __buildtime_environment_provenance
 # (I'm sure there are many other common variables we could add here;
 # PRs welcome!)
 declare -A -g __well_known_aggregate_env_vars=(
+    # Habitat Linker Dynamic Loading Lookup
+    [HAB_LD_LIBRARY_PATH]=":"
+
     # Shell
     [PATH]=":"
 
@@ -171,12 +174,12 @@ __populate_environment_from_deps() {
         if [ -f "${path_to_dep}/RUNTIME_ENVIRONMENT" ]; then
             while read -r line; do
                 IFS="=" read -r var val <<< "${line}"
-                # Any values of `PATH` are skipped as we will be computing the
+                # Any values of `PATH` / `HAB_LD_LIBRARY_PATH` are skipped as we will be computing the
                 # runtime path independently of the RUNTIME_ENVIRONMENT
                 # metadata files. Additionally, this acts as backwards
                 # compatibility for all `RUNTIME_ENVIRONMENT` files that
-                # contain a `PATH` key.
-                if [[ "${var}" == "PATH" ]]; then
+                # contain a `PATH` / `HAB_LD_LIBRARY_PATH` key.
+                if [[ "${var}" == "PATH" || "${var}" == "HAB_LD_LIBRARY_PATH" ]]; then
                   continue;
                 fi
 

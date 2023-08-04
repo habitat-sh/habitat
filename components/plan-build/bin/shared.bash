@@ -232,6 +232,20 @@ _render_metadata_RUNTIME_PATH(){
   fi
 }
 
+_render_metadata_RUNTIME_HAB_LD_LIBRARY_PATH() {
+    local metadata_file_name="RUNTIME_HAB_LD_LIBRARY_PATH"
+    local runtime_hab_ld_library_path
+
+    runtime_hab_ld_library_path="$(_assemble_hab_ld_runtime_path)"
+    if [[ -n "$runtime_hab_ld_library_path" ]]; then
+      debug "Rendering ${metadata_file_name} metadata file"
+      echo "$runtime_hab_ld_library_path" > "${pkg_prefix}/${metadata_file_name}"
+      __runtime_environment["HAB_LD_LIBRARY_PATH"]="$runtime_hab_ld_library_path"
+    else
+      debug "Would have rendered ${metadata_file_name}, but there was no data for it"
+    fi
+}
+
 _render_metadata_SVC_GROUP() {
   debug "Rendering SVC_GROUP metadata file"
   # shellcheck disable=2154
