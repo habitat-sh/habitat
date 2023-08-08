@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.825 -->
-## [1.6.825](https://github.com/habitat-sh/habitat/tree/1.6.825) (2023-08-08)
+<!-- latest_release 1.6.826 -->
+## [1.6.826](https://github.com/habitat-sh/habitat/tree/1.6.826) (2023-08-08)
 
 #### Merged Pull Requests
-- Bump tar from 0.4.39 to 0.4.40 [#8960](https://github.com/habitat-sh/habitat/pull/8960) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- updating release docs [#8961](https://github.com/habitat-sh/habitat/pull/8961) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- updating release docs [#8961](https://github.com/habitat-sh/habitat/pull/8961) ([mwrock](https://github.com/mwrock)) <!-- 1.6.826 -->
 - Bump tar from 0.4.39 to 0.4.40 [#8960](https://github.com/habitat-sh/habitat/pull/8960) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.825 -->
 - Bump serde from 1.0.181 to 1.0.183 [#8958](https://github.com/habitat-sh/habitat/pull/8958) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.824 -->
 - Bump tempfile from 3.7.0 to 3.7.1 [#8956](https://github.com/habitat-sh/habitat/pull/8956) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.823 -->
