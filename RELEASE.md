@@ -1,11 +1,10 @@
 # Releasing Habitat
 
-This document contains step-by-step details for how to release Habitat. All components are released
-from the master branch on a bi-weekly schedule occurring every other Monday.
+This document contains step-by-step details for how to release Habitat.
 
 Note: this document covers what to do once you decide you want to make
 an official release. If you would like further details on how the
-overall pipeline, please go [here](./.expeditor/README.md).
+overall pipeline works, please go [here](./.expeditor/README.md).
 
 
 ## Promote a Candidate for Manual Testing
@@ -84,17 +83,11 @@ currently installed on macOS.
 ``` powershell
 iex "& { $(irm https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1) } -Channel staging"
 ```
-
-You may also need to update the Habitat Windows Service. To do that:
-
-``` sh
-hab pkg install core/windows-service --channel=staging
-```
 ### What to Test
 
 There may be special behavior related to this release that you will
 want to validate but at the very least, you should validate the version,
-try running some services, exporting some services, and exercising the Studio.
+try running some services, and exercising the Studio.
 
 To ensure everything is working properly, you will need to have the
 following environment variables set:
@@ -102,6 +95,12 @@ following environment variables set:
 ```sh
 export HAB_INTERNAL_BLDR_CHANNEL=staging
 export HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL=staging
+```
+
+On Windows, only `HAB_INTERNAL_BLDR_CHANNEL` needs to be set:
+
+``` pwsh
+$env:HAB_INTERNAL_BLDR_CHANNEL="staging"
 ```
 
 `HAB_INTERNAL_BLDR_CHANNEL` is needed *outside* the Studio in order to
@@ -116,15 +115,17 @@ packages for the internal Supervisor from the appropriate place.
 See https://github.com/habitat-sh/habitat/issues/4656 for further context and ideas.
 
 
-Here is how you can validate the version.
+Here is how you can validate the version of the cli, supervisor and the supervisor version inside the studio.
 
 On Linux:
 ``` sh
 hab --version
 hab sup --version
 hab studio enter
+hab --version
 sup-log
 hab studio enter -D
+hab --version
 sup-log
 ```
 
@@ -133,8 +134,10 @@ On Windows:
 hab --version
 hab sup --version
 hab studio enter
+hab --version
 Get-Supervisorlog
 hab studio enter -D
+hab --version
 Get-Supervisorlog
 ```
 
@@ -156,13 +159,20 @@ hab studio enter
 Then, once inside the Studio, you could try these:
 
 ``` sh
+# Does the version of the cli inside the studio match staging?
 hab --version
-hab svc load core/redis
+# Does the version of the supervisor inside the studio match staging?
 sup-log
 ^C
-hab pkg export docker --base-pkgs-channel=staging core/redis
-hab pkg export tar --base-pkgs-channel=staging core/redis
-build core-plans/redis
+# build the apache plan
+build core-plans/httpd
+source results/last_build.env
+hab svc load $pkg_ident
+sup-log
+# Is Apache running
+^C
+# Is it responding?
+hab pkg exec core/busybox-static wget http://localhost -S
 ```
 
 On Linux, testing the Docker studio is identical, except you enter
@@ -171,6 +181,8 @@ using the following command instead:
 ```sh
 hab studio enter -D
 ```
+
+Test both in the chroot and docker studios on x86 linux.
 
 ### Validating x86_64-linux-kernel2
 
@@ -202,7 +214,24 @@ and experiment. For example:
 export HAB_INTERNAL_BLDR_CHANNEL=staging
 export HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL=staging
 export HAB_ORIGIN=<my_origin>
-hab pkg build core-plans/redis
+hab studio enter
+```
+
+Then, once inside the Studio, you could try these:
+
+``` sh
+# Does the version of the cli inside the studio match staging?
+hab --version
+# Does the version of the supervisor inside the studio match staging?
+sup-log
+^C
+# build the apache plan
+build core-plans/redis
+source results/last_build.env
+hab svc load $pkg_ident
+sup-log
+# Is Redis running and reporting "Ready to accept connections"
+^C
 ```
 
 ## Promote from Staging to Current
@@ -223,7 +252,7 @@ The `Pending Release Notes` on the habitat githib repo's wiki is a placeholder f
 
 ## Promote from Current to Stable
 
-Once you're satisfied with the new Supervisors in Production, you can
+Once you're satisfied with the new Supervisors in Production (you can access and navigate around https://bldr.habitat.sh/), you can
 finish the release process by promoting from the `current` channel to
 the `stable` channel.
 
