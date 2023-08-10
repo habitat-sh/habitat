@@ -1,16 +1,10 @@
 # Habitat CHANGELOG
 
 <!-- latest_release 1.6.826 -->
-## [1.6.826](https://github.com/habitat-sh/habitat/tree/1.6.826) (2023-08-08)
-
-#### Merged Pull Requests
-- updating release docs [#8961](https://github.com/habitat-sh/habitat/pull/8961) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
-
-#### Merged Pull Requests
 
 <!-- release_rollup -->
 
