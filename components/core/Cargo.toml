@@ -55,7 +55,7 @@ caps = "*"
 ctrlc = "*"
 habitat_win_users = { path = "../win-users" }
 widestring = "*"
-winapi = { version = "^0.3", features = ["dpapi", "ioapiset", "namedpipeapi", "synchapi", "userenv", "winbase", "wincrypt", "winerror"] }
+winapi = { version = "^0.3", features = ["dpapi", "ioapiset", "namedpipeapi", "synchapi", "userenv", "winbase", "wincrypt", "winerror", "ws2def"] }
 windows-acl = "*"
 
 [dev-dependencies]
