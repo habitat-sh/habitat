@@ -27,19 +27,6 @@ steps:
           environment:
             - GITHUB_USER
 
-  - label: ":chocolate_bar: Publish Chocolatey package"
-    command:
-      - powershell .expeditor/scripts/finish_release/publish_to_chocolatey.ps1
-    expeditor:
-      secrets:
-        CHOCO_API_KEY:
-          path: account/static/chocolatey/habitat
-          field: api_key
-      executor:
-        docker:
-          host_os: windows
-          environment:
-
   - label: ":rust: Check for new nightly rustfmt version"
     command:
       - .expeditor/scripts/finish_release/bump_rustfmt.sh
@@ -56,49 +43,3 @@ steps:
             - GITHUB_USER
 
     soft_fail: true
-
-  - label: "Sync acceptance packages from prod"
-    command:
-      - .expeditor/scripts/finish_release/sync_acceptance.sh
-    expeditor:
-      account:
-        - github
-      secrets:
-        HAB_AUTH_TOKEN:
-          path: account/static/habitat/chef-ci
-          field: auth_token # Production Builder
-        PIPELINE_ACCEPTANCE_AUTH_TOKEN:
-          path: account/static/habitat/chef-ci
-          field: acceptance_auth_token
-    soft_fail: true
-
-  - label: "Update Habitat API Docs"
-    command:
-      - .expeditor/scripts/finish_release/update_api_docs.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-
-  - label: "Publish Release Notes"
-    command:
-      - .expeditor/scripts/release_notes/publish-release-notes.sh
-    expeditor:
-      account:
-        - github
-      secrets:
-        GITHUB_TOKEN:
-          account: github/habitat-sh
-          field: token
-      executor:
-        docker:
-          environment:
-            - GITHUB_USER
-
-  - wait
-
-  - label: "Announce Release"
-    command:
-      - .expeditor/scripts/release_notes/announce-release.sh
