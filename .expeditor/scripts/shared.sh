@@ -340,7 +340,7 @@ fastly_token() {
 
 latest_release_tag() {
   local repo="${1?repo argument required}"
-  tag=$(curl --silent "https://api.github.com/repos/${repo}/releases/latest" | jq -r .tag_name)
+  tag=$(curl --silent -L -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/${repo}/releases/latest" | jq -r .tag_name)
   echo "${tag}"
 }
 
