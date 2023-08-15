@@ -323,12 +323,7 @@ readonly expeditor_hab_bldr_url="https://bldr.habitat.sh"
 # that use this script.
 
 maybe_run() {
-  if [[ "${BUILDKITE_BUILD_CREATOR}" == "Chef Expeditor" ]]; then
     "$@"
-  else
-    echo "Build initiated by $BUILDKITE_BUILD_CREATOR"
-    echo "Would have run: $*"
-  fi
 }
 
 # Access the Fastly API token. Useful for purging caches.

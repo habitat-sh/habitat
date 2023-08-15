@@ -26,20 +26,3 @@ steps:
         docker:
           environment:
             - GITHUB_USER
-
-  - label: ":rust: Check for new nightly rustfmt version"
-    command:
-      - .expeditor/scripts/finish_release/bump_rustfmt.sh
-    expeditor:
-      account:
-        - github
-      secrets:
-        GITHUB_TOKEN:
-          account: github/habitat-sh
-          field: token
-      executor:
-        docker:
-          environment:
-            - GITHUB_USER
-
-    soft_fail: true
