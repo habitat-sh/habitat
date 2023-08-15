@@ -244,9 +244,9 @@ macro_rules! package_targets {
 // 4. The Rust string value to be used in the target's `cfg!(target_arch = "<arch>")` macro. This
 //    will be used to conditionally compile the correct and appropriate active package target at
 //    compile time.
-// 5. The Rust string value to be used in the target's `cfg!(target_os = "<arch>")` macro. This
-//    will be used to conditionally compile the correct and appropriate active package target at
-//    compile time.
+// 5. The Rust string value to be used in the target's `cfg!(target_os = "<arch>")` macro. This will
+//    be used to conditionally compile the correct and appropriate active package target at compile
+//    time.
 //
 // Note that some package targets may overlap on the same underlying `target_arch`/`target_os`
 // system. These are still distinct and exclusive package targets and will operate in isolation as

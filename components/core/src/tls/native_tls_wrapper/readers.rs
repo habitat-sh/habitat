@@ -27,11 +27,10 @@ const CACERT_PEM: &str = include_str!(concat!(env!("OUT_DIR"), "/cacert.pem"));
 /// 1. If the `core/cacerts` Habitat package is installed locally, then use the latest release's
 ///    `cacert.pem` file.
 /// 2. If there is no 'core/cacerts packages, then a copy of `cacert.pem` will be written in an SSL
-///    cache directory (by default `/hab/cache/ssl` for a root user and `$HOME/.hab/cache/ssl` for
-///    a non-root user) and this will be used. The contents of this file will be inlined in this
-///    crate at build time as a fallback, which means that if the program using this code is
-///    operating in a minimal environment which may not contain any system certificates, it can
-///    still operate.
+///    cache directory (by default `/hab/cache/ssl` for a root user and `$HOME/.hab/cache/ssl` for a
+///    non-root user) and this will be used. The contents of this file will be inlined in this crate
+///    at build time as a fallback, which means that if the program using this code is operating in
+///    a minimal environment which may not contain any system certificates, it can still operate.
 /// 3. Other certs files (for example self-signed certs) that are found in the SSL cache directory
 ///    will also get loaded into the root certs list. Both PEM and DER formats are supported. All
 ///    files will be assumed to be one of the supported formats, and any errors will be ignored
