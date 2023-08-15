@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.831 -->
-## [1.6.831](https://github.com/habitat-sh/habitat/tree/1.6.831) (2023-08-14)
+<!-- latest_release 1.6.832 -->
+## [1.6.832](https://github.com/habitat-sh/habitat/tree/1.6.832) (2023-08-15)
 
 #### Merged Pull Requests
-- Bump tokio from 1.29.1 to 1.31.0 [#8965](https://github.com/habitat-sh/habitat/pull/8965) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Fix Release Pipeline [#8964](https://github.com/habitat-sh/habitat/pull/8964) ([atrniv](https://github.com/atrniv))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Fix Release Pipeline [#8964](https://github.com/habitat-sh/habitat/pull/8964) ([atrniv](https://github.com/atrniv)) <!-- 1.6.832 -->
 - Bump tokio from 1.29.1 to 1.31.0 [#8965](https://github.com/habitat-sh/habitat/pull/8965) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.831 -->
 - Bump bitflags from 2.3.3 to 2.4.0 [#8967](https://github.com/habitat-sh/habitat/pull/8967) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.830 -->
 - Bump log from 0.4.19 to 0.4.20 [#8968](https://github.com/habitat-sh/habitat/pull/8968) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.829 -->
