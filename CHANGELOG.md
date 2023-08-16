@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.833 -->
-## [1.6.833](https://github.com/habitat-sh/habitat/tree/1.6.833) (2023-08-15)
+<!-- latest_release 1.6.834 -->
+## [1.6.834](https://github.com/habitat-sh/habitat/tree/1.6.834) (2023-08-16)
 
 #### Merged Pull Requests
-- Rustfmt and Nightly Rust Bump to nightly-2023-08-15 [#8969](https://github.com/habitat-sh/habitat/pull/8969) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+- Bump anyhow from 1.0.72 to 1.0.74 [#8970](https://github.com/habitat-sh/habitat/pull/8970) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump anyhow from 1.0.72 to 1.0.74 [#8970](https://github.com/habitat-sh/habitat/pull/8970) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.834 -->
 - Rustfmt and Nightly Rust Bump to nightly-2023-08-15 [#8969](https://github.com/habitat-sh/habitat/pull/8969) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.833 -->
 - Fix Release Pipeline [#8964](https://github.com/habitat-sh/habitat/pull/8964) ([atrniv](https://github.com/atrniv)) <!-- 1.6.832 -->
 - Bump tokio from 1.29.1 to 1.31.0 [#8965](https://github.com/habitat-sh/habitat/pull/8965) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.831 -->
