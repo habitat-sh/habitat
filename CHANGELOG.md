@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.841 -->
-## [1.6.841](https://github.com/habitat-sh/habitat/tree/1.6.841) (2023-08-21)
+<!-- latest_release 1.6.842 -->
+## [1.6.842](https://github.com/habitat-sh/habitat/tree/1.6.842) (2023-08-21)
 
 #### Merged Pull Requests
-- Bump tempfile from 3.7.1 to 3.8.0 [#8977](https://github.com/habitat-sh/habitat/pull/8977) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump winreg from 0.50.0 to 0.51.0 [#8978](https://github.com/habitat-sh/habitat/pull/8978) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump winreg from 0.50.0 to 0.51.0 [#8978](https://github.com/habitat-sh/habitat/pull/8978) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.842 -->
 - Bump tempfile from 3.7.1 to 3.8.0 [#8977](https://github.com/habitat-sh/habitat/pull/8977) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.841 -->
 - Bump tokio from 1.31.0 to 1.32.0 [#8976](https://github.com/habitat-sh/habitat/pull/8976) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.840 -->
 - Bump anyhow from 1.0.74 to 1.0.75 [#8975](https://github.com/habitat-sh/habitat/pull/8975) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.839 -->
