@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.844 -->
-## [1.6.844](https://github.com/habitat-sh/habitat/tree/1.6.844) (2023-08-21)
+<!-- latest_release 1.6.845 -->
+## [1.6.845](https://github.com/habitat-sh/habitat/tree/1.6.845) (2023-08-21)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.183 to 1.0.184 [#8980](https://github.com/habitat-sh/habitat/pull/8980) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump notify from 6.0.1 to 6.1.0 [#8981](https://github.com/habitat-sh/habitat/pull/8981) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump notify from 6.0.1 to 6.1.0 [#8981](https://github.com/habitat-sh/habitat/pull/8981) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.845 -->
 - Bump serde from 1.0.183 to 1.0.184 [#8980](https://github.com/habitat-sh/habitat/pull/8980) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.844 -->
 - Bump cc from 1.0.82 to 1.0.83 [#8979](https://github.com/habitat-sh/habitat/pull/8979) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.843 -->
 - Bump winreg from 0.50.0 to 0.51.0 [#8978](https://github.com/habitat-sh/habitat/pull/8978) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.842 -->
