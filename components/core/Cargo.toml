@@ -43,7 +43,7 @@ tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
 toml = { version = "*", features = [ "preserve_order" ] }
 url = "*"
-webpki = "*"
+rustls-webpki = "*"
 xz2 = "*"
 
 [target.'cfg(not(windows))'.dependencies]

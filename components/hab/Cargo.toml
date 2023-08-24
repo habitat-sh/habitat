@@ -53,7 +53,7 @@ tokio = { version = "*", features = ["full"] }
 toml = { version = "*", features = [ "preserve_order" ] }
 url = { version = "*", features = ["serde"] }
 walkdir = "*"
-webpki = { version = "*", features = ["alloc"] }
+rustls-webpki = { version = "*", features = ["alloc"] }
 tempfile = "*"
 
 [dependencies.uuid]

@@ -1274,6 +1274,7 @@ dependencies = [
  "reqwest",
  "retry",
  "rustls",
+ "rustls-webpki",
  "same-file",
  "serde",
  "serde_json",
@@ -1289,7 +1290,6 @@ dependencies = [
  "url",
  "uuid 1.2.2",
  "walkdir",
- "webpki",
  "widestring 1.0.2",
  "winapi 0.3.9",
  "winreg 0.51.0",
@@ -1510,6 +1510,7 @@ dependencies = [
  "reqwest",
  "rustls",
  "rustls-pemfile",
+ "rustls-webpki",
  "serde",
  "serde_json",
  "serde_test",
@@ -1522,7 +1523,6 @@ dependencies = [
  "tokio-rustls",
  "toml 0.7.6",
  "url",
- "webpki",
  "widestring 1.0.2",
  "winapi 0.3.9",
  "windows-acl",
@@ -3299,6 +3299,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d3987094b1d07b653b7dfdc3f70ce9a1da9c51ac18c1b06b662e4f9a0e9f4b2"
 dependencies = [
  "base64 0.21.2",
+]
+
+[[package]]
+name = "rustls-webpki"
+version = "0.101.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d93931baf2d282fff8d3a532bbfd7653f734643161b87e3e01e59a04439bf0d"
+dependencies = [
+ "ring",
+ "untrusted",
 ]
 
 [[package]]
