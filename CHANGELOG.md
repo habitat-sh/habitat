@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.851 -->
-## [1.6.851](https://github.com/habitat-sh/habitat/tree/1.6.851) (2023-08-24)
+<!-- latest_release 1.6.852 -->
+## [1.6.852](https://github.com/habitat-sh/habitat/tree/1.6.852) (2023-08-25)
 
 #### Merged Pull Requests
-- use rustls-webpki instead of webpki [#8987](https://github.com/habitat-sh/habitat/pull/8987) ([jasonheath](https://github.com/jasonheath))
+- Bump ipc-channel from 0.15.0 to 0.17.0 [#8988](https://github.com/habitat-sh/habitat/pull/8988) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump ipc-channel from 0.15.0 to 0.17.0 [#8988](https://github.com/habitat-sh/habitat/pull/8988) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.852 -->
 - use rustls-webpki instead of webpki [#8987](https://github.com/habitat-sh/habitat/pull/8987) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.851 -->
 - Bump serde from 1.0.185 to 1.0.186 [#8985](https://github.com/habitat-sh/habitat/pull/8985) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.850 -->
 - Bump pem from 3.0.1 to 3.0.2 [#8986](https://github.com/habitat-sh/habitat/pull/8986) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.849 -->
