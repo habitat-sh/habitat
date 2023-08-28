@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.853 -->
-## [1.6.853](https://github.com/habitat-sh/habitat/tree/1.6.853) (2023-08-25)
+<!-- latest_release 1.6.854 -->
+## [1.6.854](https://github.com/habitat-sh/habitat/tree/1.6.854) (2023-08-28)
 
 #### Merged Pull Requests
-- Revert &quot;Bump ipc-channel from 0.15.0 to 0.17.0&quot; [#8989](https://github.com/habitat-sh/habitat/pull/8989) ([jasonheath](https://github.com/jasonheath))
+- Bump actix-rt from 2.8.0 to 2.9.0 [#8994](https://github.com/habitat-sh/habitat/pull/8994) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump actix-rt from 2.8.0 to 2.9.0 [#8994](https://github.com/habitat-sh/habitat/pull/8994) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.854 -->
 - Revert &quot;Bump ipc-channel from 0.15.0 to 0.17.0&quot; [#8989](https://github.com/habitat-sh/habitat/pull/8989) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.853 -->
 - Bump ipc-channel from 0.15.0 to 0.17.0 [#8988](https://github.com/habitat-sh/habitat/pull/8988) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.852 -->
 - use rustls-webpki instead of webpki [#8987](https://github.com/habitat-sh/habitat/pull/8987) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.851 -->
