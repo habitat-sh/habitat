@@ -684,7 +684,7 @@ version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2a011bbe2c35ce9c1f143b7af6f94f29a167beb4cd1d29e6740ce836f723120e"
 dependencies = [
- "nix",
+ "nix 0.26.3",
  "windows-sys 0.48.0",
 ]
 
@@ -969,7 +969,7 @@ version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e1c54951450cbd39f3dbcf1005ac413b49487dabf18a720ad2383eccfeffb92"
 dependencies = [
- "memoffset 0.6.4",
+ "memoffset",
  "rustc_version 0.3.3",
 ]
 
@@ -1307,7 +1307,7 @@ dependencies = [
  "ipc-channel",
  "libc",
  "log 0.4.20",
- "nix",
+ "nix 0.27.0",
  "prost",
  "semver 1.0.18",
  "thiserror",
@@ -1455,7 +1455,7 @@ dependencies = [
  "libc",
  "log 0.4.20",
  "native-tls",
- "nix",
+ "nix 0.27.0",
  "owning_ref",
  "parking_lot",
  "pbr",
@@ -1498,7 +1498,7 @@ dependencies = [
  "libc",
  "log 0.4.20",
  "native-tls",
- "nix",
+ "nix 0.27.0",
  "num_cpus",
  "os_info",
  "paste",
@@ -1631,7 +1631,7 @@ dependencies = [
  "log4rs",
  "mio 0.8.8",
  "multimap 0.9.0",
- "nix",
+ "nix 0.27.0",
  "notify",
  "num_cpus",
  "parking_lot",
@@ -2251,15 +2251,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "memoffset"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5de893c32cde5f383baa4c04c5d6dbdd735cfd4a794b0debdb2bb1b421da5ff4"
-dependencies = [
- "autocfg",
-]
-
-[[package]]
 name = "metadeps"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2399,16 +2390,24 @@ dependencies = [
 
 [[package]]
 name = "nix"
-version = "0.26.2"
+version = "0.26.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfdda3d196821d6af13126e40375cdf7da646a96114af134d5f417a9a1dc8e1a"
+checksum = "abbbc55ad7b13aac85f9401c796dcda1b864e07fcad40ad47792eaa8932ea502"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags 2.4.0",
  "cfg-if 1.0.0",
  "libc",
- "memoffset 0.7.1",
- "pin-utils",
- "static_assertions",
+]
+
+[[package]]
+name = "nix"
+version = "0.27.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "896d4664b919f48478f3ce02c502adfe9bffeb61563d2a12ddf1aad8f6cd926f"
+dependencies = [
+ "bitflags 2.4.0",
+ "cfg-if 1.0.0",
+ "libc",
 ]
 
 [[package]]
@@ -3638,12 +3637,6 @@ checksum = "2b8c4a4445d81357df8b1a650d0d0d6fbbbfe99d064aa5e02f3e4022061476d8"
 dependencies = [
  "loom",
 ]
-
-[[package]]
-name = "static_assertions"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "strsim"
