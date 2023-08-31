@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.855 -->
-## [1.6.855](https://github.com/habitat-sh/habitat/tree/1.6.855) (2023-08-31)
+<!-- latest_release 1.6.856 -->
+## [1.6.856](https://github.com/habitat-sh/habitat/tree/1.6.856) (2023-08-31)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.186 to 1.0.188 [#8995](https://github.com/habitat-sh/habitat/pull/8995) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump base64 from 0.21.2 to 0.21.3 [#8993](https://github.com/habitat-sh/habitat/pull/8993) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump base64 from 0.21.2 to 0.21.3 [#8993](https://github.com/habitat-sh/habitat/pull/8993) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.856 -->
 - Bump serde from 1.0.186 to 1.0.188 [#8995](https://github.com/habitat-sh/habitat/pull/8995) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.855 -->
 - Bump actix-rt from 2.8.0 to 2.9.0 [#8994](https://github.com/habitat-sh/habitat/pull/8994) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.854 -->
 - Revert &quot;Bump ipc-channel from 0.15.0 to 0.17.0&quot; [#8989](https://github.com/habitat-sh/habitat/pull/8989) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.853 -->
