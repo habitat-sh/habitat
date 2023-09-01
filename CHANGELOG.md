@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.860 -->
-## [1.6.860](https://github.com/habitat-sh/habitat/tree/1.6.860) (2023-09-01)
+<!-- latest_release 1.6.861 -->
+## [1.6.861](https://github.com/habitat-sh/habitat/tree/1.6.861) (2023-09-01)
 
 #### Merged Pull Requests
-- Bump tabwriter from 1.2.1 to 1.3.0 [#9002](https://github.com/habitat-sh/habitat/pull/9002) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump url from 2.4.0 to 2.4.1 [#9001](https://github.com/habitat-sh/habitat/pull/9001) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump url from 2.4.0 to 2.4.1 [#9001](https://github.com/habitat-sh/habitat/pull/9001) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.861 -->
 - Bump tabwriter from 1.2.1 to 1.3.0 [#9002](https://github.com/habitat-sh/habitat/pull/9002) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.860 -->
 - Bump chrono from 0.4.26 to 0.4.28 [#9004](https://github.com/habitat-sh/habitat/pull/9004) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.859 -->
 - Update dependabot.yml [#9000](https://github.com/habitat-sh/habitat/pull/9000) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.858 -->
