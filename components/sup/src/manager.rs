@@ -2020,10 +2020,10 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
             if added < 1 {
                 return Err(Error::InvalidCertFile(path.clone()));
             } else {
-                AllowAnyAuthenticatedClient::new(root_store)
+                AllowAnyAuthenticatedClient::new(root_store).boxed()
             }
         }
-        None => NoClientAuth::new(),
+        None => NoClientAuth::boxed(),
     };
 
     let tls_config = ServerConfig::builder().with_safe_defaults()
