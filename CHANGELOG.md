@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.861 -->
-## [1.6.861](https://github.com/habitat-sh/habitat/tree/1.6.861) (2023-09-01)
+<!-- latest_release 1.6.862 -->
+## [1.6.862](https://github.com/habitat-sh/habitat/tree/1.6.862) (2023-09-06)
 
 #### Merged Pull Requests
-- Bump url from 2.4.0 to 2.4.1 [#9001](https://github.com/habitat-sh/habitat/pull/9001) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- update to rustls 0.21.7 [#9010](https://github.com/habitat-sh/habitat/pull/9010) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- update to rustls 0.21.7 [#9010](https://github.com/habitat-sh/habitat/pull/9010) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.862 -->
 - Bump url from 2.4.0 to 2.4.1 [#9001](https://github.com/habitat-sh/habitat/pull/9001) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.861 -->
 - Bump tabwriter from 1.2.1 to 1.3.0 [#9002](https://github.com/habitat-sh/habitat/pull/9002) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.860 -->
 - Bump chrono from 0.4.26 to 0.4.28 [#9004](https://github.com/habitat-sh/habitat/pull/9004) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.859 -->
