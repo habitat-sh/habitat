@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.863 -->
-## [1.6.863](https://github.com/habitat-sh/habitat/tree/1.6.863) (2023-09-06)
+<!-- latest_release 1.6.864 -->
+## [1.6.864](https://github.com/habitat-sh/habitat/tree/1.6.864) (2023-09-06)
 
 #### Merged Pull Requests
-- Bump walkdir from 2.3.3 to 2.4.0 [#9011](https://github.com/habitat-sh/habitat/pull/9011) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump ctrlc from 3.4.0 to 3.4.1 [#9007](https://github.com/habitat-sh/habitat/pull/9007) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump ctrlc from 3.4.0 to 3.4.1 [#9007](https://github.com/habitat-sh/habitat/pull/9007) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.864 -->
 - Bump walkdir from 2.3.3 to 2.4.0 [#9011](https://github.com/habitat-sh/habitat/pull/9011) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.863 -->
 - update to rustls 0.21.7 [#9010](https://github.com/habitat-sh/habitat/pull/9010) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.862 -->
 - Bump url from 2.4.0 to 2.4.1 [#9001](https://github.com/habitat-sh/habitat/pull/9001) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.861 -->
