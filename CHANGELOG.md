@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.865 -->
-## [1.6.865](https://github.com/habitat-sh/habitat/tree/1.6.865) (2023-09-06)
+<!-- latest_release 1.6.866 -->
+## [1.6.866](https://github.com/habitat-sh/habitat/tree/1.6.866) (2023-09-07)
 
 #### Merged Pull Requests
-- Bump actions/checkout from 3 to 4 [#9009](https://github.com/habitat-sh/habitat/pull/9009) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump chrono from 0.4.28 to 0.4.29 [#9012](https://github.com/habitat-sh/habitat/pull/9012) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump chrono from 0.4.28 to 0.4.29 [#9012](https://github.com/habitat-sh/habitat/pull/9012) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.866 -->
 - Bump actions/checkout from 3 to 4 [#9009](https://github.com/habitat-sh/habitat/pull/9009) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.865 -->
 - Bump ctrlc from 3.4.0 to 3.4.1 [#9007](https://github.com/habitat-sh/habitat/pull/9007) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.864 -->
 - Bump walkdir from 2.3.3 to 2.4.0 [#9011](https://github.com/habitat-sh/habitat/pull/9011) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.863 -->
