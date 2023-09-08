@@ -33,7 +33,7 @@ rcgen = "*"
 rustls = "*"
 rustls-pemfile = "*"
 serde = { version = "*", features = ["derive"] }
-serde_json = { version = "*", features = [ "preserve_order" ] }
+serde_json = { version = "*", features = ["preserve_order"] }
 sodiumoxide = "*"
 tabwriter = "*"
 tar = "*"
@@ -41,13 +41,13 @@ tempfile = "*"
 thiserror = "*"
 tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
-toml = { version = "*", features = [ "preserve_order" ] }
+toml = { version = "*", features = ["preserve_order"] }
 url = "*"
 rustls-webpki = "*"
 xz2 = "*"
 
 [target.'cfg(not(windows))'.dependencies]
-nix = "*"
+nix = { version = "*", features = ["signal", "user"] }
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
 
@@ -55,18 +55,35 @@ caps = "*"
 ctrlc = "*"
 habitat_win_users = { path = "../win-users" }
 widestring = "*"
-winapi = { version = "^0.3", features = ["dpapi", "ioapiset", "namedpipeapi", "synchapi", "userenv", "winbase", "wincrypt", "winerror", "ws2def"] }
+winapi = { version = "^0.3", features = [
+  "dpapi",
+  "ioapiset",
+  "namedpipeapi",
+  "synchapi",
+  "userenv",
+  "winbase",
+  "wincrypt",
+  "winerror",
+  "ws2def",
+] }
 windows-acl = "*"
 
 [dev-dependencies]
-num_cpus = "*" # For doc tests
+num_cpus = "*"                                       # For doc tests
 serde_test = "*"
-reqwest = {version = "*", features = ["blocking"]}
+reqwest = { version = "*", features = ["blocking"] }
 
 [features]
 default = ["supported_targets"]
 functional = []
-supported_targets = ["x86_64-darwin", "x86_64-linux", "x86_64-linux-kernel2", "x86_64-windows", "aarch64-darwin", "aarch64-linux"]
+supported_targets = [
+  "x86_64-darwin",
+  "x86_64-linux",
+  "x86_64-linux-kernel2",
+  "x86_64-windows",
+  "aarch64-darwin",
+  "aarch64-linux",
+]
 x86_64-darwin = []
 x86_64-linux = []
 x86_64-linux-kernel2 = []

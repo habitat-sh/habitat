@@ -16,10 +16,16 @@ doc = false
 
 [dependencies]
 bytes = "*"
-actix-web = { version = "*", default-features = false, features = [ "rustls-0_21" ] }
+actix-web = { version = "*", default-features = false, features = [
+  "rustls-0_21",
+] }
 actix-rt = "*"
 byteorder = "*"
-clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
+clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [
+  "suggestions",
+  "color",
+  "unstable",
+] }
 configopt = { git = "https://github.com/habitat-sh/configopt.git" }
 cpu-time = "*"
 derivative = "*"
@@ -47,13 +53,15 @@ prometheus = "*"
 prost = { version = "*", features = ["prost-derive"] }
 prost-types = "*"
 rand = "*"
-rants = { git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
+rants = { git = "https://github.com/habitat-sh/rants.git", features = [
+  "native-tls",
+] }
 regex = "*"
 rustls = "*"
 rustls-pemfile = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
-serde_json = { version = "*", features = [ "preserve_order" ] }
+serde_json = { version = "*", features = ["preserve_order"] }
 serde_yaml = "*"
 serde-transcode = "*"
 state = "*"
@@ -62,7 +70,7 @@ tempfile = "*"
 termcolor = "*"
 thiserror = "*"
 anyhow = { version = "*", features = ["backtrace"] }
-toml = { version = "*", features = ["preserve_order"]}
+toml = { version = "*", features = ["preserve_order"] }
 tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
 tokio-util = { version = "0.7", features = ["full"] }
@@ -85,7 +93,7 @@ hyper = "*"
 reqwest = { version = "*", features = ["json"] }
 
 [target.'cfg(not(windows))'.dev-dependencies]
-nix = "*"
+nix = { version = "*", features = ["signal", "user"] }
 
 [build-dependencies]
 prost-build = "*"

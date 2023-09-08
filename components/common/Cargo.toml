@@ -10,7 +10,11 @@ workspace = "../../"
 async-trait = "*"
 bimap = "*"
 bitflags = "*"
-clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
+clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [
+  "suggestions",
+  "color",
+  "unstable",
+] }
 dirs = "*"
 glob = "*"
 habitat_api_client = { path = "../builder-api-client" }
@@ -35,13 +39,15 @@ pbr = "*"
 petgraph = "*"
 regex = "*"
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }
-serde = { version ="*", features = ["derive"] }
+serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*", features = ["preserve_order"] }
 serde-transcode = "*"
 serde_yaml = "*"
 tempfile = "*"
 thiserror = "*"
-retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
+retry = { git = "https://github.com/habitat-sh/retry", features = [
+  "asynchronous",
+] }
 rustls = "*"
 termcolor = "*"
 tokio = { version = "*", features = ["full"] }
@@ -50,7 +56,7 @@ uuid = { version = "*", features = ["v4"] }
 valico = "*"
 
 [target.'cfg(not(windows))'.dependencies]
-nix = "*"
+nix = { version = "*", features = ["signal", "user"] }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "^0.3", features = ["consoleapi", "processenv"] }
