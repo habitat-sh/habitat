@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.866 -->
-## [1.6.866](https://github.com/habitat-sh/habitat/tree/1.6.866) (2023-09-07)
+<!-- latest_release 1.6.867 -->
+## [1.6.867](https://github.com/habitat-sh/habitat/tree/1.6.867) (2023-09-08)
 
 #### Merged Pull Requests
-- Bump chrono from 0.4.28 to 0.4.29 [#9012](https://github.com/habitat-sh/habitat/pull/9012) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Properly update the nix crate [#9017](https://github.com/habitat-sh/habitat/pull/9017) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Properly update the nix crate [#9017](https://github.com/habitat-sh/habitat/pull/9017) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.867 -->
 - Bump chrono from 0.4.28 to 0.4.29 [#9012](https://github.com/habitat-sh/habitat/pull/9012) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.866 -->
 - Bump actions/checkout from 3 to 4 [#9009](https://github.com/habitat-sh/habitat/pull/9009) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.865 -->
 - Bump ctrlc from 3.4.0 to 3.4.1 [#9007](https://github.com/habitat-sh/habitat/pull/9007) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.864 -->
