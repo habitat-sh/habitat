@@ -30,7 +30,7 @@ thiserror = "*"
 anyhow = { version = "*", features = ["backtrace"] }
 
 [target.'cfg(not(windows))'.dependencies]
-nix = "*"
+nix = { version = "*", features = ["signal", "user"] }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "^0.3", features = ["tlhelp32"] }
