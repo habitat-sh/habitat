@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.867 -->
-## [1.6.867](https://github.com/habitat-sh/habitat/tree/1.6.867) (2023-09-08)
+<!-- latest_release 1.6.868 -->
+## [1.6.868](https://github.com/habitat-sh/habitat/tree/1.6.868) (2023-09-11)
 
 #### Merged Pull Requests
-- Properly update the nix crate [#9017](https://github.com/habitat-sh/habitat/pull/9017) ([jasonheath](https://github.com/jasonheath))
+- Bump thiserror from 1.0.47 to 1.0.48 [#9006](https://github.com/habitat-sh/habitat/pull/9006) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump thiserror from 1.0.47 to 1.0.48 [#9006](https://github.com/habitat-sh/habitat/pull/9006) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.868 -->
 - Properly update the nix crate [#9017](https://github.com/habitat-sh/habitat/pull/9017) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.867 -->
 - Bump chrono from 0.4.28 to 0.4.29 [#9012](https://github.com/habitat-sh/habitat/pull/9012) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.866 -->
 - Bump actions/checkout from 3 to 4 [#9009](https://github.com/habitat-sh/habitat/pull/9009) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.865 -->
