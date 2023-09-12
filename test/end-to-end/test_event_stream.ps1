@@ -62,10 +62,7 @@ Describe "event stream connected to automate" {
         Start-Sleep -Seconds 20
 
         # Check that the output contains a connect message and that the server received a health check message
-        $out = (docker exec $cid chef-automate applications show-svcs --service-name test-probe)
-        write-Host "----"
-        write-host $out
-        write-host "---"
-        $out | Should -BeLike "*OK"
+        $out = (docker exec $cid chef-automate applications show-svcs --service-name test-probe) | Out-String
+        $out.Trim() | Should -BeLike "*OK"
     }
 }
