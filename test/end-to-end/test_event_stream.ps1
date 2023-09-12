@@ -63,6 +63,9 @@ Describe "event stream connected to automate" {
 
         # Check that the output contains a connect message and that the server received a health check message
         $out = (docker exec $cid chef-automate applications show-svcs --service-name test-probe)
+        write-Host "----"
+        write-host $out
+        write-host "---"
         $out | Should -BeLike "*OK"
     }
 }
