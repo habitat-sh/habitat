@@ -18,7 +18,6 @@ ignore = [
     "RUSTSEC-2022-0013",    # Vulnerability (7.5 High), regex
     "RUSTSEC-2022-0040",    # Vulnerability (???): owning_ref
     "RUSTSEC-2022-0041",    # Unsound: crossbeam-utils
-    "RUSTSEC-2022-0048",    # Unmaintained: xml-rs
     "RUSTSEC-2022-0071"     # Unmaintained: rusoto
 ]
 informational_warnings = ["notice", "unmaintained", "unsound"] # warn for categories of informational advisories
