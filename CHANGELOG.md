@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.871 -->
-## [1.6.871](https://github.com/habitat-sh/habitat/tree/1.6.871) (2023-09-13)
+<!-- latest_release 1.6.872 -->
+## [1.6.872](https://github.com/habitat-sh/habitat/tree/1.6.872) (2023-09-13)
 
 #### Merged Pull Requests
-- Bump blake2b_simd from 1.0.1 to 1.0.2 [#9020](https://github.com/habitat-sh/habitat/pull/9020) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump chrono from 0.4.29 to 0.4.30 [#9015](https://github.com/habitat-sh/habitat/pull/9015) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump chrono from 0.4.29 to 0.4.30 [#9015](https://github.com/habitat-sh/habitat/pull/9015) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.872 -->
 - Bump blake2b_simd from 1.0.1 to 1.0.2 [#9020](https://github.com/habitat-sh/habitat/pull/9020) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.871 -->
 - Bump bytes from 1.4.0 to 1.5.0 [#9014](https://github.com/habitat-sh/habitat/pull/9014) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.870 -->
 - Fix broken end-to-end test [#9024](https://github.com/habitat-sh/habitat/pull/9024) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.869 -->
