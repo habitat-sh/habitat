@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.875 -->
-## [1.6.875](https://github.com/habitat-sh/habitat/tree/1.6.875) (2023-09-13)
+<!-- latest_release 1.6.876 -->
+## [1.6.876](https://github.com/habitat-sh/habitat/tree/1.6.876) (2023-09-13)
 
 #### Merged Pull Requests
-- Bump rustls-webpki from 0.101.4 to 0.101.5 [#9026](https://github.com/habitat-sh/habitat/pull/9026) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump toml from 0.7.6 to 0.8.0 [#9025](https://github.com/habitat-sh/habitat/pull/9025) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump toml from 0.7.6 to 0.8.0 [#9025](https://github.com/habitat-sh/habitat/pull/9025) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.876 -->
 - Bump rustls-webpki from 0.101.4 to 0.101.5 [#9026](https://github.com/habitat-sh/habitat/pull/9026) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.875 -->
 - Bump serde_json from 1.0.105 to 1.0.106 [#9022](https://github.com/habitat-sh/habitat/pull/9022) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.874 -->
 - Bump base64 from 0.21.3 to 0.21.4 [#9018](https://github.com/habitat-sh/habitat/pull/9018) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.873 -->
