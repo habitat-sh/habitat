@@ -8,11 +8,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.68.2
-      - uses: ClementTsang/cargo-action@v0.0.4
+      - uses: ClementTsang/cargo-action@v0.0.5
         with:
           command: install
           args: cargo-audit
-      - uses: ClementTsang/cargo-action@v0.0.4
+      - uses: ClementTsang/cargo-action@v0.0.5
         with:
           command: audit
 #      - uses: actions-rs/audit-check@v1
