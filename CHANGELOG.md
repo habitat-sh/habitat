@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.873 -->
-## [1.6.873](https://github.com/habitat-sh/habitat/tree/1.6.873) (2023-09-13)
+<!-- latest_release 1.6.874 -->
+## [1.6.874](https://github.com/habitat-sh/habitat/tree/1.6.874) (2023-09-13)
 
 #### Merged Pull Requests
-- Bump base64 from 0.21.3 to 0.21.4 [#9018](https://github.com/habitat-sh/habitat/pull/9018) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_json from 1.0.105 to 1.0.106 [#9022](https://github.com/habitat-sh/habitat/pull/9022) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.105 to 1.0.106 [#9022](https://github.com/habitat-sh/habitat/pull/9022) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.874 -->
 - Bump base64 from 0.21.3 to 0.21.4 [#9018](https://github.com/habitat-sh/habitat/pull/9018) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.873 -->
 - Bump chrono from 0.4.29 to 0.4.30 [#9015](https://github.com/habitat-sh/habitat/pull/9015) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.872 -->
 - Bump blake2b_simd from 1.0.1 to 1.0.2 [#9020](https://github.com/habitat-sh/habitat/pull/9020) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.871 -->
