@@ -56,7 +56,7 @@ pub fn service_cfg_validate(_mgr: &ManagerState,
                             -> NetResult<()> {
     let cfg = opts.cfg.ok_or_else(err_update_client)?;
     let format = opts.format
-                     .and_then(protocol::types::service_cfg::Format::from_i32)
+                     .and_then(|f| protocol::types::service_cfg::Format::try_from(f).ok())
                      .unwrap_or_default();
     if cfg.len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
         return Err(net::err(ErrCode::EntityTooLarge, "Configuration too large."));

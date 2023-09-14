@@ -23,7 +23,8 @@ use crate::{error::{Error,
                     Rumor,
                     RumorPayload,
                     RumorType}};
-use std::{fmt,
+use std::{convert::TryFrom,
+          fmt,
           ops::{Deref,
                 DerefMut}};
 
@@ -140,7 +141,7 @@ impl FromProto<ProtoRumor> for Election {
                       term:          payload.term.unwrap_or(0),
                       suitability:   payload.suitability.unwrap_or(0),
                       status:        payload.status
-                                            .and_then(ElectionStatus::from_i32)
+                                            .and_then(|es| ElectionStatus::try_from(es).ok())
                                             .unwrap_or(ElectionStatus::Running),
                       votes:         payload.votes, })
     }
