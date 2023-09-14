@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.878 -->
-## [1.6.878](https://github.com/habitat-sh/habitat/tree/1.6.878) (2023-09-13)
+<!-- latest_release 1.6.879 -->
+## [1.6.879](https://github.com/habitat-sh/habitat/tree/1.6.879) (2023-09-14)
 
 #### Merged Pull Requests
-- defaulting open-pull-requests-limit [#9028](https://github.com/habitat-sh/habitat/pull/9028) ([jasonheath](https://github.com/jasonheath))
+- Bump serde_json from 1.0.106 to 1.0.107 [#9032](https://github.com/habitat-sh/habitat/pull/9032) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.106 to 1.0.107 [#9032](https://github.com/habitat-sh/habitat/pull/9032) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.879 -->
 - defaulting open-pull-requests-limit [#9028](https://github.com/habitat-sh/habitat/pull/9028) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.878 -->
 - Bump ClementTsang/cargo-action from 0.0.4 to 0.0.5 [#9023](https://github.com/habitat-sh/habitat/pull/9023) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.877 -->
 - Bump toml from 0.7.6 to 0.8.0 [#9025](https://github.com/habitat-sh/habitat/pull/9025) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.876 -->
