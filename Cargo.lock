@@ -1295,7 +1295,7 @@ dependencies = [
  "tokio",
  "toml 0.8.0",
  "url",
- "uuid 0.8.2",
+ "uuid 1.4.1",
  "walkdir",
  "widestring 1.0.2",
  "winapi 0.3.9",
@@ -1440,7 +1440,7 @@ dependencies = [
  "tempfile",
  "threadpool",
  "toml 0.8.0",
- "uuid 0.8.2",
+ "uuid 1.4.1",
  "winapi 0.3.9",
  "zmq",
 ]
@@ -1480,7 +1480,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml 0.8.0",
- "uuid 0.8.2",
+ "uuid 1.4.1",
  "valico",
  "winapi 0.3.9",
 ]
@@ -1668,7 +1668,7 @@ dependencies = [
  "tokio-util 0.7.8",
  "toml 0.8.0",
  "url",
- "uuid 0.8.2",
+ "uuid 1.4.1",
  "valico",
  "winapi 0.3.9",
 ]
