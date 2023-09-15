@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.881 -->
-## [1.6.881](https://github.com/habitat-sh/habitat/tree/1.6.881) (2023-09-14)
+<!-- latest_release 1.6.882 -->
+## [1.6.882](https://github.com/habitat-sh/habitat/tree/1.6.882) (2023-09-15)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.147 to 0.2.148 [#9030](https://github.com/habitat-sh/habitat/pull/9030) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Update to Prost 0.12.0 [#9029](https://github.com/habitat-sh/habitat/pull/9029) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Update to Prost 0.12.0 [#9029](https://github.com/habitat-sh/habitat/pull/9029) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.882 -->
 - Bump libc from 0.2.147 to 0.2.148 [#9030](https://github.com/habitat-sh/habitat/pull/9030) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.881 -->
 - Bump mktemp from 0.5.0 to 0.5.1 [#9021](https://github.com/habitat-sh/habitat/pull/9021) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.880 -->
 - Bump serde_json from 1.0.106 to 1.0.107 [#9032](https://github.com/habitat-sh/habitat/pull/9032) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.879 -->
