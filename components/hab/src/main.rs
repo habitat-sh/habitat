@@ -1400,8 +1400,8 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
             "NetErr" => {
                 let m = reply.parse::<sup_proto::net::NetErr>()
                              .map_err(SrvClientError::Decode)?;
-                match ErrCode::from_i32(m.code) {
-                    Some(ErrCode::InvalidPayload) => {
+                match ErrCode::try_from(m.code) {
+                    Ok(ErrCode::InvalidPayload) => {
                         ui.warn(m)?;
                     }
                     _ => return Err(SrvClientError::from(m).into()),
@@ -1584,8 +1584,8 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
             "NetErr" => {
                 let m = reply.parse::<sup_proto::net::NetErr>()
                              .map_err(SrvClientError::Decode)?;
-                match ErrCode::from_i32(m.code) {
-                    Some(ErrCode::InvalidPayload) => {
+                match ErrCode::try_from(m.code) {
+                    Ok(ErrCode::InvalidPayload) => {
                         ui.warn(m)?;
                     }
                     _ => return Err(SrvClientError::from(m).into()),

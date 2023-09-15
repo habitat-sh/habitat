@@ -31,6 +31,7 @@ use serde::{de,
             Serializer};
 use std::{collections::{hash_map,
                         HashMap},
+          convert::TryFrom,
           fmt,
           net::SocketAddr,
           num::ParseIntError,
@@ -314,7 +315,7 @@ impl FromProto<proto::Membership> for Membership {
                                      .ok_or(Error::ProtocolMismatch("member"))
                                      .and_then(Member::from_proto)?,
                         health: proto.health
-                                     .and_then(Health::from_i32)
+                                     .and_then(|h| Health::try_from(h).ok())
                                      .unwrap_or(Health::Alive), })
     }
 }
