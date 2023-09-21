@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.886 -->
-## [1.6.886](https://github.com/habitat-sh/habitat/tree/1.6.886) (2023-09-19)
+<!-- latest_release 1.6.887 -->
+## [1.6.887](https://github.com/habitat-sh/habitat/tree/1.6.887) (2023-09-21)
 
 #### Merged Pull Requests
-- Bump termcolor from 1.2.0 to 1.3.0 [#9039](https://github.com/habitat-sh/habitat/pull/9039) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tokio-util from 0.7.8 to 0.7.9 [#9040](https://github.com/habitat-sh/habitat/pull/9040) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump tokio-util from 0.7.8 to 0.7.9 [#9040](https://github.com/habitat-sh/habitat/pull/9040) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.887 -->
 - Bump termcolor from 1.2.0 to 1.3.0 [#9039](https://github.com/habitat-sh/habitat/pull/9039) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.886 -->
 - Bump chrono from 0.4.30 to 0.4.31 [#9036](https://github.com/habitat-sh/habitat/pull/9036) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.885 -->
 - Bump dns-lookup from 2.0.2 to 2.0.3 [#9037](https://github.com/habitat-sh/habitat/pull/9037) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.885 -->
