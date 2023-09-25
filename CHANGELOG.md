@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.890 -->
-## [1.6.890](https://github.com/habitat-sh/habitat/tree/1.6.890) (2023-09-25)
+<!-- latest_release 1.6.891 -->
+## [1.6.891](https://github.com/habitat-sh/habitat/tree/1.6.891) (2023-09-25)
 
 #### Merged Pull Requests
-- Bump ClementTsang/cargo-action from 0.0.5 to 0.0.6 [#9044](https://github.com/habitat-sh/habitat/pull/9044) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump semver from 1.0.18 to 1.0.19 [#9043](https://github.com/habitat-sh/habitat/pull/9043) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump semver from 1.0.18 to 1.0.19 [#9043](https://github.com/habitat-sh/habitat/pull/9043) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.891 -->
 - Bump ClementTsang/cargo-action from 0.0.5 to 0.0.6 [#9044](https://github.com/habitat-sh/habitat/pull/9044) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.890 -->
 - Bump rustls-webpki from 0.101.5 to 0.101.6 [#9042](https://github.com/habitat-sh/habitat/pull/9042) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.889 -->
 - Bump rcgen from 0.11.1 to 0.11.2 [#9041](https://github.com/habitat-sh/habitat/pull/9041) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.888 -->
