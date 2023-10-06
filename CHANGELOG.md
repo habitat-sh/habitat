@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.897 -->
-## [1.6.897](https://github.com/habitat-sh/habitat/tree/1.6.897) (2023-10-03)
+<!-- latest_release 1.6.898 -->
+## [1.6.898](https://github.com/habitat-sh/habitat/tree/1.6.898) (2023-10-06)
 
 #### Merged Pull Requests
-- Bump toml from 0.8.1 to 0.8.2 [#9050](https://github.com/habitat-sh/habitat/pull/9050) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump byteorder from 1.4.3 to 1.5.0 [#9051](https://github.com/habitat-sh/habitat/pull/9051) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump byteorder from 1.4.3 to 1.5.0 [#9051](https://github.com/habitat-sh/habitat/pull/9051) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.898 -->
 - Bump toml from 0.8.1 to 0.8.2 [#9050](https://github.com/habitat-sh/habitat/pull/9050) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.897 -->
 - Bump rcgen from 0.11.2 to 0.11.3 [#9049](https://github.com/habitat-sh/habitat/pull/9049) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.896 -->
 - Bump errno from 0.3.3 to 0.3.4 [#9048](https://github.com/habitat-sh/habitat/pull/9048) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.895 -->
