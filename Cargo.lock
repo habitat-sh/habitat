@@ -76,7 +76,7 @@ dependencies = [
  "firestorm",
  "http",
  "log 0.4.20",
- "regex 1.9.6",
+ "regex 1.10.0",
  "serde",
 ]
 
@@ -179,7 +179,7 @@ dependencies = [
  "mime",
  "once_cell",
  "pin-project-lite",
- "regex 1.9.6",
+ "regex 1.10.0",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -893,7 +893,7 @@ dependencies = [
  "humantime",
  "is-terminal",
  "log 0.4.20",
- "regex 1.9.6",
+ "regex 1.10.0",
  "termcolor",
 ]
 
@@ -966,7 +966,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b95f7c0680e4142284cf8b22c14a476e87d61b004a3a0861872b32ef7ead40a2"
 dependencies = [
  "bit-set",
- "regex 1.9.6",
+ "regex 1.10.0",
 ]
 
 [[package]]
@@ -1407,7 +1407,7 @@ dependencies = [
  "pbr",
  "percent-encoding",
  "rand 0.8.5",
- "regex 1.9.6",
+ "regex 1.10.0",
  "reqwest",
  "serde",
  "serde_json",
@@ -1466,7 +1466,7 @@ dependencies = [
  "parking_lot",
  "pbr",
  "petgraph",
- "regex 1.9.6",
+ "regex 1.10.0",
  "reqwest",
  "retry",
  "rustls",
@@ -1512,7 +1512,7 @@ dependencies = [
  "pin-project",
  "rand 0.8.5",
  "rcgen",
- "regex 1.9.6",
+ "regex 1.10.0",
  "reqwest",
  "rustls",
  "rustls-pemfile",
@@ -1648,7 +1648,7 @@ dependencies = [
  "prost-types",
  "rand 0.8.5",
  "rants",
- "regex 1.9.6",
+ "regex 1.10.0",
  "reqwest",
  "rustls",
  "rustls-pemfile",
@@ -2839,7 +2839,7 @@ dependencies = [
  "prettyplease",
  "prost",
  "prost-types",
- "regex 1.9.6",
+ "regex 1.10.0",
  "syn 2.0.28",
  "tempfile",
  "which",
@@ -3051,25 +3051,25 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.9.6"
+version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebee201405406dbf528b8b672104ae6d6d63e6d118cb10e4d51abbc7b58044ff"
+checksum = "d119d7c7ca818f8a53c300863d4f87566aac09943aef5b355bb83969dae75d87"
 dependencies = [
  "aho-corasick 1.0.5",
  "memchr",
  "regex-automata",
- "regex-syntax 0.7.5",
+ "regex-syntax 0.8.0",
 ]
 
 [[package]]
 name = "regex-automata"
-version = "0.3.9"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59b23e92ee4318893fa3fe3e6fb365258efbfe6ac6ab30f090cdcbb7aa37efa9"
+checksum = "465c6fc0621e4abc4187a2bda0937bfd4f722c2730b29562e19689ea796c9a4b"
 dependencies = [
  "aho-corasick 1.0.5",
  "memchr",
- "regex-syntax 0.7.5",
+ "regex-syntax 0.8.0",
 ]
 
 [[package]]
@@ -3083,9 +3083,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.7.5"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbb5fb1acd8a1a18b3dd5be62d25485eb770e05afb408a9627d14d451bae12da"
+checksum = "c3cbb081b9784b07cceb8824c8583f86db4814d172ab043f3c23f7dc600bf83d"
 
 [[package]]
 name = "reqwest"
@@ -4121,7 +4121,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bcde98d1fc3f528255b1ecb22fb688ee0d23deb672a8c57127df10b98b4bd18c"
 dependencies = [
- "regex 1.9.6",
+ "regex 1.10.0",
 ]
 
 [[package]]
