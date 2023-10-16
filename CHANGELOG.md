@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.904 -->
-## [1.6.904](https://github.com/habitat-sh/habitat/tree/1.6.904) (2023-10-13)
+<!-- latest_release 1.6.905 -->
+## [1.6.905](https://github.com/habitat-sh/habitat/tree/1.6.905) (2023-10-16)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.188 to 1.0.189 [#9057](https://github.com/habitat-sh/habitat/pull/9057) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump dns-lookup from 2.0.3 to 2.0.4 [#9058](https://github.com/habitat-sh/habitat/pull/9058) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump dns-lookup from 2.0.3 to 2.0.4 [#9058](https://github.com/habitat-sh/habitat/pull/9058) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.905 -->
 - Bump serde from 1.0.188 to 1.0.189 [#9057](https://github.com/habitat-sh/habitat/pull/9057) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.904 -->
 - Bump semver from 1.0.19 to 1.0.20 [#9056](https://github.com/habitat-sh/habitat/pull/9056) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.903 -->
 - Bump regex from 1.9.6 to 1.10.0 [#9055](https://github.com/habitat-sh/habitat/pull/9055) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.902 -->
