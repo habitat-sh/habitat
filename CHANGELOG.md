@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.909 -->
-## [1.6.909](https://github.com/habitat-sh/habitat/tree/1.6.909) (2023-10-16)
+<!-- latest_release 1.6.910 -->
+## [1.6.910](https://github.com/habitat-sh/habitat/tree/1.6.910) (2023-10-17)
 
 #### Merged Pull Requests
-- Bump bitflags from 2.4.0 to 2.4.1 [#9062](https://github.com/habitat-sh/habitat/pull/9062) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump regex from 1.10.1 to 1.10.2 [#9063](https://github.com/habitat-sh/habitat/pull/9063) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump regex from 1.10.1 to 1.10.2 [#9063](https://github.com/habitat-sh/habitat/pull/9063) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.910 -->
 - Bump bitflags from 2.4.0 to 2.4.1 [#9062](https://github.com/habitat-sh/habitat/pull/9062) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.909 -->
 - Bump async-trait from 0.1.73 to 0.1.74 [#9061](https://github.com/habitat-sh/habitat/pull/9061) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.908 -->
 - Bump flate2 from 1.0.27 to 1.0.28 [#9060](https://github.com/habitat-sh/habitat/pull/9060) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.907 -->
