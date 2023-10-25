@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.912 -->
-## [1.6.912](https://github.com/habitat-sh/habitat/tree/1.6.912) (2023-10-20)
+<!-- latest_release 1.6.913 -->
+## [1.6.913](https://github.com/habitat-sh/habitat/tree/1.6.913) (2023-10-25)
 
 #### Merged Pull Requests
-- Bump thiserror from 1.0.49 to 1.0.50 [#9065](https://github.com/habitat-sh/habitat/pull/9065) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump multimap from 0.9.0 to 0.9.1 [#9066](https://github.com/habitat-sh/habitat/pull/9066) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump multimap from 0.9.0 to 0.9.1 [#9066](https://github.com/habitat-sh/habitat/pull/9066) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.913 -->
 - Bump thiserror from 1.0.49 to 1.0.50 [#9065](https://github.com/habitat-sh/habitat/pull/9065) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.912 -->
 - Bump rustix from 0.36.8 to 0.36.16 [#9064](https://github.com/habitat-sh/habitat/pull/9064) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.911 -->
 - Bump regex from 1.10.1 to 1.10.2 [#9063](https://github.com/habitat-sh/habitat/pull/9063) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.910 -->
