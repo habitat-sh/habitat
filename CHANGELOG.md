@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.914 -->
-## [1.6.914](https://github.com/habitat-sh/habitat/tree/1.6.914) (2023-10-25)
+<!-- latest_release 1.6.915 -->
+## [1.6.915](https://github.com/habitat-sh/habitat/tree/1.6.915) (2023-10-25)
 
 #### Merged Pull Requests
-- Bump base64 from 0.21.4 to 0.21.5 [#9067](https://github.com/habitat-sh/habitat/pull/9067) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump mio from 0.8.8 to 0.8.9 [#9068](https://github.com/habitat-sh/habitat/pull/9068) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump mio from 0.8.8 to 0.8.9 [#9068](https://github.com/habitat-sh/habitat/pull/9068) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.915 -->
 - Bump base64 from 0.21.4 to 0.21.5 [#9067](https://github.com/habitat-sh/habitat/pull/9067) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.914 -->
 - Bump multimap from 0.9.0 to 0.9.1 [#9066](https://github.com/habitat-sh/habitat/pull/9066) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.913 -->
 - Bump thiserror from 1.0.49 to 1.0.50 [#9065](https://github.com/habitat-sh/habitat/pull/9065) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.912 -->
