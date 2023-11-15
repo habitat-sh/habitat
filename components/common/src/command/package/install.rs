@@ -589,7 +589,7 @@ impl<'a> InstallTask<'a> {
         let dependencies = match self.installed_package(ident) {
             Some(package_install) => {
                 // The installed package was found on disk
-                ui.status(Status::Using, &ident)?;
+                ui.status(Status::Using, ident)?;
 
                 // Get the transitive deps of the package
                 let tdeps = package_install.tdeps()?;
