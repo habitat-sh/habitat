@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.922 -->
-## [1.6.922](https://github.com/habitat-sh/habitat/tree/1.6.922) (2023-11-28)
+<!-- latest_release 1.6.923 -->
+## [1.6.923](https://github.com/habitat-sh/habitat/tree/1.6.923) (2023-11-28)
 
 #### Merged Pull Requests
-- Bump futures from 0.3.28 to 0.3.29 [#9076](https://github.com/habitat-sh/habitat/pull/9076) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tempfile from 3.8.0 to 3.8.1 [#9074](https://github.com/habitat-sh/habitat/pull/9074) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump tempfile from 3.8.0 to 3.8.1 [#9074](https://github.com/habitat-sh/habitat/pull/9074) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.923 -->
+- Bump serde_yaml from 0.9.26 to 0.9.27 [#9075](https://github.com/habitat-sh/habitat/pull/9075) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.923 -->
 - Bump futures from 0.3.28 to 0.3.29 [#9076](https://github.com/habitat-sh/habitat/pull/9076) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.922 -->
 - bump ahash to pass cargo audit [#9080](https://github.com/habitat-sh/habitat/pull/9080) ([mwrock](https://github.com/mwrock)) <!-- 1.6.921 -->
 - toToml helper fix [#9081](https://github.com/habitat-sh/habitat/pull/9081) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.920 -->
