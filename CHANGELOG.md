@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.920 -->
-## [1.6.920](https://github.com/habitat-sh/habitat/tree/1.6.920) (2023-11-07)
+<!-- latest_release 1.6.921 -->
+## [1.6.921](https://github.com/habitat-sh/habitat/tree/1.6.921) (2023-11-28)
 
 #### Merged Pull Requests
-- toToml helper fix [#9081](https://github.com/habitat-sh/habitat/pull/9081) ([sajjaphani](https://github.com/sajjaphani))
+- bump ahash to pass cargo audit [#9080](https://github.com/habitat-sh/habitat/pull/9080) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- bump ahash to pass cargo audit [#9080](https://github.com/habitat-sh/habitat/pull/9080) ([mwrock](https://github.com/mwrock)) <!-- 1.6.921 -->
 - toToml helper fix [#9081](https://github.com/habitat-sh/habitat/pull/9081) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.920 -->
 - Bump tokio-util from 0.7.9 to 0.7.10 [#9073](https://github.com/habitat-sh/habitat/pull/9073) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.919 -->
 - Bump serde_yaml from 0.9.25 to 0.9.26 [#9072](https://github.com/habitat-sh/habitat/pull/9072) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.918 -->
