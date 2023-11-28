@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.925 -->
-## [1.6.925](https://github.com/habitat-sh/habitat/tree/1.6.925) (2023-11-28)
+<!-- latest_release 1.6.926 -->
+## [1.6.926](https://github.com/habitat-sh/habitat/tree/1.6.926) (2023-11-28)
 
 #### Merged Pull Requests
-- Bump prost from 0.12.1 to 0.12.3 [#9085](https://github.com/habitat-sh/habitat/pull/9085) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde from 1.0.190 to 1.0.193 [#9083](https://github.com/habitat-sh/habitat/pull/9083) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump serde from 1.0.190 to 1.0.193 [#9083](https://github.com/habitat-sh/habitat/pull/9083) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.926 -->
+- bump release pipeline aarch64-darwin agent to macos 12 [#9087](https://github.com/habitat-sh/habitat/pull/9087) ([mwrock](https://github.com/mwrock)) <!-- 1.6.926 -->
 - Bump prost from 0.12.1 to 0.12.3 [#9085](https://github.com/habitat-sh/habitat/pull/9085) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.925 -->
 - Bump termcolor from 1.3.0 to 1.4.0 [#9084](https://github.com/habitat-sh/habitat/pull/9084) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.925 -->
 - Bump errno from 0.3.5 to 0.3.8 [#9086](https://github.com/habitat-sh/habitat/pull/9086) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.925 -->
