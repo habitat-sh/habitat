@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.930 -->
-## [1.6.930](https://github.com/habitat-sh/habitat/tree/1.6.930) (2023-11-29)
+<!-- latest_release 1.6.931 -->
+## [1.6.931](https://github.com/habitat-sh/habitat/tree/1.6.931) (2023-11-29)
 
 #### Merged Pull Requests
-- Bump percent-encoding from 2.3.0 to 2.3.1 [#9090](https://github.com/habitat-sh/habitat/pull/9090) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump prost-types from 0.12.1 to 0.12.3 [#9089](https://github.com/habitat-sh/habitat/pull/9089) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump prost-types from 0.12.1 to 0.12.3 [#9089](https://github.com/habitat-sh/habitat/pull/9089) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.931 -->
+- Bump tokio from 1.33.0 to 1.34.0 [#9092](https://github.com/habitat-sh/habitat/pull/9092) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.931 -->
+- Bump rustls from 0.21.8 to 0.21.9 [#9091](https://github.com/habitat-sh/habitat/pull/9091) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.931 -->
 - Bump percent-encoding from 2.3.0 to 2.3.1 [#9090](https://github.com/habitat-sh/habitat/pull/9090) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.930 -->
 - Bump rustls-pemfile from 1.0.3 to 1.0.4 [#9093](https://github.com/habitat-sh/habitat/pull/9093) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.929 -->
 - CHEF-3310: Ensure hab pkg install verifies all deps are installed [#9082](https://github.com/habitat-sh/habitat/pull/9082) ([atrniv](https://github.com/atrniv)) <!-- 1.6.928 -->
