@@ -43,26 +43,26 @@ Describe "pkg install" {
 
         hab pkg install $dep3_artifact
         $LASTEXITCODE | Should -Be 0
-        
+
         $dep1_install = "$(hab pkg path $env:HAB_ORIGIN/dep-pkg-1)"
         $dep1_install_hook_status = "$dep1_install/INSTALL_HOOK_STATUS"
-        
+
         $dep2_install = "$(hab pkg path $env:HAB_ORIGIN/dep-pkg-2)"
         $dep2_install_hook_status = "$dep2_install/INSTALL_HOOK_STATUS"
-        
+
         Get-Content  "$dep1_install_hook_status" | Should -Be "0"
         Get-Content  "$dep2_install_hook_status" | Should -Be "0"
-        
+
         # remove dep 1
         Remove-Item -Recurse -Force -Confirm:$false "$dep1_install"
 
-        # dep 1 hook status will not exist 
+        # dep 1 hook status will not exist
         { Get-Content  "$dep1_install_hook_status" } | Should -Throw
         Get-Content  "$dep2_install_hook_status" | Should -Be "0"
-        
+
         hab pkg install $dep3_artifact
         $LASTEXITCODE | Should -Be 0
-        
+
         # removed dep 1 packages are reinstalled by habitat
         Get-Content  "$dep1_install_hook_status" | Should -Be "0"
         Get-Content  "$dep2_install_hook_status" | Should -Be "0"
@@ -73,29 +73,29 @@ Describe "pkg install" {
 
         hab pkg install $dep3_artifact
         $LASTEXITCODE | Should -Be 0
-        
+
         $dep1_install = "$(hab pkg path $env:HAB_ORIGIN/dep-pkg-1)"
         $dep1_install_hook_status = "$dep1_install/INSTALL_HOOK_STATUS"
-        
+
         $dep2_install = "$(hab pkg path $env:HAB_ORIGIN/dep-pkg-2)"
         $dep2_install_hook_status = "$dep2_install/INSTALL_HOOK_STATUS"
-        
+
         Get-Content  "$dep1_install_hook_status" | Should -Be "0"
         Get-Content  "$dep2_install_hook_status" | Should -Be "0"
-        
+
         # remove dep 2
         Remove-Item -Recurse -Force -Confirm:$false "$dep2_install"
 
         # dep 2 hook status will not exist
         Get-Content  "$dep1_install_hook_status" | Should -Be "0"
         { Get-Content  "$dep2_install_hook_status" } | Should -Throw
-        
+
         hab pkg install $dep3_artifact
         $LASTEXITCODE | Should -Be 0
-        
+
         # removed dep 1 packages are reinstalled by habitat
         Get-Content  "$dep1_install_hook_status" | Should -Be "0"
-        Get-Content  "$dep2_install_hook_status" | Should -Be "0"    
+        Get-Content  "$dep2_install_hook_status" | Should -Be "0"
     }
 
 
@@ -104,16 +104,16 @@ Describe "pkg install" {
 
         hab pkg install $dep3_artifact
         $LASTEXITCODE | Should -Be 0
-        
+
         $dep1_install = "$(hab pkg path $env:HAB_ORIGIN/dep-pkg-1)"
         $dep1_install_hook_status = "$dep1_install/INSTALL_HOOK_STATUS"
-        
+
         $dep2_install = "$(hab pkg path $env:HAB_ORIGIN/dep-pkg-2)"
         $dep2_install_hook_status = "$dep2_install/INSTALL_HOOK_STATUS"
-        
+
         Get-Content  "$dep1_install_hook_status" | Should -Be "0"
         Get-Content  "$dep2_install_hook_status" | Should -Be "0"
-        
+
         # remove dep 1 and dep 2
         Remove-Item -Recurse -Force -Confirm:$false "$dep1_install"
         Remove-Item -Recurse -Force -Confirm:$false "$dep2_install"
@@ -121,12 +121,12 @@ Describe "pkg install" {
         # dep 1 and dep 2 hook status will not exist
         { Get-Content  "$dep1_install_hook_status" } | Should -Throw
         { Get-Content  "$dep2_install_hook_status" } | Should -Throw
-        
+
         hab pkg install $dep3_artifact
         $LASTEXITCODE | Should -Be 0
-        
+
         # removed dep 1 and dep 2 packages are reinstalled by habitat
         Get-Content  "$dep1_install_hook_status" | Should -Be "0"
-        Get-Content  "$dep2_install_hook_status" | Should -Be "0"    
+        Get-Content  "$dep2_install_hook_status" | Should -Be "0"
     }
 }
