@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.927 -->
-## [1.6.927](https://github.com/habitat-sh/habitat/tree/1.6.927) (2023-11-29)
+<!-- latest_release 1.6.928 -->
+## [1.6.928](https://github.com/habitat-sh/habitat/tree/1.6.928) (2023-11-29)
 
 #### Merged Pull Requests
-- Bump openssl from 0.10.55 to 0.10.60 [#9088](https://github.com/habitat-sh/habitat/pull/9088) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- CHEF-3310: Ensure hab pkg install verifies all deps are installed [#9082](https://github.com/habitat-sh/habitat/pull/9082) ([atrniv](https://github.com/atrniv))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- CHEF-3310: Ensure hab pkg install verifies all deps are installed [#9082](https://github.com/habitat-sh/habitat/pull/9082) ([atrniv](https://github.com/atrniv)) <!-- 1.6.928 -->
 - Bump openssl from 0.10.55 to 0.10.60 [#9088](https://github.com/habitat-sh/habitat/pull/9088) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.927 -->
 - Bump serde from 1.0.190 to 1.0.193 [#9083](https://github.com/habitat-sh/habitat/pull/9083) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.926 -->
 - bump release pipeline aarch64-darwin agent to macos 12 [#9087](https://github.com/habitat-sh/habitat/pull/9087) ([mwrock](https://github.com/mwrock)) <!-- 1.6.926 -->
