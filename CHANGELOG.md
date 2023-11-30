@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.933 -->
-## [1.6.933](https://github.com/habitat-sh/habitat/tree/1.6.933) (2023-11-30)
+<!-- latest_release 1.6.934 -->
+## [1.6.934](https://github.com/habitat-sh/habitat/tree/1.6.934) (2023-11-30)
 
 #### Merged Pull Requests
-- Bump env_logger from 0.10.0 to 0.10.1 [#9096](https://github.com/habitat-sh/habitat/pull/9096) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump prost-build from 0.12.1 to 0.12.3 [#9095](https://github.com/habitat-sh/habitat/pull/9095) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump prost-build from 0.12.1 to 0.12.3 [#9095](https://github.com/habitat-sh/habitat/pull/9095) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.934 -->
 - Bump env_logger from 0.10.0 to 0.10.1 [#9096](https://github.com/habitat-sh/habitat/pull/9096) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.933 -->
 - Bump url from 2.4.1 to 2.5.0 [#9094](https://github.com/habitat-sh/habitat/pull/9094) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.932 -->
 - Bump prost-types from 0.12.1 to 0.12.3 [#9089](https://github.com/habitat-sh/habitat/pull/9089) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.931 -->
