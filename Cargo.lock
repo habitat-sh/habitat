@@ -133,7 +133,7 @@ dependencies = [
  "impl-more",
  "pin-project-lite",
  "rustls",
- "rustls-webpki",
+ "rustls-webpki 0.101.7",
  "tokio",
  "tokio-rustls",
  "tokio-util 0.7.10",
@@ -1255,7 +1255,7 @@ dependencies = [
  "reqwest",
  "retry",
  "rustls",
- "rustls-webpki",
+ "rustls-webpki 0.102.0",
  "same-file",
  "serde",
  "serde_json",
@@ -1491,7 +1491,7 @@ dependencies = [
  "reqwest",
  "rustls",
  "rustls-pemfile",
- "rustls-webpki",
+ "rustls-webpki 0.102.0",
  "serde",
  "serde_json",
  "serde_test",
@@ -3289,7 +3289,7 @@ checksum = "629648aced5775d558af50b2b4c7b02983a04b312126d45eeead26e7caa498b9"
 dependencies = [
  "log 0.4.20",
  "ring 0.17.5",
- "rustls-webpki",
+ "rustls-webpki 0.101.7",
  "sct",
 ]
 
@@ -3303,12 +3303,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustls-pki-types"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb0a1f9b9efec70d32e6d6aa3e58ebd88c3754ec98dfe9145c63cf54cc829b83"
+
+[[package]]
 name = "rustls-webpki"
 version = "0.101.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b6275d1ee7a1cd780b64aca7726599a1dbc893b1e64144529e55c3c2f745765"
 dependencies = [
  "ring 0.17.5",
+ "untrusted 0.9.0",
+]
+
+[[package]]
+name = "rustls-webpki"
+version = "0.102.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de2635c8bc2b88d367767c5de8ea1d8db9af3f6219eba28442242d9ab81d1b89"
+dependencies = [
+ "ring 0.17.5",
+ "rustls-pki-types",
  "untrusted 0.9.0",
 ]
 
