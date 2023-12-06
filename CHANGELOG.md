@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.935 -->
-## [1.6.935](https://github.com/habitat-sh/habitat/tree/1.6.935) (2023-12-01)
+<!-- latest_release 1.6.936 -->
+## [1.6.936](https://github.com/habitat-sh/habitat/tree/1.6.936) (2023-12-06)
 
 #### Merged Pull Requests
-- Bump winreg from 0.51.0 to 0.52.0 [#9097](https://github.com/habitat-sh/habitat/pull/9097) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- update the release announcement download copy [#9101](https://github.com/habitat-sh/habitat/pull/9101) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- update the release announcement download copy [#9101](https://github.com/habitat-sh/habitat/pull/9101) ([mwrock](https://github.com/mwrock)) <!-- 1.6.936 -->
 - Bump winreg from 0.51.0 to 0.52.0 [#9097](https://github.com/habitat-sh/habitat/pull/9097) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.935 -->
 - Bump prost-build from 0.12.1 to 0.12.3 [#9095](https://github.com/habitat-sh/habitat/pull/9095) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.934 -->
 - Bump env_logger from 0.10.0 to 0.10.1 [#9096](https://github.com/habitat-sh/habitat/pull/9096) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.933 -->
