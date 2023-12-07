@@ -102,7 +102,7 @@ dependencies = [
  "actix-utils",
  "futures-core",
  "futures-util",
- "mio 0.8.9",
+ "mio 0.8.10",
  "num_cpus",
  "socket2 0.4.9",
  "tokio",
@@ -1610,7 +1610,7 @@ dependencies = [
  "libc",
  "log 0.4.20",
  "log4rs",
- "mio 0.8.9",
+ "mio 0.8.10",
  "multimap 0.9.1",
  "nix",
  "notify",
@@ -2301,9 +2301,9 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "0.8.9"
+version = "0.8.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3dce281c5e46beae905d4de1870d8b1509a9142b62eedf18b443b011ca8343d0"
+checksum = "8f3d0b296e374a4e6f3c7b0a1f5a51d748a0d34c85e7dc48fc3fa9a87657fe09"
 dependencies = [
  "libc",
  "log 0.4.20",
@@ -2411,7 +2411,7 @@ dependencies = [
  "kqueue",
  "libc",
  "log 0.4.20",
- "mio 0.8.9",
+ "mio 0.8.10",
  "walkdir",
  "windows-sys 0.48.0",
 ]
@@ -3855,7 +3855,7 @@ dependencies = [
  "backtrace",
  "bytes",
  "libc",
- "mio 0.8.9",
+ "mio 0.8.10",
  "num_cpus",
  "parking_lot",
  "pin-project-lite",
