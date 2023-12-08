@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.938 -->
-## [1.6.938](https://github.com/habitat-sh/habitat/tree/1.6.938) (2023-12-07)
+<!-- latest_release 1.6.939 -->
+## [1.6.939](https://github.com/habitat-sh/habitat/tree/1.6.939) (2023-12-08)
 
 #### Merged Pull Requests
-- Bump mio from 0.8.9 to 0.8.10 [#9102](https://github.com/habitat-sh/habitat/pull/9102) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump actions/labeler from 4.3.0 to 5.0.0 [#9104](https://github.com/habitat-sh/habitat/pull/9104) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump actions/labeler from 4.3.0 to 5.0.0 [#9104](https://github.com/habitat-sh/habitat/pull/9104) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.939 -->
 - Bump mio from 0.8.9 to 0.8.10 [#9102](https://github.com/habitat-sh/habitat/pull/9102) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.938 -->
 - fix labeler action to comply with breaking config change [#9103](https://github.com/habitat-sh/habitat/pull/9103) ([mwrock](https://github.com/mwrock)) <!-- 1.6.937 -->
 - update the release announcement download copy [#9101](https://github.com/habitat-sh/habitat/pull/9101) ([mwrock](https://github.com/mwrock)) <!-- 1.6.936 -->
