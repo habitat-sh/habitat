@@ -33,8 +33,7 @@ use structopt::{clap::AppSettings,
                 StructOpt};
 use url::{ParseError,
           Url};
-use webpki::{DnsName,
-             DnsNameRef};
+use webpki::types::DnsName;
 
 #[derive(ConfigOpt, StructOpt)]
 #[configopt(derive(Serialize))]
@@ -322,18 +321,12 @@ pub struct ExternalCommandArgsWithHelpAndVersion {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(try_from = "String", into = "String")]
-pub struct SubjectAlternativeName(DnsName);
+pub struct SubjectAlternativeName(String);
 
 impl FromStr for SubjectAlternativeName {
     type Err = Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(SubjectAlternativeName(
-            DnsNameRef::try_from_ascii_str(s)
-                .map_err(|_| Error::InvalidDnsName(s.to_string()))?
-                .to_owned(),
-        ))
-    }
+    fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(SubjectAlternativeName(s.to_string())) }
 }
 
 impl std::fmt::Display for SubjectAlternativeName {
@@ -343,7 +336,9 @@ impl std::fmt::Display for SubjectAlternativeName {
 }
 
 impl SubjectAlternativeName {
-    pub fn inner(&self) -> DnsNameRef { self.0.as_ref() }
+    pub fn dns_name(&self) -> Result<DnsName, Error> {
+        DnsName::try_from(self.0.to_owned()).map_err(|_| Error::InvalidDnsName(self.0.to_owned()))
+    }
 }
 
 habitat_core::impl_try_from_string_and_into_string!(SubjectAlternativeName);
