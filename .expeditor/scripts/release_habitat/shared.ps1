@@ -7,7 +7,9 @@ function Install-BuildkiteAgent() {
     # do artifact uploads, or to manipulate pipeline metadata), then
     # you'll need to install it in the container as well.
     Write-Host "--- Installing buildkite agent in container"
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/buildkite/agent/master/install.ps1')) | Out-Null
+    # note that on 12/12/2023, the below script was broken by https://github.com/buildkite/agent/commit/8833bca9a204971218fad9baa2f9c26336eb8ce9
+    # so we grab the previous commit for now until this is fixed.
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/buildkite/agent/dec511dfac662158fde6edab4cf8600fc22f2edd/install.ps1')) | Out-Null
 }
 
 function Install-LatestHabitat() {
