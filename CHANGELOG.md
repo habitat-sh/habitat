@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.945 -->
-## [1.6.945](https://github.com/habitat-sh/habitat/tree/1.6.945) (2023-12-13)
+<!-- latest_release 1.6.946 -->
+## [1.6.946](https://github.com/habitat-sh/habitat/tree/1.6.946) (2023-12-18)
 
 #### Merged Pull Requests
-- buildkite installer broke in last commit so use the previous commit [#9109](https://github.com/habitat-sh/habitat/pull/9109) ([mwrock](https://github.com/mwrock))
+- Bump thiserror from 1.0.50 to 1.0.51 [#9111](https://github.com/habitat-sh/habitat/pull/9111) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump thiserror from 1.0.50 to 1.0.51 [#9111](https://github.com/habitat-sh/habitat/pull/9111) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.946 -->
 - buildkite installer broke in last commit so use the previous commit [#9109](https://github.com/habitat-sh/habitat/pull/9109) ([mwrock](https://github.com/mwrock)) <!-- 1.6.945 -->
 - Bump pem from 3.0.2 to 3.0.3 [#9108](https://github.com/habitat-sh/habitat/pull/9108) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.944 -->
 - Bump rustls from 0.21.9 to 0.21.10 [#9105](https://github.com/habitat-sh/habitat/pull/9105) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.943 -->
