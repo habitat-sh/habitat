@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.948 -->
-## [1.6.948](https://github.com/habitat-sh/habitat/tree/1.6.948) (2023-12-21)
+<!-- latest_release 1.6.949 -->
+## [1.6.949](https://github.com/habitat-sh/habitat/tree/1.6.949) (2023-12-21)
 
 #### Merged Pull Requests
-- Bump tokio from 1.35.0 to 1.35.1 [#9114](https://github.com/habitat-sh/habitat/pull/9114) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump anyhow from 1.0.75 to 1.0.76 [#9116](https://github.com/habitat-sh/habitat/pull/9116) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump anyhow from 1.0.75 to 1.0.76 [#9116](https://github.com/habitat-sh/habitat/pull/9116) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.949 -->
 - Bump tokio from 1.35.0 to 1.35.1 [#9114](https://github.com/habitat-sh/habitat/pull/9114) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.948 -->
 - Bump zerocopy from 0.7.3 to 0.7.31 [#9112](https://github.com/habitat-sh/habitat/pull/9112) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.947 -->
 - Bump thiserror from 1.0.50 to 1.0.51 [#9111](https://github.com/habitat-sh/habitat/pull/9111) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.946 -->
