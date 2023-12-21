@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.949 -->
-## [1.6.949](https://github.com/habitat-sh/habitat/tree/1.6.949) (2023-12-21)
+<!-- latest_release 1.6.950 -->
+## [1.6.950](https://github.com/habitat-sh/habitat/tree/1.6.950) (2023-12-21)
 
 #### Merged Pull Requests
-- Bump anyhow from 1.0.75 to 1.0.76 [#9116](https://github.com/habitat-sh/habitat/pull/9116) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump async-trait from 0.1.74 to 0.1.75 [#9115](https://github.com/habitat-sh/habitat/pull/9115) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.74 to 0.1.75 [#9115](https://github.com/habitat-sh/habitat/pull/9115) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.950 -->
 - Bump anyhow from 1.0.75 to 1.0.76 [#9116](https://github.com/habitat-sh/habitat/pull/9116) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.949 -->
 - Bump tokio from 1.35.0 to 1.35.1 [#9114](https://github.com/habitat-sh/habitat/pull/9114) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.948 -->
 - Bump zerocopy from 0.7.3 to 0.7.31 [#9112](https://github.com/habitat-sh/habitat/pull/9112) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.947 -->
