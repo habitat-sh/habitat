@@ -8,7 +8,7 @@ use rcgen::{Certificate as RcgenCertificate,
             CertificateParams,
             DistinguishedName,
             DnType,
-            RcgenError,
+            Error as RcgenError,
             PKCS_ECDSA_P256_SHA256};
 use rustls::{Certificate,
              PrivateKey,
