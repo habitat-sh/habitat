@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.951 -->
-## [1.6.951](https://github.com/habitat-sh/habitat/tree/1.6.951) (2023-12-21)
+<!-- latest_release 1.6.952 -->
+## [1.6.952](https://github.com/habitat-sh/habitat/tree/1.6.952) (2023-12-22)
 
 #### Merged Pull Requests
-- Bump unsafe-libyaml from 0.2.8 to 0.2.10 [#9118](https://github.com/habitat-sh/habitat/pull/9118) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rcgen from 0.11.3 to 0.12.0 [#9110](https://github.com/habitat-sh/habitat/pull/9110) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump rcgen from 0.11.3 to 0.12.0 [#9110](https://github.com/habitat-sh/habitat/pull/9110) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.952 -->
 - Bump unsafe-libyaml from 0.2.8 to 0.2.10 [#9118](https://github.com/habitat-sh/habitat/pull/9118) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.951 -->
 - Bump async-trait from 0.1.74 to 0.1.75 [#9115](https://github.com/habitat-sh/habitat/pull/9115) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.950 -->
 - Bump anyhow from 1.0.75 to 1.0.76 [#9116](https://github.com/habitat-sh/habitat/pull/9116) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.949 -->
