@@ -4,7 +4,7 @@ use anyhow::{anyhow,
              Context,
              Result};
 use habitat_core::os::process::Pid;
-use hyper::Method;
+use reqwest::Method;
 use rand::{self,
            distributions::{Distribution,
                            Uniform}};
