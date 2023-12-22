@@ -4,10 +4,10 @@ use anyhow::{anyhow,
              Context,
              Result};
 use habitat_core::os::process::Pid;
-use hyper::Method;
 use rand::{self,
            distributions::{Distribution,
                            Uniform}};
+use reqwest::Method;
 use serde_json::Value;
 use std::{collections::HashSet,
           env,
