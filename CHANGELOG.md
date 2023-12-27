@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.957 -->
-## [1.6.957](https://github.com/habitat-sh/habitat/tree/1.6.957) (2023-12-27)
+<!-- latest_release 1.6.958 -->
+## [1.6.958](https://github.com/habitat-sh/habitat/tree/1.6.958) (2023-12-27)
 
 #### Merged Pull Requests
-- Bump futures from 0.3.29 to 0.3.30 [#9120](https://github.com/habitat-sh/habitat/pull/9120) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump actix-web from 4.4.0 to 4.4.1 [#9121](https://github.com/habitat-sh/habitat/pull/9121) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump actix-web from 4.4.0 to 4.4.1 [#9121](https://github.com/habitat-sh/habitat/pull/9121) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.958 -->
+- Bump ctrlc from 3.4.1 to 3.4.2 [#9122](https://github.com/habitat-sh/habitat/pull/9122) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.958 -->
 - Bump futures from 0.3.29 to 0.3.30 [#9120](https://github.com/habitat-sh/habitat/pull/9120) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.957 -->
 - Bump thiserror from 1.0.51 to 1.0.52 [#9123](https://github.com/habitat-sh/habitat/pull/9123) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.956 -->
 - Bump anyhow from 1.0.76 to 1.0.77 [#9124](https://github.com/habitat-sh/habitat/pull/9124) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.955 -->
