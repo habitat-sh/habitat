@@ -31,7 +31,7 @@ dependencies = [
  "actix-tls",
  "actix-utils",
  "ahash",
- "base64 0.21.5",
+ "base64 0.21.6",
  "bitflags 2.4.1",
  "bytes",
  "bytestring",
@@ -353,9 +353,9 @@ checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
 
 [[package]]
 name = "base64"
-version = "0.21.5"
+version = "0.21.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35636a1494ede3b646cc98f74f8e62c773a38a659ebc777a2cf26b9b74171df9"
+checksum = "c79fed4cdb43e993fcdadc7e58a09fd0e3e649c4436fa11da71c9f1f3ee7feb9"
 
 [[package]]
 name = "bimap"
@@ -1230,7 +1230,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "atty",
- "base64 0.21.5",
+ "base64 0.21.6",
  "bitflags 2.4.1",
  "chrono",
  "clap",
@@ -1352,7 +1352,7 @@ dependencies = [
 name = "habitat-sup-protocol"
 version = "0.0.0"
 dependencies = [
- "base64 0.21.5",
+ "base64 0.21.6",
  "bytes",
  "habitat_core",
  "lazy_static 1.4.0",
@@ -1463,7 +1463,7 @@ dependencies = [
 name = "habitat_core"
 version = "0.0.0"
 dependencies = [
- "base64 0.21.5",
+ "base64 0.21.6",
  "blake2b_simd",
  "caps",
  "cc",
@@ -1514,7 +1514,7 @@ dependencies = [
 name = "habitat_http_client"
 version = "0.0.0"
 dependencies = [
- "base64 0.21.5",
+ "base64 0.21.6",
  "env_proxy",
  "habitat_core",
  "httparse",
@@ -1533,7 +1533,7 @@ name = "habitat_pkg_export_container"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "base64 0.21.5",
+ "base64 0.21.6",
  "clap",
  "env_logger",
  "hab",
@@ -2637,7 +2637,7 @@ version = "3.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b8fcc794035347fb64beda2d3b462595dd2753e3f268d89c5aae77e8cf2c310"
 dependencies = [
- "base64 0.21.5",
+ "base64 0.21.6",
  "serde",
 ]
 
@@ -3333,7 +3333,7 @@ version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c74cae0a4cf6ccbbf5f359f08efdf8ee7e1dc532573bf0db71968cb56b1448c"
 dependencies = [
- "base64 0.21.5",
+ "base64 0.21.6",
 ]
 
 [[package]]
@@ -4229,7 +4229,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca8a0a4df97f827fcbcbe69c65364acddddf3a4bb50e6507f63361177a7ea7a4"
 dependencies = [
  "addr",
- "base64 0.21.5",
+ "base64 0.21.6",
  "chrono",
  "downcast-rs",
  "erased-serde",
