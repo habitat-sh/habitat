@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.974 -->
-## [1.6.974](https://github.com/habitat-sh/habitat/tree/1.6.974) (2024-01-11)
+<!-- latest_release 1.6.975 -->
+## [1.6.975](https://github.com/habitat-sh/habitat/tree/1.6.975) (2024-01-12)
 
 #### Merged Pull Requests
-- Bump termcolor from 1.4.0 to 1.4.1 [#9144](https://github.com/habitat-sh/habitat/pull/9144) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump base64 from 0.21.6 to 0.21.7 [#9145](https://github.com/habitat-sh/habitat/pull/9145) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump base64 from 0.21.6 to 0.21.7 [#9145](https://github.com/habitat-sh/habitat/pull/9145) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.975 -->
 - Bump termcolor from 1.4.0 to 1.4.1 [#9144](https://github.com/habitat-sh/habitat/pull/9144) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.974 -->
 - Bump base64 from 0.21.5 to 0.21.6 [#9143](https://github.com/habitat-sh/habitat/pull/9143) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.973 -->
 - Bump serde from 1.0.194 to 1.0.195 [#9142](https://github.com/habitat-sh/habitat/pull/9142) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.972 -->
