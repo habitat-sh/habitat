@@ -1611,7 +1611,7 @@ dependencies = [
  "log 0.4.20",
  "log4rs",
  "mio 0.8.10",
- "multimap 0.9.1",
+ "multimap 0.10.0",
  "nix",
  "notify",
  "num_cpus",
@@ -2374,9 +2374,9 @@ checksum = "e5ce46fe64a9d73be07dcbe690a38ce1b293be448fd8ce1e6c1b8062c9f72c6a"
 
 [[package]]
 name = "multimap"
-version = "0.9.1"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1a5d38b9b352dbd913288736af36af41c48d61b1a8cd34bcecd727561b7d511"
+checksum = "defc4c55412d89136f966bbb339008b474350e5e6e78d2714439c386b3137a03"
 dependencies = [
  "serde",
 ]
