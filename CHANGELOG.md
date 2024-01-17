@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.976 -->
-## [1.6.976](https://github.com/habitat-sh/habitat/tree/1.6.976) (2024-01-16)
+<!-- latest_release 1.6.977 -->
+## [1.6.977](https://github.com/habitat-sh/habitat/tree/1.6.977) (2024-01-17)
 
 #### Merged Pull Requests
-- Bump multimap from 0.9.1 to 0.10.0 [#9146](https://github.com/habitat-sh/habitat/pull/9146) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump bitflags from 2.4.1 to 2.4.2 [#9147](https://github.com/habitat-sh/habitat/pull/9147) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump bitflags from 2.4.1 to 2.4.2 [#9147](https://github.com/habitat-sh/habitat/pull/9147) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.977 -->
 - Bump multimap from 0.9.1 to 0.10.0 [#9146](https://github.com/habitat-sh/habitat/pull/9146) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.976 -->
 - Bump base64 from 0.21.6 to 0.21.7 [#9145](https://github.com/habitat-sh/habitat/pull/9145) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.975 -->
 - Bump termcolor from 1.4.0 to 1.4.1 [#9144](https://github.com/habitat-sh/habitat/pull/9144) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.974 -->
