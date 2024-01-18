@@ -1827,7 +1827,7 @@ dependencies = [
  "httpdate",
  "itoa 1.0.1",
  "pin-project-lite",
- "socket2 0.4.9",
+ "socket2 0.5.5",
  "tokio",
  "tower-service",
  "tracing",
