@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.978 -->
-## [1.6.978](https://github.com/habitat-sh/habitat/tree/1.6.978) (2024-01-18)
+<!-- latest_release 1.6.979 -->
+## [1.6.979](https://github.com/habitat-sh/habitat/tree/1.6.979) (2024-01-22)
 
 #### Merged Pull Requests
-- Bump env_logger from 0.10.1 to 0.10.2 [#9148](https://github.com/habitat-sh/habitat/pull/9148) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump regex from 1.10.2 to 1.10.3 [#9149](https://github.com/habitat-sh/habitat/pull/9149) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump regex from 1.10.2 to 1.10.3 [#9149](https://github.com/habitat-sh/habitat/pull/9149) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.979 -->
 - Bump env_logger from 0.10.1 to 0.10.2 [#9148](https://github.com/habitat-sh/habitat/pull/9148) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.978 -->
 - Bump bitflags from 2.4.1 to 2.4.2 [#9147](https://github.com/habitat-sh/habitat/pull/9147) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.977 -->
 - Bump multimap from 0.9.1 to 0.10.0 [#9146](https://github.com/habitat-sh/habitat/pull/9146) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.976 -->
