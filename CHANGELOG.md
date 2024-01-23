@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.980 -->
-## [1.6.980](https://github.com/habitat-sh/habitat/tree/1.6.980) (2024-01-22)
+<!-- latest_release 1.6.981 -->
+## [1.6.981](https://github.com/habitat-sh/habitat/tree/1.6.981) (2024-01-23)
 
 #### Merged Pull Requests
-- Bump shlex from 1.0.0 to 1.3.0 [#9150](https://github.com/habitat-sh/habitat/pull/9150) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump chrono from 0.4.31 to 0.4.32 [#9151](https://github.com/habitat-sh/habitat/pull/9151) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump chrono from 0.4.31 to 0.4.32 [#9151](https://github.com/habitat-sh/habitat/pull/9151) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.981 -->
 - Bump shlex from 1.0.0 to 1.3.0 [#9150](https://github.com/habitat-sh/habitat/pull/9150) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.980 -->
 - Bump regex from 1.10.2 to 1.10.3 [#9149](https://github.com/habitat-sh/habitat/pull/9149) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.979 -->
 - Bump env_logger from 0.10.1 to 0.10.2 [#9148](https://github.com/habitat-sh/habitat/pull/9148) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.978 -->
