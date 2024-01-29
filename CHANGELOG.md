@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.982 -->
-## [1.6.982](https://github.com/habitat-sh/habitat/tree/1.6.982) (2024-01-26)
+<!-- latest_release 1.6.983 -->
+## [1.6.983](https://github.com/habitat-sh/habitat/tree/1.6.983) (2024-01-29)
 
 #### Merged Pull Requests
-- Bump chrono from 0.4.32 to 0.4.33 [#9153](https://github.com/habitat-sh/habitat/pull/9153) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump pin-project from 1.1.3 to 1.1.4 [#9152](https://github.com/habitat-sh/habitat/pull/9152) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump pin-project from 1.1.3 to 1.1.4 [#9152](https://github.com/habitat-sh/habitat/pull/9152) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.983 -->
 - Bump chrono from 0.4.32 to 0.4.33 [#9153](https://github.com/habitat-sh/habitat/pull/9153) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.982 -->
 - Bump chrono from 0.4.31 to 0.4.32 [#9151](https://github.com/habitat-sh/habitat/pull/9151) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.981 -->
 - Bump shlex from 1.0.0 to 1.3.0 [#9150](https://github.com/habitat-sh/habitat/pull/9150) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.980 -->
