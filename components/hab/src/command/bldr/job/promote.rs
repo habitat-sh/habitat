@@ -26,8 +26,7 @@ pub fn get_ident_list(ui: &mut UI,
     let mut idents: Vec<String> =
         group_status.projects
                     .iter()
-                    .cloned()
-                    .filter(|p| p.state == "Success" && in_origin(&p.ident, origin))
+                    .filter(|&p| p.state == "Success" && in_origin(&p.ident, origin)).cloned()
                     .map(|p| p.ident)
                     .collect();
 

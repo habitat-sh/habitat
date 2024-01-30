@@ -1683,7 +1683,7 @@ impl From<&ServiceQueryModel> for habitat_sup_protocol::types::ServiceStatus {
 }
 
 #[cfg(test)]
-#[cfg(any(all(target_os = "linux", any(target_arch = "x86_64")),
+#[cfg(any(all(target_os = "linux", target_arch = "x86_64"),
           all(target_os = "windows", target_arch = "x86_64"),))]
 mod tests {
     use super::*;

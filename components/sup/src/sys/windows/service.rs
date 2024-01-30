@@ -138,7 +138,7 @@ fn build_proc_table() -> ProcessTable {
             // Loop through all processes until we find one where `szExeFile` == `name`.
             while process_success == 1 {
                 let children = table.entry(process_entry.th32ParentProcessID)
-                                    .or_insert_with(Vec::new);
+                                    .or_default();
                 (*children).push(process_entry.th32ProcessID);
                 process_success =
                     unsafe { tlhelp32::Process32NextW(processes_snap_handle, &mut process_entry) };

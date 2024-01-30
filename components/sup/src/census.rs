@@ -499,7 +499,7 @@ impl CensusGroup {
             let filename = service_file_rumor.filename.to_string();
             let file = self.service_files
                            .entry(filename.clone())
-                           .or_insert_with(ServiceFile::default);
+                           .or_default();
 
             if service_file_rumor.incarnation > file.incarnation {
                 match service_file_rumor.body(key_cache) {

@@ -7,8 +7,7 @@ use crate::{crypto::{keys::NamedRevision,
 /// Private module to re-export the various sodiumoxide concepts we
 /// use, to keep them all consolidated and abstracted.
 mod primitives {
-    pub use sodiumoxide::crypto::secretbox::{self,
-                                             gen_key,
+    pub use sodiumoxide::crypto::secretbox::{gen_key,
                                              gen_nonce,
                                              open,
                                              seal,

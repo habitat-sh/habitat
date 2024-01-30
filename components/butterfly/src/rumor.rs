@@ -312,7 +312,7 @@ mod storage {
         pub fn insert_rsw(&self, rumor: R) -> bool {
             let mut list = self.list.write();
             let rumors = list.entry(String::from(rumor.key()))
-                             .or_insert_with(HashMap::new);
+                             .or_default();
             let kind_ignored_count =
                 IGNORED_RUMOR_COUNT.with_label_values(&[&rumor.kind().to_string()]);
             // Result reveals if there was a change so we can increment the counter if needed.
