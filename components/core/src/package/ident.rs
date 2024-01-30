@@ -2,6 +2,7 @@ use crate::{error::{Error,
                     Result},
             origin::Origin,
             package::PackageTarget};
+use log::debug;
 use regex::Regex;
 use serde::{Deserialize,
             Serialize};
@@ -230,7 +231,53 @@ impl PartialOrd for PackageIdent {
     /// * If the names are not equal, they cannot be compared.
     /// * If the versions are greater/lesser, return that as the ordering.
     /// * If the versions are equal, return the greater/lesser for the release.
-    fn partial_cmp(&self, other: &PackageIdent) -> Option<Ordering> { Some(self.cmp(other)) }
+    #[allow(clippy::non_canonical_partial_ord_impl)]
+    fn partial_cmp(&self, other: &PackageIdent) -> Option<Ordering> {
+        if self.name != other.name {
+            return None;
+        }
+        if self.version.is_none() && other.version.is_none() {
+            return None;
+        }
+        if self.version.is_none() && other.version.is_some() {
+            return Some(Ordering::Less);
+        }
+        if self.version.is_some() && other.version.is_none() {
+            return Some(Ordering::Greater);
+        }
+        if self.release.is_none() && other.release.is_none() {
+            return None;
+        }
+        if self.release.is_none() && other.release.is_some() {
+            return Some(Ordering::Less);
+        }
+        if self.release.is_some() && other.release.is_none() {
+            return Some(Ordering::Greater);
+        }
+        match version_sort(self.version.as_ref().unwrap(),
+                           other.version.as_ref().unwrap())
+        {
+            ord @ Ok(Ordering::Greater) | ord @ Ok(Ordering::Less) => ord.ok(),
+            Ok(Ordering::Equal) => Some(self.release.cmp(&other.release)),
+            Err(_) => {
+                // TODO: Can we do better than this? As long as we allow
+                // non-numeric versions to co-exist with numeric ones, we
+                // always have potential for incorrect ordering no matter
+                // what we choose - eg, "master" vs. "0.x.x" (real examples)
+                debug!("Comparing non-numeric versions: {} {}",
+                       self.version.as_ref().unwrap(),
+                       other.version.as_ref().unwrap());
+                match self.version
+                          .as_ref()
+                          .unwrap()
+                          .cmp(other.version.as_ref().unwrap())
+                {
+                    ord @ Ordering::Greater | ord @ Ordering::Less => Some(ord),
+                    Ordering::Equal => Some(self.release.cmp(&other.release)),
+                }
+            }
+        }
+    }
 }
 
 impl Ord for PackageIdent {
