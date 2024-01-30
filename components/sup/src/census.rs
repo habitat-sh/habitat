@@ -497,9 +497,7 @@ impl CensusGroup {
         self.changed_service_files.clear();
         for (_m_id, service_file_rumor) in service_file_rumors.iter() {
             let filename = service_file_rumor.filename.to_string();
-            let file = self.service_files
-                           .entry(filename.clone())
-                           .or_default();
+            let file = self.service_files.entry(filename.clone()).or_default();
 
             if service_file_rumor.incarnation > file.incarnation {
                 match service_file_rumor.body(key_cache) {

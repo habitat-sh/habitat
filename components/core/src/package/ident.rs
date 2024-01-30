@@ -230,9 +230,7 @@ impl PartialOrd for PackageIdent {
     /// * If the names are not equal, they cannot be compared.
     /// * If the versions are greater/lesser, return that as the ordering.
     /// * If the versions are equal, return the greater/lesser for the release.
-    fn partial_cmp(&self, other: &PackageIdent) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
+    fn partial_cmp(&self, other: &PackageIdent) -> Option<Ordering> { Some(self.cmp(other)) }
 }
 
 impl Ord for PackageIdent {
