@@ -212,7 +212,7 @@ mod tests {
         lock.unset();
         let mut members = peer_watcher_member_load_test(tmpdir.path(), &peer_lines).unwrap();
 
-        for mut member in &mut members {
+        for member in &mut members {
             member.id = String::new();
         }
         let member1 = Member { id: String::new(),
@@ -237,7 +237,7 @@ mod tests {
         lock.set("aarch64-darwin");
         let mut members = peer_watcher_member_load_test(tmpdir.path(), &peer_lines).unwrap();
         lock.unset();
-        for mut member in &mut members {
+        for member in &mut members {
             member.id = String::new();
         }
         let member1 = Member { id: String::new(),

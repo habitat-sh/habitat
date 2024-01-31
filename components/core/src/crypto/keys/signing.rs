@@ -143,7 +143,7 @@ mod tests {
         let key: SecretOriginSigningKey =
             fixture_key("keys/origin-key-valid-20160509190508.sig.key");
         let file_to_sign = fixture("signme.dat");
-        let signed_message = key.sign(&file_to_sign).unwrap();
+        let signed_message = key.sign(file_to_sign).unwrap();
         let expected = SIGNED_SIGNME_DAT_BLAKE2B_HASH.to_vec();
 
         assert_eq!(signed_message.len(), expected.len());

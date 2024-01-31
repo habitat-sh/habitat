@@ -506,9 +506,7 @@ impl PackageInstall {
             paths.push(p);
         }
 
-        let ordered_pkgs = self.load_deps()?
-                               .into_iter()
-                               .chain(self.load_tdeps()?.into_iter());
+        let ordered_pkgs = self.load_deps()?.into_iter().chain(self.load_tdeps()?);
         for pkg in ordered_pkgs {
             for p in pkg.paths()? {
                 if seen.contains(&p) {
@@ -1091,7 +1089,7 @@ mod test {
             &pkg_install,
             MetaFile::Path,
             env::join_paths(
-                vec![
+                [
                     pkg_prefix_for(&pkg_install).join("bin"),
                     pkg_prefix_for(&other_pkg_install).join("bin"),
                     pkg_prefix_for(&other_pkg_install).join("sbin"),
@@ -1117,9 +1115,9 @@ mod test {
         // Create `RUNTIME_ENVIROMENT` metafile which has path entries from another package to
         // replicate certain older packages
         let path_val =
-            env::join_paths(vec![pkg_prefix_for(&pkg_install).join("bin"),
-                                 pkg_prefix_for(&other_pkg_install).join("bin"),
-                                 pkg_prefix_for(&other_pkg_install).join("sbin"),].iter()).unwrap();
+            env::join_paths([pkg_prefix_for(&pkg_install).join("bin"),
+                             pkg_prefix_for(&other_pkg_install).join("bin"),
+                             pkg_prefix_for(&other_pkg_install).join("sbin")].iter()).unwrap();
         write_metafile(&pkg_install,
                        MetaFile::RuntimeEnvironment,
                        &format!("PATH={}\n", path_val.to_string_lossy().as_ref()));
