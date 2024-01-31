@@ -117,11 +117,10 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "assertion failed")]
     fn departures_with_different_member_ids_are_not_equal() {
         let s1 = create_departure("mastodon");
         let s2 = create_departure("limpbizkit");
-        assert_eq!(s1, s2);
+        assert_ne!(s1, s2);
     }
 
     // Order
