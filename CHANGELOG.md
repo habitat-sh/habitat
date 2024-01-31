@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.985 -->
-## [1.6.985](https://github.com/habitat-sh/habitat/tree/1.6.985) (2024-01-29)
+<!-- latest_release 1.6.986 -->
+## [1.6.986](https://github.com/habitat-sh/habitat/tree/1.6.986) (2024-01-31)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.195 to 1.0.196 [#9155](https://github.com/habitat-sh/habitat/pull/9155) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- bump rust to 1.75 and resolve clippy violations [#9158](https://github.com/habitat-sh/habitat/pull/9158) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- bump rust to 1.75 and resolve clippy violations [#9158](https://github.com/habitat-sh/habitat/pull/9158) ([mwrock](https://github.com/mwrock)) <!-- 1.6.986 -->
 - Bump serde from 1.0.195 to 1.0.196 [#9155](https://github.com/habitat-sh/habitat/pull/9155) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.985 -->
 - Bump rcgen from 0.12.0 to 0.12.1 [#9156](https://github.com/habitat-sh/habitat/pull/9156) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.984 -->
 - Bump pin-project from 1.1.3 to 1.1.4 [#9152](https://github.com/habitat-sh/habitat/pull/9152) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.983 -->
