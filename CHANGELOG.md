@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.990 -->
-## [1.6.990](https://github.com/habitat-sh/habitat/tree/1.6.990) (2024-02-05)
+<!-- latest_release 1.6.991 -->
+## [1.6.991](https://github.com/habitat-sh/habitat/tree/1.6.991) (2024-02-05)
 
 #### Merged Pull Requests
-- Bump rustls-webpki from 0.102.1 to 0.102.2 [#9161](https://github.com/habitat-sh/habitat/pull/9161) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump actix-web from 4.4.1 to 4.5.1 [#9163](https://github.com/habitat-sh/habitat/pull/9163) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump actix-web from 4.4.1 to 4.5.1 [#9163](https://github.com/habitat-sh/habitat/pull/9163) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.991 -->
+- Bump tokio from 1.35.1 to 1.36.0 [#9162](https://github.com/habitat-sh/habitat/pull/9162) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.991 -->
 - Bump rustls-webpki from 0.102.1 to 0.102.2 [#9161](https://github.com/habitat-sh/habitat/pull/9161) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.990 -->
 - Bump libc from 0.2.152 to 0.2.153 [#9160](https://github.com/habitat-sh/habitat/pull/9160) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.989 -->
 - Bump env_logger from 0.10.2 to 0.11.1 [#9159](https://github.com/habitat-sh/habitat/pull/9159) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.988 -->
