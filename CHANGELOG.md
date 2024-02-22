@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1002 -->
-## [1.6.1002](https://github.com/habitat-sh/habitat/tree/1.6.1002) (2024-02-22)
+<!-- latest_release 1.6.1003 -->
+## [1.6.1003](https://github.com/habitat-sh/habitat/tree/1.6.1003) (2024-02-22)
 
 #### Merged Pull Requests
-- Bump hyper from 1.1.0 to 1.2.0 [#9176](https://github.com/habitat-sh/habitat/pull/9176) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- fix verify pipeline [#9177](https://github.com/habitat-sh/habitat/pull/9177) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- fix verify pipeline [#9177](https://github.com/habitat-sh/habitat/pull/9177) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1003 -->
 - Bump hyper from 1.1.0 to 1.2.0 [#9176](https://github.com/habitat-sh/habitat/pull/9176) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1002 -->
 - Bump cc from 1.0.85 to 1.0.86 [#9175](https://github.com/habitat-sh/habitat/pull/9175) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1001 -->
 - Bump serde from 1.0.196 to 1.0.197 [#9173](https://github.com/habitat-sh/habitat/pull/9173) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1000 -->
