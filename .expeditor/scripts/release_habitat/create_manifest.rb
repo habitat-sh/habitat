@@ -18,7 +18,7 @@ class ManifestUtil
 
     input_lines = []
 
-    f = File.open(filename, { mode: 'r', encoding: 'UTF-8' })
+    f = File.open(filename, "r:UTF-8")
     f.each_line do | line |
       input_lines << line.chomp
     end
@@ -71,4 +71,4 @@ version = ARGV[1]
 sha = ARGV[2]
 
 manifest = ManifestUtil.new.generate(version, sha, filename, log)
-File.write("manifest.json", JSON.pretty_generate(manifest), { mode: 'w', encoding: 'UTF-8' })
+File.write("manifest.json", JSON.pretty_generate(manifest), mode: 'w', encoding: 'UTF-8')
