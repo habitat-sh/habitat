@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1005 -->
-## [1.6.1005](https://github.com/habitat-sh/habitat/tree/1.6.1005) (2024-02-26)
+<!-- latest_release 1.6.1006 -->
+## [1.6.1006](https://github.com/habitat-sh/habitat/tree/1.6.1006) (2024-02-27)
 
 #### Merged Pull Requests
-- Bump cc from 1.0.86 to 1.0.88 [#9179](https://github.com/habitat-sh/habitat/pull/9179) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tempfile from 3.10.0 to 3.10.1 [#9180](https://github.com/habitat-sh/habitat/pull/9180) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump tempfile from 3.10.0 to 3.10.1 [#9180](https://github.com/habitat-sh/habitat/pull/9180) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1006 -->
 - Bump cc from 1.0.86 to 1.0.88 [#9179](https://github.com/habitat-sh/habitat/pull/9179) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1005 -->
 - Bump nix from 0.27.1 to 0.28.0 [#9178](https://github.com/habitat-sh/habitat/pull/9178) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1004 -->
 - fix verify pipeline [#9177](https://github.com/habitat-sh/habitat/pull/9177) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1003 -->
