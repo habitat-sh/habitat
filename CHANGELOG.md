@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1011 -->
-## [1.6.1011](https://github.com/habitat-sh/habitat/tree/1.6.1011) (2024-03-05)
+<!-- latest_release 1.6.1012 -->
+## [1.6.1012](https://github.com/habitat-sh/habitat/tree/1.6.1012) (2024-03-06)
 
 #### Merged Pull Requests
-- Bump cc from 1.0.88 to 1.0.89 [#9185](https://github.com/habitat-sh/habitat/pull/9185) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump pin-project from 1.1.4 to 1.1.5 [#9186](https://github.com/habitat-sh/habitat/pull/9186) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump pin-project from 1.1.4 to 1.1.5 [#9186](https://github.com/habitat-sh/habitat/pull/9186) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1012 -->
 - Bump cc from 1.0.88 to 1.0.89 [#9185](https://github.com/habitat-sh/habitat/pull/9185) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1011 -->
 - Bump walkdir from 2.4.0 to 2.5.0 [#9184](https://github.com/habitat-sh/habitat/pull/9184) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1010 -->
 - Bump base64 from 0.21.7 to 0.22.0 [#9183](https://github.com/habitat-sh/habitat/pull/9183) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1009 -->
