@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1015 -->
-## [1.6.1015](https://github.com/habitat-sh/habitat/tree/1.6.1015) (2024-03-07)
+<!-- latest_release 1.6.1016 -->
+## [1.6.1016](https://github.com/habitat-sh/habitat/tree/1.6.1016) (2024-03-11)
 
 #### Merged Pull Requests
-- Bump chrono from 0.4.34 to 0.4.35 [#9189](https://github.com/habitat-sh/habitat/pull/9189) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump ctrlc from 3.4.2 to 3.4.4 [#9190](https://github.com/habitat-sh/habitat/pull/9190) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump ctrlc from 3.4.2 to 3.4.4 [#9190](https://github.com/habitat-sh/habitat/pull/9190) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1016 -->
 - Bump chrono from 0.4.34 to 0.4.35 [#9189](https://github.com/habitat-sh/habitat/pull/9189) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1015 -->
 - Bump cc from 1.0.89 to 1.0.90 [#9188](https://github.com/habitat-sh/habitat/pull/9188) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1014 -->
 - Bump env_logger from 0.11.2 to 0.11.3 [#9187](https://github.com/habitat-sh/habitat/pull/9187) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1013 -->
