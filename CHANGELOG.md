@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1021 -->
-## [1.6.1021](https://github.com/habitat-sh/habitat/tree/1.6.1021) (2024-03-18)
+<!-- latest_release 1.6.1022 -->
+## [1.6.1022](https://github.com/habitat-sh/habitat/tree/1.6.1022) (2024-03-19)
 
 #### Merged Pull Requests
-- Bump serde_yaml from 0.9.32 to 0.9.33 [#9194](https://github.com/habitat-sh/habitat/pull/9194) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump bitflags from 2.4.2 to 2.5.0 [#9197](https://github.com/habitat-sh/habitat/pull/9197) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump bitflags from 2.4.2 to 2.5.0 [#9197](https://github.com/habitat-sh/habitat/pull/9197) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1022 -->
 - Bump serde_yaml from 0.9.32 to 0.9.33 [#9194](https://github.com/habitat-sh/habitat/pull/9194) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1021 -->
 - Bump os_info from 3.8.0 to 3.8.1 [#9195](https://github.com/habitat-sh/habitat/pull/9195) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1021 -->
 - Bump async-trait from 0.1.77 to 0.1.78 [#9196](https://github.com/habitat-sh/habitat/pull/9196) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1020 -->
