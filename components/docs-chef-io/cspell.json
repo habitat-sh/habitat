@@ -1,0 +1,50 @@
+{
+  // Version of the setting file.  Always 0.1
+  "version": "0.2",
+  // language - current active spelling language
+  "language": "en_US",
+  "dictionaries": [
+    "chef",
+    "docs"
+  ],
+  "dictionaryDefinitions": [
+    {
+      "name": "chef",
+      "path": "https://raw.githubusercontent.com/chef/chef_dictionary/main/chef.txt",
+      "description": "Custom Chef Dictionary"
+    },
+    {
+      "name": "docs",
+      "path": "https://raw.githubusercontent.com/chef/chef_dictionary/main/docs.txt",
+      "description": "Custom Docs Dictionary"
+    }
+  ],
+  // words - list of words to be always considered correct
+  // "words": [
+  // ],
+  // flagWords - list of words to be always considered incorrect
+  // This is useful for offensive words and common spelling errors.
+  // For example "hte" should be "the"
+  "flagWords": [
+    "hte"
+  ],
+  "ignorePaths": [
+    "**/*.yml",
+    "**/*.toml",
+    "**/*.svg",
+    "archetypes/*.md",
+    "_vendor/**/*",
+    "cspell.json",
+    "public/**",
+    "chef-web-docs",
+    "resources/**"
+  ],
+  "ignoreRegExpList": [
+    "/'s\\b/",
+    "/'d\\b/",
+    "/^\\s*```[\\s\\S]*?^\\s*```/gm",
+    "{{(.+)(?=}})"
+  ],
+  "words": [
+  ]
+}
