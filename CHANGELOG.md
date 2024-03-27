@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1027 -->
-## [1.6.1027](https://github.com/habitat-sh/habitat/tree/1.6.1027) (2024-03-25)
+<!-- latest_release 1.6.1028 -->
+## [1.6.1028](https://github.com/habitat-sh/habitat/tree/1.6.1028) (2024-03-27)
 
 #### Merged Pull Requests
-- Bump async-trait from 0.1.78 to 0.1.79 [#9199](https://github.com/habitat-sh/habitat/pull/9199) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- bump mac release build to macos 11 [#9205](https://github.com/habitat-sh/habitat/pull/9205) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- bump mac release build to macos 11 [#9205](https://github.com/habitat-sh/habitat/pull/9205) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1028 -->
 - Bump async-trait from 0.1.78 to 0.1.79 [#9199](https://github.com/habitat-sh/habitat/pull/9199) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1027 -->
 - Bump regex from 1.10.3 to 1.10.4 [#9200](https://github.com/habitat-sh/habitat/pull/9200) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1026 -->
 - Bump bytes from 1.5.0 to 1.6.0 [#9201](https://github.com/habitat-sh/habitat/pull/9201) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1025 -->
