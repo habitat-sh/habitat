@@ -36,7 +36,7 @@ function Start-Container() {
     # We're using a non-standard port because we will also execute these
     # tests as a non-root user, and non-root users don't get to listen
     # on port 80.
-    Write-Host (docker run -d -p 9999:9999 --name=$name --rm --env=HAB_LICENSE=accept-no-persist --env=HAB_NGINX='http.listen.port = 9999' $extra_args $image | Out-String)
+    Write-Host (docker run -p 9999:9999 --name=$name --rm --env=HAB_LICENSE=accept-no-persist --env=HAB_NGINX='http.listen.port = 9999' $extra_args $image | Out-String)
     "$name"
 }
 
