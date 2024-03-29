@@ -49,7 +49,7 @@ impl PeerWatcher {
     }
 
     fn setup_watcher(path: PathBuf) -> Result<Arc<AtomicBool>> {
-        let have_events = Arc::new(AtomicBool::new(false));
+        let have_events = Arc::new(AtomicBool::new(true));
         let have_events_for_thread = Arc::clone(&have_events);
 
         ThreadBuilder::new().name(format!("peer-watcher-[{}]", path.display()))
