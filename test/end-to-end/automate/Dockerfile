@@ -1,5 +1,7 @@
 FROM ubuntu
 
+RUN echo "DPkg::Post-Invoke { \"rm -f /var/cache/apt/archives/*.deb /var/cache/apt/archives/partial/*.deb /var/cache/apt/*.bin || true\"; }" > /etc/apt/apt.conf.d/99remove-archives
+
 # We need curl
 RUN apt-get update && apt-get -y install curl
 

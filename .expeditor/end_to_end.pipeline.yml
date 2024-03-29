@@ -19,6 +19,19 @@ steps:
 # E2E
 #######################################################################
 
+  - label: "[:linux: test_event_stream]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_event_stream
+    artifact_paths:
+      - "*.log"
+    expeditor:
+      executor:
+        linux:
+          single-use: true
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
 
   - label: "[:linux: test_container_exporter]"
     command:
