@@ -11,8 +11,8 @@ expeditor:
       env:
         HAB_ORIGIN: "habitat-testing" # just to be safe
         HAB_BLDR_URL: "https://bldr.habitat.sh"
-        HAB_BLDR_CHANNEL: "dev"
-        HAB_INTERNAL_BLDR_CHANNEL: "dev"
+        HAB_BLDR_CHANNEL: "acceptance"
+        HAB_INTERNAL_BLDR_CHANNEL: "acceptance"
 
 steps:
 #######################################################################
@@ -21,7 +21,7 @@ steps:
 
   - label: "[:linux: test_event_stream]"
     command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_event_stream
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh acceptance test_event_stream
     artifact_paths:
       - "*.log"
     expeditor:
@@ -35,7 +35,7 @@ steps:
 
   - label: "[:linux: test_container_exporter]"
     command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_container_exporter
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh acceptance test_container_exporter
     artifact_paths:
       - "*.log"
     env:
