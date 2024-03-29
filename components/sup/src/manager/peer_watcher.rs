@@ -171,8 +171,12 @@ mod tests {
         lock.unset();
         let watcher = PeerWatcher::run(path).unwrap();
 
-        assert!(!watcher.has_fs_events());
+        // The watcher always has events initially
+        assert!(watcher.has_fs_events());
+        // We verify that the watcher finds no peers, since the file doesn't exist
         assert_eq!(watcher.get_members().unwrap(), vec![]);
+        // The watcher now has no more events
+        assert!(!watcher.has_fs_events());
     }
 
     #[test]
