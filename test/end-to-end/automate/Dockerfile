@@ -1,7 +1,12 @@
-FROM ubuntu
+FROM ubuntu:latest
 
 # We need curl
-RUN apt-get update && apt-get -y install curl
+RUN echo "--- Boostsrap the Install for Habitat" && \
+    apt-get update && apt-get -y upgrade && \
+    apt-add-repository universe && \
+    apt-get update && \
+    apt-get install -y \
+            curl \
 
 # Download latest release of automate
 RUN curl https://packages.chef.io/files/current/latest/chef-automate-cli/chef-automate_linux_amd64.zip | gunzip - > chef-automate && chmod +x chef-automate
