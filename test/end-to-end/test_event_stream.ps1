@@ -21,7 +21,7 @@ Describe "event stream not connected to nats" {
 Describe "event stream connected to automate" {
     BeforeAll {
         Write-Host "Building automate image..."
-        docker build -t automate ./test/end-to-end/automate
+        docker build --progress=plain --no-cache -t automate ./test/end-to-end/automate
         Write-Host "starting automate container..."
         $script:cid = docker run --rm -d -p 4222:4222 automate
         Write-Host "Waiting for automate to get healthy..."
