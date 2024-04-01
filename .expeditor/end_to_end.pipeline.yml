@@ -21,7 +21,8 @@ steps:
 
   - label: "[:linux: test_event_stream]"
     command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh acceptance test_event_stream
+      - bash docker build --progress=plain --no-cache -t automate ./test/end-to-end/automate && \
+             .expeditor/scripts/end_to_end/run_e2e_test.sh acceptance test_event_stream
     artifact_paths:
       - "*.log"
     expeditor:
