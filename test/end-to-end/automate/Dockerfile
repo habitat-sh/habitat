@@ -4,7 +4,7 @@ FROM ubuntu:latest
 RUN echo "--- Boostsrap env for automate install" && \
     apt-get update && \
     # Install required packages (including curl)
-    apt-get install -y curl
+    # apt-get install -y curl
 
 # Download and install Chef Automate
 RUN echo "--- Install Automate" && \
