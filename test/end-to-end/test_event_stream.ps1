@@ -20,6 +20,8 @@ Describe "event stream not connected to nats" {
 
 Describe "event stream connected to automate" {
     BeforeAll {
+        docker network ls
+        $env:DOCKER_BUILDKIT=1
         try {
             Write-Host "Building automate image..."
             $output = docker build --progress=plain --no-cache -t automate ./test/end-to-end/automate

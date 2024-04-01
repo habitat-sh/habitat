@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -euox pipefail
 
 channel=${1:?You must specify a channel value}
 test_name=${2:-}
