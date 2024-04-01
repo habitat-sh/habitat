@@ -1,4 +1,4 @@
-FROM ubuntu:jammy-20240227
+FROM ubuntu:jammy-20231004
 
 # Update package lists and upgrade existing packages
 RUN echo "--- Boostsrap env for automate install" && \
