@@ -1,9 +1,9 @@
 FROM ubuntu:latest
 
 # Update package lists and upgrade existing packages
-RUN rm -f /var/cache/apt/archives/*.deb /var/cache/apt/archives/partial/*.deb /var/cache/apt/*.bin || true
 RUN echo "--- Boostsrap env for automate install"
 RUN apt-get update
+RUN rm -f /var/cache/apt/archives/*.deb /var/cache/apt/archives/partial/*.deb /var/cache/apt/*.bin || true
 RUN apt-get install -y curl
 
 # Download and install Chef Automate
