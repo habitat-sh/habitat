@@ -1,17 +1,13 @@
 FROM ubuntu:focal-20231128
 
 # Update package lists and upgrade existing packages
-RUN echo "--- Boostsrap env for automate install"
-RUN apt-get update
-RUN rm -f /var/cache/apt/archives/*.deb /var/cache/apt/archives/partial/*.deb /var/cache/apt/*.bin || true
-RUN apt-get install -y curl
+RUN echo "--- Boostsrap env for automate install" && \
+    apt-get update && \
+    apt-get install -y \
+        curl
 
 # Download and install Chef Automate
-RUN echo "--- Install Automate" && \
-RUN    curl -v -o chef-automate_linux_amd64.zip https://packages.chef.io/files/current/latest/chef-automate-cli/chef-automate_linux_amd64.zip
-RUN    gunzip chef-automate_linux_amd64.zip
-RUN    chmod +x chef-automate
-
+RUN curl https://packages.chef.io/files/current/latest/chef-automate-cli/chef-automate_linux_amd64.zip | gunzip - > chef-automate && chmod +x chef-automate
 # Configure automate. Make sure its fqdn is set to localhost and not the build containers
 # IP or hostname which will only work in the build environment
 RUN ./chef-automate init-config --fqdn localhost
