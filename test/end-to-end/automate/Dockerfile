@@ -7,9 +7,8 @@ RUN echo "--- Boostsrap the Install for Habitat" && \
     apt-get update && \
     apt-get install -y \
             curl \
-
 # Download latest release of automate
-RUN curl https://packages.chef.io/files/current/latest/chef-automate-cli/chef-automate_linux_amd64.zip | gunzip - > chef-automate && chmod +x chef-automate
+RUN curl -v https://packages.chef.io/files/current/latest/chef-automate-cli/chef-automate_linux_amd64.zip | gunzip - > chef-automate && chmod +x chef-automate
 
 # Configure automate. Make sure its fqdn is set to localhost and not the build containers
 # IP or hostname which will only work in the build environment
