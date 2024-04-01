@@ -22,10 +22,12 @@ Describe "event stream connected to automate" {
     BeforeAll {
         try {
             Write-Host "Building automate image..."
-            docker build --progress=plain --no-cache -t automate ./test/end-to-end/automate -ErrorAction Stop
+            $output = docker build --progress=plain --no-cache -t automate ./test/end-to-end/automate
+            if ($LASTEXITCODE -ne 0) {
+                throw "Docker build failed with exit code $LASTEXITCODE"
+            }
         } catch {
-            $dockerError = $Error[0].Exception.Message
-            Write-Host "Error building automate image: $dockerError"
+            Write-Host "Error building automate image: $_"
             exit 1
         }
         Write-Host "starting automate container..."
