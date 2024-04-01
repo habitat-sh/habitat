@@ -1,17 +1,21 @@
 FROM ubuntu:latest
 
-# We need curl
+# Update package lists and upgrade existing packages
 RUN echo "--- Boostsrap the Install for Habitat" && \
-    apt-get update && apt-get -y upgrade && \
+    apt-get update && \
+    apt-get -y upgrade && \
+    # Add universe repository
     apt-add-repository universe && \
     apt-get update && \
-    apt-get install -y \
-            curl \
-# Download latest release of automate
+    # Install required packages (including curl)
+    apt-get install -y curl
+
+# Download and install Chef Automate
 RUN echo "--- Install Automate" && \
     curl -v -o chef-automate_linux_amd64.zip https://packages.chef.io/files/current/latest/chef-automate-cli/chef-automate_linux_amd64.zip && \
     gunzip chef-automate_linux_amd64.zip && \
     chmod +x chef-automate
+
 # Configure automate. Make sure its fqdn is set to localhost and not the build containers
 # IP or hostname which will only work in the build environment
 RUN ./chef-automate init-config --fqdn localhost
