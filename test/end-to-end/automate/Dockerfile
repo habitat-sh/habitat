@@ -1,11 +1,7 @@
 FROM ubuntu:latest
 
 # Update package lists and upgrade existing packages
-RUN echo "--- Boostsrap the Install for Habitat" && \
-    apt-get update && \
-    apt-get -y upgrade && \
-    # Add universe repository
-    apt-add-repository universe && \
+RUN echo "--- Boostsrap env for automate install" && \
     apt-get update && \
     # Install required packages (including curl)
     apt-get install -y curl
