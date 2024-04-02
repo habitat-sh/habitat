@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1031 -->
-## [1.6.1031](https://github.com/habitat-sh/habitat/tree/1.6.1031) (2024-04-02)
+<!-- latest_release 1.6.1032 -->
+## [1.6.1032](https://github.com/habitat-sh/habitat/tree/1.6.1032) (2024-04-02)
 
 #### Merged Pull Requests
-- Bump tokio from 1.36.0 to 1.37.0 [#9207](https://github.com/habitat-sh/habitat/pull/9207) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Sean simmos progress/chef 11284 habitat docker [#9209](https://github.com/habitat-sh/habitat/pull/9209) ([sean-simmons-progress](https://github.com/sean-simmons-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Sean simmos progress/chef 11284 habitat docker [#9209](https://github.com/habitat-sh/habitat/pull/9209) ([sean-simmons-progress](https://github.com/sean-simmons-progress)) <!-- 1.6.1032 -->
 - Bump tokio from 1.36.0 to 1.37.0 [#9207](https://github.com/habitat-sh/habitat/pull/9207) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1031 -->
 - Bump chrono from 0.4.35 to 0.4.37 [#9206](https://github.com/habitat-sh/habitat/pull/9206) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1031 -->
 - Bump serde_json from 1.0.114 to 1.0.115 [#9204](https://github.com/habitat-sh/habitat/pull/9204) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1030 -->
