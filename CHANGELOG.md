@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1030 -->
-## [1.6.1030](https://github.com/habitat-sh/habitat/tree/1.6.1030) (2024-04-02)
+<!-- latest_release 1.6.1031 -->
+## [1.6.1031](https://github.com/habitat-sh/habitat/tree/1.6.1031) (2024-04-02)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.114 to 1.0.115 [#9204](https://github.com/habitat-sh/habitat/pull/9204) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tokio from 1.36.0 to 1.37.0 [#9207](https://github.com/habitat-sh/habitat/pull/9207) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump tokio from 1.36.0 to 1.37.0 [#9207](https://github.com/habitat-sh/habitat/pull/9207) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1031 -->
+- Bump chrono from 0.4.35 to 0.4.37 [#9206](https://github.com/habitat-sh/habitat/pull/9206) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1031 -->
 - Bump serde_json from 1.0.114 to 1.0.115 [#9204](https://github.com/habitat-sh/habitat/pull/9204) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1030 -->
 - Update Netlify deploy [#9203](https://github.com/habitat-sh/habitat/pull/9203) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.1029 -->
 - bump mac release build to macos 11 [#9205](https://github.com/habitat-sh/habitat/pull/9205) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1028 -->
