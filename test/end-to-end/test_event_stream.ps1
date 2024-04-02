@@ -25,7 +25,7 @@ Describe "event stream connected to automate" {
             Write-Host "Building automate image..."
             $output = docker build --progress=plain -t automate ./test/end-to-end/automate
             if ($LASTEXITCODE -ne 0) {
-                throw "Docker build failed with exit code $LASTEXITCODE"
+                throw "Docker build failed with exit code $LASTEXITCODE. Output: $output"
             }
         } catch {
             Write-Host "Error building automate image: $_"
