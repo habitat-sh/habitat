@@ -1,11 +1,13 @@
-FROM ubuntu
+FROM ubuntu:latest
 
-# We need curl
-RUN apt-get update && apt-get -y install curl
+# Update package lists and upgrade existing packages
+RUN echo "--- Boostsrap env for automate install" && \
+    apt-get update && \
+    apt-get install -y \
+        curl
 
-# Download latest release of automate
+# Download and install Chef Automate
 RUN curl https://packages.chef.io/files/current/latest/chef-automate-cli/chef-automate_linux_amd64.zip | gunzip - > chef-automate && chmod +x chef-automate
-
 # Configure automate. Make sure its fqdn is set to localhost and not the build containers
 # IP or hostname which will only work in the build environment
 RUN ./chef-automate init-config --fqdn localhost
