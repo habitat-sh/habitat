@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1033 -->
-## [1.6.1033](https://github.com/habitat-sh/habitat/tree/1.6.1033) (2024-04-05)
+<!-- latest_release 1.6.1034 -->
+## [1.6.1034](https://github.com/habitat-sh/habitat/tree/1.6.1034) (2024-04-05)
 
 #### Merged Pull Requests
-- CHEF-9418: Fixes peer file watching behaviour [#9208](https://github.com/habitat-sh/habitat/pull/9208) ([atrniv](https://github.com/atrniv))
+- Bump h2 from 0.3.24 to 0.3.26 [#9210](https://github.com/habitat-sh/habitat/pull/9210) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump h2 from 0.3.24 to 0.3.26 [#9210](https://github.com/habitat-sh/habitat/pull/9210) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1034 -->
 - CHEF-9418: Fixes peer file watching behaviour [#9208](https://github.com/habitat-sh/habitat/pull/9208) ([atrniv](https://github.com/atrniv)) <!-- 1.6.1033 -->
 - Sean simmos progress/chef 11284 habitat docker [#9209](https://github.com/habitat-sh/habitat/pull/9209) ([sean-simmons-progress](https://github.com/sean-simmons-progress)) <!-- 1.6.1032 -->
 - Bump tokio from 1.36.0 to 1.37.0 [#9207](https://github.com/habitat-sh/habitat/pull/9207) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1031 -->
