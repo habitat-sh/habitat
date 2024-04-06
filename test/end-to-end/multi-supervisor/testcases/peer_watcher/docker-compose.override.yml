@@ -1,0 +1,29 @@
+version: '2.4'
+services:
+
+  alpha:
+    # Overriding to add `--peer-watch-file` option
+    command:
+      - run
+      - --listen-ctl=0.0.0.0:9632
+      - --peer-watch-file=/hab/PEERS
+    volumes:
+      - ./testcases/peer_watcher/PEERS:/hab/PEERS
+
+  beta:
+    # Overriding to add `--peer-watch-file` option
+    command:
+      - run
+      - --listen-ctl=0.0.0.0:9632
+      - --peer-watch-file=/hab/PEERS
+    volumes:
+      - ./testcases/peer_watcher/PEERS:/hab/PEERS
+
+
+  tester:
+    extends:
+      service: test_base
+    depends_on:
+      - bastion
+      - alpha
+      - beta
