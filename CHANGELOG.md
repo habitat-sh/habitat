@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1034 -->
-## [1.6.1034](https://github.com/habitat-sh/habitat/tree/1.6.1034) (2024-04-05)
+<!-- latest_release 1.6.1035 -->
+## [1.6.1035](https://github.com/habitat-sh/habitat/tree/1.6.1035) (2024-04-06)
 
 #### Merged Pull Requests
-- Bump h2 from 0.3.24 to 0.3.26 [#9210](https://github.com/habitat-sh/habitat/pull/9210) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- add e2e test for adding peers via a peer-watch-file [#9211](https://github.com/habitat-sh/habitat/pull/9211) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- add e2e test for adding peers via a peer-watch-file [#9211](https://github.com/habitat-sh/habitat/pull/9211) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1035 -->
 - Bump h2 from 0.3.24 to 0.3.26 [#9210](https://github.com/habitat-sh/habitat/pull/9210) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1034 -->
 - CHEF-9418: Fixes peer file watching behaviour [#9208](https://github.com/habitat-sh/habitat/pull/9208) ([atrniv](https://github.com/atrniv)) <!-- 1.6.1033 -->
 - Sean simmos progress/chef 11284 habitat docker [#9209](https://github.com/habitat-sh/habitat/pull/9209) ([sean-simmons-progress](https://github.com/sean-simmons-progress)) <!-- 1.6.1032 -->
