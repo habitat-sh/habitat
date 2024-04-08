@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1035 -->
-## [1.6.1035](https://github.com/habitat-sh/habitat/tree/1.6.1035) (2024-04-06)
+<!-- latest_release 1.6.1036 -->
+## [1.6.1036](https://github.com/habitat-sh/habitat/tree/1.6.1036) (2024-04-08)
 
 #### Merged Pull Requests
-- add e2e test for adding peers via a peer-watch-file [#9211](https://github.com/habitat-sh/habitat/pull/9211) ([mwrock](https://github.com/mwrock))
+- Bump prost from 0.12.3 to 0.12.4 [#9216](https://github.com/habitat-sh/habitat/pull/9216) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump prost from 0.12.3 to 0.12.4 [#9216](https://github.com/habitat-sh/habitat/pull/9216) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1036 -->
 - add e2e test for adding peers via a peer-watch-file [#9211](https://github.com/habitat-sh/habitat/pull/9211) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1035 -->
 - Bump h2 from 0.3.24 to 0.3.26 [#9210](https://github.com/habitat-sh/habitat/pull/9210) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1034 -->
 - CHEF-9418: Fixes peer file watching behaviour [#9208](https://github.com/habitat-sh/habitat/pull/9208) ([atrniv](https://github.com/atrniv)) <!-- 1.6.1033 -->
