@@ -6,8 +6,8 @@
 //!
 //! 1. It uses a single membership rumor with internal logic for applying the rumors state, rather
 //!    than sending differential event messages.
-//! 1. If an "Alive" membership rumor is received with a higher incarnation, it takes precedent
-//!    over "Confirmed" membership rumors.
+//! 1. If an "Alive" membership rumor is received with a higher incarnation, it takes precedent over
+//!    "Confirmed" membership rumors.
 //! 1. Members can be marked "persistent", which means that they will always be taken through the
 //!    Probe cycle, regardless of their status. This allows networks to heal from partitions.
 //!
@@ -19,9 +19,9 @@
 //!
 //! The Gossip implementation has two working threads:
 //!
-//! 1. A 'push' thread, which fans out to 5 members every second (or longer, if it takes longer
-//!    than 1 second to send all the messages to all the members in the fan-out; no more frequently
-//!    than one second).
+//! 1. A 'push' thread, which fans out to 5 members every second (or longer, if it takes longer than
+//!    1 second to send all the messages to all the members in the fan-out; no more frequently than
+//!    one second).
 //! 1. A 'pull' thread, which takes messages from any push source and applies them locally.
 //!
 //! Start exploring the code base by following the thread of execution in the `server` module.

@@ -8,7 +8,7 @@ use rcgen::{Certificate as RcgenCertificate,
             CertificateParams,
             DistinguishedName,
             DnType,
-            RcgenError,
+            Error as RcgenError,
             PKCS_ECDSA_P256_SHA256};
 use rustls::{Certificate,
              PrivateKey,
@@ -20,7 +20,7 @@ use std::{fs::{self,
           path::{Path,
                  PathBuf}};
 use thiserror::Error;
-use webpki::DnsNameRef;
+use webpki::types::DnsName;
 
 const NAME_PREFIX: &str = "ctl-gateway";
 const CRT_EXTENSION: &str = "crt.pem";
@@ -38,11 +38,11 @@ pub enum Error {
     CertificateWrite(#[from] IoError),
 }
 
-pub fn generate_self_signed_certificate_and_key(subject_alternate_name: DnsNameRef,
+pub fn generate_self_signed_certificate_and_key(subject_alternate_name: &DnsName,
                                                 path: impl AsRef<Path>)
                                                 -> Result<(), Error> {
     let mut params =
-        CertificateParams::new(vec![Into::<&str>::into(subject_alternate_name).to_string(),
+        CertificateParams::new(vec![Into::<&str>::into(subject_alternate_name.as_ref()).to_string(),
                                     "localhost".to_string(),]);
     let mut distinguished_name = DistinguishedName::new();
     distinguished_name.push(DnType::OrganizationName,
@@ -99,16 +99,18 @@ pub fn latest_root_certificate_store(path: impl AsRef<Path>) -> Result<RootCertS
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{fs,
+    use std::{convert::TryFrom,
+              fs,
               time::Duration};
     use tempfile::TempDir;
-    use webpki::DnsNameRef;
+    use webpki::types::DnsName;
 
     #[test]
     fn ctl_gateway_generate_and_read_tls_files() {
         let tmpdir = TempDir::new().unwrap();
 
-        generate_self_signed_certificate_and_key(DnsNameRef::try_from_ascii_str("a_test_domain").unwrap(), &tmpdir).unwrap();
+        generate_self_signed_certificate_and_key(&DnsName::try_from("a_test_domain").unwrap(),
+                                                 &tmpdir).unwrap();
         assert_eq!(fs::read_dir(&tmpdir).unwrap().count(), 2);
         let first_path =
             get_last_path(&tmpdir, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION)).unwrap();
@@ -122,7 +124,8 @@ mod tests {
         // name.
         std::thread::sleep(Duration::from_secs(2));
 
-        generate_self_signed_certificate_and_key(DnsNameRef::try_from_ascii_str("another_domain").unwrap(), &tmpdir).unwrap();
+        generate_self_signed_certificate_and_key(&DnsName::try_from("another_domain").unwrap(),
+                                                 &tmpdir).unwrap();
         assert_eq!(fs::read_dir(&tmpdir).unwrap().count(), 4);
         let second_path =
             get_last_path(&tmpdir, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION)).unwrap();

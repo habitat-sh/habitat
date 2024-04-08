@@ -43,7 +43,7 @@ use nats_message_stream::{NatsMessage,
 use prost_types::Duration as ProstDuration;
 use rants::{Address,
             Subject};
-use state::Storage;
+use state::InitCell;
 use std::{convert::TryFrom,
           net::SocketAddr,
           time::Duration};
@@ -63,9 +63,9 @@ lazy_static! {
         "habitat.event.healthcheck".parse().expect("valid NATS subject");
 
     /// Reference to the event stream.
-    static ref NATS_MESSAGE_STREAM: Storage<NatsMessageStream> = Storage::new();
+    static ref NATS_MESSAGE_STREAM: InitCell<NatsMessageStream> = InitCell::new();
     /// Core information that is shared between all events.
-    static ref EVENT_CORE: Storage<EventCore> = Storage::new();
+    static ref EVENT_CORE: InitCell<EventCore> = InitCell::new();
 }
 
 /// Starts a new task for sending events to a NATS Streaming

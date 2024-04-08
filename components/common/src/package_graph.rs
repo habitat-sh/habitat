@@ -76,7 +76,7 @@ impl PackageGraph {
 
         for dep in deps {
             let dep_idx = self.node_idx(dep);
-            self.graph.extend_with_edges(&[(idx, dep_idx)]);
+            self.graph.extend_with_edges([(idx, dep_idx)]);
         }
 
         assert_eq!(self.graph.node_count(), self.nodes.len());

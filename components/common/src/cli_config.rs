@@ -97,8 +97,9 @@ impl CliConfig {
                                                        .with_root_certificates(server_certificates);
             if let Some(client_key) = client_key {
                 debug!("Configuring ctl-gateway TLS with client certificate");
-                let config = tls_config.with_single_cert(client_certificates.unwrap_or_default(),
-                                                         client_key)?;
+                let config =
+                    tls_config.with_client_auth_cert(client_certificates.unwrap_or_default(),
+                                                     client_key)?;
                 Ok(Some(config))
             } else {
                 Ok(Some(tls_config.with_no_client_auth()))

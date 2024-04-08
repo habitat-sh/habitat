@@ -20,10 +20,9 @@ use self::{action::{ShutdownInput,
                             ServiceOperation},
                      ConfigRendering,
                      DesiredState,
-                     HealthCheckResult,
                      PersistentServiceWrapper,
                      Service,
-                     ServiceProxy,
+                     ServiceQueryModel,
                      ServiceRunState,
                      ServiceSpec,
                      Topology},
@@ -450,11 +449,7 @@ pub(crate) mod sync {
 
         pub fn census_data(&self) -> &str { &self.0.census_data }
 
-        pub fn services_data(&self) -> &str { &self.0.services_data }
-
-        pub fn health_of(&self, service_group: &ServiceGroup) -> Option<HealthCheckResult> {
-            self.0.health_check_data.get(service_group).copied()
-        }
+        pub fn services_data(&self) -> &[ServiceQueryModel] { self.0.services_data.as_slice() }
     }
 
     pub struct GatewayStateWriteGuard<'a>(WriteGuard<'a, GatewayStateInner>);
@@ -466,14 +461,12 @@ pub(crate) mod sync {
 
         pub fn set_butterfly_data(&mut self, new_data: String) { self.0.butterfly_data = new_data }
 
-        pub fn set_services_data(&mut self, new_data: String) { self.0.services_data = new_data }
-
-        pub fn remove(&mut self, service_group: &ServiceGroup) {
-            self.0.health_check_data.remove(service_group);
+        pub fn set_services_data(&mut self, new_data: Vec<ServiceQueryModel>) {
+            self.0.services_data = new_data
         }
 
-        pub fn set_health_of(&mut self, service_group: ServiceGroup, value: HealthCheckResult) {
-            self.0.health_check_data.insert(service_group, value);
+        pub fn get_services_data_mut(&mut self) -> &mut Vec<ServiceQueryModel> {
+            self.0.services_data.as_mut()
         }
     }
 
@@ -497,14 +490,11 @@ pub(crate) mod sync {
     #[derive(Debug, Default)]
     struct GatewayStateInner {
         /// JSON returned by the /census endpoint
-        census_data:       String,
+        census_data:    String,
         /// JSON returned by the /butterfly endpoint
-        butterfly_data:    String,
+        butterfly_data: String,
         /// JSON returned by the /services endpoint
-        services_data:     String,
-        /// Data returned by /services/<SERVICE_NAME>/<GROUP_NAME>/health
-        /// endpoint
-        health_check_data: HashMap<ServiceGroup, HealthCheckResult>,
+        services_data:  Vec<ServiceQueryModel>,
     }
 
     type ManagerServicesInner = HashMap<PackageIdent, PersistentServiceWrapper>;
@@ -1648,29 +1638,30 @@ impl Manager {
                 };
             }
         }
-        let watched_service_proxies: Vec<ServiceProxy<'_>> =
+        let watched_service_proxies: Vec<ServiceQueryModel> =
             watched_services.iter()
                             .map(|(service, service_run_state)| {
-                                ServiceProxy::new(service, service_run_state, config_rendering)
+                                ServiceQueryModel::new(service, service_run_state, config_rendering)
                             })
                             .collect();
-        let mut services_to_render: Vec<ServiceProxy<'_>> =
+        let mut services_data: Vec<ServiceQueryModel> =
             service_map.iter()
                        .filter_map(|(_, svc_state)| {
                            if let Some(service) = svc_state.service() {
-                               return Some(ServiceProxy::new(service,
-                                                             svc_state.service_run_state(),
-                                                             config_rendering));
+                               return Some(ServiceQueryModel::new(service,
+                                                                  svc_state.service_run_state(),
+                                                                  config_rendering));
                            }
                            None
                        })
                        .collect();
 
-        services_to_render.extend(watched_service_proxies);
+        services_data.extend(watched_service_proxies);
 
-        let json =
-            serde_json::to_string(&services_to_render).expect("ServiceProxy::serialize failure");
-        self.state.gateway_state.lock_gsw().set_services_data(json);
+        self.state
+            .gateway_state
+            .lock_gsw()
+            .set_services_data(services_data);
     }
 
     /// Check if any elections need restarting.
@@ -2029,10 +2020,10 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
             if added < 1 {
                 return Err(Error::InvalidCertFile(path.clone()));
             } else {
-                AllowAnyAuthenticatedClient::new(root_store)
+                AllowAnyAuthenticatedClient::new(root_store).boxed()
             }
         }
-        None => NoClientAuth::new(),
+        None => NoClientAuth::boxed(),
     };
 
     let tls_config = ServerConfig::builder().with_safe_defaults()

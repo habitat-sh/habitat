@@ -20,8 +20,17 @@ Describe "event stream not connected to nats" {
 
 Describe "event stream connected to automate" {
     BeforeAll {
-        Write-Host "Building automate image..."
-        docker build -t automate ./test/end-to-end/automate
+        $env:DOCKER_BUILDKIT=1
+        try {
+            Write-Host "Building automate image..."
+            $output = docker build --progress=plain -t automate ./test/end-to-end/automate
+            if ($LASTEXITCODE -ne 0) {
+                throw "Docker build failed with exit code $LASTEXITCODE. Output: $output"
+            }
+        } catch {
+            Write-Host "Error building automate image: $_"
+            exit 1
+        }
         Write-Host "starting automate container..."
         $script:cid = docker run --rm -d -p 4222:4222 automate
         Write-Host "Waiting for automate to get healthy..."
@@ -63,6 +72,10 @@ Describe "event stream connected to automate" {
 
         # Check that the output contains a connect message and that the server received a health check message
         $out = (docker exec $cid chef-automate applications show-svcs --service-name test-probe)
-        $out | Should -BeLike "*OK"
+        $out[1] | Should -BeLike "*OK"
+        # This change to index into an array is a response to a change in Automate (linked below)
+        # where the header line is now written to stdout as opposed to stderr.  This resulted in an
+        # array that needs to be navigated as opposed to a string that could be searched directly.
+        # https://github.com/chef/automate/commit/5f5af20f562acb237668202992a76610c0a34896#diff-958adaffe8182cb66dec1ecbe75667e1052e051cc77b4e54f7d336ab427c1bfbL398
     }
 }

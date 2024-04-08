@@ -21,8 +21,10 @@ mod terminator;
 use self::{context::RenderContext,
            hook_runner::HookRunner,
            hooks::{HookCompileTable,
-                   HookTable},
+                   HookTable,
+                   HookTableQueryModel},
            supervisor::{PidUpdate,
+                        SupervisedProcessQueryModel,
                         Supervisor}};
 pub use self::{health::{HealthCheckBundle,
                         HealthCheckHookStatus,
@@ -52,11 +54,11 @@ use habitat_common::templating::package::DEFAULT_USER;
 pub use habitat_common::templating::{config::{Cfg,
                                               UserConfigPath},
                                      package::{Env,
-                                               Pkg,
-                                               PkgProxy}};
+                                               Pkg}};
 use habitat_common::{outputln,
                      templating::{config::CfgRenderer,
-                                  hooks::Hook},
+                                  hooks::Hook,
+                                  package::PkgQueryModel},
                      FeatureFlag};
 #[cfg(windows)]
 use habitat_core::os::users;
@@ -71,7 +73,8 @@ use habitat_core::{crypto::Blake2bHash,
                    package::{metadata::Bind,
                              PackageIdent,
                              PackageInstall},
-                   service::{ServiceBind,
+                   service::{HealthCheckInterval,
+                             ServiceBind,
                              ServiceGroup},
                    ChannelIdent};
 use habitat_launcher_client::LauncherCli;
@@ -93,6 +96,7 @@ use serde::{ser::{Error as _,
             Serializer};
 use std::{self,
           collections::HashSet,
+          convert::TryFrom,
           fmt,
           fs,
           ops::Deref,
@@ -704,9 +708,6 @@ impl Service {
         let service_event_metadata = self.to_service_metadata();
         let service_health_result = Arc::clone(&self.health_check_result);
         let gateway_state = Arc::clone(&self.gateway_state);
-        // Initialize the gateway_state for this service to Unknown.
-        gateway_state.lock_gsw()
-                     .set_health_of(service_group.clone(), HealthCheckResult::Unknown);
         let f = async move {
             while let Some(HealthCheckBundle { status,
                                                result,
@@ -718,7 +719,13 @@ impl Service {
                                       .expect("Could not unlock service_health_result") = result;
 
                 gateway_state.lock_gsw()
-                             .set_health_of(service_group.clone(), result);
+                             .get_services_data_mut()
+                             .iter_mut()
+                             .for_each(|service| {
+                                 if service.service_group == service_group {
+                                     service.health_check = result;
+                                 }
+                             });
 
                 event::health_check(service_event_metadata.clone(), result, status, interval);
             }
@@ -789,13 +796,11 @@ impl Service {
         self.detach();
 
         let service_group = self.service_group.clone();
-        let gs = Arc::clone(&self.gateway_state);
 
         self.supervisor
             .lock()
             .expect("Couldn't lock supervisor")
             .stop(shutdown_config);
-        gs.lock_gsw().remove(&service_group);
 
         if let Some(hook) = self.post_stop() {
             if let Err(e) = hook.into_future().await {
@@ -1559,96 +1564,126 @@ pub enum ConfigRendering {
     Redacted,
 }
 
-/// This is a proxy struct to represent what information we're writing to the dat file, and
-/// therefore what information gets sent out via the HTTP API. Right now, we're just wrapping the
-/// actual Service struct, but this will give us something we can refactor against without
-/// worrying about breaking the data returned to users.
-pub struct ServiceProxy<'a> {
-    service:           &'a Service,
-    service_run_state: &'a ServiceRunState,
-    config_rendering:  ConfigRendering,
-}
+#[derive(Debug, Clone, Serialize)]
+pub struct UnixTimestamp(u64);
 
-impl<'a> ServiceProxy<'a> {
-    pub fn new(service: &'a Service,
-               service_run_state: &'a ServiceRunState,
-               config_rendering: ConfigRendering)
-               -> Self {
-        ServiceProxy { service,
-                       service_run_state,
-                       config_rendering }
+impl TryFrom<SystemTime> for UnixTimestamp {
+    type Error = std::time::SystemTimeError;
+
+    fn try_from(timestamp: SystemTime) -> result::Result<Self, Self::Error> {
+        Ok(UnixTimestamp(timestamp.duration_since(SystemTime::UNIX_EPOCH)?.as_secs()))
     }
 }
 
-impl<'a> Serialize for ServiceProxy<'a> {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let num_fields: usize = if self.config_rendering == ConfigRendering::Full {
-            31
-        } else {
-            30
-        };
+/// This is a queryable representation of a service. It allows us to separate the
+/// structure of the data returned through APIs from the actual internal representation.
+/// Importantly this allows us to refactor the API and internal models without
+/// worrying about breaking the data returned to users.
+#[derive(Debug, Clone, Serialize)]
+pub struct ServiceQueryModel {
+    pub all_pkg_binds:          Vec<Bind>,
+    pub binding_mode:           BindingMode,
+    pub binds:                  Vec<ServiceBind>,
+    pub bldr_url:               String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cfg:                    Option<Cfg>,
+    pub channel:                ChannelIdent,
+    pub config_from:            Option<PathBuf>,
+    pub desired_state:          DesiredState,
+    pub health_check:           HealthCheckResult,
+    pub hooks:                  HookTableQueryModel,
+    pub initialized:            bool,
+    pub last_election_status:   ElectionStatus,
+    pub manager_fs_cfg:         Arc<FsCfg>,
+    pub pkg:                    PkgQueryModel,
+    pub process:                SupervisedProcessQueryModel,
+    pub last_process_state:     Option<LastProcessState>,
+    pub next_restart_at:        Option<UnixTimestamp>,
+    pub restart_count:          u64,
+    pub restart_config:         ServiceRestartConfig,
+    pub service_group:          ServiceGroup,
+    pub spec_file:              PathBuf,
+    pub spec_ident:             PackageIdent,
+    pub spec_identifier:        String,
+    pub svc_encrypted_password: Option<String>,
+    pub health_check_interval:  HealthCheckInterval,
+    pub sys:                    Arc<Sys>,
+    pub topology:               Topology,
+    pub update_strategy:        UpdateStrategy,
+    pub update_condition:       UpdateCondition,
+    pub user_config_updated:    bool,
+}
 
-        let s = &self.service;
-        let mut strukt = serializer.serialize_struct("service", num_fields)?;
-        strukt.serialize_field("all_pkg_binds", &s.all_pkg_binds)?;
-        strukt.serialize_field("binding_mode", &s.spec.binding_mode)?;
-        strukt.serialize_field("binds", &s.spec.binds)?;
-        strukt.serialize_field("bldr_url", &s.spec.bldr_url)?;
+impl ServiceQueryModel {
+    pub fn new(service: &Service,
+               service_run_state: &ServiceRunState,
+               config_rendering: ConfigRendering)
+               -> Self {
+        ServiceQueryModel { all_pkg_binds:          service.all_pkg_binds.clone(),
+                            binding_mode:           service.spec.binding_mode,
+                            binds:                  service.spec.binds.clone(),
+                            bldr_url:               service.spec.bldr_url.clone(),
+                            cfg:                    match config_rendering {
+                                ConfigRendering::Full => Some(service.cfg.clone()),
+                                ConfigRendering::Redacted => None,
+                            },
+                            channel:                service.spec.channel.clone(),
+                            config_from:            service.spec.config_from.clone(),
+                            desired_state:          service.spec.desired_state,
+                            health_check:
+                                (*service.health_check_result
+                                         .lock()
+                                         .expect("Couldn't lock health check result for \
+                                                  serialization")),
+                            hooks:                  HookTableQueryModel::new(&service.hooks),
+                            initialized:            service.initialized(),
+                            last_election_status:   service.last_election_status,
+                            manager_fs_cfg:         service.manager_fs_cfg.clone(),
+                            pkg:                    PkgQueryModel::new(&service.pkg),
+                            process:
+                                SupervisedProcessQueryModel::new(service.supervisor
+                                                                        .lock()
+                                                                        .expect("Couldn't lock \
+                                                                                 supervisor for \
+                                                                                 serialization")
+                                                                        .deref()),
+                            last_process_state:     service_run_state.last_process_state.clone(),
+                            next_restart_at:
+                                service_run_state.restart_backoff
+                                                 .duration_until_next_attempt_start()
+                                                 .and_then(|duration| {
+                                                     SystemTime::now().checked_add(duration)
+                                                 })
+                                                 .and_then(|timestamp| {
+                                                     UnixTimestamp::try_from(timestamp).ok()
+                                                 }),
+                            restart_count:          service_run_state.restart_count,
+                            restart_config:         service_run_state.restart_config.clone(),
+                            service_group:          service.service_group.clone(),
+                            spec_file:              service.spec_file.clone(),
+                            spec_ident:             service.spec.ident.clone(),
+                            spec_identifier:        service.spec.ident.to_string(),
+                            svc_encrypted_password: service.spec.svc_encrypted_password.clone(),
+                            health_check_interval:  service.spec.health_check_interval,
+                            sys:                    service.sys.clone(),
+                            topology:               service.spec.topology,
+                            update_strategy:        service.spec.update_strategy,
+                            update_condition:       service.spec.update_condition,
+                            user_config_updated:    service.user_config_updated, }
+    }
+}
 
-        if self.config_rendering == ConfigRendering::Full {
-            strukt.serialize_field("cfg", &s.cfg)?;
-        }
-
-        strukt.serialize_field("channel", &s.spec.channel)?;
-        strukt.serialize_field("config_from", &s.spec.config_from)?;
-        strukt.serialize_field("desired_state", &s.spec.desired_state)?;
-        strukt.serialize_field("health_check", &s.health_check_result)?;
-        strukt.serialize_field("hooks", &s.hooks)?;
-        strukt.serialize_field("initialized", &s.initialized())?;
-        strukt.serialize_field("last_election_status", &s.last_election_status)?;
-        strukt.serialize_field("manager_fs_cfg", &s.manager_fs_cfg)?;
-
-        let pkg_proxy = PkgProxy::new(&s.pkg);
-        strukt.serialize_field("pkg", &pkg_proxy)?;
-
-        strukt.serialize_field("process",
-                               s.supervisor
-                                .lock()
-                                .expect("Couldn't lock supervisor")
-                                .deref())?;
-        strukt.serialize_field("last_process_state",
-                               &self.service_run_state.last_process_state)?;
-        strukt.serialize_field("next_restart_at",
-                               &self.service_run_state
-                                    .restart_backoff
-                                    .duration_until_next_attempt_start()
-                                    .and_then(|duration| SystemTime::now().checked_add(duration))
-                                    .and_then(|timestamp| {
-                                        timestamp.duration_since(SystemTime::UNIX_EPOCH).ok()
-                                    })
-                                    .map(|duration| duration.as_secs()))?;
-        strukt.serialize_field("restart_count", &self.service_run_state.restart_count)?;
-        strukt.serialize_field("restart_config", &self.service_run_state.restart_config)?;
-        strukt.serialize_field("service_group", &s.service_group)?;
-        strukt.serialize_field("spec_file", &s.spec_file)?;
-        // Deprecated field; use spec_identifier instead
-        strukt.serialize_field("spec_ident", &s.spec.ident)?;
-        strukt.serialize_field("spec_identifier", &s.spec.ident.to_string())?;
-        strukt.serialize_field("svc_encrypted_password", &s.spec.svc_encrypted_password)?;
-        strukt.serialize_field("health_check_interval", &s.spec.health_check_interval)?;
-        strukt.serialize_field("sys", &s.sys)?;
-        strukt.serialize_field("topology", &s.spec.topology)?;
-        strukt.serialize_field("update_strategy", &s.spec.update_strategy)?;
-        strukt.serialize_field("update_condition", &s.spec.update_condition)?;
-        strukt.serialize_field("user_config_updated", &s.user_config_updated)?;
-        strukt.end()
+impl From<&ServiceQueryModel> for habitat_sup_protocol::types::ServiceStatus {
+    fn from(service: &ServiceQueryModel) -> Self {
+        Self { ident:         (*service.pkg.ident.as_ref()).clone().into(),
+               process:       Some((&service.process).into()),
+               service_group: service.service_group.clone().into(),
+               desired_state: Some(service.desired_state.into()), }
     }
 }
 
 #[cfg(test)]
-#[cfg(any(all(target_os = "linux", any(target_arch = "x86_64")),
+#[cfg(any(all(target_os = "linux", target_arch = "x86_64"),
           all(target_os = "windows", target_arch = "x86_64"),))]
 mod tests {
     use super::*;
@@ -1712,9 +1747,9 @@ mod tests {
         let service_wrapper = initialize_test_service().await;
 
         // With config
-        let proxy_with_config = ServiceProxy::new(service_wrapper.service().unwrap(),
-                                                  service_wrapper.service_run_state(),
-                                                  ConfigRendering::Full);
+        let proxy_with_config = ServiceQueryModel::new(service_wrapper.service().unwrap(),
+                                                       service_wrapper.service_run_state(),
+                                                       ConfigRendering::Full);
         let proxies_with_config = vec![proxy_with_config];
         let json_with_config =
             serde_json::to_string(&proxies_with_config).expect("Expected to convert \
@@ -1723,9 +1758,9 @@ mod tests {
         assert_valid(&json_with_config, "http_gateway_services_schema.json");
 
         // Without config
-        let proxy_without_config = ServiceProxy::new(service_wrapper.service().unwrap(),
-                                                     service_wrapper.service_run_state(),
-                                                     ConfigRendering::Redacted);
+        let proxy_without_config = ServiceQueryModel::new(service_wrapper.service().unwrap(),
+                                                          service_wrapper.service_run_state(),
+                                                          ConfigRendering::Redacted);
         let proxies_without_config = vec![proxy_without_config];
         let json_without_config =
             serde_json::to_string(&proxies_without_config).expect("Expected  to convert \

@@ -35,7 +35,7 @@ const HAB_STUDIO_SECRET: &str = "HAB_STUDIO_SECRET_";
 
 pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
     let mut args = args.to_vec();
-    if args.get(0) == Some(&OsString::from("rm")) {
+    if args.first() == Some(&OsString::from("rm")) {
         return Err(Error::CannotRemoveDockerStudio);
     }
 

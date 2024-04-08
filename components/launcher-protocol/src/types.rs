@@ -3,6 +3,7 @@ use crate::{error::{Error,
             generated};
 use prost::Message;
 use std::{collections::BTreeMap,
+          convert::TryFrom,
           fmt};
 
 pub trait LauncherMessage
@@ -45,8 +46,9 @@ impl LauncherMessage for NetErr {
 
     fn from_proto(proto: generated::NetErr) -> Result<Self> {
         Ok(NetErr {
-            code: generated::ErrCode::from_i32(proto.code.ok_or(Error::ProtocolMismatch("code"))?)
-                .ok_or(Error::ProtocolMismatch("code"))?,
+            code: generated::ErrCode::try_from(
+                    proto.code.ok_or(Error::ProtocolMismatch("code"))?
+                ).or(Err(Error::ProtocolMismatch("code")))?,
             msg: proto.msg.ok_or(Error::ProtocolMismatch("msg"))?,
         })
     }
@@ -218,12 +220,12 @@ impl LauncherMessage for TerminateOk {
             exit_code: proto
                 .exit_code
                 .ok_or(Error::ProtocolMismatch("exit_code"))?,
-            shutdown_method: generated::ShutdownMethod::from_i32(
+            shutdown_method: generated::ShutdownMethod::try_from(
                 proto
                     .shutdown_method
                     .ok_or(Error::ProtocolMismatch("shutdown_method"))?,
             )
-            .ok_or(Error::ProtocolMismatch("shutdown_method"))?,
+            .or(Err(Error::ProtocolMismatch("shutdown_method")))?,
         })
     }
 }

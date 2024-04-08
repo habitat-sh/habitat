@@ -1,2 +1,4 @@
 documentation:
-  - 'components/docs-chef-io/**/*'
+- any:
+  - changed-files:
+    - any-glob-to-any-file: 'components/docs-chef-io/**/*'

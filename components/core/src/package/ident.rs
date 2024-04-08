@@ -231,6 +231,7 @@ impl PartialOrd for PackageIdent {
     /// * If the names are not equal, they cannot be compared.
     /// * If the versions are greater/lesser, return that as the ordering.
     /// * If the versions are equal, return the greater/lesser for the release.
+    #[allow(clippy::non_canonical_partial_ord_impl)]
     fn partial_cmp(&self, other: &PackageIdent) -> Option<Ordering> {
         if self.name != other.name {
             return None;

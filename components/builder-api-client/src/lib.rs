@@ -207,7 +207,7 @@ pub struct PendingOriginInvitationsResponse {
 // `DateTime<Utc>`-typed struct fields.
 mod json_date_format {
     use chrono::{DateTime,
-                 TimeZone,
+                 NaiveDateTime,
                  Utc};
     use serde::{self,
                 Deserialize,
@@ -218,8 +218,8 @@ mod json_date_format {
         where D: Deserializer<'de>
     {
         let s = String::deserialize(deserializer)?;
-        Utc.datetime_from_str(&s, DATE_FORMAT)
-           .map_err(serde::de::Error::custom)
+        NaiveDateTime::parse_from_str(&s, DATE_FORMAT).map(|v| v.and_utc())
+                                                      .map_err(serde::de::Error::custom)
     }
 }
 

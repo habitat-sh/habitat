@@ -31,9 +31,7 @@ use habitat_launcher_protocol as protocol;
 use log::{debug,
           error,
           warn};
-use serde::{ser::SerializeStruct,
-            Serialize,
-            Serializer};
+use serde::Serialize;
 #[cfg(windows)]
 use std::env;
 use std::{fs::File,
@@ -42,7 +40,6 @@ use std::{fs::File,
                Write},
           path::{Path,
                  PathBuf},
-          result,
           time::{Duration,
                  SystemTime}};
 
@@ -72,6 +69,37 @@ impl PidUpdate {
     /// Check if the process is still running
     pub fn is_running(&self) -> bool { self.new_pid.is_some() }
 }
+
+/// Represents the queryable state of the supervised process
+#[derive(Debug, Clone, Serialize)]
+pub struct SupervisedProcessQueryModel {
+    pub pid:           Option<Pid>,
+    pub state:         ProcessState,
+    pub state_entered: u64,
+}
+
+impl SupervisedProcessQueryModel {
+    pub fn new(supervisor: &Supervisor) -> Self {
+        Self { pid:           supervisor.pid,
+               state:         supervisor.state,
+               state_entered: supervisor.since_epoch().as_secs(), }
+    }
+}
+
+impl From<&SupervisedProcessQueryModel> for habitat_sup_protocol::types::ProcessStatus {
+    fn from(process: &SupervisedProcessQueryModel) -> Self {
+        // The process id is already u32 on windows, but that is not the case for other platforms
+        #[cfg(target_os = "windows")]
+        let pid: Option<u32> = process.pid;
+        #[cfg(not(target_os = "windows"))]
+        let pid: Option<u32> = process.pid.map(|value| value as u32);
+
+        Self { elapsed: Some(SystemTime::UNIX_EPOCH.checked_add(Duration::from_secs(process.state_entered)).and_then(|timestamp| timestamp.elapsed().ok()).map(|timestamp| timestamp.as_secs()).unwrap_or_default()),
+               state:   process.state.into(),
+               pid }
+    }
+}
+
 #[derive(Debug)]
 pub struct Supervisor {
     service_group: ServiceGroup,
@@ -380,19 +408,6 @@ impl Supervisor {
     }
 }
 
-// This is used to generate the output of the HTTP gateway
-impl Serialize for Supervisor {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let mut strukt = serializer.serialize_struct("supervisor", 3)?;
-        strukt.serialize_field("pid", &self.pid)?;
-        strukt.serialize_field("state", &self.state)?;
-        strukt.serialize_field("state_entered", &self.since_epoch().as_secs())?;
-        strukt.end()
-    }
-}
-
 fn read_pid<T>(pid_file: T) -> Option<Pid>
     where T: AsRef<Path>
 {
@@ -408,7 +423,7 @@ fn read_pid<T>(pid_file: T) -> Option<Pid>
             match reader.lines().next() {
                 Some(Ok(line)) => {
                     match line.parse::<Pid>() {
-                        Ok(pid) if pid == 0 => {
+                        Ok(0) => {
                             error!(target: "pidfile_tracing", "Read PID of 0 from {}!", p.display());
                             // Treat this the same as a corrupt pid
                             // file, because that's basically what it

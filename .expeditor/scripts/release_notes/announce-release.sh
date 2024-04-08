@@ -18,7 +18,7 @@ $(cat release-notes.md)
 ---
 ## Get the Build
 
-You can download binaries directly from [chef.io/downloads](https://www.chef.io/downloads/tools/habitat?v=$build_version).
+You can download binaries from (https://www.chef.io/downloads).
 EOH
 )
 

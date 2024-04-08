@@ -23,7 +23,7 @@ finish_setup() {
       local key_text
       # Import the secret origin key, required for signing packages
       info "Importing '$key' secret origin key"
-      if key_text=$($hab origin key export --type secret "$key"); then
+      if key_text=$(HAB_LICENSE="$HAB_LICENSE" $hab origin key export --type secret "$key"); then
         printf -- "%s" "${key_text}" | _hab origin key import
       else
         echo "Error exporting $key key"
@@ -49,7 +49,7 @@ finish_setup() {
       fi
       # Attempt to import the public origin key, which can be used for local
       # package installations where the key may not yet be uploaded.
-      if key_text=$($hab origin key export --type public "$key" 2> /dev/null); then
+      if key_text=$(HAB_LICENSE="$HAB_LICENSE" $hab origin key export --type public "$key" 2> /dev/null); then
         info "Importing '$key' public origin key"
         printf -- "%s" "${key_text}" | _hab origin key import
       else
@@ -119,5 +119,6 @@ PROFILE
 # caller's environment.
 _hab() (
     unset HAB_CACHE_KEY_PATH
-    $bb env FS_ROOT="$HAB_STUDIO_ROOT" "$hab" "$@"
+    # Set the HAB_LICENSE because the license accepted files don't yet exist on the chroot filesystem
+    $bb env FS_ROOT="$HAB_STUDIO_ROOT" HAB_LICENSE="$HAB_LICENSE" "$hab" "$@"
 )

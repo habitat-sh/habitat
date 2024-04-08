@@ -41,8 +41,6 @@ use prometheus::{self,
                  TextEncoder};
 use rustls::ServerConfig;
 use serde::Serialize;
-use serde_json::{self,
-                 Value as Json};
 use std::{self,
           cell::Cell,
           fs::File,
@@ -227,7 +225,6 @@ struct Services {}
 
 impl Services {
     // Route registration
-    //
     pub fn register(cfg: &mut ServiceConfig) {
         cfg.route("/services", web::get().to(services_gsr))
            .route("/services/{svc}/{group}",
@@ -249,7 +246,6 @@ struct Butterfly {}
 
 impl Butterfly {
     // Route registration
-    //
     pub fn register(cfg: &mut ServiceConfig) {
         cfg.service(web::resource("/butterfly").route(web::get().to(butterfly_gsr))
                                                .wrap_fn(redact_http_middleware));
@@ -260,7 +256,6 @@ struct Census {}
 
 impl Census {
     // Route registration
-    //
     pub fn register(cfg: &mut ServiceConfig) {
         cfg.service(web::resource("/census").route(web::get().to(census_gsr))
                                             .wrap_fn(redact_http_middleware));
@@ -307,7 +302,7 @@ impl Server {
             debug!("http_gateway server configured");
 
             let bind = match tls_config {
-                Some(c) => server.bind_rustls(listen_addr.to_string(), c),
+                Some(c) => server.bind_rustls_021(listen_addr.to_string(), c),
                 None => server.bind(listen_addr.to_string()),
             };
             debug!("http_gateway server port bound");
@@ -360,8 +355,7 @@ async fn census_gsr(state: Data<AppState>) -> HttpResponse {
 /// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
 async fn services_gsr(state: Data<AppState>) -> HttpResponse {
-    let data = state.gateway_state.lock_gsr().services_data().to_string();
-    json_response(data)
+    HttpResponse::Ok().json(state.gateway_state.lock_gsr().services_data())
 }
 
 /// # Locking (see locking.md)
@@ -394,10 +388,13 @@ fn config_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
 
-    match service_from_services(&service_group,
-                                state.gateway_state.lock_gsr().services_data())
+    match state.gateway_state
+               .lock_gsr()
+               .services_data()
+               .iter()
+               .find(|service| service.service_group == service_group)
     {
-        Some(mut s) => HttpResponse::Ok().json(s["cfg"].take()),
+        Some(service) => HttpResponse::Ok().json(&service.cfg),
         None => HttpResponse::NotFound().finish(),
     }
 }
@@ -430,7 +427,14 @@ fn health_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
 
-    if let Some(health_check) = state.gateway_state.lock_gsr().health_of(&service_group) {
+    let service_health_check = state.gateway_state
+                                    .lock_gsr()
+                                    .services_data()
+                                    .iter()
+                                    .find(|service| service.service_group == service_group)
+                                    .map(|service| service.health_check);
+
+    if let Some(health_check) = service_health_check {
         let mut body = HealthCheckBody::default();
         let stdout_path = hooks::stdout_log_path::<HealthCheckHook>(service_group.service());
         let stderr_path = hooks::stderr_log_path::<HealthCheckHook>(service_group.service());
@@ -480,10 +484,13 @@ fn service_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) 
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
 
-    match service_from_services(&service_group,
-                                state.gateway_state.lock_gsr().services_data())
+    match state.gateway_state
+               .lock_gsr()
+               .services_data()
+               .iter()
+               .find(|service| service.service_group == service_group)
     {
-        Some(s) => HttpResponse::Ok().json(s),
+        Some(service) => HttpResponse::Ok().json(service),
         None => HttpResponse::NotFound().finish(),
     }
 }
@@ -511,16 +518,6 @@ async fn metrics() -> HttpResponse {
 
 async fn doc() -> HttpResponse { HttpResponse::Ok().content_type("text/html").body(APIDOCS) }
 // End route handlers
-
-fn service_from_services(service_group: &ServiceGroup, services_json: &str) -> Option<Json> {
-    match serde_json::from_str(services_json) {
-        Ok(Json::Array(services)) => {
-            services.into_iter()
-                    .find(|s| s["service_group"] == service_group.as_ref())
-        }
-        _ => None,
-    }
-}
 
 #[cfg(test)]
 mod tests {

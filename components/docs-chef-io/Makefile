@@ -3,14 +3,15 @@
 SHELL=bash
 
 preview_netlify: chef_web_docs
-	cp -R content/* chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/content
-	cp -R static/* chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/static
-	cp -R config.toml chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/
-	pushd chef-web-docs && make bundle; hugo --gc --minify --buildFuture && popd
+	rm -rf chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/*
+	cp -R content chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io
+	cp -R static chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io
+	cp -R config.toml chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io
+	pushd chef-web-docs && bash ./scripts/netlify-deploy-preview.sh && popd
 
 serve: chef_web_docs
-	echo "replace github.com/habitat-sh/habitat/components/docs-chef-io => ../" >> chef-web-docs/go.mod
-	pushd chef-web-docs && make bundle; hugo server --buildDrafts --buildFuture --noHTTPCache --ignoreVendorPaths "github.com/habitat-sh/habitat/**" && popd
+	printf "go 1.22\n\nuse .\nuse ../" > chef-web-docs/hugo.work
+	pushd chef-web-docs && make bundle && HUGO_MODULE_WORKSPACE=hugo.work hugo server --buildDrafts --buildFuture --noHTTPCache --ignoreVendorPaths "github.com/habitat-sh/habitat/components/docs-chef-io" && popd
 
 chef_web_docs:
 	if [ -d "chef-web-docs/" ]; then \
@@ -20,7 +21,8 @@ chef_web_docs:
 	fi
 
 clean_all:
-	pushd chef-web-docs && make clean_all && popd
+	rm -rf chef-web-docs
+	hugo mod clean
 
 lint: assets
 	hugo -D

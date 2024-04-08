@@ -254,29 +254,26 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "assertion failed")]
     fn services_with_different_member_ids_are_not_equal() {
         let s1 = create_service("adam");
         let s2 = create_service("shanku");
-        assert_eq!(s1, s2);
+        assert_ne!(s1, s2);
     }
 
     #[test]
-    #[should_panic(expected = "assertion failed")]
     fn services_with_different_incarnations_are_not_equal() {
         let s1 = create_service("adam");
         let mut s2 = create_service("adam");
         s2.incarnation = 1;
-        assert_eq!(s1, s2);
+        assert_ne!(s1, s2);
     }
 
     #[test]
-    #[should_panic(expected = "assertion failed")]
     fn services_with_different_service_groups_are_not_equal() {
         let s1 = create_service("adam");
         let mut s2 = create_service("adam");
         s2.service_group = ServiceGroup::from_str("adam.fragile").unwrap();
-        assert_eq!(s1, s2);
+        assert_ne!(s1, s2);
     }
 
     // Order

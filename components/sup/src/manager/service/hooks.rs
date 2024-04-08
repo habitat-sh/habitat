@@ -563,6 +563,44 @@ impl HookCompileTable {
     }
 }
 
+// Queryable representation of a hook
+#[derive(Debug, Clone, Serialize)]
+pub struct HookQueryModel {
+    pub render_pair:     PathBuf,
+    pub stdout_log_path: PathBuf,
+    pub stderr_log_path: PathBuf,
+}
+
+// Queryable representation of all hooks of a service
+#[derive(Debug, Clone, Serialize)]
+pub struct HookTableQueryModel {
+    pub health_check: Option<HookQueryModel>,
+    pub init:         Option<HookQueryModel>,
+    pub file_updated: Option<HookQueryModel>,
+    pub reload:       Option<HookQueryModel>,
+    pub reconfigure:  Option<HookQueryModel>,
+    pub suitability:  Option<HookQueryModel>,
+    pub run:          Option<HookQueryModel>,
+    pub post_run:     Option<HookQueryModel>,
+    pub post_stop:    Option<HookQueryModel>,
+}
+
+impl HookTableQueryModel {
+    pub fn new(hook_table: &HookTable) -> HookTableQueryModel {
+        HookTableQueryModel {
+            health_check: hook_table.health_check.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            init: hook_table.init.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            file_updated: hook_table.file_updated.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            reload: hook_table.reload.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            reconfigure: hook_table.reconfigure.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            suitability: hook_table.suitability.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            run: hook_table.run.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            post_run: hook_table.post_run.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            post_stop: hook_table.post_stop.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() })
+        }
+    }
+}
+
 // Hooks wrapped in Arcs represent a possibly-temporary state while we
 // refactor hooks to be able to run asynchronously.
 #[derive(Debug, Default, Serialize)]

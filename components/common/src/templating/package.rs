@@ -11,17 +11,14 @@ use crate::{error::{Error,
             util::path};
 use habitat_core::package::metadata::PackageType;
 use log::debug;
-use serde::{ser::SerializeStruct,
-            Deserialize,
-            Serialize,
-            Serializer};
+use serde::{Deserialize,
+            Serialize};
 use std::{collections::{BTreeMap,
                         HashMap},
           convert::TryFrom,
           env,
           ops::Deref,
-          path::PathBuf,
-          result};
+          path::PathBuf};
 
 pub const DEFAULT_USER: &str = "hab";
 const DEFAULT_GROUP: &str = "hab";
@@ -129,51 +126,65 @@ impl Pkg {
     }
 }
 
-/// This is a proxy struct to represent the data about a Pkg that we actually want to be
-/// serialized, similar to ServiceProxy
-pub struct PkgProxy<'a> {
-    pkg: &'a Pkg,
+/// Queryable representation of service package
+#[derive(Debug, Clone, Serialize)]
+pub struct PkgQueryModel {
+    #[serde(with = "util::serde::string")]
+    pub ident:                   FullyQualifiedPackageIdent,
+    pub origin:                  String,
+    pub name:                    String,
+    pub version:                 String,
+    pub release:                 String,
+    pub deps:                    Vec<PackageIdent>,
+    pub dependencies:            Vec<String>,
+    pub env:                     Env,
+    pub exposes:                 Vec<String>,
+    pub exports:                 BTreeMap<String, String>,
+    pub path:                    PathBuf,
+    pub svc_path:                PathBuf,
+    pub svc_config_path:         PathBuf,
+    pub svc_config_install_path: PathBuf,
+    pub svc_data_path:           PathBuf,
+    pub svc_files_path:          PathBuf,
+    pub svc_static_path:         PathBuf,
+    pub svc_var_path:            PathBuf,
+    pub svc_pid_file:            PathBuf,
+    pub svc_run:                 PathBuf,
+    pub svc_user:                String,
+    pub svc_group:               String,
+    pub shutdown_signal:         ShutdownSignal,
+    pub shutdown_timeout:        ShutdownTimeout,
 }
 
-impl<'a> PkgProxy<'a> {
-    pub fn new(p: &'a Pkg) -> Self { PkgProxy { pkg: p } }
-
-    pub fn dependencies(&self) -> Vec<String> {
-        self.pkg.deps.iter().map(PackageIdent::to_string).collect()
-    }
-}
-
-impl<'a> Serialize for PkgProxy<'a> {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let p = &self.pkg;
-        let mut strukt = serializer.serialize_struct("pkg", 21)?;
-        strukt.serialize_field("ident", &p.ident.to_string())?;
-        strukt.serialize_field("origin", &p.origin)?;
-        strukt.serialize_field("name", &p.name)?;
-        strukt.serialize_field("version", &p.version)?;
-        strukt.serialize_field("release", &p.release)?;
-        strukt.serialize_field("deps", &p.deps)?;
-        strukt.serialize_field("dependencies", &self.dependencies())?;
-        strukt.serialize_field("env", &p.env)?;
-        strukt.serialize_field("exposes", &p.exposes)?;
-        strukt.serialize_field("exports", &p.exports)?;
-        strukt.serialize_field("path", &p.path)?;
-        strukt.serialize_field("svc_path", &p.svc_path)?;
-        strukt.serialize_field("svc_config_path", &p.svc_config_path)?;
-        strukt.serialize_field("svc_config_install_path", &p.svc_config_install_path)?;
-        strukt.serialize_field("svc_data_path", &p.svc_data_path)?;
-        strukt.serialize_field("svc_files_path", &p.svc_files_path)?;
-        strukt.serialize_field("svc_static_path", &p.svc_static_path)?;
-        strukt.serialize_field("svc_var_path", &p.svc_var_path)?;
-        strukt.serialize_field("svc_pid_file", &p.svc_pid_file)?;
-        strukt.serialize_field("svc_run", &p.svc_run)?;
-        strukt.serialize_field("svc_user", &p.svc_user)?;
-        strukt.serialize_field("svc_group", &p.svc_group)?;
-        strukt.serialize_field("shutdown_signal", &p.shutdown_signal)?;
-        strukt.serialize_field("shutdown_timeout", &p.shutdown_timeout)?;
-        strukt.end()
+impl PkgQueryModel {
+    pub fn new(pkg: &Pkg) -> PkgQueryModel {
+        PkgQueryModel { ident:                   pkg.ident.clone(),
+                        origin:                  pkg.origin.clone(),
+                        name:                    pkg.name.clone(),
+                        version:                 pkg.version.clone(),
+                        release:                 pkg.release.clone(),
+                        deps:                    pkg.deps.clone(),
+                        dependencies:            pkg.deps
+                                                    .iter()
+                                                    .map(PackageIdent::to_string)
+                                                    .collect(),
+                        env:                     pkg.env.clone(),
+                        exposes:                 pkg.exposes.clone(),
+                        exports:                 pkg.exports.clone(),
+                        path:                    pkg.path.clone(),
+                        svc_path:                pkg.svc_path.clone(),
+                        svc_config_path:         pkg.svc_config_path.clone(),
+                        svc_config_install_path: pkg.svc_config_install_path.clone(),
+                        svc_data_path:           pkg.svc_data_path.clone(),
+                        svc_files_path:          pkg.svc_files_path.clone(),
+                        svc_static_path:         pkg.svc_static_path.clone(),
+                        svc_var_path:            pkg.svc_var_path.clone(),
+                        svc_pid_file:            pkg.svc_pid_file.clone(),
+                        svc_run:                 pkg.svc_run.clone(),
+                        svc_user:                pkg.svc_user.clone(),
+                        svc_group:               pkg.svc_group.clone(),
+                        shutdown_signal:         pkg.shutdown_signal,
+                        shutdown_timeout:        pkg.shutdown_timeout, }
     }
 }
 

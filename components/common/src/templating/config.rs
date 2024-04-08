@@ -1094,9 +1094,9 @@ mod test {
         fs::create_dir_all(&dir_a).expect("create dir_a");
         fs::create_dir_all(&dir_c).expect("create dir_b and dir_c");
 
-        create_with_content(&dir_a.join("foo.txt"), "Hello world!");
-        create_with_content(&dir_b.join("bar.txt"), "Hello world!");
-        create_with_content(&dir_c.join("baz.txt"), "Hello world!");
+        create_with_content(dir_a.join("foo.txt"), "Hello world!");
+        create_with_content(dir_b.join("bar.txt"), "Hello world!");
+        create_with_content(dir_c.join("baz.txt"), "Hello world!");
 
         let renderer = load_templates(&input_dir, &PathBuf::new(), TemplateRenderer::new())
             .expect("visit config dirs");

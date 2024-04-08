@@ -27,6 +27,7 @@ use prost::Message as ProstMessage;
 use serde::Serialize;
 use std::{collections::{hash_map::Entry,
                         HashMap},
+          convert::TryFrom,
           default::Default,
           fmt,
           result,
@@ -310,8 +311,7 @@ mod storage {
         /// * `RumorStore::list` (write)
         pub fn insert_rsw(&self, rumor: R) -> bool {
             let mut list = self.list.write();
-            let rumors = list.entry(String::from(rumor.key()))
-                             .or_insert_with(HashMap::new);
+            let rumors = list.entry(String::from(rumor.key())).or_default();
             let kind_ignored_count =
                 IGNORED_RUMOR_COUNT.with_label_values(&[&rumor.kind().to_string()]);
             // Result reveals if there was a change so we can increment the counter if needed.
@@ -477,7 +477,7 @@ pub struct RumorEnvelope {
 impl RumorEnvelope {
     pub fn decode(bytes: &[u8]) -> Result<Self> {
         let proto = ProtoRumor::decode(bytes)?;
-        let r#type = RumorType::from_i32(proto.r#type).ok_or(Error::ProtocolMismatch("type"))?;
+        let r#type = RumorType::try_from(proto.r#type).or(Err(Error::ProtocolMismatch("type")))?;
         let from_id = proto.from_id
                            .clone()
                            .ok_or(Error::ProtocolMismatch("from-id"))?;

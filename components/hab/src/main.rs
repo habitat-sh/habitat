@@ -104,7 +104,7 @@ use hab::cli::hab::sup::{HabSup,
 #[cfg(not(target_os = "macos"))]
 use habitat_core::tls::ctl_gateway as ctl_gateway_tls;
 #[cfg(not(target_os = "macos"))]
-use webpki::DnsNameRef;
+use webpki::types::DnsName;
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
@@ -245,7 +245,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                                 Secret::Generate => return sub_sup_secret_generate(),
                                 Secret::GenerateTls { subject_alternative_name,
                                                       path, } => {
-                                    return sub_sup_secret_generate_key(subject_alternative_name.inner(),
+                                    return sub_sup_secret_generate_key(&subject_alternative_name.dns_name()?,
                                                                        path)
                                 }
                             }
@@ -1400,8 +1400,8 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
             "NetErr" => {
                 let m = reply.parse::<sup_proto::net::NetErr>()
                              .map_err(SrvClientError::Decode)?;
-                match ErrCode::from_i32(m.code) {
-                    Some(ErrCode::InvalidPayload) => {
+                match ErrCode::try_from(m.code) {
+                    Ok(ErrCode::InvalidPayload) => {
                         ui.warn(m)?;
                     }
                     _ => return Err(SrvClientError::from(m).into()),
@@ -1584,8 +1584,8 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
             "NetErr" => {
                 let m = reply.parse::<sup_proto::net::NetErr>()
                              .map_err(SrvClientError::Decode)?;
-                match ErrCode::from_i32(m.code) {
-                    Some(ErrCode::InvalidPayload) => {
+                match ErrCode::try_from(m.code) {
+                    Ok(ErrCode::InvalidPayload) => {
                         ui.warn(m)?;
                     }
                     _ => return Err(SrvClientError::from(m).into()),
@@ -1662,7 +1662,7 @@ fn sub_sup_secret_generate() -> Result<()> {
 }
 
 #[cfg(not(target_os = "macos"))]
-fn sub_sup_secret_generate_key(subject_alternative_name: DnsNameRef, path: PathBuf) -> Result<()> {
+fn sub_sup_secret_generate_key(subject_alternative_name: &DnsName, path: PathBuf) -> Result<()> {
     Ok(ctl_gateway_tls::generate_self_signed_certificate_and_key(subject_alternative_name, path)
         .map_err(habitat_core::Error::from)?)
 }

@@ -52,7 +52,7 @@ function Install-Habitat {
 }
 
 function Get-Toolchain {
-    "$(Get-Content $PSScriptRoot\..\..\rust-toolchain)-x86_64-pc-windows-msvc"
+    "$((ConvertFrom-StringData (Get-Content $PSScriptRoot\..\..\rust-toolchain)[1]).channel.Replace('"', ''))-x86_64-pc-windows-msvc"
 }
 
 function New-PathString([string]$StartingPath, [string]$Path) {

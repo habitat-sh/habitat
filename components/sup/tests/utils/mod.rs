@@ -8,9 +8,7 @@ pub mod test_sup;
 
 // Re-export the key structs of this package for ergonomics.
 pub use self::{fixture_root::FixtureRoot,
-               fs::{copy_dir,
-                    setup_package_files,
-                    FileSnapshot,
+               fs::{setup_package_files,
                     FileSystemSnapshot},
                hab_root::HabRoot,
                test_sup::TestSup};

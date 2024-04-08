@@ -5,14 +5,12 @@ use crate::{ctl_gateway::CtlRequest,
             manager::{action::{ActionSender,
                                SupervisorAction},
                       service::{spec::ServiceSpec,
-                                DesiredState,
-                                ProcessState},
+                                DesiredState},
                       ManagerState},
             util};
 use habitat_butterfly as butterfly;
 use habitat_common::{command::package::install::InstallSource,
                      outputln,
-                     templating::package::Pkg,
                      ui::UIWriter};
 use habitat_core::{package::{Identifiable,
                              PackageIdent,
@@ -22,14 +20,9 @@ use habitat_sup_protocol::{self as protocol,
                            net::{self,
                                  ErrCode,
                                  NetResult}};
-use serde::Deserialize;
 use std::{convert::TryFrom,
-          fmt,
-          result,
           str,
-          sync::atomic::Ordering,
-          time::{Duration,
-                 SystemTime}};
+          sync::atomic::Ordering};
 
 static LOGKEY: &str = "CMD";
 
@@ -63,7 +56,7 @@ pub fn service_cfg_validate(_mgr: &ManagerState,
                             -> NetResult<()> {
     let cfg = opts.cfg.ok_or_else(err_update_client)?;
     let format = opts.format
-                     .and_then(protocol::types::service_cfg::Format::from_i32)
+                     .and_then(|f| protocol::types::service_cfg::Format::try_from(f).ok())
                      .unwrap_or_default();
     if cfg.len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
         return Err(net::err(ErrCode::EntityTooLarge, "Configuration too large."));
@@ -349,119 +342,54 @@ pub fn service_status_gsr(mgr: &ManagerState,
                           req: &mut CtlRequest,
                           opts: protocol::ctl::SvcStatus)
                           -> NetResult<()> {
-    let statuses: Vec<ServiceStatus> =
-        serde_json::from_str(mgr.gateway_state.lock_gsr().services_data()).map_err(Error::ServiceDeserializationError)?;
-
     if let Some(ident) = opts.ident {
-        for status in statuses {
-            if status.pkg.ident.satisfies(&ident) {
-                let msg: protocol::types::ServiceStatus = status.into();
-                req.reply_complete(msg);
-                return Ok(());
+        let service_status = mgr.gateway_state
+                                .lock_gsr()
+                                .services_data()
+                                .iter()
+                                .find_map(|service| {
+                                    if service.pkg.ident.satisfies(&ident) {
+                                        Some(protocol::types::ServiceStatus::from(service))
+                                    } else {
+                                        None
+                                    }
+                                });
+        match service_status {
+            Some(service_status) => {
+                req.reply_complete(service_status);
+                Ok(())
             }
+            None => Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", ident))),
         }
-        return Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", ident)));
-    }
-
-    // We're not dealing with a single service, but with all of them.
-    if statuses.is_empty() {
-        req.reply_complete(net::ok());
     } else {
-        let mut list = statuses.into_iter().peekable();
-        while let Some(status) = list.next() {
-            let msg: protocol::types::ServiceStatus = status.into();
-            if list.peek().is_some() {
-                req.reply_partial(msg);
-            } else {
-                req.reply_complete(msg);
+        // We're not dealing with a single service, but with all of them.
+        // We serialize service data into messages completely before sending them over the network
+        // to minimize locking of the gateway state.
+        let service_statuses: Vec<_> = mgr.gateway_state
+                                          .lock_gsr()
+                                          .services_data()
+                                          .iter()
+                                          .map(protocol::types::ServiceStatus::from)
+                                          .collect();
+        if service_statuses.is_empty() {
+            req.reply_complete(net::ok());
+        } else {
+            let mut list = service_statuses.into_iter().peekable();
+            while let Some(service_status) = list.next() {
+                if list.peek().is_some() {
+                    req.reply_partial(service_status);
+                } else {
+                    req.reply_complete(service_status);
+                }
             }
         }
+        Ok(())
     }
-    Ok(())
 }
 
 ////////////////////////////////////////////////////////////////////////
 // Private helper functions
 fn err_update_client() -> net::NetErr { net::err(ErrCode::UpdateClient, "client out of date") }
-
-#[derive(Deserialize)]
-struct ServiceStatus {
-    pkg:           Pkg,
-    process:       ProcessStatus,
-    service_group: ServiceGroup,
-    desired_state: DesiredState,
-}
-
-impl From<ServiceStatus> for protocol::types::ServiceStatus {
-    fn from(other: ServiceStatus) -> Self {
-        protocol::types::ServiceStatus { ident:         PackageIdent::from(other.pkg.ident).into(),
-                                         process:       Some(other.process.into()),
-                                         service_group: other.service_group.into(),
-                                         desired_state: Some(other.desired_state.into()), }
-    }
-}
-
-// NOTE: This effectively the inverse of
-// habitat_sup::manager::service::supervisor::Supervisor's `Serialize`
-// implementation. When you trace the code, we're basically
-// rehydrating this struct from the JSON that results when we
-// serialize `Supervisor` for the HTTP gateway.
-//
-// That's very Rube Goldberg, of course, and should be made a bit more
-// sane in the future, but hopefully this trail of bread crumbs is
-// useful to you, Dear Reader.
-#[derive(Deserialize)]
-struct ProcessStatus {
-    #[serde(deserialize_with = "duration_from_epoch_offset",
-            rename = "state_entered")]
-    elapsed: Duration,
-    pid:     Option<u32>,
-    state:   ProcessState,
-}
-
-impl From<ProcessStatus> for protocol::types::ProcessStatus {
-    fn from(other: ProcessStatus) -> Self {
-        let mut proto = protocol::types::ProcessStatus { elapsed: Some(other.elapsed.as_secs()),
-                                                         state: other.state.into(),
-                                                         ..Default::default() };
-        if let Some(pid) = other.pid {
-            proto.pid = Some(pid);
-        }
-        proto
-    }
-}
-
-fn duration_from_epoch_offset<'de, D>(d: D) -> result::Result<Duration, D::Error>
-    where D: serde::Deserializer<'de>
-{
-    struct FromEpochOffset;
-
-    impl<'de> serde::de::Visitor<'de> for FromEpochOffset {
-        type Value = Duration;
-
-        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-            formatter.write_str("a u64 integer")
-        }
-
-        fn visit_u64<R>(self, value: u64) -> result::Result<Duration, R>
-            where R: serde::de::Error
-        {
-            // The incoming value is the seconds since the UNIX
-            // Epoch... therefore, we need to figure out what time
-            // that was. Then, we figure out far in the past that
-            // point in time was.
-            if let Some(start_time) = SystemTime::UNIX_EPOCH.checked_add(Duration::from_secs(value))
-            {
-                Ok(SystemTime::now().duration_since(start_time)
-                                    .map_err(serde::de::Error::custom)?)
-            } else {
-                Err(serde::de::Error::custom("invalid epoch offset given"))
-            }
-        }
-    }
-
-    d.deserialize_u64(FromEpochOffset)
-}
 
 /// Helper function to ensure that all errors in sending are handled identically.
 fn send_action(action: SupervisorAction, sender: &ActionSender) -> NetResult<()> {
