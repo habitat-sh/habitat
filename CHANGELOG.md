@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1042 -->
-## [1.6.1042](https://github.com/habitat-sh/habitat/tree/1.6.1042) (2024-04-22)
+<!-- latest_release 1.6.1043 -->
+## [1.6.1043](https://github.com/habitat-sh/habitat/tree/1.6.1043) (2024-04-22)
 
 #### Merged Pull Requests
-- update changelog for 1.6.1041 release [#9229](https://github.com/habitat-sh/habitat/pull/9229) ([mwrock](https://github.com/mwrock))
+- Rustfmt and Nightly Rust Bump to nightly-2024-04-22 [#9228](https://github.com/habitat-sh/habitat/pull/9228) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Rustfmt and Nightly Rust Bump to nightly-2024-04-22 [#9228](https://github.com/habitat-sh/habitat/pull/9228) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.1043 -->
+- Bump rustls from 0.21.10 to 0.21.11 [#9226](https://github.com/habitat-sh/habitat/pull/9226) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1043 -->
+- Bump async-trait from 0.1.79 to 0.1.80 [#9220](https://github.com/habitat-sh/habitat/pull/9220) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1043 -->
+- Bump chrono from 0.4.37 to 0.4.38 [#9222](https://github.com/habitat-sh/habitat/pull/9222) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1043 -->
+- Bump hyper from 1.2.0 to 1.3.1 [#9225](https://github.com/habitat-sh/habitat/pull/9225) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1043 -->
 - update changelog for 1.6.1041 release [#9229](https://github.com/habitat-sh/habitat/pull/9229) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1042 -->
 <!-- release_rollup -->
 
