@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1045 -->
-## [1.6.1045](https://github.com/habitat-sh/habitat/tree/1.6.1045) (2024-04-23)
+<!-- latest_release 1.6.1046 -->
+## [1.6.1046](https://github.com/habitat-sh/habitat/tree/1.6.1046) (2024-04-23)
 
 #### Merged Pull Requests
-- Bump rustls-webpki from 0.102.2 to 0.102.3 [#9230](https://github.com/habitat-sh/habitat/pull/9230) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- README: fix master -&gt; main links [#9233](https://github.com/habitat-sh/habitat/pull/9233) ([spdfnet](https://github.com/spdfnet))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- README: fix master -&gt; main links [#9233](https://github.com/habitat-sh/habitat/pull/9233) ([spdfnet](https://github.com/spdfnet)) <!-- 1.6.1046 -->
+- Bump thiserror from 1.0.58 to 1.0.59 [#9232](https://github.com/habitat-sh/habitat/pull/9232) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1046 -->
 - Bump rustls-webpki from 0.102.2 to 0.102.3 [#9230](https://github.com/habitat-sh/habitat/pull/9230) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1045 -->
 - Bump cc from 1.0.92 to 1.0.95 [#9227](https://github.com/habitat-sh/habitat/pull/9227) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1044 -->
 - Bump serde_json from 1.0.115 to 1.0.116 [#9224](https://github.com/habitat-sh/habitat/pull/9224) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1044 -->
