@@ -43,15 +43,15 @@ Graphics that will help you and your team better understand the concepts and how
 Try the interactive infographics on the [website](http://habitat.sh#reference-diagram)!
 
 ### How Habitat Works
-* [Architecture Overview](https://github.com/habitat-sh/habitat/raw/master/images/habitat-architecture-overview.png)
-* [Initial Package Build Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-initial-package-build-flow.png)
-* [Application Rebuild Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-application-rebuild-flow.png)
-* [Dependency Update Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-dependency-update-flow.png)
-* [Promote Packages Through Channels](https://github.com/habitat-sh/habitat/raw/master/images/habitat-promote-packages-through-channels.png)
+* [Architecture Overview](https://github.com/habitat-sh/habitat/raw/main/images/habitat-architecture-overview.png)
+* [Initial Package Build Flow](https://github.com/habitat-sh/habitat/raw/main/images/habitat-initial-package-build-flow.png)
+* [Application Rebuild Flow](https://github.com/habitat-sh/habitat/raw/main/images/habitat-application-rebuild-flow.png)
+* [Dependency Update Flow](https://github.com/habitat-sh/habitat/raw/main/images/habitat-dependency-update-flow.png)
+* [Promote Packages Through Channels](https://github.com/habitat-sh/habitat/raw/main/images/habitat-promote-packages-through-channels.png)
 
 ### Habitat and **Docker**
-* [Initial Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-initial-docker-container-publishing-flow.png)
-* [Automated Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-automated-docker-container-publishing-flow.png)
+* [Initial Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/main/images/habitat-initial-docker-container-publishing-flow.png)
+* [Automated Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/main/images/habitat-automated-docker-container-publishing-flow.png)
 
 *View all diagrams in [Docs](https://www.habitat.sh/docs/diagrams/)*
 
@@ -76,17 +76,17 @@ If you are running Windows and use [Chocolatey](https://chocolatey.org), you can
 C:\> choco install habitat
 ```
 
-If you do _not_ run Homebrew or Chocolatey, or if you use Linux, you can use the Habitat [install.sh](https://github.com/habitat-sh/habitat/blob/master/components/hab/install.sh) or [install.ps1](https://github.com/habitat-sh/habitat/blob/master/components/hab/install.ps1) script.
+If you do _not_ run Homebrew or Chocolatey, or if you use Linux, you can use the Habitat [install.sh](https://github.com/habitat-sh/habitat/blob/main/components/hab/install.sh) or [install.ps1](https://github.com/habitat-sh/habitat/blob/main/components/hab/install.ps1) script.
 
 Bash:
 ```
-$ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
+$ curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash
 ```
 
 Powershell:
 ```
 C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
-C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1'))
+C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.ps1'))
 ```
 
 ## Contribute
@@ -105,7 +105,7 @@ The Habitat plans that are built and maintained by Habitat's Core Team are in [t
 
 ### Habitat Supervisor and other core components
 
-The code for the Habitat Supervisor and other core components are in the [components directory](https://github.com/habitat-sh/habitat/tree/master/components).
+The code for the Habitat Supervisor and other core components are in the [components directory](https://github.com/habitat-sh/habitat/tree/main/components).
 
 ### Docs
 
@@ -144,7 +144,7 @@ See [README.md](https://github.com/habitat-sh/habitat/blob/main/components/hab/s
 * [POSIX Shell Command Language](http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html)
 
 ## Code of Conduct
-Participation in the Habitat community is governed by the [code of conduct](https://github.com/habitat-sh/habitat/blob/master/CODE_OF_CONDUCT.md).
+Participation in the Habitat community is governed by the [code of conduct](https://github.com/habitat-sh/habitat/blob/main/CODE_OF_CONDUCT.md).
 
 ## License
 
