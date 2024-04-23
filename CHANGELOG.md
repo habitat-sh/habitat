@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1044 -->
-## [1.6.1044](https://github.com/habitat-sh/habitat/tree/1.6.1044) (2024-04-22)
+<!-- latest_release 1.6.1045 -->
+## [1.6.1045](https://github.com/habitat-sh/habitat/tree/1.6.1045) (2024-04-23)
 
 #### Merged Pull Requests
-- Bump cc from 1.0.92 to 1.0.95 [#9227](https://github.com/habitat-sh/habitat/pull/9227) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rustls-webpki from 0.102.2 to 0.102.3 [#9230](https://github.com/habitat-sh/habitat/pull/9230) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump rustls-webpki from 0.102.2 to 0.102.3 [#9230](https://github.com/habitat-sh/habitat/pull/9230) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1045 -->
 - Bump cc from 1.0.92 to 1.0.95 [#9227](https://github.com/habitat-sh/habitat/pull/9227) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1044 -->
 - Bump serde_json from 1.0.115 to 1.0.116 [#9224](https://github.com/habitat-sh/habitat/pull/9224) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1044 -->
 - Rustfmt and Nightly Rust Bump to nightly-2024-04-22 [#9228](https://github.com/habitat-sh/habitat/pull/9228) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.1043 -->
