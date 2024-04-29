@@ -428,6 +428,7 @@ enter_studio() {
     -DWORK_DIR="$work_dir" \
     -DSTUDIO_HAB="$libexec_path/hab" \
     -DALLOW_NETWORKING=1 \
+    -DALLOW_XCODE=1 \
     $studio_enter_command
 }
 
@@ -465,6 +466,7 @@ build_studio() {
     -DWORK_DIR="$work_dir" \
     -DSTUDIO_HAB="$libexec_path/hab" \
     -DALLOW_NETWORKING=1 \
+    -DALLOW_XCODE=1 \
     $studio_build_command "$@"
 }
 
@@ -583,7 +585,7 @@ load_secrets() {
 build_sandbox_env() {
   extra_env="$1"
 
-  sandbox_env="LC_ALL=POSIX TERM=${TERM:-} PATH=${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}/bin"
+  sandbox_env="LC_ALL=POSIX TERM=${TERM:-} PATH=${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}/bin:/usr/bin:/bin"
   # Add `STUDIO_TYPE` to the environment
   sandbox_env="$sandbox_env STUDIO_TYPE=$STUDIO_TYPE"
   # Add any additional environment variables from the Studio config, based on

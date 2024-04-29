@@ -38,13 +38,29 @@
 ; we allow access to in PLAN_CONTEXT_DIR (but if we allow them more broadly, you could in
 ; theory escape the sandbox)
 (allow file* process-exec process-fork network-outbound network-inbound
-       (literal "/tmp") (subpath "/hab") (subpath HAB_CACHE_ARTIFACT_PATH))
+       (literal "/tmp")
+       (subpath "/hab")
+       (subpath HAB_CACHE_ARTIFACT_PATH))
+
+; Allow access to xcode if it was detected on the system
+(if (param "ALLOW_XCODE")
+       (begin
+              (allow file* process-exec process-fork network-outbound network-inbound
+                     (literal "/usr/bin/xcrun")
+                     (subpath "/var/db/xcode_select_link")
+                     (subpath "/private/var/db/xcode_select_link")
+                     (subpath "/Applications/Xcode.app/Contents"))))
 
 ; Access to allowed system binaries
 (allow file* process-exec process-fork
+       (literal "/bin/ps")
        (literal "/bin/sh")
        (literal "/bin/bash")
-       (literal "/usr/bin/env"))
+       (literal "/usr/bin/env")
+       (literal "/usr/bin/sw_vers"))
+
+; Allow access to /bin/ps without sandbox restrictions
+(allow process-exec (with no-sandbox) (literal "/bin/ps"))
 
 ; Access to the plan context and it's ancestors
 (allow file-read* file-test-existence
