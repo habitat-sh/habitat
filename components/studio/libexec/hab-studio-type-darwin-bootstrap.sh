@@ -10,7 +10,7 @@ studio_env_command="/usr/bin/env"
 studio_enter_environment="STUDIO_ENTER=true"
 studio_enter_command="$libexec_path/hab pkg exec core/build-tools-hab-backline bash --rcfile $HAB_STUDIO_ROOT/etc/profile"
 studio_build_environment=
-studio_build_command="$libexec_path/hab pkg exec core/build-tools-hab-plan-build hab-plan-build --"
+studio_build_command="$libexec_path/hab pkg exec core/build-tools-hab-backline hab-plan-build --"
 studio_run_environment=
 studio_run_command="$libexec_path/hab pkg exec core/build-tools-hab-backline bash --rcfile $HAB_STUDIO_ROOT/etc/profile"
 

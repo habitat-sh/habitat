@@ -586,6 +586,12 @@ build_sandbox_env() {
   extra_env="$1"
 
   sandbox_env="LC_ALL=POSIX TERM=${TERM:-} PATH=${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}/bin:/usr/bin:/bin"
+
+  # Create temporary directory for usage inside the sandbox during builds
+  $mkdir_cmd -p /hab/cache/tmp
+  TMPDIR=$($mktemp_cmd -p /hab/cache/tmp -d)
+  sandbox_env="$sandbox_env TMPDIR=$TMPDIR"
+
   # Add `STUDIO_TYPE` to the environment
   sandbox_env="$sandbox_env STUDIO_TYPE=$STUDIO_TYPE"
   # Add any additional environment variables from the Studio config, based on
@@ -749,6 +755,7 @@ find_system_cmds() {
   cut_cmd="$(command -v cut)"
   chown_cmd="$(command -v chown)"
   chmod_cmd="$(command -v chmod)"
+  mktemp_cmd="$(command -v mktemp)"
   stat_cmd=$(command -v stat)
   if $stat_cmd -f '%Su:%g' . 2>/dev/null 1>/dev/null; then
     stat_variant="bsd"
