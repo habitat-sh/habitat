@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1049 -->
-## [1.6.1049](https://github.com/habitat-sh/habitat/tree/1.6.1049) (2024-04-30)
+<!-- latest_release 1.6.1050 -->
+## [1.6.1050](https://github.com/habitat-sh/habitat/tree/1.6.1050) (2024-04-30)
 
 #### Merged Pull Requests
-- Bump rustls from 0.21.11 to 0.21.12 [#9236](https://github.com/habitat-sh/habitat/pull/9236) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump flate2 from 1.0.28 to 1.0.30 [#9239](https://github.com/habitat-sh/habitat/pull/9239) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump flate2 from 1.0.28 to 1.0.30 [#9239](https://github.com/habitat-sh/habitat/pull/9239) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1050 -->
+- Bump serde from 1.0.198 to 1.0.199 [#9237](https://github.com/habitat-sh/habitat/pull/9237) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1050 -->
+- Bump libc from 0.2.153 to 0.2.154 [#9238](https://github.com/habitat-sh/habitat/pull/9238) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1050 -->
 - Bump rustls from 0.21.11 to 0.21.12 [#9236](https://github.com/habitat-sh/habitat/pull/9236) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1049 -->
 - Bump parking_lot from 0.12.1 to 0.12.2 [#9234](https://github.com/habitat-sh/habitat/pull/9234) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1048 -->
 - Bump serde from 1.0.197 to 1.0.198 [#9231](https://github.com/habitat-sh/habitat/pull/9231) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1047 -->
