@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1048 -->
-## [1.6.1048](https://github.com/habitat-sh/habitat/tree/1.6.1048) (2024-04-26)
+<!-- latest_release 1.6.1049 -->
+## [1.6.1049](https://github.com/habitat-sh/habitat/tree/1.6.1049) (2024-04-30)
 
 #### Merged Pull Requests
-- Bump parking_lot from 0.12.1 to 0.12.2 [#9234](https://github.com/habitat-sh/habitat/pull/9234) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rustls from 0.21.11 to 0.21.12 [#9236](https://github.com/habitat-sh/habitat/pull/9236) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump rustls from 0.21.11 to 0.21.12 [#9236](https://github.com/habitat-sh/habitat/pull/9236) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1049 -->
 - Bump parking_lot from 0.12.1 to 0.12.2 [#9234](https://github.com/habitat-sh/habitat/pull/9234) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1048 -->
 - Bump serde from 1.0.197 to 1.0.198 [#9231](https://github.com/habitat-sh/habitat/pull/9231) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1047 -->
 - README: fix master -&gt; main links [#9233](https://github.com/habitat-sh/habitat/pull/9233) ([spdfnet](https://github.com/spdfnet)) <!-- 1.6.1046 -->
