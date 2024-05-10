@@ -1,16 +1,20 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1053 -->
-## [1.6.1053](https://github.com/habitat-sh/habitat/tree/1.6.1053) (2024-05-10)
+<!-- latest_release 1.6.1054 -->
+## [1.6.1054](https://github.com/habitat-sh/habitat/tree/1.6.1054) (2024-05-10)
 
 #### Merged Pull Requests
-- Bump tokio-util from 0.7.10 to 0.7.11 [#9243](https://github.com/habitat-sh/habitat/pull/9243) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde from 1.0.199 to 1.0.201 [#9247](https://github.com/habitat-sh/habitat/pull/9247) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump serde from 1.0.199 to 1.0.201 [#9247](https://github.com/habitat-sh/habitat/pull/9247) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1054 -->
+- Bump prometheus from 0.13.3 to 0.13.4 [#9244](https://github.com/habitat-sh/habitat/pull/9244) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1054 -->
+- Bump paste from 1.0.14 to 1.0.15 [#9245](https://github.com/habitat-sh/habitat/pull/9245) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1054 -->
+- Bump anyhow from 1.0.82 to 1.0.83 [#9246](https://github.com/habitat-sh/habitat/pull/9246) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1054 -->
 - Bump tokio-util from 0.7.10 to 0.7.11 [#9243](https://github.com/habitat-sh/habitat/pull/9243) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1053 -->
 - Bump cc from 1.0.95 to 1.0.96 [#9241](https://github.com/habitat-sh/habitat/pull/9241) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1052 -->
 - Bump base64 from 0.22.0 to 0.22.1 [#9240](https://github.com/habitat-sh/habitat/pull/9240) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1051 -->
