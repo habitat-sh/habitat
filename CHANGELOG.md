@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1056 -->
-## [1.6.1056](https://github.com/habitat-sh/habitat/tree/1.6.1056) (2024-05-13)
+<!-- latest_release 1.6.1057 -->
+## [1.6.1057](https://github.com/habitat-sh/habitat/tree/1.6.1057) (2024-05-13)
 
 #### Merged Pull Requests
-- Bump petgraph from 0.6.4 to 0.6.5 [#9252](https://github.com/habitat-sh/habitat/pull/9252) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.0.96 to 1.0.97 [#9250](https://github.com/habitat-sh/habitat/pull/9250) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump cc from 1.0.96 to 1.0.97 [#9250](https://github.com/habitat-sh/habitat/pull/9250) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1057 -->
+- Bump semver from 1.0.22 to 1.0.23 [#9248](https://github.com/habitat-sh/habitat/pull/9248) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1057 -->
 - Bump petgraph from 0.6.4 to 0.6.5 [#9252](https://github.com/habitat-sh/habitat/pull/9252) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1056 -->
 - Bump serde_json from 1.0.116 to 1.0.117 [#9251](https://github.com/habitat-sh/habitat/pull/9251) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1056 -->
 - Bump thiserror from 1.0.59 to 1.0.60 [#9249](https://github.com/habitat-sh/habitat/pull/9249) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1055 -->
