@@ -38,7 +38,8 @@
 ; we allow access to in PLAN_CONTEXT_DIR (but if we allow them more broadly, you could in
 ; theory escape the sandbox)
 (allow file* process-exec process-fork network-outbound network-inbound
-       (literal "/tmp")
+       (subpath "/tmp")
+       (subpath "/private/tmp")
        (subpath "/hab")
        (subpath HAB_CACHE_ARTIFACT_PATH))
 
@@ -47,20 +48,77 @@
        (begin
               (allow file* process-exec process-fork network-outbound network-inbound
                      (literal "/usr/bin/xcrun")
+                     (literal "/usr/bin/ar")
+                     (literal "/usr/bin/as")
+                     (literal "/usr/bin/asa")
+                     (literal "/usr/bin/bison")
+                     (literal "/usr/bin/c++")
+                     (literal "/usr/bin/c++filt")
+                     (literal "/usr/bin/c89")
+                     (literal "/usr/bin/c99")
+                     (literal "/usr/bin/cc")
+                     (literal "/usr/bin/clang")
+                     (literal "/usr/bin/clang++")
+                     (literal "/usr/bin/cpp")
+                     (literal "/usr/bin/ctags")
+                     (literal "/usr/bin/dsymutil")
+                     (literal "/usr/bin/flex")
+                     (literal "/usr/bin/flex++")
+                     (literal "/usr/bin/gcc")
+                     (literal "/usr/bin/g++")
+                     (literal "/usr/bin/gcov")
+                     (literal "/usr/bin/gm4")
+                     (literal "/usr/bin/gperf")
+                     (literal "/usr/bin/ld")
+                     (literal "/usr/bin/lex")
+                     (literal "/usr/bin/libtool")
+                     (literal "/usr/bin/lipo")
+                     (literal "/usr/bin/m4")
+                     (literal "/usr/bin/nm")
+                     (literal "/usr/bin/nmedit")
+                     (literal "/usr/bin/objdump")
+                     (literal "/usr/bin/otool")
+                     (literal "/usr/bin/pagestuff")
+                     (literal "/usr/bin/ranlib")
+                     (literal "/usr/bin/rpcgen")
+                     (literal "/usr/bin/segedit")
+                     (literal "/usr/bin/size")
+                     (literal "/usr/bin/strip")
+                     (literal "/usr/bin/strings")
+                     (literal "/usr/bin/unifdef")
+                     (literal "/usr/bin/unifdefall")
+                     (literal "/usr/bin/unwinddump")
+                     (literal "/usr/bin/vtool")
+                     (literal "/usr/bin/yacc")
+                     (literal "/usr/bin/iconv")
+                     (literal "/usr/bin/clear")
+                     (literal "/usr/bin/sudo")
+                     (literal "/usr/bin/install_name_tool")
+                     (literal "/usr/bin/xcode-select")
+                     (subpath "/usr/share/terminfo")
                      (subpath "/var/db/xcode_select_link")
                      (subpath "/private/var/db/xcode_select_link")
-                     (subpath "/Applications/Xcode.app/Contents"))))
+                     (subpath "/usr/share/i18n")
+                     (literal "/usr")
+                     (subpath "/usr/lib")
+                     (literal "/System")
+                     (subpath "/System/Library")
+                     (literal "/Applications")
+                     (subpath "/Applications/Xcode.app"))))
 
 ; Access to allowed system binaries
 (allow file* process-exec process-fork
        (literal "/bin/ps")
        (literal "/bin/sh")
        (literal "/bin/bash")
+       (literal "/bin/pwd")
+       (literal "/usr/bin/which")
        (literal "/usr/bin/env")
+       (literal "/usr/bin/uname")
        (literal "/usr/bin/sw_vers"))
 
 ; Allow access to /bin/ps without sandbox restrictions
-(allow process-exec (with no-sandbox) (literal "/bin/ps"))
+(allow process-exec (with no-sandbox) (literal "/bin/ps") (literal "/usr/bin/sudo") (literal "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild"))
 
 ; Access to the plan context and it's ancestors
 (allow file-read* file-test-existence
@@ -73,6 +131,7 @@
 
 ; Some packages like to read the system version.
 (allow file-read*
+       (literal "/private/etc/master.passwd")
        (literal "/System/Library/CoreServices/SystemVersion.plist")
        (literal "/System/Library/CoreServices/SystemVersionCompat.plist"))
 
