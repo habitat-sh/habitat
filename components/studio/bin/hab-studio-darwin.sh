@@ -599,6 +599,9 @@ build_sandbox_env() {
   if [ -n "$extra_env" ]; then
     sandbox_env="$sandbox_env $extra_env"
   fi
+  if [ -n "${SUDO_USER:-}" ]; then
+    sandbox_env="$sandbox_env SUDO_USER=$SUDO_USER"
+  fi
   # If a Habitat config filetype ignore string is set, then propagate it
   # into the Studio's sandbox environment.
   if [ -n "${HAB_CONFIG_EXCLUDE:-}" ]; then
