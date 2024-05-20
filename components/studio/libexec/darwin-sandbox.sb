@@ -115,9 +115,12 @@
        (literal "/usr/bin/which")
        (literal "/usr/bin/env")
        (literal "/usr/bin/uname")
+       (literal "/usr/bin/arch")
+       (literal "/usr/bin/cpio")
        (literal "/usr/sbin/dtrace")
        (literal "/usr/bin/xcodebuild")
-       (literal "/usr/bin/sw_vers"))
+       (literal "/usr/bin/sw_vers")
+       (subpath "/private/etc/ssl"))
 
 ; Allow access to /bin/ps without sandbox restrictions
 (allow process-exec (with no-sandbox) (literal "/bin/ps") (literal "/usr/bin/sudo") (literal "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild"))
