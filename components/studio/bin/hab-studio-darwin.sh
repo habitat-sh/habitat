@@ -585,7 +585,7 @@ load_secrets() {
 build_sandbox_env() {
   extra_env="$1"
 
-  sandbox_env="LC_ALL=POSIX TERM=${TERM:-} PATH=${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}/bin:/usr/bin:/bin"
+  sandbox_env="LC_ALL=POSIX TERM=${TERM:-} PATH=${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}/bin:/usr/bin:/bin:/usr/sbin"
 
   # Create temporary directory for usage inside the sandbox during builds
   $mkdir_cmd -p /hab/cache/tmp

@@ -8,11 +8,11 @@
 studio_type="default"
 studio_env_command="/usr/bin/env"
 studio_enter_environment="STUDIO_ENTER=true"
-studio_enter_command="$libexec_path/hab pkg exec core/hab-backline bash --rcfile $HAB_STUDIO_ROOT/.bashrc"
+studio_enter_command="$libexec_path/hab pkg exec core/hab-backline bash --rcfile $HAB_STUDIO_ROOT/etc/profile"
 studio_build_environment=
-studio_build_command=""
+studio_build_command="${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}/bin/build"
 studio_run_environment=
-studio_run_command="$libexec_path/hab pkg exec core/hab-backline bash --rcfile $HAB_STUDIO_ROOT/.bashrc"
+studio_run_command="$libexec_path/hab pkg exec core/hab-backline bash --rcfile $HAB_STUDIO_ROOT/etc/profile"
 
 run_user="hab"
 run_group="$run_user"
@@ -25,11 +25,11 @@ finish_setup() {
 
     $cat_cmd <<EOF > "${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}"/bin/build
 #!/bin/sh
-exec $libexec_path/hab pkg exec core/hab-plan-build hab-plan-build "\$@"
+exec $libexec_path/hab pkg exec core/hab-backline hab-plan-build "\$@"
 EOF
     $chmod_cmd +x "${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}"/bin/build
 
-    $cat_cmd >"${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}"/etc/profile <<PROFILE
+    $cat_cmd >"${HAB_STUDIO_ROOT}"/etc/profile <<PROFILE
 if [[ -n "\${STUDIO_ENTER:-}" ]]; then
   unset STUDIO_ENTER
   source $HAB_STUDIO_ROOT/etc/profile.enter

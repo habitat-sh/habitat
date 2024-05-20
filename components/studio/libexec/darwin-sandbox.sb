@@ -115,6 +115,8 @@
        (literal "/usr/bin/which")
        (literal "/usr/bin/env")
        (literal "/usr/bin/uname")
+       (literal "/usr/sbin/dtrace")
+       (literal "/usr/bin/xcodebuild")
        (literal "/usr/bin/sw_vers"))
 
 ; Allow access to /bin/ps without sandbox restrictions
