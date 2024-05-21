@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1064 -->
-## [1.6.1064](https://github.com/habitat-sh/habitat/tree/1.6.1064) (2024-05-21)
+<!-- latest_release 1.6.1065 -->
+## [1.6.1065](https://github.com/habitat-sh/habitat/tree/1.6.1065) (2024-05-21)
 
 #### Merged Pull Requests
-- Bump thiserror from 1.0.60 to 1.0.61 [#9262](https://github.com/habitat-sh/habitat/pull/9262) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libc from 0.2.153 to 0.2.155 [#9264](https://github.com/habitat-sh/habitat/pull/9264) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.153 to 0.2.155 [#9264](https://github.com/habitat-sh/habitat/pull/9264) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1065 -->
 - Bump thiserror from 1.0.60 to 1.0.61 [#9262](https://github.com/habitat-sh/habitat/pull/9262) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1064 -->
 - Bump prost-build from 0.12.4 to 0.12.6 [#9259](https://github.com/habitat-sh/habitat/pull/9259) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1063 -->
 - Bump actix-web from 4.5.1 to 4.6.0 [#9258](https://github.com/habitat-sh/habitat/pull/9258) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1063 -->
