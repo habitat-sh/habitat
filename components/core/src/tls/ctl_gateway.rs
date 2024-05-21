@@ -4,11 +4,11 @@
 use crate::{crypto::keys::NamedRevision,
             tls::rustls_wrapper::{self,
                                   Error as RustlsReadersError}};
-use rcgen::{Certificate as RcgenCertificate,
-            CertificateParams,
+use rcgen::{CertificateParams,
             DistinguishedName,
             DnType,
             Error as RcgenError,
+            KeyPair,
             PKCS_ECDSA_P256_SHA256};
 use rustls::{Certificate,
              PrivateKey,
@@ -43,16 +43,16 @@ pub fn generate_self_signed_certificate_and_key(subject_alternate_name: &DnsName
                                                 -> Result<(), Error> {
     let mut params =
         CertificateParams::new(vec![Into::<&str>::into(subject_alternate_name.as_ref()).to_string(),
-                                    "localhost".to_string(),]);
+                                    "localhost".to_string(),])?;
     let mut distinguished_name = DistinguishedName::new();
     distinguished_name.push(DnType::OrganizationName,
                             "Habitat Supervisor Control Gateway");
     params.distinguished_name = distinguished_name;
-    params.alg = &PKCS_ECDSA_P256_SHA256;
 
-    let certificate = RcgenCertificate::from_params(params)?;
-    let crt = certificate.serialize_pem()?;
-    let key = certificate.serialize_private_key_pem();
+    let key_pair = KeyPair::generate_for(&PKCS_ECDSA_P256_SHA256)?;
+    let certificate = params.self_signed(&key_pair)?;
+    let crt = certificate.pem();
+    let key = key_pair.serialize_pem();
 
     fs::create_dir_all(&path)?;
     let named_revision = NamedRevision::new(NAME_PREFIX.to_string());
