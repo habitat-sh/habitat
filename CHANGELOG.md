@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1067 -->
-## [1.6.1067](https://github.com/habitat-sh/habitat/tree/1.6.1067) (2024-05-21)
+<!-- latest_release 1.6.1068 -->
+## [1.6.1068](https://github.com/habitat-sh/habitat/tree/1.6.1068) (2024-05-22)
 
 #### Merged Pull Requests
-- Bump cc from 1.0.97 to 1.0.98 [#9263](https://github.com/habitat-sh/habitat/pull/9263) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rustls-pemfile from 1.0.4 to 2.1.2 [#9265](https://github.com/habitat-sh/habitat/pull/9265) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump rustls-pemfile from 1.0.4 to 2.1.2 [#9265](https://github.com/habitat-sh/habitat/pull/9265) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1068 -->
 - Bump cc from 1.0.97 to 1.0.98 [#9263](https://github.com/habitat-sh/habitat/pull/9263) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1067 -->
 - Bump rcgen from 0.12.1 to 0.13.1 [#9260](https://github.com/habitat-sh/habitat/pull/9260) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1066 -->
 - Bump libc from 0.2.153 to 0.2.155 [#9264](https://github.com/habitat-sh/habitat/pull/9264) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1065 -->
