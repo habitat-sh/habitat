@@ -38,18 +38,20 @@ fn buf_from_file(path: impl AsRef<Path>) -> Result<BufReader<File>, Error> {
 
 pub fn certificates_from_file(path: impl AsRef<Path>) -> Result<Vec<Certificate>, Error> {
     let mut buf = buf_from_file(path.as_ref())?;
-    let certs = rustls_pemfile::certs(&mut buf).map_err(|_| {
-                                                   Error::FailedToReadCerts(path.as_ref().into())
-                                               })?;
-    Ok(certs.into_iter().map(Certificate).collect())
+    rustls_pemfile::certs(&mut buf).map(|c| {
+                                       c.map_err(|_| Error::FailedToReadCerts(path.as_ref().into()))
+                                        .map(|c| Certificate(c.as_ref().to_vec()))
+                                   })
+                                   .collect()
 }
 
 fn private_keys_from_file(path: impl AsRef<Path>) -> Result<Vec<PrivateKey>, Error> {
     let mut buf = buf_from_file(path.as_ref())?;
-    let private_keys = rustls_pemfile::pkcs8_private_keys(&mut buf).map_err(|_| {
-                                             Error::FailedToReadPrivateKeys(path.as_ref().into())
-                                         })?;
-    Ok(private_keys.into_iter().map(PrivateKey).collect())
+    rustls_pemfile::pkcs8_private_keys(&mut buf).map(|k| {
+        k.map_err(|_| Error::FailedToReadPrivateKeys(path.as_ref().into()))
+         .map(|k| PrivateKey(k.secret_pkcs8_der().to_vec()))
+    })
+    .collect()
 }
 
 pub fn private_key_from_file(path: impl AsRef<Path>) -> Result<PrivateKey, Error> {
@@ -60,11 +62,11 @@ pub fn private_key_from_file(path: impl AsRef<Path>) -> Result<PrivateKey, Error
 pub fn root_certificate_store_from_file(path: impl AsRef<Path>) -> Result<RootCertStore, Error> {
     let mut buf = buf_from_file(path.as_ref())?;
     let mut root_certificate_store = RootCertStore::empty();
-    let certs =
-        &rustls_pemfile::certs(&mut buf).map_err(|_| {
-                                            Error::FailedToReadRootCertificateStore(path.as_ref()
-                                                                                        .into())
-                                        })?;
+    let certs = &rustls_pemfile::certs(&mut buf).map(|c| {
+                     c.map_err(|_| Error::FailedToReadRootCertificateStore(path.as_ref().into()))
+                      .map(|c| c.as_ref().to_vec())
+                 })
+                 .collect::<Result<Vec<_>, _>>()?;
     let (_, failed) = root_certificate_store.add_parsable_certificates(certs);
     if failed > 0 {
         Err(Error::FailedToReadCertificatesFromRootCertificateStore(failed, path.as_ref().into()))
