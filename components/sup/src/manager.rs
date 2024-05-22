@@ -2013,9 +2013,11 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
         Some(path) => {
             let mut root_store = RootCertStore::empty();
             let mut ca_file = &mut BufReader::new(File::open(path)?);
-            let certs = &rustls_pemfile::certs(&mut ca_file).map_err(|_| {
-                                                                Error::InvalidCertFile(path.clone())
-                                                            })?;
+            let certs = &rustls_pemfile::certs(&mut ca_file).map(|c| {
+                             c.map_err(|_| Error::InvalidCertFile(path.clone()))
+                              .map(|c| c.as_ref().to_vec())
+                         })
+                         .collect::<Result<Vec<_>>>()?;
             let (added, _) = root_store.add_parsable_certificates(certs);
             if added < 1 {
                 return Err(Error::InvalidCertFile(path.clone()));
@@ -2035,29 +2037,30 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
     // Note that we must explicitly map these errors because rustls returns () as the error from
     // both pemfile::certs() as well as pemfile::rsa_private_keys() and we want to return
     // different errors for each.
-    let cert_chain = rustls_pemfile::certs(cert_file).and_then(|c| {
-                         if c.is_empty() {
+    let certs = rustls_pemfile::certs(cert_file).map(|c| {
+                                                    c.and_then(|cr| {
+                         if cr.is_empty() {
                              Err(std::io::Error::new(std::io::ErrorKind::Other,
                                                      "error getting file contents"))
                          } else {
-                             Ok(c)
+                             Ok(cr)
                          }
-                     })
-                     .map_err(|_| Error::InvalidCertFile(config.cert_path.clone()))?;
-    let certs = cert_chain.into_iter().map(Certificate).collect();
+        }).map_err(|_| Error::InvalidCertFile(config.cert_path.clone()))
+        .map(|c| Certificate(c.as_ref().to_vec()))
+                                                })
+                                                .collect::<Result<Vec<Certificate>>>()?;
 
-    let key = rustls_pemfile::rsa_private_keys(key_file).and_then(|mut k| {
-                                                            k.pop()
-                   .ok_or_else(|| {
-                       std::io::Error::new(std::io::ErrorKind::Other, "error getting file contents")
+    let mut keys = rustls_pemfile::rsa_private_keys(key_file).map(|k| {
+                       k.map_err(|_| Error::InvalidKeyFile(config.key_path.clone()))
+                        .map(|k| PrivateKey(k.secret_pkcs1_der().to_vec()))
                    })
-                                                        })
-                                                        .map_err(|_| {
-                                                            Error::InvalidKeyFile(config.key_path
-                                                                                        .clone())
-                                                        })?;
-
-    let mut server_config = tls_config.with_single_cert(certs, PrivateKey(key))?;
+                   .collect::<Result<Vec<PrivateKey>>>()?;
+    let key = keys.pop()
+                  .ok_or_else(|| {
+                      std::io::Error::new(std::io::ErrorKind::Other, "error getting file contents")
+                  })
+                  .map_err(|_| Error::InvalidKeyFile(config.key_path.clone()))?;
+    let mut server_config = tls_config.with_single_cert(certs, key)?;
     server_config.ignore_client_order = true;
     Ok(server_config)
 }
