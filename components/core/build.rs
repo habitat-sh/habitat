@@ -27,8 +27,11 @@ pub fn populate_cacert() {
     if let Ok(src) = env::var("SSL_CERT_FILE") {
         let dst = Path::new(&env::var("OUT_DIR").unwrap()).join("cacert.pem");
         // Verify the certificate data
-        let cert_data = fs::read(&src).expect(format!("Failed to read SSL_CERT_FILE at {}", src).as_str());
-        pem::parse_many(cert_data).expect(format!("The SSL_CERT_FILE {} contains one or more invalid certificates", src).as_str());
+        let cert_data =
+            fs::read(&src).expect(format!("Failed to read SSL_CERT_FILE at {}", src).as_str());
+        pem::parse_many(cert_data).expect(format!("The SSL_CERT_FILE {} contains one or more \
+                                                   invalid certificates",
+                                                  src).as_str());
         if !dst.exists() {
             fs::copy(&src, &dst).unwrap_or_else(|_| {
                                     panic!("Failed to copy CA certificates from '{}' to '{}' for \

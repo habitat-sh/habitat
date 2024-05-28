@@ -16,7 +16,10 @@ const HAB_PLAN_BUILD_SOURCE_FILES: [(&str, &[u8]); 4] =
     [("environment.bash", include_bytes!("../../../../plan-build/bin/environment.bash")),
      ("shared.bash", include_bytes!("../../../../plan-build/bin/shared.bash")),
      ("public.bash", include_bytes!("../../../../plan-build/bin/public.bash")),
-     ("hab-plan-build.sh", include_bytes!("../../../../plan-build/bin/hab-plan-build.sh"))];
+     #[cfg(target_os = "linux")]
+     ("hab-plan-build.sh", include_bytes!("../../../../plan-build/bin/hab-plan-build-linux.sh")),
+     #[cfg(target_os = "macos")]
+     ("hab-plan-build.sh", include_bytes!("../../../../plan-build/bin/hab-plan-build-darwin.sh"))];
 
 pub fn start_native_studio(ui: &mut UI, args: &[OsString]) -> Result<()> {
     start_native_studio_impl(ui, args).map_err(Error::NativeStudioError)
