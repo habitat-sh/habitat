@@ -422,14 +422,11 @@ enter_studio() {
   $studio_env_command -i \
     $sandbox_env \
     "$sandbox_exec_cmd" -f "$sandbox_profile_path" \
-    -DHAB_CACHE_CERT_PATH="$CERT_PATH" \
-    -DHAB_CACHE_ARTIFACT_PATH="$ARTIFACT_PATH" \
     -DPLAN_CONTEXT_DIR="$work_dir" \
-    -DWORK_DIR="$work_dir" \
+    -DBUILD_DIR="$work_dir" \
+    -DSTUDIO_DIR="$HAB_STUDIO_ROOT" \
     -DSTUDIO_HAB="$libexec_path/hab" \
-    -DALLOW_NETWORKING=1 \
-    -DALLOW_XCODE=1 \
-    $studio_enter_command
+    $studio_enter_command "$@"
 }
 
 # **Internal** Run a build command using a Studio.
@@ -460,13 +457,10 @@ build_studio() {
   $studio_env_command -i \
     $sandbox_env \
     "$sandbox_exec_cmd" -f "$sandbox_profile_path" \
-    -DHAB_CACHE_CERT_PATH="$CERT_PATH" \
-    -DHAB_CACHE_ARTIFACT_PATH="$ARTIFACT_PATH" \
     -DPLAN_CONTEXT_DIR="$work_dir" \
-    -DWORK_DIR="$work_dir" \
+    -DBUILD_DIR="$work_dir" \
+    -DSTUDIO_DIR="$HAB_STUDIO_ROOT" \
     -DSTUDIO_HAB="$libexec_path/hab" \
-    -DALLOW_NETWORKING=1 \
-    -DALLOW_XCODE=1 \
     $studio_build_command "$@"
 }
 
