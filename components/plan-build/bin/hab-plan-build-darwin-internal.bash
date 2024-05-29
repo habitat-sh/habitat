@@ -2173,11 +2173,9 @@ do_default_strip() {
       while read -rd '' f; do
         case "$(file -bi "$f")" in
         *application/x-mach-binary*)
-          echo "$f: $(file -bi "$f")"
           strip -x "$f"
           ;;
         *application/x-archive*)
-          echo "$f: $(file -bi "$f")"
           strip -Sx "$f"
           ;;
         *) continue ;;

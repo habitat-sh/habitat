@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
-# If this a native package build it does not require any sandboxing.
-# So we directly execute the build
-if [[ -n $HAB_NATIVE_PACKAGE ]]; then
-  exec "${source_dir}/hab-plan-build-darwin-internal" "$@"
-fi
-
 # # Internals
 source_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source "${source_dir}/public.bash"
 source "${source_dir}/shared.bash"
 source "${source_dir}/environment.bash"
+
+# If this a native package build it does not require any sandboxing.
+# So we directly execute the build
+if [[ -n $HAB_NATIVE_PACKAGE ]]; then
+  exec /usr/bin/env bash "${source_dir}/hab-plan-build-darwin-internal.bash" "$@"
+fi
 
 # Fail when commands return a non-zero return code.
 set -e
@@ -1310,7 +1310,7 @@ exec /usr/bin/sandbox-exec \
   -DSTUDIO_DIR="$HAB_STUDIO_ROOT" \
   -DSTUDIO_HAB="$HAB_STUDIO_HAB_BIN" \
   -DPLAN_CONTEXT_DIR="$PLAN_CONTEXT" \
-  "${source_dir}/hab-plan-build-darwin-internal" . "${@:2}"
+  "${source_dir}/hab-plan-build-darwin-internal.bash" . "${@:2}"
 
 
 
