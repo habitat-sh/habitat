@@ -10,7 +10,7 @@ studio_env_command="/usr/bin/env"
 studio_enter_environment="STUDIO_ENTER=true"
 studio_enter_command="$libexec_path/hab pkg exec core/build-tools-hab-backline bash --rcfile $HAB_STUDIO_ROOT/etc/profile"
 studio_build_environment=
-studio_build_command="$libexec_path/hab pkg exec core/build-tools-hab-backline hab-plan-build --"
+studio_build_command="${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}/bin/build"
 studio_run_environment=
 studio_run_command="$libexec_path/hab pkg exec core/build-tools-hab-backline bash --rcfile $HAB_STUDIO_ROOT/etc/profile"
 
@@ -21,11 +21,14 @@ finish_setup() {
     src_dir="$($pwd_cmd)"
     $mkdir_cmd -p "$HAB_STUDIO_ROOT"/etc
     $mkdir_cmd -p "$HAB_STUDIO_ROOT"/bin
+    $mkdir_cmd -p "$HAB_STUDIO_ROOT"/tmp
     $mkdir_cmd -p "${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}"/bin
 
     $cat_cmd <<EOF > "${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}"/bin/build
 #!/bin/sh
-exec $libexec_path/hab pkg exec core/build-tools-hab-plan-build hab-plan-build "\$@"
+HAB_STUDIO_ROOT=${HAB_STUDIO_ROOT} \
+HAB_STUDIO_HAB_BIN=$libexec_path/bin/hab \
+$libexec_path/hab pkg exec core/build-tools-hab-backline hab-plan-build "\$@"
 EOF
     $chmod_cmd +x "${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}"/bin/build
 
