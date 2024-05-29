@@ -252,6 +252,13 @@ _render_metadata_PACKAGE_TYPE() {
   echo "native" > "$pkg_prefix"/PACKAGE_TYPE
 }
 
+_render_metadata_RUNTIME_SANDBOX() {
+  debug "Rendering RUNTIME_SANDBOX metadata file"
+  
+  # shellcheck disable=2154
+  runtime_sandbox > "$pkg_prefix"/RUNTIME_SANDBOX
+}
+
 _render_metadata_SHUTDOWN_SIGNAL() {
   if [[ -n "${pkg_shutdown_signal:-}" ]]; then
     debug "Rendering SHUTDOWN_SIGNAL metadata file"

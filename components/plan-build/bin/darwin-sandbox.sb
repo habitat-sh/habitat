@@ -1,7 +1,8 @@
 (version 1)
+
+;; Support for dynamic linker from the base system
 (import "dyld-support.sb")
 
-(define BUILD_DIR (param "BUILD_DIR"))
 (define STUDIO_DIR (param "STUDIO_DIR"))
 (define STUDIO_HAB (param "STUDIO_HAB"))
 (define PLAN_CONTEXT_DIR (param "PLAN_CONTEXT_DIR"))
@@ -24,14 +25,15 @@
 
 ;; Allow file access and process execution inside build, studio and plan context directories
 (allow file* process-exec
-       (subpath BUILD_DIR)
        (subpath STUDIO_DIR)
        (subpath PLAN_CONTEXT_DIR))
 
 ;; Allow access to the studio's habitat binary
 ;; Also allow access to check the existence of accepted habitat licenses
 (allow file* process-exec (literal STUDIO_HAB))
-(allow file-read* (literal "/hab/accepted-licenses/habitat"))
+(allow file-read*
+    (literal "/hab/accepted-licenses")
+    (literal "/hab/accepted-licenses/habitat"))
 
 ;; Allow access to read and execute habitat packages, and cache directory
 (allow file* process-exec
@@ -49,9 +51,8 @@
 
 ;; Allow access to timezone database
 ;; This permits reading the timezone information necessary for time-related functions and operations.
-(allow file-read* 
-    (literal "/var")
-    (subpath "/private/var/db/timezone"))
+(allow file-read-metadata (literal "/var"))
+(allow file-read* (subpath "/private/var/db/timezone"))
 
 ;; Allow access to terminfo database
 (allow file-read* (subpath "/usr/share/terminfo"))

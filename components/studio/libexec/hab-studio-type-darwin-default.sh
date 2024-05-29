@@ -21,11 +21,14 @@ finish_setup() {
     src_dir="$($pwd_cmd)"
     $mkdir_cmd -p "$HAB_STUDIO_ROOT"/etc
     $mkdir_cmd -p "$HAB_STUDIO_ROOT"/bin
+    $mkdir_cmd -p "$HAB_STUDIO_ROOT"/tmp
     $mkdir_cmd -p "${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}"/bin
 
     $cat_cmd <<EOF > "${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}"/bin/build
 #!/bin/sh
-exec $libexec_path/hab pkg exec core/hab-backline hab-plan-build "\$@"
+HAB_STUDIO_ROOT=${HAB_STUDIO_ROOT} \
+HAB_STUDIO_HAB_BIN=$libexec_path/bin/hab \
+$libexec_path/hab pkg exec core/hab-backline hab-plan-build "\$@"
 EOF
     $chmod_cmd +x "${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}"/bin/build
 
