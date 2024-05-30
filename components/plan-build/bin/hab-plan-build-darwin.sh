@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # # Internals
-source_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "${source_dir}/public.bash"
 source "${source_dir}/shared.bash"
 source "${source_dir}/environment.bash"
@@ -133,12 +133,12 @@ _on_exit() {
     echo "   ${pkg_name}: Sandbox profile resolution time: $elapsed"
   else
     case "${TERM:-}" in
-      *term | xterm-* | rxvt | screen | screen-*)
-        echo -e "   \033[1;36m${pkg_name}: \033[1;37mSandbox profile resolution: $elapsed\033[0m"
-        ;;
-      *)
-        echo "   ${pkg_name}: Sandbox profile resolution: $elapsed"
-        ;;
+    *term | xterm-* | rxvt | screen | screen-*)
+      echo -e "   \033[1;36m${pkg_name}: \033[1;37mSandbox profile resolution: $elapsed\033[0m"
+      ;;
+    *)
+      echo "   ${pkg_name}: Sandbox profile resolution: $elapsed"
+      ;;
     esac
   fi
   if [[ $exit_status -ne 0 ]]; then
@@ -170,21 +170,21 @@ trap _on_exit 1 2 3 15 ERR EXIT
 # The line will be indented, with the package name in blue, and
 # `message` in red.
 _build_error_message() {
-    local message=${1}
-    : ${pkg_name:=unknown}
+  local message=${1}
+  : ${pkg_name:=unknown}
 
-    if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+    echo "   ${pkg_name}: ${message}"
+  else
+    case "${TERM:-}" in
+    *term | xterm-* | rxvt | screen | screen-*)
+      echo -e "   \033[1;36m${pkg_name}: \033[1;31m${message}\033[0m"
+      ;;
+    *)
       echo "   ${pkg_name}: ${message}"
-    else
-      case "${TERM:-}" in
-        *term | xterm-* | rxvt | screen | screen-*)
-          echo -e "   \033[1;36m${pkg_name}: \033[1;31m${message}\033[0m"
-          ;;
-        *)
-          echo "   ${pkg_name}: ${message}"
-          ;;
-      esac
-    fi
+      ;;
+    esac
+  fi
 }
 
 _ensure_origin_key_present() {
@@ -297,7 +297,7 @@ _find_system_commands() {
 # found.
 _latest_installed_package() {
   local result
-  if result="$($HAB_BIN pkg path "$1" 2> /dev/null)"; then
+  if result="$($HAB_BIN pkg path "$1" 2>/dev/null)"; then
     echo "$result"
     return 0
   else
@@ -326,7 +326,7 @@ _latest_installed_package() {
 _resolve_dependency() {
   local dep="$1"
   local dep_path
-  if ! echo "$dep" | grep -q '\/' > /dev/null; then
+  if ! echo "$dep" | grep -q '\/' >/dev/null; then
     warn "Origin required for '$dep' in plan '$pkg_origin/$pkg_name' (example: acme/$dep)"
     return 1
   fi
@@ -350,15 +350,15 @@ _resolve_dependency() {
 # _install_dependency acme/zlib/1.2.8/20151216221001
 # ```
 _install_dependency() {
-    local dep="${1}"
-    if [[ -z "${NO_INSTALL_DEPS:-}" ]]; then
+  local dep="${1}"
+  if [[ -z "${NO_INSTALL_DEPS:-}" ]]; then
 
     # Enable --ignore-local if invoked with HAB_FEAT_IGNORE_LOCAL in
     # the environment, set to either "true" or "TRUE" (features are
     # not currently enabled by the mere presence of an environment variable)
     if [[ "${HAB_FEAT_IGNORE_LOCAL:-}" = "true" ||
-              "${HAB_FEAT_IGNORE_LOCAL:-}" = "TRUE" ]]; then
-        IGNORE_LOCAL="--ignore-local"
+      "${HAB_FEAT_IGNORE_LOCAL:-}" = "TRUE" ]]; then
+      IGNORE_LOCAL="--ignore-local"
     fi
     $HAB_BIN pkg install -u $HAB_BLDR_URL --channel $HAB_BLDR_CHANNEL ${IGNORE_LOCAL:-} "$@" || {
       if [[ "$HAB_BLDR_CHANNEL" != "$HAB_FALLBACK_CHANNEL" ]]; then
@@ -517,12 +517,12 @@ _add_dep_to_tdep_list() {
   # Explicitly filter out any instances of the to-be-added dependency
   # that we may have already seen.
   for d in "${deps[@]}"; do
-      if [[ "$d" != "${to_add}" ]]; then
-          result=( "${result[@]}" "$d" )
-      fi
+    if [[ "$d" != "${to_add}" ]]; then
+      result=("${result[@]}" "$d")
+    fi
   done
   # Append the dependency to the end of the list
-  result=( "${result[@]}" "$to_add" )
+  result=("${result[@]}" "$to_add")
 
   echo "${result[@]}"
   return 0
@@ -540,7 +540,7 @@ _add_dep_to_tdep_list() {
 _array_contains() {
   local e
   for e in "${@:2}"; do
-      if [[ "$e" == "$1" ]]; then
+    if [[ "$e" == "$1" ]]; then
       return 0
     fi
   done
@@ -706,7 +706,7 @@ _set_build_tdeps_resolved() {
       # entries will be installed prior to the package with the dependency
       # otherwise install hooks may fail if they contain logic that depend on
       # the dependency.
-      read -r -a pkg_build_tdeps_resolved <<< "$(_add_dep_to_tdep_list "$tdep" "${pkg_build_tdeps_resolved[@]}")"
+      read -r -a pkg_build_tdeps_resolved <<<"$(_add_dep_to_tdep_list "$tdep" "${pkg_build_tdeps_resolved[@]}")"
     done
   done
 }
@@ -773,7 +773,7 @@ _resolve_run_dependencies() {
       # entries will be installed prior to the package with the dependency
       # otherwise install hooks may fail if they contain logic that depend on
       # the dependency.
-      read -r -a pkg_tdeps_resolved <<< "$(_add_dep_to_tdep_list "$tdep" "${pkg_tdeps_resolved[@]}")" # See syntax note @ _return_or_append_to_set
+      read -r -a pkg_tdeps_resolved <<<"$(_add_dep_to_tdep_list "$tdep" "${pkg_tdeps_resolved[@]}")" # See syntax note @ _return_or_append_to_set
     done
   done
 }
@@ -804,7 +804,7 @@ _populate_dependency_arrays() {
     "${pkg_deps_resolved[@]}"
   )
   for dep in "${pkg_build_tdeps_resolved[@]}" "${pkg_tdeps_resolved[@]}"; do
-    read -r -a pkg_all_tdeps_resolved <<< "$(_return_or_append_to_set "$dep" "${pkg_all_tdeps_resolved[@]}")" # See syntax note @ _return_or_append_to_set
+    read -r -a pkg_all_tdeps_resolved <<<"$(_return_or_append_to_set "$dep" "${pkg_all_tdeps_resolved[@]}")" # See syntax note @ _return_or_append_to_set
   done
 }
 
@@ -821,24 +821,24 @@ _validate_deps() {
   # Build the list of full runtime deps (one per line) without the
   # `$HAB_PKG_PATH` prefix.
   local tdeps
-  tdeps=$(echo "${pkg_tdeps_resolved[@]}" \
-    | tr ' ' '\n' \
-    | sed "s,^${HAB_PKG_PATH}/,,")
+  tdeps=$(echo "${pkg_tdeps_resolved[@]}" |
+    tr ' ' '\n' |
+    sed "s,^${HAB_PKG_PATH}/,,")
   # Build the list of any runtime deps that appear more than once. That is,
   # `ORIGIN/NAME` token duplicates.
   local dupes
-  dupes=$(echo "$tdeps" \
-    | awk -F/ '{print $1"/"$2}' \
-    | sort \
-    | uniq -d)
+  dupes=$(echo "$tdeps" |
+    awk -F/ '{print $1"/"$2}' |
+    sort |
+    uniq -d)
 
   if [[ -n "$dupes" ]]; then
     local dupe
     # Build a list of all fully qualified package identifiers that are members
     # of the duplicated `ORIGIN/NAME` tokens. This will be used to star the
     # problematic dependencies in the graph.
-    _dupes_qualified=$(echo "$tdeps" \
-      | grep -E "($(echo "$dupes" | tr '\n' '|' | sed 's,|$,,'))")
+    _dupes_qualified=$(echo "$tdeps" |
+      grep -E "($(echo "$dupes" | tr '\n' '|' | sed 's,|$,,'))")
 
     warn
     warn "The following runtime dependencies have more than one version"
@@ -865,10 +865,10 @@ _validate_deps() {
     warn
     warn "Computed dependency graph (Lines with '*' denote a problematic entry):"
     echo -e "\n${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
-    echo "${pkg_deps_resolved[@]}" \
-      | tr ' ' '\n' \
-      | sed -e "s,^${HAB_PKG_PATH}/,," \
-      | _print_recursive_deps 1
+    echo "${pkg_deps_resolved[@]}" |
+      tr ' ' '\n' |
+      sed -e "s,^${HAB_PKG_PATH}/,," |
+      _print_recursive_deps 1
     echo
     exit_with "Computed runtime dependency check failed, aborting" 31
   fi
@@ -932,7 +932,7 @@ _print_recursive_deps() {
   while read -r dep; do
     # If this dependency is a member of the duplicated set, then add an
     # asterisk at the end of the line, otherwise print the dependency.
-    if echo "$_dupes_qualified" | grep -q "$dep" > /dev/null; then
+    if echo "$_dupes_qualified" | grep -q "$dep" >/dev/null; then
       printf "%*s$dep (*)\n" $padn
     else
       printf "%*s$dep\n" $padn
@@ -940,7 +940,7 @@ _print_recursive_deps() {
     # If this dependency itself has direct dependencies, then recursively print
     # them.
     if [[ -f $HAB_PKG_PATH/$dep/DEPS ]]; then
-      _print_recursive_deps $((level + 1)) < "$HAB_PKG_PATH"/"$dep"/DEPS
+      _print_recursive_deps $((level + 1)) <"$HAB_PKG_PATH"/"$dep"/DEPS
     fi
   done
 }
@@ -970,7 +970,7 @@ _print_recursive_deps() {
 _pkg_path_for_build_deps() {
   local dep="$1"
   local e
-  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
+  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l) + 2))"
   for e in "${pkg_build_deps_resolved[@]}"; do
     if echo "$e" | cut -d "/" -f ${cutn}- | grep -E -q "(^|/)${dep}(/|$)"; then
       echo "$e"
@@ -1005,7 +1005,7 @@ _pkg_path_for_build_deps() {
 _pkg_path_for_deps() {
   local dep="$1"
   local e
-  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
+  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l) + 2))"
   for e in "${pkg_deps_resolved[@]}"; do
     if echo "$e" | cut -d "/" -f ${cutn}- | grep -E -q "(^|/)${dep}(/|$)"; then
       echo "$e"
@@ -1079,17 +1079,17 @@ _resolve_dependencies() {
 OPTIND=2
 while getopts "u:" opt; do
   case "${opt}" in
-    u)
-      HAB_BLDR_URL=$OPTARG
-      ;;
-    \?)
-      echo "Invalid option: -$OPTARG" >&2
-      exit 1
-      ;;
-    :)
-      echo "Option -$OPTARG requires an argument." >&2
-      exit 1
-      ;;
+  u)
+    HAB_BLDR_URL=$OPTARG
+    ;;
+  \?)
+    echo "Invalid option: -$OPTARG" >&2
+    exit 1
+    ;;
+  :)
+    echo "Option -$OPTARG requires an argument." >&2
+    exit 1
+    ;;
   esac
 done
 
@@ -1169,24 +1169,24 @@ for path in "${candidate_paths[@]}"; do
 done
 
 if [[ ${#paths[@]} -gt 0 && ${#target_paths[@]} -gt 0 ]]; then
-    warn "There is a $HAB_PLAN_FILENAME inside $pkg_target and outside as well. Using the plan in $pkg_target."
-    warn "It is advisable to either remove the plan that is outside $pkg_target"
-    warn "or move that plan to its own target folder if it is intended for a different target."
+  warn "There is a $HAB_PLAN_FILENAME inside $pkg_target and outside as well. Using the plan in $pkg_target."
+  warn "It is advisable to either remove the plan that is outside $pkg_target"
+  warn "or move that plan to its own target folder if it is intended for a different target."
 fi
 
 # lets figure out what the final set of paths we are evaluating
 # because target paths take precedence over non-target paths, we
 # will use those if any were used
 if [[ ${#target_paths[@]} -gt 0 ]]; then
-  final_paths=( "${target_paths[@]}" )
+  final_paths=("${target_paths[@]}")
 else
-  final_paths=( "${paths[@]}" )
+  final_paths=("${paths[@]}")
 fi
 
 if [[ ${#final_paths[@]} -gt 1 ]]; then
   exit_with "A Plan file was found in the following paths: $(join_by ',' "${final_paths[@]}"). Only one is allowed at a time" 42
 elif [[ ${#final_paths[@]} -eq 0 ]]; then
-  all_paths=( "${candidate_paths[@]}" "${candidate_target_paths[@]}" )
+  all_paths=("${candidate_paths[@]}" "${candidate_target_paths[@]}")
   exit_with "Plan file not found in any of these paths: $(join_by ',' "${all_paths[@]}")" 42
 else
   PLAN_CONTEXT="$(dirname "${final_paths[0]}")"
@@ -1213,41 +1213,39 @@ required_variables=(
   pkg_name
   pkg_origin
 )
-for var in "${required_variables[@]}"
-do
-  if [[ -z "${!var}" ]] ; then
+for var in "${required_variables[@]}"; do
+  if [[ -z "${!var}" ]]; then
     exit_with "Failed to build. '${var}' must be set." 1
   fi
 done
 
 # Test to ensure package name contains only valid characters
 for var in pkg_name pkg_origin; do
-  if [[ ! "${!var}" =~ ^[A-Za-z0-9_-]+$ ]];
-  then
+  if [[ ! "${!var}" =~ ^[A-Za-z0-9_-]+$ ]]; then
     exit_with "Failed to build. Package $var '${!var}' contains invalid characters." 1
   fi
 done
 
 # Ensure that the version is set (or can be set!) properly
 if [[ -z "${pkg_version:-}" && "$(type -t pkg_version)" == "function" ]]; then
-    pkg_version="__pkg__version__unset__"
+  pkg_version="__pkg__version__unset__"
 elif [[ -z "${pkg_version:-}" ]]; then
-    e="Failed to build. 'pkg_version' must be set or 'pkg_version()' function"
-    e="$e must be implemented and then invoking by calling 'update_pkg_version()'."
-    exit_with "$e" 1
+  e="Failed to build. 'pkg_version' must be set or 'pkg_version()' function"
+  e="$e must be implemented and then invoking by calling 'update_pkg_version()'."
+  exit_with "$e" 1
 fi
 
 # If `$pkg_source` is used, default `$pkg_filename` to the basename of
 # `$pkg_source` if it is not already set by the Plan.
 if [[ -n "${pkg_source:-}" && -z "${pkg_filename+xxx}" ]]; then
-    pkg_filename="$(basename "$pkg_source")"
+  pkg_filename="$(basename "$pkg_source")"
 fi
 
 # Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not
 # already set by the Plan.
 if [[ -z "${pkg_dirname+xxx}" ]]; then
-    pkg_dirname="${pkg_name}-${pkg_version}"
-    _pkg_dirname_initially_unset=true
+  pkg_dirname="${pkg_name}-${pkg_version}"
+  _pkg_dirname_initially_unset=true
 fi
 
 if [[ -n "$HAB_OUTPUT_PATH" ]]; then
@@ -1263,7 +1261,7 @@ _determine_hab_bin
 # We removed support for composite plans in habitat 0.75.0.  Let's give a useful error message
 # if you happen to try and build one rather than create a useless package
 if [[ -n "${pkg_type:-}" && "${pkg_type}" == "composite" ]]; then
-     exit_with "Composite plans are no longer supported. For more details see https://www.habitat.sh/blog/2018/10/shelving-composites/" 1
+  exit_with "Composite plans are no longer supported. For more details see https://www.habitat.sh/blog/2018/10/shelving-composites/" 1
 fi
 
 # Ensure that the origin key is available for package signing
@@ -1272,32 +1270,43 @@ _ensure_origin_key_present
 _resolve_dependencies
 
 SANDBOX_PROFILE="${HAB_STUDIO_ROOT}/tmp/profile.sb"
-(echo ";; Generated sandbox profile"; echo "") > "$SANDBOX_PROFILE"
-cat "$source_dir/darwin-sandbox.sb" >> "$SANDBOX_PROFILE"
-for dep in "${pkg_all_deps_resolved[@]}"; do
-runtime_sandbox_file="${dep}/RUNTIME_SANDBOX"
-if [[ -f "$runtime_sandbox_file" ]]; then
-    (echo "" ; echo ";; Rules imported from $runtime_sandbox_file"; echo "(import \"$runtime_sandbox_file\")") >> "$SANDBOX_PROFILE"
-fi
+(
+  echo ";; Generated sandbox profile"
+  echo ""
+) >"$SANDBOX_PROFILE"
+cat "$source_dir/darwin-sandbox.sb" >>"$SANDBOX_PROFILE"
+for dep in "${pkg_all_tdeps_resolved[@]}"; do
+  runtime_sandbox_file="${dep}/RUNTIME_SANDBOX"
+  if [[ -f "$runtime_sandbox_file" ]]; then
+    (
+      echo ""
+      echo ";; Rules imported from $runtime_sandbox_file"
+      echo "(import \"$runtime_sandbox_file\")"
+    ) >>"$SANDBOX_PROFILE"
+  fi
 done
 
-if declare -f runtime_sandbox > /dev/null; then
-    runtime_sandbox > "${HAB_STUDIO_ROOT}/tmp/runtime_profile.sb"
-    ret=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/runtime_profile.sb" /bin/false 2>/dev/null || echo $?)
-    if [[ "$ret" == "65" ]]; then
-      out=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/runtime_profile.sb" /bin/false 2>&1 > /dev/null || echo "")
-      exit_with "Invalid sandbox profile returned by 'runtime_sandbox' function:\\n$out"
-    fi
+if declare -f runtime_sandbox >/dev/null; then
+  runtime_sandbox >"${HAB_STUDIO_ROOT}/tmp/runtime_profile.sb"
+  ret=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/runtime_profile.sb" /bin/false 2>/dev/null || echo $?)
+  if [[ "$ret" == "65" ]]; then
+    out=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/runtime_profile.sb" /bin/false 2>&1 >/dev/null || echo "")
+    exit_with "Invalid sandbox profile returned by 'runtime_sandbox' function:\\n$out"
+  fi
 fi
 
-if declare -f buildtime_sandbox > /dev/null; then
-    buildtime_sandbox > "${HAB_STUDIO_ROOT}/tmp/buildtime_profile.sb"
-    ret=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/buildtime_profile.sb" /bin/false 2>/dev/null || echo $?)
-    if [[ "$ret" == "65" ]]; then
-      out=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/buildtime_profile.sb" /bin/false 2>&1 > /dev/null || echo "")
-      exit_with "Invalid sandbox profile returned by 'buildtime_sandbox' function:\\n$out"
-    fi
-    (echo ""; echo ";; Rules imported from plan buildtime_sandbox function"; echo "(import \"${HAB_STUDIO_ROOT}/tmp/build_profile.sb\")") >> "$SANDBOX_PROFILE"
+if declare -f buildtime_sandbox >/dev/null; then
+  buildtime_sandbox >"${HAB_STUDIO_ROOT}/tmp/buildtime_profile.sb"
+  ret=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/buildtime_profile.sb" /bin/false 2>/dev/null || echo $?)
+  if [[ "$ret" == "65" ]]; then
+    out=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/buildtime_profile.sb" /bin/false 2>&1 >/dev/null || echo "")
+    exit_with "Invalid sandbox profile returned by 'buildtime_sandbox' function:\\n$out"
+  fi
+  (
+    echo ""
+    echo ";; Rules imported from plan buildtime_sandbox function"
+    echo "(import \"${HAB_STUDIO_ROOT}/tmp/build_profile.sb\")"
+  ) >>"$SANDBOX_PROFILE"
 fi
 
 build_line "Sandbox profile written to $SANDBOX_PROFILE"
@@ -1310,6 +1319,3 @@ exec /usr/bin/sandbox-exec \
   -DPLAN_CONTEXT_DIR="$PLAN_CONTEXT" \
   -DPKG_OUTPUT_PATH="$pkg_output_path" \
   "${source_dir}/hab-plan-build-darwin-internal.bash" . "${@:2}"
-
-
-
