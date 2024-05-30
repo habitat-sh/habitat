@@ -1077,11 +1077,8 @@ _resolve_dependencies() {
 ########################################################################
 # Parse depot flag (-u)
 OPTIND=2
-while getopts "o:u:" opt; do
+while getopts "u:" opt; do
   case "${opt}" in
-    o)
-      SANDBOX_PROFILE=$OPTARG
-      ;;
     u)
       HAB_BLDR_URL=$OPTARG
       ;;
@@ -1095,11 +1092,6 @@ while getopts "o:u:" opt; do
       ;;
   esac
 done
-
-if [[ "$SANDBOX_PROFILE" == "" ]]; then
-    echo "Missing required option -o: please specify the output path"
-    exit 1
-fi
 
 # If the value of `$pkg_target` is a replacement token, then the program is
 # being run out of a raw source tree (which must be supported), otherwise
