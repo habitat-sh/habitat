@@ -5,7 +5,7 @@
 
 (define STUDIO_DIR (param "STUDIO_DIR"))
 (define STUDIO_HAB (param "STUDIO_HAB"))
-(define PLAN_CONTEXT_DIR (param "PLAN_CONTEXT_DIR"))
+(define WORK_DIR (param "WORK_DIR"))
 
 (deny default)
 
@@ -26,7 +26,7 @@
 ;; Allow file access and process execution inside build, studio and plan context directories
 (allow file* process-exec
        (subpath STUDIO_DIR)
-       (subpath PLAN_CONTEXT_DIR))
+       (subpath WORK_DIR))
 
 ;; Allow access to the studio's habitat binary
 ;; Also allow access to check the existence of accepted habitat licenses
@@ -127,6 +127,11 @@
     ;; directory services architecture. This service is used for retrieving information about user accounts,
     ;; groups, and other directory-related data.
     (global-name "com.apple.system.opendirectoryd.libinfo"))
+
+;; Allow unrestricted access to sandbox-exec to start child sandboxes
+;; This is essential for creating and managing child sandboxes for enhanced security and isolation.
+(allow file-read* (literal "/usr/bin/sandbox-exec"))
+(allow process-exec (with no-sandbox) (literal "/usr/bin/sandbox-exec"))
 
 ;; Allow access to user authentication information
 ;; This is necessary for reading system files that contain user and group authentication data,
