@@ -148,7 +148,7 @@
     (literal "/private/etc/group"))
 
 ;; Allow access to temporary working directories
-(allow file-read-metadata "/tmp")
+(allow file-read-metadata (literal "/tmp"))
 (allow file* process-exec (subpath "/private/tmp"))
 
 ;; Allow DNS lookups and network access
