@@ -305,9 +305,9 @@
 # is but a click away.](#build-phases)
 #
 # # Internals
-if (( BASH_VERSINFO[0] < 5 )); then
-    echo "The habitat plan build script requires bash version 5.0 or later to be available in the environment PATH, current bash version is ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}"
-    return 1
+if ((BASH_VERSINFO[0] < 5)); then
+  echo "The habitat plan build script requires bash version 5.0 or later to be available in the environment PATH, current bash version is ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}"
+  return 1
 fi
 
 source_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -2034,7 +2034,7 @@ _build_metadata() {
   fi
 
   # We render out the RUNTIME_SANDBOX metadata file if the function is defined
-  if declare -f runtime_sandbox > /dev/null; then
+  if declare -f runtime_sandbox >/dev/null; then
     _render_metadata_RUNTIME_SANDBOX
   fi
 
@@ -2489,7 +2489,18 @@ if [[ "$pkg_target" == "@@pkg_target@@" ]]; then
     # and behavior-preserving.
     _pkg_arch="$(uname -m | tr '[:upper:]' '[:lower:]')"
     _pkg_sys="$(uname -s | tr '[:upper:]' '[:lower:]')"
-    pkg_target="${_pkg_arch}-${_pkg_sys}"
+
+    # This is required because the native macos uname and GNU coreutils uname
+    # return arm64 and aarch64 respectively for the system architecture.
+    case "${_pkg_arch}-${_pkg_sys}" in
+    arm64-darwin)
+      pkg_target="aarch64-darwin"
+      ;;
+    *)
+      pkg_target="${_pkg_arch}-${_pkg_sys}"
+      ;;
+    esac
+
     unset _pkg_arch _pkg_sys
     build_line "Setting pkg_target='$pkg_target' using \`uname' detection"
   fi

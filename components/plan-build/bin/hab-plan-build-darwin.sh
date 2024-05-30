@@ -1250,6 +1250,12 @@ if [[ -z "${pkg_dirname+xxx}" ]]; then
     _pkg_dirname_initially_unset=true
 fi
 
+if [[ -n "$HAB_OUTPUT_PATH" ]]; then
+  pkg_output_path="$HAB_OUTPUT_PATH"
+else
+  pkg_output_path="$INITIAL_PWD/results"
+fi
+
 # Determine if we have all the commands we need to work
 _find_system_commands
 _determine_hab_bin
@@ -1302,6 +1308,7 @@ exec /usr/bin/sandbox-exec \
   -DSTUDIO_DIR="$HAB_STUDIO_ROOT" \
   -DSTUDIO_HAB="$HAB_STUDIO_HAB_BIN" \
   -DPLAN_CONTEXT_DIR="$PLAN_CONTEXT" \
+  -DPKG_OUTPUT_PATH="$pkg_output_path" \
   "${source_dir}/hab-plan-build-darwin-internal.bash" . "${@:2}"
 
 

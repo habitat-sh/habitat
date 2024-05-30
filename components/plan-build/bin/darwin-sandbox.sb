@@ -6,6 +6,7 @@
 (define STUDIO_DIR (param "STUDIO_DIR"))
 (define STUDIO_HAB (param "STUDIO_HAB"))
 (define PLAN_CONTEXT_DIR (param "PLAN_CONTEXT_DIR"))
+(define PKG_OUTPUT_PATH (param "PKG_OUTPUT_PATH"))
 
 (deny default)
 
@@ -26,7 +27,8 @@
 ;; Allow file access and process execution inside build, studio and plan context directories
 (allow file* process-exec
        (subpath STUDIO_DIR)
-       (subpath PLAN_CONTEXT_DIR))
+       (subpath PLAN_CONTEXT_DIR)
+       (subpath PKG_OUTPUT_PATH))
 
 ;; Allow access to the studio's habitat binary
 ;; Also allow access to check the existence of accepted habitat licenses
