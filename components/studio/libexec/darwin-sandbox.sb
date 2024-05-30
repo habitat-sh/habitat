@@ -45,6 +45,7 @@
 ;; for proper execution of the studio
 (allow process-exec file*
     (literal "/usr/bin/env")
+    (literal "/usr/bin/uname")
     (literal "/bin/bash")
     (literal "/bin/sh")
     (literal "/private/var/select/sh"))

@@ -2487,8 +2487,10 @@ if [[ "$pkg_target" == "@@pkg_target@@" ]]; then
     # Otherwise, attempt to detect a suitable value for `$pkg_target` by using
     # the `uname` program. This is prior behavior and is backwards compatible
     # and behavior-preserving.
-    _pkg_arch="$(uname -m | tr '[:upper:]' '[:lower:]')"
-    _pkg_sys="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    # On MacOS we explicitly use the apple provided /usr/bin/uname
+    # as it has a different output from GNU coreutils's uname
+    _pkg_arch="$(/usr/bin/uname -m | tr '[:upper:]' '[:lower:]')"
+    _pkg_sys="$(/usr/bin/uname -s | tr '[:upper:]' '[:lower:]')"
 
     # This is required because the native macos uname and GNU coreutils uname
     # return arm64 and aarch64 respectively for the system architecture.
