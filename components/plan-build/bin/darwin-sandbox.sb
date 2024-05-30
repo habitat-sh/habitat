@@ -44,9 +44,10 @@
        (subpath "/hab/cache"))
 
 ;; Allow access to env and shell system binaries that are essential 
-;; for proper execution of the studio
+;; for proper execution of the plan build process
 (allow process-exec file*
     (literal "/usr/bin/env")
+    (literal "/usr/bin/uname")
     (literal "/bin/bash")
     (literal "/bin/sh")
     (literal "/private/var/select/sh"))
