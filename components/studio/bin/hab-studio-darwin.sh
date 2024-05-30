@@ -422,7 +422,7 @@ enter_studio() {
   $studio_env_command -i \
     $sandbox_env \
     "$sandbox_exec_cmd" -f "$sandbox_profile_path" \
-    -DPLAN_CONTEXT_DIR="$work_dir" \
+    -DWORK_DIR="$work_dir" \
     -DSTUDIO_DIR="$HAB_STUDIO_ROOT" \
     -DSTUDIO_HAB="$libexec_path/hab" \
     $studio_enter_command "$@"
@@ -456,7 +456,7 @@ build_studio() {
   $studio_env_command -i \
     $sandbox_env \
     "$sandbox_exec_cmd" -f "$sandbox_profile_path" \
-    -DPLAN_CONTEXT_DIR="$work_dir" \
+    -DWORK_DIR="$work_dir" \
     -DSTUDIO_DIR="$HAB_STUDIO_ROOT" \
     -DSTUDIO_HAB="$libexec_path/hab" \
     $studio_build_command "$@"
