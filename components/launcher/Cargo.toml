@@ -15,13 +15,7 @@ env_logger = "*"
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
 habitat-launcher-protocol = { path = "../launcher-protocol" }
-# TODO: In order to support certain customers who are still using Windows 7 until
-# January 2024, it is necessary to freeze the version of this crate at 0.15.0. 
-# Newer versions of this crate use a Windows syscall called 'GetOverlappedResultEx',
-# which is not supported on versions of Windows prior to 8. 
-# For more information about 'GetOverlappedResultEx', please refer to the following documentation: https://learn.microsoft.com/en-us/windows/win32/api/ioapiset/nf-ioapiset-getoverlappedresultex
-# The commit that introduced the change can be found here: https://github.com/servo/ipc-channel/commit/eb08381a30bc71a534a0a73ab98c05bca7a12f82
-ipc-channel = { version = "0.15.0" }
+ipc-channel = { version = "*" }
 libc = "*"
 log = "0.4"
 prost = "*"
