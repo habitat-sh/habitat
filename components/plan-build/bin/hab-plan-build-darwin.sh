@@ -1269,7 +1269,7 @@ _ensure_origin_key_present
 
 _resolve_dependencies
 
-SANDBOX_PROFILE="${HAB_STUDIO_ROOT}/tmp/profile.sb"
+SANDBOX_PROFILE="${HAB_STUDIO_ROOT}/tmp/PLAN_SANDBOX"
 (
   echo ";; Generated sandbox profile"
   echo ""
@@ -1286,26 +1286,37 @@ for dep in "${pkg_all_tdeps_resolved[@]}"; do
   fi
 done
 
+# This function writes out the runtime sandbox to a temporary file and validates
+# if there are any syntax or other compilation errros in the sandbox.
+# It does this by executing the /bin/false binary with the temporary sandbox profile and checking
+# the error return code. If the return code is 65 it indicates a mistake in the sandbox profile.
+# We do not care if the /bin/false execution fails or succeeds
 if declare -f runtime_sandbox >/dev/null; then
-  runtime_sandbox >"${HAB_STUDIO_ROOT}/tmp/runtime_profile.sb"
-  ret=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/runtime_profile.sb" /bin/false 2>/dev/null || echo $?)
+  runtime_sandbox >"${HAB_STUDIO_ROOT}/tmp/RUNTIME_SANDBOX"
+  ret=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/RUNTIME_SANDBOX" /bin/false 2>/dev/null || echo $?)
   if [[ "$ret" == "65" ]]; then
-    out=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/runtime_profile.sb" /bin/false 2>&1 >/dev/null || echo "")
+    out=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/RUNTIME_SANDBOX" /bin/false 2>&1 >/dev/null || echo "")
     exit_with "Invalid sandbox profile returned by 'runtime_sandbox' function:\\n$out"
   fi
 fi
 
+# This function writes out the buildtime sandbox to a temporary file and validates
+# if there are any syntax or other compilation errros in the sandbox.
+# It does this by executing the /bin/false binary with the temporary sandbox profile and checking
+# the error return code. If the return code is 65 it indicates a mistake in the sandbox profile.
+# We do not care if the /bin/false execution fails or succeeds
+# It also adds a line at the end of the current sandbox profile to import the buildtime sandbox for this plan.
 if declare -f buildtime_sandbox >/dev/null; then
-  buildtime_sandbox >"${HAB_STUDIO_ROOT}/tmp/buildtime_profile.sb"
-  ret=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/buildtime_profile.sb" /bin/false 2>/dev/null || echo $?)
+  buildtime_sandbox >"${HAB_STUDIO_ROOT}/tmp/BUILDTIME_SANDBOX"
+  ret=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/BUILDTIME_SANDBOX" /bin/false 2>/dev/null || echo $?)
   if [[ "$ret" == "65" ]]; then
-    out=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/buildtime_profile.sb" /bin/false 2>&1 >/dev/null || echo "")
+    out=$(/usr/bin/sandbox-exec -f "${HAB_STUDIO_ROOT}/tmp/BUILDTIME_SANDBOX" /bin/false 2>&1 >/dev/null || echo "")
     exit_with "Invalid sandbox profile returned by 'buildtime_sandbox' function:\\n$out"
   fi
   (
     echo ""
     echo ";; Rules imported from plan buildtime_sandbox function"
-    echo "(import \"${HAB_STUDIO_ROOT}/tmp/build_profile.sb\")"
+    echo "(import \"${HAB_STUDIO_ROOT}/tmp/BUILDTIME_SANDBOX\")"
   ) >>"$SANDBOX_PROFILE"
 fi
 
