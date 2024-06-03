@@ -23,6 +23,12 @@
 ;; Allow POSIX semaphores and shared memory.
 (allow ipc-posix*)
 
+;; Allow socket creation.
+(allow system-socket)
+
+;; Allow sending signals within the sandbox.
+(allow signal (target same-sandbox))
+
 ;; Allow file access and process execution inside build, studio and plan context directories
 (allow file* process-exec
        (subpath STUDIO_DIR)
