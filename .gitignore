@@ -3,6 +3,7 @@
 *.sig.key
 *.sym.key
 .cargo/advisory-db/
+.cargo/advisory-db..lock
 .DS_Store
 .envrc
 .secrets

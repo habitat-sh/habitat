@@ -63,19 +63,19 @@ impl<'a, T> From<RwLockWriteGuard<'a, T>> for StableRwLockWriteGuard<'a, T> {
 }
 
 /// Typedef of a owning reference that uses a `MutexGuard` as the owner.
-pub type MutexGuardRef<'a, T, U = T> = OwningRef<StableMutexGuard<'a, T>, U>;
+pub type MutexGuardRef<'a, T, U = T> = OwningRef<'a, StableMutexGuard<'a, T>, U>;
 
 /// Typedef of a mutable owning reference that uses a `MutexGuard` as the owner.
-pub type MutexGuardRefMut<'a, T, U = T> = OwningRefMut<StableMutexGuard<'a, T>, U>;
+pub type MutexGuardRefMut<'a, T, U = T> = OwningRefMut<'a, StableMutexGuard<'a, T>, U>;
 
 /// Typedef of a owning reference that uses a `RwLockReadGuard` as the owner.
-pub type RwLockReadGuardRef<'a, T, U = T> = OwningRef<StableRwLockReadGuard<'a, T>, U>;
+pub type RwLockReadGuardRef<'a, T, U = T> = OwningRef<'a, StableRwLockReadGuard<'a, T>, U>;
 
 /// Typedef of a owning reference that uses a `RwLockWriteGuard` as the owner.
-pub type RwLockWriteGuardRef<'a, T, U = T> = OwningRef<StableRwLockWriteGuard<'a, T>, U>;
+pub type RwLockWriteGuardRef<'a, T, U = T> = OwningRef<'a, StableRwLockWriteGuard<'a, T>, U>;
 
 /// Typedef of a mutable owning reference that uses a `RwLockWriteGuard` as the owner.
-pub type RwLockWriteGuardRefMut<'a, T, U = T> = OwningRefMut<StableRwLockWriteGuard<'a, T>, U>;
+pub type RwLockWriteGuardRefMut<'a, T, U = T> = OwningRefMut<'a, StableRwLockWriteGuard<'a, T>, U>;
 
 #[test]
 fn raii_locks() {

@@ -33,7 +33,7 @@ lazy_static = "*"
 libc = "*"
 log = "0.4"
 native-tls = { version = "*", features = ["vendored"] }
-owning_ref = "*"
+safer_owning_ref = "*"
 parking_lot = "*"
 pbr = "*"
 petgraph = "*"

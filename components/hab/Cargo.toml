@@ -35,7 +35,7 @@ lazy_static = "*"
 libc = "*"
 log = "0.4"
 pbr = "*"
-rants = { git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
+rants = { version = "0.6.1", git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }
 retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
 rustls = "*"
