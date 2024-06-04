@@ -639,6 +639,8 @@ _find_system_commands() {
 
   if tar --version 2>&1 | grep -q 'GNU tar'; then
     _tar_cmd=$(command -v tar)
+  elif gtar --version 2>&1 | grep -q 'GNU tar'; then
+    _tar_cmd=$(command -v gtar)
   else
     if /bin/tar --version 2>&1 | grep -q 'GNU tar'; then
       _tar_cmd=/bin/tar
