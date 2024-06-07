@@ -1508,7 +1508,6 @@ dependencies = [
  "log 0.4.21",
  "native-tls",
  "nix 0.29.0",
- "owning_ref",
  "parking_lot",
  "pbr",
  "petgraph",
@@ -1516,6 +1515,7 @@ dependencies = [
  "reqwest",
  "retry",
  "rustls",
+ "safer_owning_ref",
  "serde",
  "serde-transcode",
  "serde_json",
@@ -2613,15 +2613,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "owning_ref"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ff55baddef9e4ad00f88b6c743a2a8062d4c6ade126c2a528644b8e444d52ce"
-dependencies = [
- "stable_deref_trait",
-]
-
-[[package]]
 name = "parking_lot"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3018,17 +3009,17 @@ dependencies = [
 
 [[package]]
 name = "rants"
-version = "0.6.0"
-source = "git+https://github.com/habitat-sh/rants.git#7fd1434ecaaf9af743ccab1840034f5d71329935"
+version = "0.6.1"
+source = "git+https://github.com/habitat-sh/rants.git#9f268782e17c93d35e24ca433f6a1297e23e22fe"
 dependencies = [
  "bytes",
  "futures",
  "log 0.4.21",
  "native-tls",
  "nom",
- "owning_ref",
  "pin-project",
  "rand 0.8.5",
+ "safer_owning_ref",
  "serde",
  "serde_json",
  "tokio",
@@ -3391,6 +3382,15 @@ name = "ryu"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
+
+[[package]]
+name = "safer_owning_ref"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af21b9de2df966f61c07b5b541c81c98225b86e48ababd43366a642654de30ef"
+dependencies = [
+ "stable_deref_trait",
+]
 
 [[package]]
 name = "same-file"

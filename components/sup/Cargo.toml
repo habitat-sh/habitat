@@ -53,7 +53,7 @@ prometheus = "*"
 prost = { version = "*", features = ["prost-derive"] }
 prost-types = "*"
 rand = "*"
-rants = { git = "https://github.com/habitat-sh/rants.git", features = [
+rants = { version = "0.6.1", git = "https://github.com/habitat-sh/rants.git", features = [
   "native-tls",
 ] }
 regex = "*"

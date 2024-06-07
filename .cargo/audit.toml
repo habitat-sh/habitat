@@ -18,7 +18,6 @@ ignore = [
     "RUSTSEC-2021-0145", # Unsound, Unmaintained: atty
     "RUSTSEC-2022-0006", # Vulnerability (???): thread_local
     "RUSTSEC-2022-0013", # Vulnerability (7.5 High), regex
-    "RUSTSEC-2022-0040", # Vulnerability (???): owning_ref
     "RUSTSEC-2022-0041", # Unsound: crossbeam-utils
     "RUSTSEC-2022-0071", # Unmaintained: rusoto
 ]
@@ -116,7 +115,7 @@ update_index = true # Auto-update the crates.io index (default: true)
 # Requires that we upgrade handlebars
 #
 # thread_local 0.3.6
-# └── regex 0.2.11 
+# └── regex 0.2.11
 #     ├── handlebars 0.29.1
 #     │   ├── habitat_pkg_export_tar 0.0.0
 #     │   ├── habitat_pkg_export_container 0.0.0
@@ -124,23 +123,12 @@ update_index = true # Auto-update the crates.io index (default: true)
 #     └── handlebars 0.28.3
 #         └── habitat_common 0.0.0
 #
-#-------------------------------------------------------------------------------
-# "RUSTSEC-2022-0040",    # Vulnerability (???): owning_ref
-#-------------------------------------------------------------------------------
-#
-# Requires that we update rants
-#
-# owning_ref 0.4.1
-# ├── rants 0.6.0
-# │   ├── habitat_sup 0.0.0
-# │   └── hab 0.0.0
-# └── habitat_common 0.0.0
 #
 #-------------------------------------------------------------------------------
 # "RUSTSEC-2022-0071"     # Unmaintained: rusoto
 #-------------------------------------------------------------------------------
 #
-# Requires selection of new "AWS crate" 
+# Requires selection of new "AWS crate"
 #
 # rusoto_credential 0.48.0
 # ├── rusoto_signature 0.48.0
