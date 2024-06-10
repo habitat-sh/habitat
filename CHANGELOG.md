@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1075 -->
-## [1.6.1075](https://github.com/habitat-sh/habitat/tree/1.6.1075) (2024-06-07)
+<!-- latest_release 1.6.1076 -->
+## [1.6.1076](https://github.com/habitat-sh/habitat/tree/1.6.1076) (2024-06-10)
 
 #### Merged Pull Requests
-- CHEF-12227: vulnerable owning_ref crate [#9273](https://github.com/habitat-sh/habitat/pull/9273) ([jasonheath](https://github.com/jasonheath))
+- Bump actix-rt from 2.9.0 to 2.10.0 [#9275](https://github.com/habitat-sh/habitat/pull/9275) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump actix-rt from 2.9.0 to 2.10.0 [#9275](https://github.com/habitat-sh/habitat/pull/9275) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1076 -->
 - CHEF-12227: vulnerable owning_ref crate [#9273](https://github.com/habitat-sh/habitat/pull/9273) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1075 -->
 - Bump tar from 0.4.40 to 0.4.41 [#9272](https://github.com/habitat-sh/habitat/pull/9272) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1074 -->
 - Bump tokio from 1.37.0 to 1.38.0 [#9270](https://github.com/habitat-sh/habitat/pull/9270) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1073 -->
