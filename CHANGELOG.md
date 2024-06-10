@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1077 -->
-## [1.6.1077](https://github.com/habitat-sh/habitat/tree/1.6.1077) (2024-06-10)
+<!-- latest_release 1.6.1078 -->
+## [1.6.1078](https://github.com/habitat-sh/habitat/tree/1.6.1078) (2024-06-10)
 
 #### Merged Pull Requests
-- Bump regex from 1.10.4 to 1.10.5 [#9278](https://github.com/habitat-sh/habitat/pull/9278) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Revert &quot;fixes windows 7 support&quot; [#9271](https://github.com/habitat-sh/habitat/pull/9271) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Revert &quot;fixes windows 7 support&quot; [#9271](https://github.com/habitat-sh/habitat/pull/9271) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1078 -->
 - Bump regex from 1.10.4 to 1.10.5 [#9278](https://github.com/habitat-sh/habitat/pull/9278) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1077 -->
 - Bump actix-web from 4.6.0 to 4.7.0 [#9277](https://github.com/habitat-sh/habitat/pull/9277) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1077 -->
 - Bump cc from 1.0.98 to 1.0.99 [#9276](https://github.com/habitat-sh/habitat/pull/9276) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1077 -->
