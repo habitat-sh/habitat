@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1076 -->
-## [1.6.1076](https://github.com/habitat-sh/habitat/tree/1.6.1076) (2024-06-10)
+<!-- latest_release 1.6.1077 -->
+## [1.6.1077](https://github.com/habitat-sh/habitat/tree/1.6.1077) (2024-06-10)
 
 #### Merged Pull Requests
-- Bump actix-rt from 2.9.0 to 2.10.0 [#9275](https://github.com/habitat-sh/habitat/pull/9275) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump regex from 1.10.4 to 1.10.5 [#9278](https://github.com/habitat-sh/habitat/pull/9278) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump regex from 1.10.4 to 1.10.5 [#9278](https://github.com/habitat-sh/habitat/pull/9278) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1077 -->
+- Bump actix-web from 4.6.0 to 4.7.0 [#9277](https://github.com/habitat-sh/habitat/pull/9277) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1077 -->
+- Bump cc from 1.0.98 to 1.0.99 [#9276](https://github.com/habitat-sh/habitat/pull/9276) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1077 -->
 - Bump actix-rt from 2.9.0 to 2.10.0 [#9275](https://github.com/habitat-sh/habitat/pull/9275) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1076 -->
 - CHEF-12227: vulnerable owning_ref crate [#9273](https://github.com/habitat-sh/habitat/pull/9273) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1075 -->
 - Bump tar from 0.4.40 to 0.4.41 [#9272](https://github.com/habitat-sh/habitat/pull/9272) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1074 -->
