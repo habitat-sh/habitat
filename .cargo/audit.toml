@@ -12,13 +12,11 @@
 #
 # advisory IDs to ignore e.g. ["RUSTSEC-2019-0001", ...]
 ignore = [
-    "RUSTSEC-2020-0016", # Unmaintained: net2
     "RUSTSEC-2021-0137", # Unmaintained: sodiumoxide
     "RUSTSEC-2021-0139", # Unmaintained: ansi_term
     "RUSTSEC-2021-0145", # Unsound, Unmaintained: atty
     "RUSTSEC-2022-0006", # Vulnerability (???): thread_local
     "RUSTSEC-2022-0013", # Vulnerability (7.5 High), regex
-    "RUSTSEC-2022-0041", # Unsound: crossbeam-utils
     "RUSTSEC-2022-0071", # Unmaintained: rusoto
 ]
 informational_warnings = [
@@ -51,29 +49,6 @@ show_tree = true # Show inverse dependency trees along with advisories (default:
 enabled = true      # Warn for yanked crates in Cargo.lock (default: true)
 update_index = true # Auto-update the crates.io index (default: true)
 
-#-------------------------------------------------------------------------------
-# "RUSTSEC-2020-0016",    # Unmaintained: net2
-# "RUSTSEC-2022-0041",    # Unsound: crossbeam-utils
-#-------------------------------------------------------------------------------
-#
-# Our Windows 7 support currently requires ipc-channel@0.15.0
-#
-# net2 0.2.37
-# ├── miow 0.2.2
-# │   └── mio 0.6.23
-# │       └── ipc-channel 0.15.0
-# │           ├── habitat-launcher-client 0.0.0
-# │           │   └── habitat_sup 0.0.0
-# │           └── habitat-launcher 0.0.0
-# └── mio 0.6.23
-#
-# crossbeam-utils 0.7.2
-# └── crossbeam-channel 0.4.4
-#     └── ipc-channel 0.15.0
-#         ├── habitat-launcher-client 0.0.0
-#         │   └── habitat_sup 0.0.0
-#         └── habitat-launcher 0.0.0
-#
 #-------------------------------------------------------------------------------
 # "RUSTSEC-2021-0137",    # Unmaintained: sodiumoxide
 #-------------------------------------------------------------------------------
