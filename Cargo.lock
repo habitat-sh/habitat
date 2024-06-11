@@ -1399,7 +1399,7 @@ dependencies = [
  "pbr",
  "percent-encoding",
  "rand",
- "regex 0.2.11",
+ "regex 1.10.5",
  "reqwest",
  "serde",
  "serde_json",
@@ -1805,9 +1805,9 @@ dependencies = [
 
 [[package]]
 name = "httparse"
-version = "1.8.0"
+version = "1.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d897f394bad6a705d5f4104762e116a75639e470d80901eed05a860a95cb1904"
+checksum = "9f3935c160d00ac752e09787e6e6bfc26494c2183cc922f1bc678a60d4733bc2"
 
 [[package]]
 name = "httpdate"
