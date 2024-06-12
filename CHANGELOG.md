@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1079 -->
-## [1.6.1079](https://github.com/habitat-sh/habitat/tree/1.6.1079) (2024-06-11)
+<!-- latest_release 1.6.1080 -->
+## [1.6.1080](https://github.com/habitat-sh/habitat/tree/1.6.1080) (2024-06-12)
 
 #### Merged Pull Requests
-- Bump httparse from 1.8.0 to 1.9.2 [#9279](https://github.com/habitat-sh/habitat/pull/9279) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump httparse from 1.9.2 to 1.9.3 [#9280](https://github.com/habitat-sh/habitat/pull/9280) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump httparse from 1.9.2 to 1.9.3 [#9280](https://github.com/habitat-sh/habitat/pull/9280) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1080 -->
 - Bump httparse from 1.8.0 to 1.9.2 [#9279](https://github.com/habitat-sh/habitat/pull/9279) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1079 -->
 - Revert &quot;fixes windows 7 support&quot; [#9271](https://github.com/habitat-sh/habitat/pull/9271) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1078 -->
 - Bump regex from 1.10.4 to 1.10.5 [#9278](https://github.com/habitat-sh/habitat/pull/9278) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1077 -->
