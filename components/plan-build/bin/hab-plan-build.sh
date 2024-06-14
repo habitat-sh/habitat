@@ -1087,10 +1087,12 @@ _resolve_build_dependencies() {
   # Append to `${pkg_build_deps_resolved[@]}` all resolved direct build
   # dependencies.
   for dep in "${pkg_build_deps[@]}"; do
-    _install_dependency "$dep"
-    if resolved="$(_resolve_dependency "$dep")"; then
+    res=$(_install_dependency "$dep" 2>&1)
+    echo "$res"
+    resolved=$(echo "$res" | tail -n 1 | grep -Eo "\S+/\S+")
+    if [[ $resolved != "" ]]; then
       build_line "Resolved build dependency '$dep' to $resolved"
-      pkg_build_deps_resolved+=("$resolved")
+      pkg_build_deps_resolved+=("/hab/pkgs/$resolved")
     else
       exit_with "Resolving '$dep' failed, should this be built first?" 1
     fi
@@ -1162,10 +1164,12 @@ _resolve_run_dependencies() {
 
   # Append to `${pkg_deps_resolved[@]}` all resolved direct run dependencies.
   for dep in "${pkg_deps[@]}"; do
-    _install_dependency "$dep" "--ignore-install-hook"
-    if resolved="$(_resolve_dependency "$dep")"; then
+    res=$(_install_dependency "$dep" "--ignore-install-hook" 2>&1)
+    echo "$res"
+    resolved=$(echo "$res" | tail -n 1 | grep -Eo "\S+/\S+")
+    if [[ $resolved != "" ]]; then
       build_line "Resolved dependency '$dep' to $resolved"
-      pkg_deps_resolved+=("$resolved")
+      pkg_deps_resolved+=("/hab/pkgs/$resolved")
     else
       exit_with "Resolving '$dep' failed, should this be built first?" 1
     fi
