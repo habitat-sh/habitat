@@ -531,7 +531,7 @@ impl<'a> InstallTask<'a> {
 
             match (latest_local, latest_remote) {
                 (Ok(local), Some(remote)) => {
-                    if local > remote {
+                    if local > remote && !self.ignore_locally_installed_packages() {
                         // Return the latest identifier reported by
                         // the Builder API *unless* there is a newer
                         // version found installed locally.
