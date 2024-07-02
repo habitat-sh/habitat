@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1091 -->
-## [1.6.1091](https://github.com/habitat-sh/habitat/tree/1.6.1091) (2024-07-02)
+<!-- latest_release 1.6.1092 -->
+## [1.6.1092](https://github.com/habitat-sh/habitat/tree/1.6.1092) (2024-07-02)
 
 #### Merged Pull Requests
-- Bump cc from 1.0.103 to 1.0.104 [#9296](https://github.com/habitat-sh/habitat/pull/9296) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump hyper from 1.3.1 to 1.4.0 [#9294](https://github.com/habitat-sh/habitat/pull/9294) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump hyper from 1.3.1 to 1.4.0 [#9294](https://github.com/habitat-sh/habitat/pull/9294) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1092 -->
 - Bump cc from 1.0.103 to 1.0.104 [#9296](https://github.com/habitat-sh/habitat/pull/9296) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1091 -->
 - Bump cc from 1.0.101 to 1.0.103 [#9293](https://github.com/habitat-sh/habitat/pull/9293) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1090 -->
 - Bump log from 0.4.21 to 0.4.22 [#9291](https://github.com/habitat-sh/habitat/pull/9291) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1089 -->
