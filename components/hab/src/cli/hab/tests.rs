@@ -6,7 +6,6 @@ use crate::cli;
 use clap::{App,
            AppSettings,
            ArgSettings};
-use configopt::ConfigOpt;
 use habitat_common::FeatureFlag;
 use std::str;
 

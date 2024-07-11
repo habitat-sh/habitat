@@ -1,7 +1,7 @@
-use super::util::{CacheKeyPath,
-                  ConfigOptCacheKeyPath};
+#![allow(dead_code)]
+
+use super::util::CacheKeyPath;
 use clap::arg_enum;
-use configopt::ConfigOpt;
 use serde::{Deserialize,
             Serialize};
 use structopt::StructOpt;
@@ -17,7 +17,7 @@ arg_enum! {
     }
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat runtime config
 pub enum Cli {
@@ -26,7 +26,7 @@ pub enum Cli {
 }
 
 /// Sets up the CLI with reasonable defaults
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "setup", no_version, rename_all = "screamingsnake")]
 pub struct CliSetup {
     #[structopt(flatten)]
@@ -34,7 +34,7 @@ pub struct CliSetup {
 }
 
 /// Creates command-line completers for your shell
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "completers", no_version, rename_all = "screamingsnake")]
 pub struct CliCompleters {
     /// The name of the shell you want to generate the command-completion

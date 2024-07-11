@@ -1,21 +1,17 @@
+#![allow(dead_code)]
+
 use super::util::{AuthToken,
                   BldrOrigin,
                   BldrUrl,
-                  CacheKeyPath,
-                  ConfigOptAuthToken,
-                  ConfigOptBldrOrigin,
-                  ConfigOptBldrUrl,
-                  ConfigOptCacheKeyPath};
+                  CacheKeyPath};
 use crate::cli::{valid_origin,
                  KeyType};
-use configopt::ConfigOpt;
 use habitat_core::origin::OriginMemberRole;
-use serde::Serialize;
 use std::path::PathBuf;
 use structopt::{clap::ArgGroup,
                 StructOpt};
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat Builder origins
 pub enum Origin {
@@ -32,7 +28,7 @@ pub enum Origin {
 }
 
 /// Creates a new Builder origin
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "create", no_version)]
 pub struct OriginCreate {
     #[structopt(flatten)]
@@ -45,7 +41,7 @@ pub struct OriginCreate {
 }
 
 /// Removes an unused/empty origin
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "delete", no_version)]
 pub struct OriginDelete {
     #[structopt(flatten)]
@@ -58,7 +54,7 @@ pub struct OriginDelete {
 }
 
 /// Departs membership from selected origin
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "depart", no_version)]
 pub struct OriginDepart {
     #[structopt(flatten)]
@@ -71,7 +67,7 @@ pub struct OriginDepart {
 }
 
 /// Displays general information about an origin
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "info", no_version)]
 pub struct OriginInfo {
     /// The origin name to be queried
@@ -87,7 +83,7 @@ pub struct OriginInfo {
 }
 
 /// Transfers ownership of an origin to another member of that origin
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "transfer", no_version)]
 pub struct OriginTransfer {
     /// The origin name
@@ -102,7 +98,7 @@ pub struct OriginTransfer {
     new_owner_account: String,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Manage origin member invitations
 pub enum Invitations {
@@ -115,7 +111,7 @@ pub enum Invitations {
 }
 
 /// Accept an origin member invitation
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "accept", no_version)]
 pub struct InvitationsAccept {
     /// The origin name the invitation applies to
@@ -131,7 +127,7 @@ pub struct InvitationsAccept {
 }
 
 /// Ignore an origin member invitation
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "ignore", no_version)]
 pub struct InvitationsIgnore {
     /// The origin name the invitation applies to
@@ -146,7 +142,7 @@ pub struct InvitationsIgnore {
     auth_token:    AuthToken,
 }
 /// List origin invitations sent to your account
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "list", no_version)]
 pub struct InvitationsList {
     #[structopt(flatten)]
@@ -156,7 +152,7 @@ pub struct InvitationsList {
 }
 
 /// List pending invitations for a particular origin. Requires that you are the origin owner
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "pending", no_version)]
 pub struct InvitationsPending {
     /// The name of the origin you wish to list invitations for
@@ -169,7 +165,7 @@ pub struct InvitationsPending {
 }
 
 /// Rescind an existing origin member invitation
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "rescind", no_version)]
 pub struct InvitationsRescind {
     /// The origin name the invitation applies to
@@ -185,7 +181,7 @@ pub struct InvitationsRescind {
 }
 
 /// Send an origin member invitation
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "send", no_version)]
 pub struct InvitationsSend {
     /// The origin name the invitation applies to
@@ -200,7 +196,7 @@ pub struct InvitationsSend {
     auth_token:      AuthToken,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat origin key maintenance
 pub enum Key {
@@ -212,7 +208,7 @@ pub enum Key {
 }
 
 /// Outputs the latest origin key contents to stdout
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "export", no_version)]
 pub struct OriginKeyExport {
     /// The origin name
@@ -227,7 +223,7 @@ pub struct OriginKeyExport {
 
 /// Reads a stdin stream containing a public or private origin key contents and writes the key
 /// to disk
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "import", no_version)]
 pub struct OriginKeyImport {
     #[structopt(flatten)]
@@ -235,7 +231,7 @@ pub struct OriginKeyImport {
 }
 
 /// Upload origin keys to Builder
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "upload", no_version)]
 pub struct OriginKeyUpload {
     #[structopt(flatten)]
@@ -258,7 +254,7 @@ pub struct OriginKeyUpload {
 }
 
 /// Generates a Habitat origin key pair
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "generate", no_version)]
 pub struct OriginKeyGenerate {
     /// The origin name
@@ -269,7 +265,7 @@ pub struct OriginKeyGenerate {
 }
 
 /// Download origin key(s)
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "download", no_version)]
 pub struct OriginKeyDownload {
     #[structopt(flatten)]
@@ -293,8 +289,7 @@ pub struct OriginKeyDownload {
     auth_token:      Option<String>,
 }
 
-#[derive(ConfigOpt, StructOpt, Debug)]
-#[configopt(derive(Serialize))]
+#[derive(StructOpt, Debug)]
 #[structopt(group = ArgGroup::with_name("upload").required(true), no_version)]
 pub struct UploadGroup {
     /// The origin name
@@ -305,7 +300,7 @@ pub struct UploadGroup {
     public_file: Option<PathBuf>,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, rename_all = "screamingsnake")]
 pub struct RbacShow {
     #[structopt(flatten)]
@@ -321,7 +316,7 @@ pub struct RbacShow {
     pub to_json:        bool,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, rename_all = "screamingsnake")]
 pub struct RbacSet {
     #[structopt(flatten)]
@@ -340,7 +335,7 @@ pub struct RbacSet {
     pub no_prompt:      bool,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "rbac", no_version)]
 /// Role Based Access Control for origin members
 pub enum Rbac {
@@ -350,7 +345,7 @@ pub enum Rbac {
     Set(RbacSet),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Commands related to secret management
 pub enum Secret {
@@ -360,7 +355,7 @@ pub enum Secret {
 }
 
 /// Delete a secret for your origin
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "delete", no_version)]
 pub struct SecretDelete {
     /// The name of the variable key to be injected into the studio
@@ -377,7 +372,7 @@ pub struct SecretDelete {
 }
 
 /// List all secrets for your origin
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "list", no_version)]
 pub struct SecretList {
     #[structopt(flatten)]
@@ -390,7 +385,7 @@ pub struct SecretList {
 }
 
 /// Create and upload a secret for your origin
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "upload", no_version)]
 pub struct SecretUpload {
     /// The name of the variable key to be injected into the studio. Ex: KEY="some_value"

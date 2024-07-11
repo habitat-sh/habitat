@@ -1,13 +1,11 @@
+#![allow(dead_code)]
 use super::util::{CacheKeyPath,
-                  ConfigOptCacheKeyPath,
-                  ConfigOptRemoteSup,
                   RemoteSup};
 use crate::cli::file_exists;
-use configopt::ConfigOpt;
 use habitat_core::service::ServiceGroup;
 use structopt::StructOpt;
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat files
 pub enum File {
@@ -15,7 +13,7 @@ pub enum File {
 }
 
 /// Uploads a file to be shared between members of a Service Group
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "upload", no_version)]
 pub struct FileUpload {
     /// Target service group service.group[@organization] (ex: redis.default or

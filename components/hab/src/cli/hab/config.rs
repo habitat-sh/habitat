@@ -1,15 +1,13 @@
+#![allow(dead_code)]
+
 use super::util::{CacheKeyPath,
-                  ConfigOptCacheKeyPath,
-                  ConfigOptPkgIdent,
-                  ConfigOptRemoteSup,
                   PkgIdent,
                   RemoteSup};
 use crate::cli::file_exists_or_stdin;
-use configopt::ConfigOpt;
 use habitat_core::service::ServiceGroup;
 use structopt::StructOpt;
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to a Service's runtime config
 pub enum ServiceConfig {
@@ -18,7 +16,7 @@ pub enum ServiceConfig {
 }
 
 /// Sets a configuration to be shared by members of a Service Group
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "apply", no_version, rename_all = "screamingsnake")]
 pub struct ServiceConfigApply {
     /// Target service group service.group[@organization] (ex: redis.default or
@@ -41,7 +39,7 @@ pub struct ServiceConfigApply {
 }
 
 /// Displays the default configuration options for a service
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "show", no_version, rename_all = "screamingsnake")]
 pub struct ServiceConfigShow {
     #[structopt(flatten)]

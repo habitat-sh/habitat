@@ -1,26 +1,20 @@
+#![allow(dead_code)]
+
+#[cfg(any(all(target_os = "linux",
+                  any(target_arch = "x86_64", target_arch = "aarch64")),
+              all(target_os = "windows", target_arch = "x86_64"),))]
+use super::util::ExternalCommandArgs;
 use super::util::{self,
                   AuthToken,
                   BldrUrl,
                   CacheKeyPath,
-                  ConfigOptAuthToken,
-                  ConfigOptBldrUrl,
-                  ConfigOptCacheKeyPath,
-                  ConfigOptExternalCommandArgsWithHelpAndVersion,
-                  ConfigOptFullyQualifiedPkgIdent,
-                  ConfigOptPkgIdent,
                   ExternalCommandArgsWithHelpAndVersion,
                   FullyQualifiedPkgIdent,
                   PkgIdent};
-#[cfg(any(all(target_os = "linux",
-                  any(target_arch = "x86_64", target_arch = "aarch64")),
-              all(target_os = "windows", target_arch = "x86_64"),))]
-use super::util::{ConfigOptExternalCommandArgs,
-                  ExternalCommandArgs};
 use crate::cli::{dir_exists,
                  file_exists,
                  valid_ident_or_toml_file,
                  valid_origin};
-use configopt::ConfigOpt;
 use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR},
@@ -36,7 +30,7 @@ use structopt::{clap::{AppSettings,
                 StructOpt};
 
 /// List all versions of installed packages
-#[derive(ConfigOpt, StructOpt, Debug)]
+#[derive(StructOpt, Debug)]
 #[structopt(name = "list", group = ArgGroup::with_name("prefix").required(true), no_version)]
 pub struct PkgList {
     /// List all installed packages
@@ -54,7 +48,7 @@ pub struct PkgList {
 }
 
 /// Prints the path to a specific installed release of a package
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "path", no_version)]
 pub struct PkgPath {
     #[structopt(flatten)]
@@ -62,14 +56,14 @@ pub struct PkgPath {
 }
 
 /// Displays the binds for a service
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "binds", no_version)]
 pub struct PkgBinds {
     #[structopt(flatten)]
     pkg_ident: PkgIdent,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 #[allow(clippy::large_enum_variant)]
 /// Commands relating to Habitat packages
@@ -106,7 +100,7 @@ pub enum Pkg {
 }
 
 /// Removes a package from Builder
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "delete", no_version)]
 pub struct PkgDelete {
     #[structopt(flatten)]
@@ -121,7 +115,7 @@ pub struct PkgDelete {
 }
 
 /// Demote a package from a specified channel
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "demote", no_version)]
 pub struct PkgDemote {
     #[structopt(flatten)]
@@ -139,7 +133,7 @@ pub struct PkgDemote {
 }
 
 /// Promote a package to a specified channel
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "promote", no_version)]
 pub struct PkgPromote {
     #[structopt(flatten)]
@@ -157,7 +151,7 @@ pub struct PkgPromote {
 }
 
 /// Find out what channels a package belongs to
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "channels", no_version)]
 pub struct PkgChannels {
     #[structopt(flatten)]
@@ -172,7 +166,7 @@ pub struct PkgChannels {
 }
 
 /// Displays the default configuration options for a service
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "config", no_version)]
 pub struct PkgConfig {
     #[structopt(flatten)]
@@ -180,7 +174,7 @@ pub struct PkgConfig {
 }
 
 /// Search installed Habitat packages for a given file
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "provides", no_version, rename_all = "screamingsnake")]
 pub struct PkgProvides {
     /// File name to find
@@ -195,7 +189,7 @@ pub struct PkgProvides {
 }
 
 /// Search for a package in Builder
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "search", no_version, rename_all = "screamingsnake")]
 pub struct PkgSearch {
     /// Search term
@@ -211,7 +205,7 @@ pub struct PkgSearch {
 }
 
 /// Signs an archive with an origin key, generating a Habitat Artifact
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "sign", no_version, rename_all = "screamingsnake")]
 pub struct PkgSign {
     /// Origin key used to create signature
@@ -232,7 +226,7 @@ pub struct PkgSign {
 }
 
 /// Safely uninstall a package and dependencies from the local filesystem
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "uninstall", no_version, rename_all = "screamingsnake")]
 pub struct PkgUninstall {
     #[structopt(flatten)]
@@ -256,7 +250,7 @@ pub struct PkgUninstall {
 }
 
 /// Uploads a local Habitat Artifact to Builder
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "upload", no_version, rename_all = "screamingsnake")]
 pub struct PkgUpload {
     #[structopt(flatten)]
@@ -283,7 +277,7 @@ pub struct PkgUpload {
 }
 
 /// Verifies a Habitat Artifact with an origin key
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "verify", no_version, rename_all = "screamingsnake")]
 pub struct PkgVerify {
     /// A path to a Habitat Artifact (ex:
@@ -295,7 +289,7 @@ pub struct PkgVerify {
 }
 
 /// Creates a binlink for a package binary in a common 'PATH' location
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "binlink", no_version, rename_all = "screamingsnake")]
 pub struct PkgBinlink {
     #[structopt(flatten)]
@@ -316,7 +310,7 @@ pub struct PkgBinlink {
 }
 
 /// Builds a Plan using a Studio
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "build", no_version, rename_all = "screamingsnake")]
 pub struct PkgBuild {
     /// Installs secret origin keys (ex: "unicorn", "acme,other,acme-ops")
@@ -351,7 +345,7 @@ pub struct PkgBuild {
 }
 
 /// Bulk Uploads Habitat Artifacts to a Depot from a local directory
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "bulkupload", no_version, rename_all = "screamingsnake")]
 pub struct PkgBulkupload {
     #[structopt(flatten)]
@@ -380,7 +374,7 @@ pub struct PkgBulkupload {
 
 /// Returns the Habitat Artifact dependencies. By default it will return the direct
 /// dependencies of the package
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "dependencies", no_version, rename_all = "screamingsnake")]
 pub struct PkgDependencies {
     #[structopt(flatten)]
@@ -394,7 +388,7 @@ pub struct PkgDependencies {
 }
 
 /// Download Habitat artifacts (including dependencies and keys) from Builder
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "download", no_version, rename_all = "screamingsnake")]
 pub struct PkgDownload {
     #[structopt(flatten)]
@@ -432,7 +426,7 @@ pub struct PkgDownload {
 }
 
 /// Executes a command using the 'PATH' context of an installed package
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "exec", aliases = &["exe"], no_version, rename_all = "screamingsnake")]
 pub struct PkgExec {
     #[structopt(flatten)]
@@ -445,7 +439,7 @@ pub struct PkgExec {
 }
 
 /// Prints the runtime environment of a specific installed package
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "env", no_version)]
 pub struct PkgEnv {
     #[structopt(flatten)]
@@ -453,7 +447,7 @@ pub struct PkgEnv {
 }
 
 /// Generates a blake2b hashsum from a target at any given filepath
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "hash", no_version)]
 pub struct PkgHash {
     /// A filepath of the target
@@ -462,7 +456,7 @@ pub struct PkgHash {
 }
 
 /// Returns the Habitat Artifact header
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "header", no_version, settings = &[AppSettings::Hidden])]
 pub struct PkgHeader {
     /// A path to a Habitat Artifact (ex:
@@ -472,7 +466,7 @@ pub struct PkgHeader {
 }
 
 /// Returns the Habitat Artifact information
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "info", no_version, rename_all = "screamingsnake")]
 pub struct PkgInfo {
     /// Output will be rendered in json. (Includes extended metadata)
@@ -485,7 +479,7 @@ pub struct PkgInfo {
 }
 
 /// Installs a Habitat package from Builder or locally from a Habitat Artifact
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "install", no_version, rename_all = "screamingsnake")]
 pub struct PkgInstall {
     #[structopt(flatten)]
@@ -532,7 +526,7 @@ pub struct PkgInstall {
 #[cfg(any(all(target_os = "linux",
               any(target_arch = "x86_64", target_arch = "aarch64")),
           all(target_os = "windows", target_arch = "x86_64"),))]
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "export", aliases = &["e", "ex", "exp", "expo", "expor"], no_version)]
 pub enum ExportCommand {
     #[cfg(target_os = "linux")]

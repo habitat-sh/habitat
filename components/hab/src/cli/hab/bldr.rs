@@ -1,18 +1,15 @@
+#![allow(dead_code)]
+
 use super::util::{AuthToken,
                   BldrUrl,
-                  ConfigOptAuthToken,
-                  ConfigOptBldrUrl,
-                  ConfigOptPkgIdent,
                   PkgIdent};
 use crate::cli::valid_origin;
-use configopt::ConfigOpt;
 use habitat_common::cli::PACKAGE_TARGET_ENVVAR;
 use habitat_core::package::PackageTarget;
-use serde::Serialize;
 use structopt::{clap::ArgGroup,
                 StructOpt};
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat Builder
 pub enum Bldr {
@@ -22,7 +19,7 @@ pub enum Bldr {
     Job(Job),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat Builder channels
 pub enum Channel {
@@ -33,8 +30,7 @@ pub enum Channel {
     Promote(ChannelPromote),
 }
 
-#[derive(ConfigOpt, StructOpt, Debug)]
-#[configopt(derive(Serialize))]
+#[derive(StructOpt, Debug)]
 #[structopt(group = ArgGroup::with_name("status").required(true), no_version)]
 pub struct BldrJobStatusSourceGroup {
     /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
@@ -49,7 +45,7 @@ pub struct BldrJobStatusSourceGroup {
     origin:   Option<String>,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat Builder jobs
 pub enum Job {
@@ -61,7 +57,7 @@ pub enum Job {
 }
 
 /// Get the status of one or more job groups
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "status", no_version)]
 pub struct JobStatus {
     #[structopt(flatten)]
@@ -77,7 +73,7 @@ pub struct JobStatus {
 }
 
 /// Cancel a build job group and any in-progress builds
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "cancel", no_version)]
 pub struct JobCancel {
     /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
@@ -93,7 +89,7 @@ pub struct JobCancel {
 }
 
 /// Demote packages from a completed build job from a specified channel
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "demote", no_version)]
 pub struct JobDemote {
     /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
@@ -118,7 +114,7 @@ pub struct JobDemote {
 }
 
 /// Promote packages from a completed build job to a specified channel
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "promote", no_version)]
 pub struct JobPromote {
     /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
@@ -143,7 +139,7 @@ pub struct JobPromote {
 }
 
 /// Schedule a build job or group of jobs
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "start", no_version)]
 pub struct JobStart {
     #[structopt(flatten)]
@@ -161,7 +157,7 @@ pub struct JobStart {
 }
 
 /// Creates a new channel
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "create", no_version)]
 pub struct ChannelCreate {
     #[structopt(flatten)]
@@ -179,7 +175,7 @@ pub struct ChannelCreate {
 }
 
 /// Lists origin channels
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "list", no_version)]
 pub struct ChannelList {
     #[structopt(flatten)]
@@ -193,7 +189,7 @@ pub struct ChannelList {
 }
 
 /// Atomically promotes all packages in channel
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "promote", no_version)]
 pub struct ChannelPromote {
     #[structopt(flatten)]
@@ -215,7 +211,7 @@ pub struct ChannelPromote {
 }
 
 /// Atomically demotes selected packages in a target channel
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "demote", no_version)]
 pub struct ChannelDemote {
     #[structopt(flatten)]
@@ -237,7 +233,7 @@ pub struct ChannelDemote {
 }
 
 /// Destroys a channel
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "destroy", no_version)]
 pub struct ChannelDestroy {
     #[structopt(flatten)]

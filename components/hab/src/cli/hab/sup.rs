@@ -1,20 +1,14 @@
-use super::{svc::{ConfigOptSharedLoad,
-                  SharedLoad,
+use super::{svc::{SharedLoad,
                   DEFAULT_SVC_CONFIG_DIR},
             util::{tls::{CertificateChainCli,
                          PrivateKeyCli,
                          RootCertificateStoreCli},
                    CacheKeyPath,
-                   ConfigOptCacheKeyPath,
-                   ConfigOptRemoteSup,
                    DurationProxy,
                    RemoteSup,
                    SocketAddrProxy,
                    SubjectAlternativeName}};
 use crate::VERSION;
-use configopt::{self,
-                configopt_fields,
-                ConfigOpt};
 use habitat_common::{cli::{RING_ENVVAR,
                            RING_KEY_ENVVAR},
                      command::package::install::InstallSource,
@@ -45,7 +39,7 @@ use structopt::{clap::AppSettings,
 
 // All commands relating to the Supervisor (ie commands handled by both the `hab` and `hab-sup`
 // binary)
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, name = "sup")]
 #[allow(clippy::large_enum_variant)]
 pub enum HabSup {
@@ -82,7 +76,7 @@ pub enum HabSup {
 }
 
 // Supervisor commands handled by the `hab-sup` binary
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "hab-sup",
             version = VERSION,
             about = "The Habitat Supervisor",
@@ -135,9 +129,7 @@ impl From<EventStreamAddress> for NatsAddress {
 }
 
 /// Run the Habitat Supervisor
-#[configopt_fields]
-#[derive(ConfigOpt, StructOpt, Deserialize)]
-#[configopt(attrs(serde), default_config_file("/hab/sup/default/config/sup.toml"))]
+#[derive(StructOpt, Deserialize)]
 #[serde(deny_unknown_fields)]
 #[structopt(name = "run",
             no_version,
@@ -301,7 +293,7 @@ pub struct SupRun {
     /// This enables the event stream and requires EVENT_STREAM_APPLICATION,
     /// EVENT_STREAM_ENVIRONMENT, and EVENT_STREAM_TOKEN also be set.
     #[structopt(long = "event-stream-url",
-                requires_all = &["EVENT_STREAM_APPLICATION", 
+                requires_all = &["EVENT_STREAM_APPLICATION",
                                  "EVENT_STREAM_ENVIRONMENT",
                                  EventStreamToken::ARG_NAME])]
     pub event_stream_url: Option<EventStreamAddress>,
@@ -339,7 +331,7 @@ pub struct SupRun {
     pub shared_load: SharedLoad,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to a Habitat Supervisor's Control Gateway secret
 pub enum Secret {

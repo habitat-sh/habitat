@@ -1,16 +1,16 @@
-use super::util::{CacheKeyPath,
-                  ConfigOptCacheKeyPath};
-use configopt::ConfigOpt;
+#![allow(dead_code)]
+
+use super::util::CacheKeyPath;
 use structopt::StructOpt;
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat rings
 pub enum Ring {
     Key(Key),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat ring keys
 pub enum Key {
@@ -20,7 +20,7 @@ pub enum Key {
 }
 
 /// Outputs the latest ring key contents to stdout
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "export", no_version)]
 pub struct RingKeyExport {
     /// Ring key name
@@ -31,7 +31,7 @@ pub struct RingKeyExport {
 }
 
 /// Generates a Habitat ring key
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "generate", no_version)]
 pub struct RingKeyGenerate {
     /// Ring key name
@@ -42,7 +42,7 @@ pub struct RingKeyGenerate {
 }
 
 /// Reads a stdin stream containing ring key contents and writes the key to disk
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "import", no_version)]
 pub struct RingKeyImport {
     #[structopt(flatten)]

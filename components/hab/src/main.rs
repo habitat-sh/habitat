@@ -1,11 +1,11 @@
+#![allow(unused_imports)]
 #![recursion_limit = "128"]
 
 use clap::{value_t,
            ArgMatches,
            ErrorKind as ClapErrorKind,
            Shell};
-use configopt::{ConfigOpt,
-                Error as ConfigOptError};
+use configopt::Error as ConfigOptError;
 use futures::stream::StreamExt;
 #[cfg(any(all(target_os = "linux",
                   any(target_arch = "x86_64", target_arch = "aarch64")),
@@ -264,13 +264,15 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 }
                 Hab::Svc(svc) => {
                     match svc {
-                        Svc::BulkLoad(svc_bulk_load) => {
-                            if feature_flags.contains(FeatureFlag::SERVICE_CONFIG_FILES) {
-                                return sub_svc_bulk_load(svc_bulk_load).await;
-                            } else {
-                                return Err(Error::ArgumentError(String::from("`hab svc bulkload` is only available when `HAB_FEAT_SERVICE_CONFIG_FILES` is set")));
-                            }
-                        }
+                        // FIXME:agadgil: Enable SvcBulkLoad - but first let's cleanup
+                        // Svc::BulkLoad(svc_bulk_load) => {
+                        // if feature_flags.contains(FeatureFlag::SERVICE_CONFIG_FILES) {
+                        // return sub_svc_bulk_load(svc_bulk_load).await;
+                        // } else {
+                        // return Err(Error::ArgumentError(String::from("`hab svc bulkload` is only
+                        // available when `HAB_FEAT_SERVICE_CONFIG_FILES` is set")));
+                        // }
+                        // }
                         Svc::Load(svc_load) => {
                             return sub_svc_load(svc_load).await;
                         }
@@ -1457,20 +1459,21 @@ async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
     gateway_util::send(remote_sup_addr.inner(), msg).await
 }
 
-async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
-    let mut errors = HashMap::new();
-    for svc_load in svc::svc_loads_from_paths(&svc_bulk_load.svc_config_paths)? {
-        let ident = svc_load.pkg_ident.clone().pkg_ident();
-        if let Err(e) = sub_svc_load(svc_load).await {
-            errors.insert(ident, e);
-        }
-    }
-    if errors.is_empty() {
-        Ok(())
-    } else {
-        Err(errors.into())
-    }
-}
+// FIXME:agadgil: Revisit when SvcBulkLoad is supported
+// async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
+// let mut errors = HashMap::new();
+// for svc_load in svc::svc_loads_from_paths(&svc_bulk_load.svc_config_paths)? {
+// let ident = svc_load.pkg_ident.clone().pkg_ident();
+// if let Err(e) = sub_svc_load(svc_load).await {
+// errors.insert(ident, e);
+// }
+// }
+// if errors.is_empty() {
+// Ok(())
+// } else {
+// Err(errors.into())
+// }
+// }
 
 async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;

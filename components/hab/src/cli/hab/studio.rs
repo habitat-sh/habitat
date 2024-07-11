@@ -1,10 +1,8 @@
-use super::util::{ConfigOptExternalCommandArgs,
-                  ExternalCommandArgs};
-use configopt::ConfigOpt;
+use super::util::ExternalCommandArgs;
 use std::ffi::OsString;
 use structopt::StructOpt;
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "studio", no_version)]
 /// Commands relating to Habitat Studios
 pub struct Studio {

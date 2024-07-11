@@ -2,8 +2,6 @@ pub mod tls;
 
 use crate::{cli::valid_fully_qualified_ident,
             error::Error};
-use configopt::{self,
-                ConfigOpt};
 use habitat_common::{cli_config::CliConfig,
                      types::{GossipListenAddr,
                              ListenCtlAddr,
@@ -35,8 +33,7 @@ use url::{ParseError,
           Url};
 use webpki::types::DnsName;
 
-#[derive(ConfigOpt, StructOpt)]
-#[configopt(derive(Serialize))]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 pub struct AuthToken {
     /// Authentication token for Builder.
@@ -45,8 +42,7 @@ pub struct AuthToken {
     pub value: Option<String>,
 }
 
-#[derive(ConfigOpt, StructOpt, Deserialize)]
-#[configopt(derive(Serialize))]
+#[derive(StructOpt, Deserialize)]
 #[structopt(no_version)]
 pub struct BldrUrl {
     /// Specify an alternate Builder endpoint. If not specified, the value will be
@@ -56,9 +52,8 @@ pub struct BldrUrl {
     pub value: Option<Url>,
 }
 
-#[derive(ConfigOpt, StructOpt, Deserialize, Serialize)]
+#[derive(StructOpt, Deserialize, Serialize)]
 #[structopt(no_version)]
-#[configopt(derive(Serialize))]
 pub struct BldrOrigin {
     /// The Builder origin name to target
     #[structopt(name = "ORIGIN", short = "o", long = "origin")]
@@ -128,8 +123,7 @@ lazy_static! {
         hab_core_fs::CACHE_KEY_PATH.to_string_lossy().to_string();
 }
 
-#[derive(ConfigOpt, StructOpt, Debug, Deserialize)]
-#[configopt(derive(Serialize, Debug), attrs(serde))]
+#[derive(StructOpt, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 #[structopt(no_version, rename_all = "screamingsnake")]
 pub struct CacheKeyPath {
@@ -164,8 +158,7 @@ impl From<PkgIdentStringySerde> for String {
     fn from(pkg_ident: PkgIdentStringySerde) -> Self { pkg_ident.to_string() }
 }
 
-#[derive(Clone, ConfigOpt, Debug, StructOpt, Deserialize, Serialize)]
-#[configopt(derive(Clone, Serialize, Debug), attrs(serde))]
+#[derive(Clone, Debug, StructOpt, Deserialize, Serialize)]
 #[structopt(no_version)]
 #[serde(transparent)]
 pub struct PkgIdent {
@@ -178,9 +171,8 @@ impl PkgIdent {
     pub fn pkg_ident(self) -> PackageIdent { self.pkg_ident.0 }
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
-#[configopt(derive(Serialize))]
 #[allow(dead_code)]
 pub struct FullyQualifiedPkgIdent {
     /// A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
@@ -188,8 +180,7 @@ pub struct FullyQualifiedPkgIdent {
     pkg_ident: PackageIdent,
 }
 
-#[derive(Clone, ConfigOpt, StructOpt, Deserialize, Debug)]
-#[configopt(derive(Serialize, Clone, Debug))]
+#[derive(Clone, StructOpt, Deserialize, Debug)]
 #[structopt(no_version)]
 pub struct RemoteSup {
     /// Address to a remote Supervisor's Control Gateway
@@ -279,8 +270,7 @@ impl FromStr for SocketAddrProxy {
 //
 // This disables help and version flags for the subcommand. Making it easy to check the help or
 // version of the external command. See `ExternalCommandArgsWithHelpAndVersion` for more details.
-#[derive(ConfigOpt, StructOpt)]
-#[configopt(derive(Serialize))]
+#[derive(StructOpt)]
 #[structopt(no_version, rename_all = "screamingsnake",
             settings = &[AppSettings::TrailingVarArg,
                          AppSettings::AllowLeadingHyphen,
@@ -307,8 +297,7 @@ pub struct ExternalCommandArgs {
 // displaying the help because the help is disabled. #2 is ambiguous. Should it show the help of the
 // subcommand or of `ls`? In this case it will show the help of the subcommand. If we want to see
 // the help of `ls` we can use #3.
-#[derive(ConfigOpt, StructOpt)]
-#[configopt(derive(Serialize))]
+#[derive(StructOpt)]
 #[structopt(no_version, rename_all = "screamingsnake",
             settings = &[AppSettings::TrailingVarArg,
                          AppSettings::AllowLeadingHyphen,

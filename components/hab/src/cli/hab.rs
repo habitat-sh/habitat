@@ -24,8 +24,7 @@ use self::{bldr::*,
                  CliSetup},
            config::{ServiceConfigApply,
                     ServiceConfigShow},
-           file::{ConfigOptFileUpload,
-                  FileUpload},
+           file::FileUpload,
            license::License,
            origin::*,
            pkg::*,
@@ -42,15 +41,13 @@ use self::{bldr::*,
            util::CacheKeyPath};
 use crate::{cli::AFTER_HELP,
             VERSION};
-use configopt::ConfigOpt;
 use structopt::{clap::AppSettings,
                 StructOpt};
 
 #[cfg(not(target_os = "macos"))]
-use crate::cli::hab::sup::{ConfigOptSupRun,
-                           SupRun};
+use crate::cli::hab::sup::SupRun;
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "hab",
             version = VERSION,
             about = "Patents: https://chef.io/patents\n\"A Habitat is the natural environment for your services\" - Alan Turing",
@@ -119,7 +116,7 @@ pub enum Hab {
     Term,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, aliases = &["b", "bl", "bld"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat Builder
 pub enum Bldr {
@@ -129,7 +126,7 @@ pub enum Bldr {
     Job(Job),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, aliases = &["c", "ch", "cha", "chan", "chann", "channe"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat Builder channels
 pub enum Channel {
@@ -143,7 +140,7 @@ pub enum Channel {
     Promote(ChannelPromote),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, aliases = &["j", "jo"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat Builder jobs
 pub enum Job {
@@ -181,7 +178,7 @@ pub enum ServiceConfig {
     Show(ServiceConfigShow),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, aliases = &["f", "fi", "fil"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat files
 pub enum File {
@@ -205,7 +202,7 @@ pub enum UserKey {
     Generate(UserKeyGenerate),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, aliases = &["o", "or", "ori", "orig", "origi"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat Builder origins
 pub enum Origin {
@@ -223,7 +220,7 @@ pub enum Origin {
     Transfer(OriginTransfer),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Manage origin member invitations
 pub enum OriginInvitations {
@@ -235,7 +232,7 @@ pub enum OriginInvitations {
     Send(InvitationsSend),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "key", no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat origin key maintenance
 pub enum OriginKey {
@@ -251,7 +248,7 @@ pub enum OriginKey {
     Upload(OriginKeyUpload),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "secret", no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands related to secret management
 pub enum OriginSecret {
@@ -260,7 +257,7 @@ pub enum OriginSecret {
     Upload(SecretUpload),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, aliases = &["p", "pk", "package"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat packages
 pub enum Pkg {

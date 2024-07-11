@@ -1,14 +1,11 @@
+#![allow(dead_code, unused_imports)]
+
 use super::util::{CacheKeyPath,
-                  ConfigOptCacheKeyPath,
-                  ConfigOptPkgIdent,
-                  ConfigOptRemoteSup,
                   PkgIdent,
                   RemoteSup};
 use crate::error::{Error,
                    Result};
 use clap::AppSettings;
-use configopt::{configopt_fields,
-                ConfigOpt};
 use habitat_common::{FeatureFlag,
                      FEATURE_FLAGS};
 use habitat_core::{os::process::ShutdownTimeout,
@@ -34,7 +31,7 @@ const DEFAULT_SVC_CONFIG_FILE: &str = "/hab/sup/default/config/svc.toml";
 pub const DEFAULT_SVC_CONFIG_DIR: &str = "/hab/sup/default/config/svc";
 
 /// Commands relating to Habitat services
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 #[allow(clippy::large_enum_variant)]
 pub enum Svc {
@@ -52,7 +49,7 @@ pub enum Svc {
     Unload(SvcUnload),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "bulkload",
             no_version,
             rename_all = "screamingsnake",
@@ -71,7 +68,7 @@ pub struct BulkLoad {
 }
 
 /// Start a loaded, but stopped, Habitat service.
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "start", no_version, rename_all = "screamingsnake")]
 pub struct SvcStart {
     #[structopt(flatten)]
@@ -81,7 +78,7 @@ pub struct SvcStart {
 }
 
 /// Query the status of Habitat services
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "status", no_version, rename_all = "screamingsnake")]
 pub struct SvcStatus {
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
@@ -92,7 +89,7 @@ pub struct SvcStatus {
 }
 
 /// Stop a running Habitat service.
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "stop", no_version, rename_all = "screamingsnake")]
 pub struct SvcStop {
     #[structopt(flatten)]
@@ -107,7 +104,7 @@ pub struct SvcStop {
     shutdown_timeout: Option<ShutdownTimeout>,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat service keys
 pub enum Key {
@@ -115,7 +112,7 @@ pub enum Key {
 }
 
 /// Generates a Habitat service key
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "generate", no_version)]
 pub struct KeyGenerate {
     /// Target service group service.group[@organization] (ex: redis.default or
@@ -140,8 +137,7 @@ impl GROUP_DEFAULT {
 
 fn health_check_interval_default() -> u64 { 30 }
 
-#[derive(ConfigOpt, StructOpt, Deserialize, Debug)]
-#[configopt(attrs(serde), derive(Clone, Debug))]
+#[derive(StructOpt, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 #[structopt(no_version, rename_all = "screamingsnake")]
 pub struct SharedLoad {
@@ -241,11 +237,7 @@ fn load_default_config_files() -> Vec<PathBuf> {
     }
 }
 
-#[configopt_fields(hidden = !FEATURE_FLAGS.contains(FeatureFlag::SERVICE_CONFIG_FILES))]
-#[derive(ConfigOpt, StructOpt, Deserialize, Debug)]
-#[configopt(attrs(serde),
-            derive(Clone, Debug),
-            default_config_file(load_default_config_files))]
+#[derive(StructOpt, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 #[structopt(name = "load", aliases = &["l", "lo", "loa"], no_version, rename_all = "screamingsnake")]
 /// Load a service to be started and supervised by Habitat from a package identifier. If an
@@ -267,7 +259,7 @@ pub struct Load {
     pub shared_load: SharedLoad,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "unload", no_version, rename_all = "screamingsnake")]
 /// Unload a service loaded by the Habitat Supervisor. If the service is running it will
 /// additionally be stopped.
@@ -284,40 +276,42 @@ pub struct SvcUnload {
     shutdown_timeout: Option<ShutdownTimeout>,
 }
 
-pub fn svc_loads_from_paths<T: AsRef<Path>>(paths: &[T]) -> Result<Vec<Load>> {
-    // If the only path is the default location and the directory does not exist do not report an
-    // error. This allows users to run the Supervisor without creating the directory.
-    if paths.len() == 1 {
-        let path = paths[0].as_ref();
-        if path == Path::new(DEFAULT_SVC_CONFIG_DIR) && !path.exists() {
-            return Ok(Vec::new());
-        }
-    }
-    let mut svc_loads = Vec::new();
-    let default_svc_load = ConfigOptLoad::from_default_config_files()?;
-    for path in paths {
-        for entry in WalkDir::new(path) {
-            let entry = entry?;
-            let path = entry.path();
-            if entry.file_type().is_file() {
-                if let Some(extension) = path.extension() {
-                    if extension == "toml" {
-                        // Patch the service config with values from the default config file. We
-                        // must use two `take` calls instead of a single patch call to ensure
-                        // deserialization default values are correctly overwritten.
-                        let mut configopt_svc_load = configopt::from_toml_file(path)?;
-                        let mut default_svc_load = default_svc_load.clone();
-                        default_svc_load.take(&mut configopt_svc_load);
-                        let mut svc_load = configopt::from_toml_file(path)?;
-                        default_svc_load.clone().take_for(&mut svc_load);
-                        svc_loads.push(svc_load);
-                    }
-                }
-            }
-        }
-    }
-    Ok(svc_loads)
-}
+// FIXME:agadgil: This function is only called from SvcBulkLoad, We will revisit this when we
+// re-enable that
+// pub fn svc_loads_from_paths<T: AsRef<Path>>(paths: &[T]) -> Result<Vec<Load>> {
+// If the only path is the default location and the directory does not exist do not report an
+// error. This allows users to run the Supervisor without creating the directory.
+// if paths.len() == 1 {
+// let path = paths[0].as_ref();
+// if path == Path::new(DEFAULT_SVC_CONFIG_DIR) && !path.exists() {
+// return Ok(Vec::new());
+// }
+// }
+// let mut svc_loads = Vec::new();
+// let default_svc_load = ConfigOptLoad::from_default_config_files()?;
+// for path in paths {
+// for entry in WalkDir::new(path) {
+// let entry = entry?;
+// let path = entry.path();
+// if entry.file_type().is_file() {
+// if let Some(extension) = path.extension() {
+// if extension == "toml" {
+// Patch the service config with values from the default config file. We
+// must use two `take` calls instead of a single patch call to ensure
+// deserialization default values are correctly overwritten.
+// let mut configopt_svc_load = configopt::from_toml_file(path)?;
+// let mut default_svc_load = default_svc_load.clone();
+// default_svc_load.take(&mut configopt_svc_load);
+// let mut svc_load = configopt::from_toml_file(path)?;
+// default_svc_load.clone().take_for(&mut svc_load);
+// svc_loads.push(svc_load);
+// }
+// }
+// }
+// }
+// }
+// Ok(svc_loads)
+// }
 
 pub fn shared_load_cli_to_ctl(ident: PackageIdent,
                               shared_load: SharedLoad,
@@ -397,8 +391,7 @@ impl TryFrom<Load> for habitat_sup_protocol::ctl::SvcLoad {
 /// Update how the Supervisor manages an already-running
 /// service. Depending on the given changes, they may be able to
 /// be applied without restarting the service.
-#[derive(ConfigOpt, StructOpt, Deserialize)]
-#[configopt(attrs(serde))]
+#[derive(StructOpt, Deserialize)]
 #[serde(deny_unknown_fields)]
 #[structopt(name = "update", no_version, rename_all = "screamingsnake")]
 #[allow(dead_code)]
