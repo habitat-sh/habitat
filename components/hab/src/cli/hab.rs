@@ -18,45 +18,28 @@ pub mod util;
               any(all(target_os = "linux",
                       any(target_arch = "x86_64", target_arch = "aarch64")),
                   all(target_os = "windows", target_arch = "x86_64"))))]
-use self::studio::{ConfigOptStudio,
-                   Studio};
+use self::studio::Studio;
 use self::{bldr::*,
            cli::{CliCompleters,
-                 CliSetup,
-                 ConfigOptCliCompleters,
-                 ConfigOptCliSetup},
-           config::{ConfigOptServiceConfigApply,
-                    ConfigOptServiceConfigShow,
-                    ServiceConfigApply,
+                 CliSetup},
+           config::{ServiceConfigApply,
                     ServiceConfigShow},
            file::{ConfigOptFileUpload,
                   FileUpload},
-           license::{ConfigOptLicense,
-                     License},
+           license::License,
            origin::*,
            pkg::*,
-           plan::{ConfigOptPlanInit,
-                  ConfigOptPlanRender,
-                  PlanInit,
+           plan::{PlanInit,
                   PlanRender},
-           ring::{ConfigOptRingKeyExport,
-                  ConfigOptRingKeyGenerate,
-                  ConfigOptRingKeyImport,
-                  RingKeyExport,
+           ring::{RingKeyExport,
                   RingKeyGenerate,
                   RingKeyImport},
-           sup::{ConfigOptHabSup,
-                 HabSup},
-           svc::{ConfigOptSvc,
-                 ConfigOptSvcStart,
-                 ConfigOptSvcStop,
-                 Svc,
+           sup::HabSup,
+           svc::{Svc,
                  SvcStart,
                  SvcStop},
-           user::{ConfigOptUserKeyGenerate,
-                  UserKeyGenerate},
-           util::{CacheKeyPath,
-                  ConfigOptCacheKeyPath}};
+           user::UserKeyGenerate,
+           util::CacheKeyPath};
 use crate::{cli::AFTER_HELP,
             VERSION};
 use configopt::ConfigOpt;
@@ -176,7 +159,7 @@ pub enum Job {
     Status(JobStatus),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, aliases = &["cl"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat runtime config
 pub enum Cli {
@@ -188,7 +171,7 @@ pub enum Cli {
     Completers(CliCompleters),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, aliases = &["co", "con", "conf", "confi"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to a Service's runtime config
 pub enum ServiceConfig {
@@ -208,13 +191,13 @@ pub enum File {
 }
 
 /// Commands relating to Habitat users
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "user", no_version, aliases = &["u", "us", "use"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 pub enum User {
     Key(UserKey),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "key", no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat user keys
 pub enum UserKey {
@@ -331,7 +314,7 @@ pub enum Pkg {
     Dependencies(PkgDependencies),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, aliases = &["pl", "pla"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to plans and other app-specific configuration
 pub enum Plan {
@@ -341,14 +324,14 @@ pub enum Plan {
     Render(PlanRender),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(no_version, aliases = &["r", "ri", "rin"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat rings
 pub enum Ring {
     Key(RingKey),
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(name = "key", no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat ring keys
 pub enum RingKey {

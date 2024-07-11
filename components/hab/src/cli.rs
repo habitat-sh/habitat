@@ -147,20 +147,20 @@ mod tests {
                                                                    "sup",
                                                                    "run",
                                                                    "--application",
-                                                                   "--environment=env"]);
+                                                                   "--environment=env",]);
         assert!(r.is_ok());
         let r = get(no_feature_flags()).get_matches_from_safe(vec!["hab",
                                                                    "svc",
                                                                    "load",
                                                                    "--application=app",
                                                                    "--environment",
-                                                                   "pkg/ident"]);
+                                                                   "pkg/ident",]);
         assert!(r.is_ok());
         let r = get(no_feature_flags()).get_matches_from_safe(vec!["hab",
                                                                    "svc",
                                                                    "load",
                                                                    "--application",
-                                                                   "pkg/ident"]);
+                                                                   "pkg/ident",]);
         assert!(r.is_ok());
     }
 
