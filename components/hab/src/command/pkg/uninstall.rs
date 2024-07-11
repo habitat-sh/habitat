@@ -19,7 +19,7 @@ pub enum UninstallMode {
     KeepLatest(usize),
 }
 
-impl<'a> From<&'a ArgMatches<'a>> for UninstallMode {
+impl From<&ArgMatches> for UninstallMode {
     fn from(m: &ArgMatches) -> Self {
         m.value_of("KEEP_LATEST")
          .and_then(|s| s.parse().ok())

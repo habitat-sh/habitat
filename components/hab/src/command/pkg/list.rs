@@ -19,12 +19,12 @@ pub enum ListingType {
 }
 
 /// Convert a set of command line options into a ListingType
-impl<'a> From<&'a ArgMatches<'a>> for ListingType {
+impl From<&ArgMatches> for ListingType {
     /// Convert clap options into a listing type.
     ///
     /// We assume that the arguments have been validated during CLI parsing i.e.
     /// ORIGIN and PKG_IDENT are a valid origin and package identifier
-    fn from(m: &ArgMatches<'_>) -> Self {
+    fn from(m: &ArgMatches) -> Self {
         if m.is_present("ALL") {
             return ListingType::AllPackages;
         }

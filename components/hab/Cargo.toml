@@ -16,8 +16,8 @@ atty = "*"
 base64 = "*"
 bitflags = "*"
 chrono = {version = "*", features = ["serde"]}
-clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
-#clap = { version = "4.0", features = ["derive"] }
+#clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
+clap = { version = "4.0", features = ["derive"] }
 configopt = { git = "https://github.com/habitat-sh/configopt.git" }
 ctrlc = "*"
 dirs = "*"

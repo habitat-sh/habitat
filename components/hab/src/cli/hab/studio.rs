@@ -1,12 +1,12 @@
 use super::util::ExternalCommandArgs;
 use std::ffi::OsString;
-use structopt::StructOpt;
 
-#[derive(StructOpt)]
-#[structopt(name = "studio", no_version)]
+use clap::Parser;
+
+#[derive(Parser)]
 /// Commands relating to Habitat Studios
 pub struct Studio {
-    #[structopt(flatten)]
+    #[command(flatten)]
     args: ExternalCommandArgs,
 }
 

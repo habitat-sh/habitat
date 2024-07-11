@@ -11,8 +11,9 @@ use std::path::PathBuf;
 use structopt::{clap::ArgGroup,
                 StructOpt};
 
-#[derive(StructOpt)]
-#[structopt(no_version)]
+use clap::Parser;
+
+#[derive(Parser)]
 /// Commands relating to Habitat Builder origins
 pub enum Origin {
     Create(OriginCreate),
@@ -28,57 +29,62 @@ pub enum Origin {
 }
 
 /// Creates a new Builder origin
-#[derive(StructOpt)]
-#[structopt(name = "create", no_version)]
+#[derive(Parser)]
 pub struct OriginCreate {
-    #[structopt(flatten)]
-    bldr_url:   BldrUrl,
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
     /// The origin to be created
-    #[structopt(name = "ORIGIN", validator = valid_origin)]
-    origin:     String,
-    #[structopt(flatten)]
+    #[clap(name = "ORIGIN", validator = valid_origin)]
+    origin: String,
+
+    #[command(flatten)]
     auth_token: AuthToken,
 }
 
 /// Removes an unused/empty origin
-#[derive(StructOpt)]
-#[structopt(name = "delete", no_version)]
+#[derive(Parser)]
 pub struct OriginDelete {
-    #[structopt(flatten)]
-    bldr_url:   BldrUrl,
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
     /// The origin name
-    #[structopt(name = "ORIGIN", validator = valid_origin)]
-    origin:     String,
-    #[structopt(flatten)]
+    #[clap(name = "ORIGIN", validator = valid_origin)]
+    origin: String,
+
+    #[command(flatten)]
     auth_token: AuthToken,
 }
 
 /// Departs membership from selected origin
-#[derive(StructOpt)]
-#[structopt(name = "depart", no_version)]
+#[derive(Parser)]
 pub struct OriginDepart {
-    #[structopt(flatten)]
-    bldr_url:   BldrUrl,
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
     /// The origin name
-    #[structopt(name = "ORIGIN", validator = valid_origin)]
-    origin:     String,
-    #[structopt(flatten)]
+    #[clap(name = "ORIGIN", validator = valid_origin)]
+    origin: String,
+
+    #[command(flatten)]
     auth_token: AuthToken,
 }
 
 /// Displays general information about an origin
-#[derive(StructOpt)]
-#[structopt(name = "info", no_version)]
+#[derive(Parser)]
 pub struct OriginInfo {
     /// The origin name to be queried
-    #[structopt(name = "ORIGIN", validator = valid_origin)]
-    origin:     String,
+    #[clap(name = "ORIGIN", validator = valid_origin)]
+    origin: String,
+
     /// Output will be rendered in json
-    #[structopt(name = "TO_JSON", short = "j", long = "json")]
-    to_json:    bool,
-    #[structopt(flatten)]
-    bldr_url:   BldrUrl,
-    #[structopt(flatten)]
+    #[clap(name = "TO_JSON", short = "j", long = "json")]
+    to_json: bool,
+
+    #[clap(flatten)]
+    bldr_url: BldrUrl,
+
+    #[clap(flatten)]
     auth_token: AuthToken,
 }
 

@@ -25,46 +25,43 @@ use habitat_core::{env::Config,
                              PackageTarget},
                    ChannelIdent};
 use std::path::PathBuf;
-use structopt::{clap::{AppSettings,
-                       ArgGroup},
-                StructOpt};
+
+use clap::Parser;
 
 /// List all versions of installed packages
-#[derive(StructOpt, Debug)]
-#[structopt(name = "list", group = ArgGroup::with_name("prefix").required(true), no_version)]
+#[derive(Parser, Debug)]
 pub struct PkgList {
     /// List all installed packages
-    #[structopt(name = "ALL", short = "a", long = "all", group = "prefix")]
-    all:       bool,
+    #[clap(name = "ALL", short = "a", long = "all", group = "prefix")]
+    all: bool,
+
     /// An origin to list
-    #[structopt(name = "ORIGIN",
+    #[clap(name = "ORIGIN",
         short = "o",
         long = "origin",
         validator = valid_origin, group = "prefix")]
-    origin:    Option<String>,
+    origin: Option<String>,
+
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
-    #[structopt(name = "PKG_IDENT", group = "prefix")]
+    #[clap(name = "PKG_IDENT", group = "prefix")]
     pkg_ident: Option<PackageIdent>,
 }
 
 /// Prints the path to a specific installed release of a package
-#[derive(StructOpt)]
-#[structopt(name = "path", no_version)]
+#[derive(Parser)]
 pub struct PkgPath {
-    #[structopt(flatten)]
+    #[command(flatten)]
     pkg_ident: PkgIdent,
 }
 
 /// Displays the binds for a service
-#[derive(StructOpt)]
-#[structopt(name = "binds", no_version)]
+#[derive(Parser)]
 pub struct PkgBinds {
-    #[structopt(flatten)]
+    #[command(flatten)]
     pkg_ident: PkgIdent,
 }
 
-#[derive(StructOpt)]
-#[structopt(no_version)]
+#[derive(Parser)]
 #[allow(clippy::large_enum_variant)]
 /// Commands relating to Habitat packages
 pub enum Pkg {
@@ -100,45 +97,50 @@ pub enum Pkg {
 }
 
 /// Removes a package from Builder
-#[derive(StructOpt)]
-#[structopt(name = "delete", no_version)]
+#[derive(Parser)]
 pub struct PkgDelete {
-    #[structopt(flatten)]
-    bldr_url:   BldrUrl,
-    #[structopt(flatten)]
-    pkg_ident:  FullyQualifiedPkgIdent,
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
+    #[command(flatten)]
+    pkg_ident: FullyQualifiedPkgIdent,
+
     /// A package target (ex: x86_64-windows) (default: system appropriate target)
-    #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
+    #[clap(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
     pkg_target: Option<PackageTarget>,
-    #[structopt(flatten)]
+
+    #[command(flatten)]
     auth_token: AuthToken,
 }
 
 /// Demote a package from a specified channel
-#[derive(StructOpt)]
-#[structopt(name = "demote", no_version)]
+#[derive(Parser)]
 pub struct PkgDemote {
-    #[structopt(flatten)]
-    bldr_url:   BldrUrl,
-    #[structopt(flatten)]
-    pkg_ident:  FullyQualifiedPkgIdent,
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
+    #[command(flatten)]
+    pkg_ident: FullyQualifiedPkgIdent,
+
     /// Demote from the specified release channel
-    #[structopt(name = "CHANNEL")]
-    channel:    String,
+    #[clap(name = "CHANNEL")]
+    channel: String,
+
     /// A package target (ex: x86_64-windows) (default: system appropriate target)
-    #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
+    #[clap(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
     pkg_target: Option<PackageTarget>,
-    #[structopt(flatten)]
+
+    #[command(flatten)]
     auth_token: AuthToken,
 }
 
 /// Promote a package to a specified channel
-#[derive(StructOpt)]
-#[structopt(name = "promote", no_version)]
+#[derive(Parser)]
 pub struct PkgPromote {
-    #[structopt(flatten)]
-    bldr_url:   BldrUrl,
-    #[structopt(flatten)]
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
+    #[command(flatten)]
     pkg_ident:  FullyQualifiedPkgIdent,
     /// Promote to the specified release channel
     #[structopt(name = "CHANNEL")]
@@ -151,396 +153,440 @@ pub struct PkgPromote {
 }
 
 /// Find out what channels a package belongs to
-#[derive(StructOpt)]
-#[structopt(name = "channels", no_version)]
+#[derive(Parser)]
 pub struct PkgChannels {
-    #[structopt(flatten)]
-    bldr_url:   BldrUrl,
-    #[structopt(flatten)]
-    pkg_ident:  FullyQualifiedPkgIdent,
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
+    #[command(flatten)]
+    pkg_ident: FullyQualifiedPkgIdent,
+
     /// A package target (ex: x86_64-windows) (default: system appropriate target)
-    #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
+    #[clap(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
     pkg_target: Option<PackageTarget>,
-    #[structopt(flatten)]
+
+    #[command(flatten)]
     auth_token: AuthToken,
 }
 
 /// Displays the default configuration options for a service
-#[derive(StructOpt)]
-#[structopt(name = "config", no_version)]
+#[derive(Parser)]
 pub struct PkgConfig {
-    #[structopt(flatten)]
+    #[command(flatten)]
     pkg_ident: PkgIdent,
 }
 
 /// Search installed Habitat packages for a given file
-#[derive(StructOpt)]
-#[structopt(name = "provides", no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgProvides {
     /// File name to find
-    #[structopt(name = "FILE")]
-    file:          String,
+    #[clap(name = "FILE")]
+    file: String,
+
     /// Show fully qualified package names (ex: core/busybox-static/1.24.2/20160708162350)
-    #[structopt(name = "FULL_RELEASES", short = "r")]
+    #[clap(name = "FULL_RELEASES", short = "r")]
     full_releases: bool,
+
     /// Show full path to file
-    #[structopt(name = "FULL_PATHS", short = "p")]
-    full_paths:    bool,
+    #[clap(name = "FULL_PATHS", short = "p")]
+    full_paths: bool,
 }
 
 /// Search for a package in Builder
-#[derive(StructOpt)]
-#[structopt(name = "search", no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgSearch {
     /// Search term
-    #[structopt(name = "SEARCH_TERM")]
+    #[clap(name = "SEARCH_TERM")]
     search_term: String,
-    #[structopt(flatten)]
-    bldr_url:    BldrUrl,
-    #[structopt(flatten)]
-    auth_token:  AuthToken,
+
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
+    #[command(flatten)]
+    auth_token: AuthToken,
+
     /// Limit how many packages to retrieve
-    #[structopt(name = "LIMIT", short = "l", long = "limit", default_value = "50")]
-    limit:       usize,
+    #[clap(name = "LIMIT", short = "l", long = "limit", default_value = "50")]
+    limit: usize,
 }
 
 /// Signs an archive with an origin key, generating a Habitat Artifact
-#[derive(StructOpt)]
-#[structopt(name = "sign", no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgSign {
     /// Origin key used to create signature
-    #[structopt(name = "ORIGIN",
+    #[clap(name = "ORIGIN",
         long = "origin",
         validator = valid_origin)]
-    origin:         Option<String>,
+    origin: Option<String>,
+
     /// A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
-    #[structopt(name = "SOURCE",
+    #[clap(name = "SOURCE",
                 validator = file_exists)]
-    source:         PathBuf,
+    source: PathBuf,
+
     /// The destination path to the signed Habitat Artifact (ex:
     /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-    #[structopt(name = "DEST")]
-    dest:           PathBuf,
-    #[structopt(flatten)]
+    #[clap(name = "DEST")]
+    dest: PathBuf,
+
+    #[command(flatten)]
     cache_key_path: CacheKeyPath,
 }
 
 /// Safely uninstall a package and dependencies from the local filesystem
-#[derive(StructOpt)]
-#[structopt(name = "uninstall", no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgUninstall {
-    #[structopt(flatten)]
-    pkg_ident:             PkgIdent,
+    #[command(flatten)]
+    pkg_ident: PkgIdent,
+
     /// Just show what would be uninstalled, don't actually do it
-    #[structopt(name = "DRYRUN", short = "d", long = "dryrun")]
-    dryrun:                bool,
+    #[clap(name = "DRYRUN", short = "d", long = "dryrun")]
+    dryrun: bool,
+
     /// Only keep this number of latest packages uninstalling all others.
-    #[structopt(name = "KEEP_LATEST", long = "keep-latest")]
-    keep_latest:           Option<usize>,
+    #[clap(name = "KEEP_LATEST", long = "keep-latest")]
+    keep_latest: Option<usize>,
+
     /// Identifier of one or more packages that should not be uninstalled. (ex: core/redis,
     /// core/busybox-static/1.42.2/21120102031201)
-    #[structopt(name = "EXCLUDE", long = "exclude")]
-    exclude:               Vec<PackageIdent>,
+    #[clap(name = "EXCLUDE", long = "exclude")]
+    exclude: Vec<PackageIdent>,
+
     /// Don't uninstall dependencies
-    #[structopt(name = "NO_DEPS", long = "no-deps")]
+    #[clap(name = "NO_DEPS", long = "no-deps")]
     no_deps:               bool,
     /// Do not run any uninstall hooks
-    #[structopt(name = "IGNORE_UNINSTALL_HOOK", long = "ignore-uninstall-hook")]
+    #[clap(name = "IGNORE_UNINSTALL_HOOK", long = "ignore-uninstall-hook")]
     ignore_uninstall_hook: bool,
 }
 
 /// Uploads a local Habitat Artifact to Builder
-#[derive(StructOpt)]
-#[structopt(name = "upload", no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgUpload {
-    #[structopt(flatten)]
-    bldr_url:       BldrUrl,
-    #[structopt(flatten)]
-    auth_token:     AuthToken,
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
+    #[command(flatten)]
+    auth_token: AuthToken,
+
     /// Optional additional release channel to upload package to. Packages are always uploaded
     /// to `unstable`, regardless of the value of this option
-    #[structopt(name = "CHANNEL", short = "c", long = "channel")]
-    channel:        Option<String>,
+    #[clap(name = "CHANNEL", short = "c", long = "channel")]
+    channel: Option<String>,
+
     /// Skips checking availability of package and force uploads, potentially overwriting a
     /// stored copy of a package. (default: false)
-    #[structopt(name = "FORCE", long = "force")]
-    force:          bool,
+    #[clap(name = "FORCE", long = "force")]
+    force: bool,
+
     /// Disable auto-build for all packages in this upload
-    #[structopt(name = "NO_BUILD", long = "no-build")]
-    no_builde:      bool,
+    #[clap(name = "NO_BUILD", long = "no-build")]
+    no_builde: bool,
+
     /// One or more filepaths to a Habitat Artifact (ex:
     /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-    #[structopt(name = "HART_FILE", required = true, validator = file_exists)]
-    hart_file:      Vec<PathBuf>,
-    #[structopt(flatten)]
+    #[clap(name = "HART_FILE", required = true, validator = file_exists)]
+    hart_file: Vec<PathBuf>,
+
+    #[command(flatten)]
     cache_key_path: CacheKeyPath,
 }
 
 /// Verifies a Habitat Artifact with an origin key
-#[derive(StructOpt)]
-#[structopt(name = "verify", no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgVerify {
     /// A path to a Habitat Artifact (ex:
     /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-    #[structopt(name = "SOURCE", validator = file_exists)]
-    source:         PathBuf,
-    #[structopt(flatten)]
+    #[clap(name = "SOURCE", validator = file_exists)]
+    source: PathBuf,
+
+    #[command(flatten)]
     cache_key_path: CacheKeyPath,
 }
 
 /// Creates a binlink for a package binary in a common 'PATH' location
-#[derive(StructOpt)]
-#[structopt(name = "binlink", no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgBinlink {
-    #[structopt(flatten)]
+    #[command(flatten)]
     pkg_ident: PkgIdent,
+
     /// The command to binlink (ex: bash)
-    #[structopt(name = "BINARY")]
-    binary:    Option<String>,
+    #[clap(name = "BINARY")]
+    binary: Option<String>,
+
     /// Sets the destination directory
-    #[structopt(name = "DEST_DIR",
+    #[clap(name = "DEST_DIR",
                 short = "d",
                 long = "dest",
                 env = BINLINK_DIR_ENVVAR,
                 default_value = DEFAULT_BINLINK_DIR)]
-    dest_dir:  PathBuf,
+    dest_dir: PathBuf,
+
     /// Overwrite existing binlinks
-    #[structopt(name = "FORCE", short = "f", long = "force")]
-    force:     bool,
+    #[clap(name = "FORCE", short = "f", long = "force")]
+    force: bool,
 }
 
 /// Builds a Plan using a Studio
-#[derive(StructOpt)]
-#[structopt(name = "build", no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgBuild {
     /// Installs secret origin keys (ex: "unicorn", "acme,other,acme-ops")
-    #[structopt(name = "HAB_ORIGIN_KEYS", short = "k", long = "keys")]
+    #[clap(name = "HAB_ORIGIN_KEYS", short = "k", long = "keys")]
     hab_origin_keys: Option<String>,
+
     /// Sets the Studio root (default: /hab/studios/<DIR_NAME>)
-    #[structopt(name = "HAB_STUDIO_ROOT", short = "r", long = "root")]
+    #[clap(name = "HAB_STUDIO_ROOT", short = "r", long = "root")]
     hab_studio_root: Option<PathBuf>,
+
     /// Sets the source path (default: $PWD)
-    #[structopt(name = "SRC_PATH", short = "s", long = "src")]
-    src_path:        Option<PathBuf>,
+    #[clap(name = "SRC_PATH", short = "s", long = "src")]
+    src_path: Option<PathBuf>,
+
     /// A directory containing a plan file or a `habitat/` directory which contains the plan
     /// file
-    #[structopt(name = "PLAN_CONTEXT")]
-    plan_context:    PathBuf,
-    #[structopt(flatten)]
-    cache_key_path:  CacheKeyPath,
+    #[clap(name = "PLAN_CONTEXT")]
+    plan_context: PathBuf,
+
+    #[command(flatten)]
+    cache_key_path: CacheKeyPath,
+
     /// Build a native package on the host system without a studio
     #[cfg(target_os = "linux")]
-    #[structopt(name = "NATIVE_PACKAGE", short = "N", long = "native-package", conflicts_with_all = &["REUSE", "DOCKER"])]
-    native_package:  bool,
+    #[clap(name = "NATIVE_PACKAGE", short = "N", long = "native-package", conflicts_with_all = &["REUSE", "DOCKER"])]
+    native_package: bool,
+
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     /// Reuses a previous Studio for the build (default: clean up before building)
     // Only a truly native/local Studio can be reused--the Docker implementation will always be
     // ephemeral
-    #[structopt(name = "REUSE", short = "R", long = "reuse")]
-    reuse:           bool,
+    #[clap(name = "REUSE", short = "R", long = "reuse")]
+    reuse: bool,
+
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     /// Uses a Dockerized Studio for the build
-    #[structopt(name = "DOCKER", short = "D", long = "docker")]
-    docker:          bool,
+    #[clap(name = "DOCKER", short = "D", long = "docker")]
+    docker: bool,
 }
 
 /// Bulk Uploads Habitat Artifacts to a Depot from a local directory
-#[derive(StructOpt)]
-#[structopt(name = "bulkupload", no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgBulkupload {
-    #[structopt(flatten)]
-    bldr_url:             BldrUrl,
-    #[structopt(flatten)]
-    auth_token:           AuthToken,
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
+    #[command(flatten)]
+    auth_token: AuthToken,
+
     /// Optional additional release channel to upload package to. Packages are always uploaded
     /// to `unstable`, regardless of the value of this option
-    #[structopt(name = "CHANNEL", short = "c", long = "channel")]
-    channel:              Option<String>,
+    #[clap(name = "CHANNEL", short = "c", long = "channel")]
+    channel: Option<String>,
+
     /// Skip checking availability of package and force uploads, potentially overwriting a
     /// stored copy of a package
-    #[structopt(name = "FORCE", long = "force")]
-    force:                bool,
+    #[clap(name = "FORCE", long = "force")]
+    force: bool,
+
     /// Enable auto-build for all packages in this upload. Only applicable to SaaS Builder
-    #[structopt(name = "AUTO_BUILD", long = "auto-build")]
-    auto_build:           bool,
+    #[clap(name = "AUTO_BUILD", long = "auto-build")]
+    auto_build: bool,
+
     /// Skip the confirmation prompt and automatically create origins that do not exist in the
     /// target Builder
-    #[structopt(name = "AUTO_CREATE_ORIGINS", long = "auto-create-origins")]
+    #[clap(name = "AUTO_CREATE_ORIGINS", long = "auto-create-origins")]
     auto_create_channels: bool,
+
     /// Directory Path from which artifacts will be uploaded
-    #[structopt(name = "UPLOAD_DIRECTORY", validator = dir_exists)]
-    upload_directory:     PathBuf,
+    #[clap(name = "UPLOAD_DIRECTORY", validator = dir_exists)]
+    upload_directory: PathBuf,
 }
 
 /// Returns the Habitat Artifact dependencies. By default it will return the direct
 /// dependencies of the package
-#[derive(StructOpt)]
-#[structopt(name = "dependencies", no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgDependencies {
-    #[structopt(flatten)]
-    pkg_ident:  PkgIdent,
+    #[command(flatten)]
+    pkg_ident: PkgIdent,
+
     /// Show transitive dependencies
-    #[structopt(name = "TRANSITIVE", short = "t", long = "transitive")]
+    #[clap(name = "TRANSITIVE", short = "t", long = "transitive")]
     transitive: bool,
+
     /// Show packages which are dependant on this one
-    #[structopt(name = "REVERSE", short = "r", long = "reverse")]
-    reverse:    bool,
+    #[clap(name = "REVERSE", short = "r", long = "reverse")]
+    reverse: bool,
 }
 
 /// Download Habitat artifacts (including dependencies and keys) from Builder
-#[derive(StructOpt)]
-#[structopt(name = "download", no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgDownload {
-    #[structopt(flatten)]
-    auth_token:          AuthToken,
-    #[structopt(flatten)]
-    bldr_url:            BldrUrl,
+    #[command(flatten)]
+    auth_token: AuthToken,
+
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
     /// Download from the specified release channel. Overridden if channel is specified in toml
     /// file
-    #[structopt(name = "CHANNEL",
+    #[clap(name = "CHANNEL",
                 short = "c",
                 long = "channel",
                 default_value = "stable",
                 env = ChannelIdent::ENVVAR)]
-    channel:             String,
+    channel: String,
+
     /// The path to store downloaded artifacts
-    #[structopt(name = "DOWNLOAD_DIRECTORY", long = "download-directory")]
-    download_directory:  Option<PathBuf>,
+    #[clap(name = "DOWNLOAD_DIRECTORY", long = "download-directory")]
+    download_directory: Option<PathBuf>,
+
     /// File with newline separated package identifiers, or TOML file (ending with .toml
     /// extension)
-    #[structopt(name = "PKG_IDENT_FILE", long = "file", validator = valid_ident_or_toml_file)]
-    pkg_ident_file:      Vec<String>,
+    #[clap(name = "PKG_IDENT_FILE", long = "file", validator = valid_ident_or_toml_file)]
+    pkg_ident_file: Vec<String>,
+
     /// One or more Habitat package identifiers (ex: acme/redis)
-    #[structopt(name = "PKG_IDENT")]
-    pkg_ident:           Vec<PackageIdent>,
+    #[clap(name = "PKG_IDENT")]
+    pkg_ident: Vec<PackageIdent>,
+
     /// Target architecture to fetch. E.g. x86_64-linux. Overridden if architecture is
     /// specified in toml file
-    #[structopt(name = "PKG_TARGET", short = "t", long = "target")]
-    pkg_target:          Option<PackageTarget>,
+    #[clap(name = "PKG_TARGET", short = "t", long = "target")]
+    pkg_target: Option<PackageTarget>,
+
     /// Verify package integrity after download (Warning: this can be slow)
-    #[structopt(name = "VERIFY", long = "verify")]
-    verify:              bool,
+    #[clap(name = "VERIFY", long = "verify")]
+    verify: bool,
+
     /// Ignore packages specified that are not present on the target Builder
-    #[structopt(name = "IGNORE_MISSING_SEEDS", long = "ignore-missing-seeds")]
+    #[clap(name = "IGNORE_MISSING_SEEDS", long = "ignore-missing-seeds")]
     ignore_missing_seed: bool,
 }
 
 /// Executes a command using the 'PATH' context of an installed package
-#[derive(StructOpt)]
-#[structopt(name = "exec", aliases = &["exe"], no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgExec {
-    #[structopt(flatten)]
+    #[command(flatten)]
     pub pkg_ident: PkgIdent,
+
     /// The command to execute (ex: ls)
-    #[structopt()]
-    pub cmd:       PathBuf,
-    #[structopt(flatten)]
-    pub args:      ExternalCommandArgsWithHelpAndVersion,
+    #[clap(long)]
+    pub cmd: PathBuf,
+
+    #[command(flatten)]
+    pub args: ExternalCommandArgsWithHelpAndVersion,
 }
 
 /// Prints the runtime environment of a specific installed package
-#[derive(StructOpt)]
-#[structopt(name = "env", no_version)]
+#[derive(Parser)]
 pub struct PkgEnv {
-    #[structopt(flatten)]
+    #[command(flatten)]
     pkg_ident: PkgIdent,
 }
 
 /// Generates a blake2b hashsum from a target at any given filepath
-#[derive(StructOpt)]
-#[structopt(name = "hash", no_version)]
+#[derive(Parser)]
 pub struct PkgHash {
     /// A filepath of the target
-    #[structopt(name = "SOURCE", validator = file_exists)]
+    #[clap(name = "SOURCE", validator = file_exists)]
     source: Option<PathBuf>,
 }
 
 /// Returns the Habitat Artifact header
-#[derive(StructOpt)]
-#[structopt(name = "header", no_version, settings = &[AppSettings::Hidden])]
+#[derive(Parser)]
 pub struct PkgHeader {
     /// A path to a Habitat Artifact (ex:
     /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-    #[structopt(name = "SOURCE", validator = file_exists)]
+    #[clap(name = "SOURCE", validator = file_exists)]
     source: PathBuf,
 }
 
 /// Returns the Habitat Artifact information
-#[derive(StructOpt)]
-#[structopt(name = "info", no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgInfo {
     /// Output will be rendered in json. (Includes extended metadata)
-    #[structopt(name = "TO_JSON", short = "j", long = "json")]
+    #[clap(name = "TO_JSON", short = "j", long = "json")]
     to_json: bool,
+
     /// A path to a Habitat Artifact (ex:
     /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-    #[structopt(name = "SOURCE", validator = file_exists)]
-    source:  PathBuf,
+    #[clap(name = "SOURCE", validator = file_exists)]
+    source: PathBuf,
 }
 
 /// Installs a Habitat package from Builder or locally from a Habitat Artifact
-#[derive(StructOpt)]
-#[structopt(name = "install", no_version, rename_all = "screamingsnake")]
+#[derive(Parser)]
 pub struct PkgInstall {
-    #[structopt(flatten)]
-    bldr_url:              BldrUrl,
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
     /// Install from the specified release channel
-    #[structopt(short = "c",
+    #[clap(short = "c",
                 long = "channel",
                 default_value = "stable",
                 env = ChannelIdent::ENVVAR)]
-    channel:               String,
+    channel: String,
+
     /// One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat
     /// Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-    #[structopt(required = true)]
+    #[clap(required = true)]
     pkg_ident_or_artifact: Vec<String>,
+
     /// Binlink all binaries from installed package(s) into BINLINK_DIR
-    #[structopt(short = "b", long = "binlink")]
-    binlink:               bool,
+    #[clap(short = "b", long = "binlink")]
+    binlink: bool,
+
     /// Binlink all binaries from installed package(s) into BINLINK_DIR
-    #[structopt(long = "binlink-dir",
+    #[clap(long = "binlink-dir",
                 default_value = DEFAULT_BINLINK_DIR,
                 validator = util::non_empty,
                 env = BINLINK_DIR_ENVVAR)]
-    binlink_dir:           PathBuf,
+    binlink_dir: PathBuf,
+
     /// Overwrite existing binlinks
-    #[structopt(short = "f", long = "force")]
-    force:                 bool,
-    #[structopt(flatten)]
-    auth_token:            AuthToken,
+    #[clap(short = "f", long = "force")]
+    force: bool,
+
+    #[command(flatten)]
+    auth_token: AuthToken,
+
     /// Do not run any install hooks
-    #[structopt(long = "ignore-install-hook")]
-    ignore_install_hook:   bool,
+    #[clap(long = "ignore-install-hook")]
+    ignore_install_hook: bool,
+
     /// Install packages in offline mode
-    #[structopt(long = "offline",
+    #[clap(long = "offline",
                 hidden = !FEATURE_FLAGS.contains(FeatureFlag::OFFLINE_INSTALL))]
-    offline:               bool,
+    offline: bool,
+
     /// Do not use locally-installed packages when a corresponding package cannot be installed
     /// from Builder
-    #[structopt(long = "ignore-local",
+    #[clap(long = "ignore-local",
                 hidden = !FEATURE_FLAGS.contains(FeatureFlag::IGNORE_LOCAL))]
-    ignore_local:          bool,
+    ignore_local: bool,
 }
 
 /// Exports the package to the specified format
 #[cfg(any(all(target_os = "linux",
               any(target_arch = "x86_64", target_arch = "aarch64")),
           all(target_os = "windows", target_arch = "x86_64"),))]
-#[derive(StructOpt)]
-#[structopt(name = "export", aliases = &["e", "ex", "exp", "expo", "expor"], no_version)]
+#[derive(Parser)]
 pub enum ExportCommand {
     #[cfg(target_os = "linux")]
     /// Cloud Foundry exporter
     Cf(ExternalCommandArgs),
+
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     /// Container exporter
     Container(ExternalCommandArgs),
+
     #[cfg(any(target_os = "linux", target_os = "windows"))]
-    #[structopt(settings = &[AppSettings::Hidden])]
+    // #[structopt(settings = &[AppSettings::Hidden])]
     Docker(ExternalCommandArgs),
+
     /// Mesos exporter
     #[cfg(target_os = "linux")]
     Mesos(ExternalCommandArgs),
+
     /// Tar exporter
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     Tar(ExternalCommandArgs),

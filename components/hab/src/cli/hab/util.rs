@@ -27,36 +27,33 @@ use std::{convert::TryFrom,
           result,
           str::FromStr,
           time::Duration};
-use structopt::{clap::AppSettings,
-                StructOpt};
 use url::{ParseError,
           Url};
 use webpki::types::DnsName;
 
-#[derive(StructOpt)]
-#[structopt(no_version)]
+use clap::Parser;
+
+#[derive(Parser)]
 pub struct AuthToken {
     /// Authentication token for Builder.
     // TODO (JM): This should probably use `env`
-    #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
+    #[clap(name = "AUTH_TOKEN", short = "z", long = "auth")]
     pub value: Option<String>,
 }
 
-#[derive(StructOpt, Deserialize)]
-#[structopt(no_version)]
+#[derive(Parser, Deserialize)]
 pub struct BldrUrl {
     /// Specify an alternate Builder endpoint. If not specified, the value will be
     /// taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
     // TODO (DM): This should probably use `env` and `default_value`
-    #[structopt(name = "BLDR_URL", short = "u", long = "url")]
+    #[clap(name = "BLDR_URL", short = "u", long = "url")]
     pub value: Option<Url>,
 }
 
-#[derive(StructOpt, Deserialize, Serialize)]
-#[structopt(no_version)]
+#[derive(Parser, Deserialize, Serialize)]
 pub struct BldrOrigin {
     /// The Builder origin name to target
-    #[structopt(name = "ORIGIN", short = "o", long = "origin")]
+    #[clap(name = "ORIGIN", short = "o", long = "origin")]
     pub inner: Origin,
 }
 
@@ -123,12 +120,11 @@ lazy_static! {
         hab_core_fs::CACHE_KEY_PATH.to_string_lossy().to_string();
 }
 
-#[derive(StructOpt, Debug, Deserialize)]
+#[derive(Parser, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
-#[structopt(no_version, rename_all = "screamingsnake")]
 pub struct CacheKeyPath {
     /// Cache for creating and searching for encryption keys
-    #[structopt(long = "cache-key-path",
+    #[clap(long = "cache-key-path",
                 env = CACHE_KEY_PATH_ENV_VAR,
                 default_value = &*CACHE_KEY_PATH_DEFAULT)]
     pub cache_key_path: PathBuf,
@@ -158,12 +154,11 @@ impl From<PkgIdentStringySerde> for String {
     fn from(pkg_ident: PkgIdentStringySerde) -> Self { pkg_ident.to_string() }
 }
 
-#[derive(Clone, Debug, StructOpt, Deserialize, Serialize)]
-#[structopt(no_version)]
+#[derive(Clone, Debug, Parser, Deserialize, Serialize)]
 #[serde(transparent)]
 pub struct PkgIdent {
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
-    #[structopt(name = "PKG_IDENT")]
+    #[clap(name = "PKG_IDENT")]
     pkg_ident: PkgIdentStringySerde,
 }
 
@@ -171,20 +166,18 @@ impl PkgIdent {
     pub fn pkg_ident(self) -> PackageIdent { self.pkg_ident.0 }
 }
 
-#[derive(StructOpt)]
-#[structopt(no_version)]
+#[derive(Parser)]
 #[allow(dead_code)]
 pub struct FullyQualifiedPkgIdent {
     /// A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
-    #[structopt(name = "PKG_IDENT", validator = valid_fully_qualified_ident)]
+    #[clap(name = "PKG_IDENT", validator = valid_fully_qualified_ident)]
     pkg_ident: PackageIdent,
 }
 
-#[derive(Clone, StructOpt, Deserialize, Debug)]
-#[structopt(no_version)]
+#[derive(Clone, Parser, Deserialize, Debug)]
 pub struct RemoteSup {
     /// Address to a remote Supervisor's Control Gateway
-    #[structopt(name = "REMOTE_SUP",
+    #[clap(name = "REMOTE_SUP",
                 long = "remote-sup",
                 short = "r",
                 default_value = ListenCtlAddr::default_as_str())]
@@ -270,17 +263,10 @@ impl FromStr for SocketAddrProxy {
 //
 // This disables help and version flags for the subcommand. Making it easy to check the help or
 // version of the external command. See `ExternalCommandArgsWithHelpAndVersion` for more details.
-#[derive(StructOpt)]
-#[structopt(no_version, rename_all = "screamingsnake",
-            settings = &[AppSettings::TrailingVarArg,
-                         AppSettings::AllowLeadingHyphen,
-                         AppSettings::DisableHelpFlags,
-                         AppSettings::DisableHelpSubcommand,
-                         AppSettings::DisableVersion
-                        ])]
+#[derive(Parser)]
 pub struct ExternalCommandArgs {
     /// Arguments to the command
-    #[structopt(parse(from_os_str), takes_value = true, multiple = true)]
+    #[clap(takes_value = true, multiple = true)]
     pub args: Vec<OsString>,
 }
 
@@ -297,14 +283,10 @@ pub struct ExternalCommandArgs {
 // displaying the help because the help is disabled. #2 is ambiguous. Should it show the help of the
 // subcommand or of `ls`? In this case it will show the help of the subcommand. If we want to see
 // the help of `ls` we can use #3.
-#[derive(StructOpt)]
-#[structopt(no_version, rename_all = "screamingsnake",
-            settings = &[AppSettings::TrailingVarArg,
-                         AppSettings::AllowLeadingHyphen,
-                        ])]
+#[derive(Parser)]
 pub struct ExternalCommandArgsWithHelpAndVersion {
     /// Arguments to the command
-    #[structopt(parse(from_os_str), takes_value = true, multiple = true)]
+    #[clap(takes_value = true, multiple = true)]
     pub args: Vec<OsString>,
 }
 

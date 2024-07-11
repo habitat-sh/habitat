@@ -6,22 +6,21 @@ use super::util::{AuthToken,
 use crate::cli::valid_origin;
 use habitat_common::cli::PACKAGE_TARGET_ENVVAR;
 use habitat_core::package::PackageTarget;
-use structopt::{clap::ArgGroup,
-                StructOpt};
 
-#[derive(StructOpt)]
-#[structopt(no_version)]
+use clap::{Parser,
+           Subcommand};
+
+#[derive(Subcommand)]
 /// Commands relating to Habitat Builder
 pub enum Bldr {
-    #[structopt(no_version)]
+    /// Commands relating to Habitat Builder channels
     Channel(Channel),
-    #[structopt(no_version)]
+
+    /// Commands relating to Habitat Builder jobs
     Job(Job),
 }
 
-#[derive(StructOpt)]
-#[structopt(no_version)]
-/// Commands relating to Habitat Builder channels
+#[derive(Subcommand)]
 pub enum Channel {
     Create(ChannelCreate),
     Demote(ChannelDemote),
@@ -30,26 +29,26 @@ pub enum Channel {
     Promote(ChannelPromote),
 }
 
-#[derive(StructOpt, Debug)]
-#[structopt(group = ArgGroup::with_name("status").required(true), no_version)]
+#[derive(Parser, Debug)]
 pub struct BldrJobStatusSourceGroup {
     /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
-    #[structopt(name = "GROUP_ID", group = "status")]
+    #[clap(name = "GROUP_ID", group = "status")]
     group_id: Option<String>,
+
     /// Show the status of recent job groups created in this origin (default: 10 most recent)
-    #[structopt(name = "ORIGIN",
+    #[clap(name = "ORIGIN",
             short = "o",
             long = "origin",
             validator = valid_origin,
             group = "status")]
-    origin:   Option<String>,
+    origin: Option<String>,
 }
 
-#[derive(StructOpt)]
-#[structopt(no_version)]
-/// Commands relating to Habitat Builder jobs
+#[derive(Subcommand)]
 pub enum Job {
+    /// Cancel a build job group and any in-progress builds
     Cancel(JobCancel),
+
     Demote(JobDemote),
     Promote(JobPromote),
     Start(JobStart),
@@ -57,192 +56,204 @@ pub enum Job {
 }
 
 /// Get the status of one or more job groups
-#[derive(StructOpt)]
-#[structopt(name = "status", no_version)]
+#[derive(Parser)]
 pub struct JobStatus {
-    #[structopt(flatten)]
+    #[command(flatten)]
     source:    BldrJobStatusSourceGroup,
     /// Limit how many job groups to retrieve, ordered by most recent (default: 10)
-    #[structopt(name = "LIMIT", short = "l", long = "limit")]
+    #[clap(name = "LIMIT", short = "l", long = "limit")]
     limit:     Option<usize>,
     /// Show the status of all build jobs for a retrieved job group
-    #[structopt(name = "SHOW_JOBS", short = "s", long = "showjobs")]
+    #[clap(name = "SHOW_JOBS", short = "s", long = "showjobs")]
     show_jobs: bool,
-    #[structopt(flatten)]
+    #[command(flatten)]
     bldr_url:  BldrUrl,
 }
 
-/// Cancel a build job group and any in-progress builds
-#[derive(StructOpt)]
-#[structopt(name = "cancel", no_version)]
+#[derive(Parser)]
 pub struct JobCancel {
     /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
-    #[structopt(name = "GROUP_ID")]
-    group_id:   String,
-    #[structopt(flatten)]
-    bldr_url:   BldrUrl,
+    #[clap(name = "GROUP_ID")]
+    group_id: String,
+
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
     /// Don't prompt for confirmation
-    #[structopt(name = "FORCE", short = "f", long = "force")]
-    force:      bool,
-    #[structopt(flatten)]
+    #[clap(name = "FORCE", short = "f", long = "force")]
+    force: bool,
+
+    #[command(flatten)]
     auth_token: AuthToken,
 }
 
 /// Demote packages from a completed build job from a specified channel
-#[derive(StructOpt)]
-#[structopt(name = "demote", no_version)]
+#[derive(Parser)]
+#[command(name = "demote")]
 pub struct JobDemote {
     /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
-    #[structopt(name = "GROUP_ID")]
-    group_id:    String,
+    #[clap(name = "GROUP_ID")]
+    group_id: String,
+
     /// The name of the channel to demote from
-    #[structopt(name = "CHANNEL")]
-    channel:     String,
+    #[clap(name = "CHANNEL")]
+    channel: String,
+
     /// Limit the demotable packages to the specified origin
-    #[structopt(name = "ORIGIN",
+    #[clap(name = "ORIGIN",
             short = "o",
             long = "origin",
             validator = valid_origin)]
-    origin:      Option<String>,
+    origin: Option<String>,
+
     /// Allow editing the list of demotable packages
-    #[structopt(name = "INTERACTIVE", short = "i", long = "interactive")]
+    #[clap(name = "INTERACTIVE", short = "i", long = "interactive")]
     interactive: bool,
-    #[structopt(flatten)]
-    bldr_url:    BldrUrl,
-    #[structopt(flatten)]
-    auth_token:  AuthToken,
+
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
+    #[command(flatten)]
+    auth_token: AuthToken,
 }
 
 /// Promote packages from a completed build job to a specified channel
-#[derive(StructOpt)]
-#[structopt(name = "promote", no_version)]
+#[derive(Parser)]
+#[command(name = "promote")]
 pub struct JobPromote {
     /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
-    #[structopt(name = "GROUP_ID")]
+    #[clap(name = "GROUP_ID")]
     group_id:    String,
     /// The target channel name
-    #[structopt(name = "CHANNEL")]
+    #[clap(name = "CHANNEL")]
     channel:     String,
     /// Limit the promotable packages to the specified origin
-    #[structopt(name = "ORIGIN",
+    #[clap(name = "ORIGIN",
             short = "o",
             long = "origin",
             validator = valid_origin)]
     origin:      Option<String>,
     /// Allow editing the list of promotable packages
-    #[structopt(name = "INTERACTIVE", short = "i", long = "interactive")]
+    #[clap(name = "INTERACTIVE", short = "i", long = "interactive")]
     interactive: bool,
-    #[structopt(flatten)]
+    #[command(flatten)]
     bldr_url:    BldrUrl,
-    #[structopt(flatten)]
+    #[command(flatten)]
     auth_token:  AuthToken,
 }
 
 /// Schedule a build job or group of jobs
-#[derive(StructOpt)]
-#[structopt(name = "start", no_version)]
+#[derive(Parser)]
+#[command(name = "start")]
 pub struct JobStart {
-    #[structopt(flatten)]
+    #[command(flatten)]
     pkg_ident:  PkgIdent,
     /// A package target (ex: x86_64-windows) (default: system appropriate target)
-    #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
+    #[clap(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
     pkg_target: Option<PackageTarget>,
-    #[structopt(flatten)]
-    bldr_url:   BldrUrl,
-    #[structopt(flatten)]
+
+    #[command(flatten)]
+    bldr_url: BldrUrl,
+
+    #[command(flatten)]
     auth_token: AuthToken,
+
     /// Schedule jobs for this package and all of its reverse dependencies
-    #[structopt(name = "GROUP", short = "g", long = "group")]
-    group:      bool,
+    #[clap(name = "GROUP", short = "g", long = "group")]
+    group: bool,
 }
 
 /// Creates a new channel
-#[derive(StructOpt)]
-#[structopt(name = "create", no_version)]
+#[derive(Parser)]
+#[command(name = "create")]
 pub struct ChannelCreate {
-    #[structopt(flatten)]
+    #[command(flatten)]
     bldr_url: BldrUrl,
+
     /// The channel name
-    #[structopt(name = "CHANNEL")]
-    channel:  String,
+    #[clap(name = "CHANNEL")]
+    channel: String,
+
     /// Sets the origin to which the channel will belong. Default is from 'HAB_ORIGIN' or
     /// cli.toml
     #[structopt(name = "ORIGIN",
                 short = "o",
                 long = "origin",
                 validator = valid_origin)]
-    origin:   Option<String>,
+    origin: Option<String>,
 }
 
 /// Lists origin channels
-#[derive(StructOpt)]
-#[structopt(name = "list", no_version)]
+#[derive(Parser)]
+#[command(name = "list")]
 pub struct ChannelList {
-    #[structopt(flatten)]
+    #[command(flatten)]
     bldr_url: BldrUrl,
+
     /// The origin for which channels will be listed. Default is from 'HAB_ORIGIN' or cli.toml
-    #[structopt(name = "ORIGIN", validator = valid_origin)]
-    origin:   Option<String>,
+    #[clap(name = "ORIGIN", validator = valid_origin)]
+    origin: Option<String>,
+
     /// Include sandbox channels for the origin
-    #[structopt(name = "SANDBOX", short = "s", long = "sandbox")]
-    sandbox:  bool,
+    #[clap(name = "SANDBOX", short = "s", long = "sandbox")]
+    sandbox: bool,
 }
 
 /// Atomically promotes all packages in channel
-#[derive(StructOpt)]
-#[structopt(name = "promote", no_version)]
+#[derive(Parser)]
+#[clap(name = "promote")]
 pub struct ChannelPromote {
-    #[structopt(flatten)]
+    #[command(flatten)]
     bldr_url:       BldrUrl,
     /// The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
-    #[structopt(name = "ORIGIN",
+    #[clap(name = "ORIGIN",
                 short = "o",
                 long = "origin",
                 validator = valid_origin)]
     origin:         String,
     /// The channel from which all packages will be selected for promotion
-    #[structopt(name = "SOURCE_CHANNEL")]
+    #[clap(name = "SOURCE_CHANNEL")]
     source_channel: String,
     /// The channel to which packages will be promoted
-    #[structopt(name = "TARGET_CHANNEL")]
+    #[clap(name = "TARGET_CHANNEL")]
     target_channel: String,
-    #[structopt(flatten)]
+    #[command(flatten)]
     auth_token:     AuthToken,
 }
 
 /// Atomically demotes selected packages in a target channel
-#[derive(StructOpt)]
-#[structopt(name = "demote", no_version)]
+#[derive(Parser)]
+#[command(name = "demote")]
 pub struct ChannelDemote {
-    #[structopt(flatten)]
+    #[command(flatten)]
     bldr_url:       BldrUrl,
     /// The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
-    #[structopt(name = "ORIGIN",
+    #[clap(name = "ORIGIN",
                 short = "o",
                 long = "origin",
                 validator = valid_origin)]
     origin:         String,
     /// The channel from which all packages will be selected for demotion
-    #[structopt(name = "SOURCE_CHANNEL")]
+    #[clap(name = "SOURCE_CHANNEL")]
     source_channel: String,
     /// The channel selected packages will be removed from
-    #[structopt(name = "TARGET_CHANNEL")]
+    #[clap(name = "TARGET_CHANNEL")]
     target_channel: String,
-    #[structopt(flatten)]
+    #[command(flatten)]
     auth_token:     AuthToken,
 }
 
 /// Destroys a channel
-#[derive(StructOpt)]
-#[structopt(name = "destroy", no_version)]
+#[derive(Parser)]
+#[command(name = "destroy")]
 pub struct ChannelDestroy {
-    #[structopt(flatten)]
+    #[command(flatten)]
     bldr_url: BldrUrl,
     /// The channel name
-    #[structopt(name = "CHANNEL")]
+    #[clap(name = "CHANNEL")]
     channel:  String,
     /// Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN' or cli.toml
-    #[structopt(name = "ORIGIN",
+    #[clap(name = "ORIGIN",
         short = "o",
         long = "origin",
         validator = valid_origin)]

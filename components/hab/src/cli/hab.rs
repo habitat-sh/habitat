@@ -44,75 +44,63 @@ use crate::{cli::AFTER_HELP,
 use structopt::{clap::AppSettings,
                 StructOpt};
 
+use clap::Parser;
+
 #[cfg(not(target_os = "macos"))]
 use crate::cli::hab::sup::SupRun;
 
-#[derive(StructOpt)]
-#[structopt(name = "hab",
+#[derive(Parser)]
+#[command(name = "hab",
             version = VERSION,
             about = "Patents: https://chef.io/patents\n\"A Habitat is the natural environment for your services\" - Alan Turing",
             author = "\nThe Habitat Maintainers <humans@habitat.sh>\n",
-            settings = &[AppSettings::GlobalVersion],
+            propagate_version = true,
             after_help = AFTER_HELP
         )]
 #[allow(clippy::large_enum_variant)]
 pub enum Hab {
-    #[structopt(no_version)]
     Bldr(Bldr),
-    #[structopt(no_version)]
     Cli(Cli),
-    #[structopt(no_version)]
     Config(ServiceConfig),
-    #[structopt(no_version)]
     File(File),
-    #[structopt(no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
     License(License),
-    #[structopt(no_version)]
     Origin(Origin),
-    #[structopt(no_version)]
     Pkg(Pkg),
-    #[structopt(no_version)]
     Plan(Plan),
-    #[structopt(no_version)]
     Ring(Ring),
     #[cfg(any(target_os = "macos",
               any(all(target_os = "linux",
                       any(target_arch = "x86_64", target_arch = "aarch64")),
                   all(target_os = "windows", target_arch = "x86_64"))))]
-    #[structopt(no_version, aliases = &["stu", "stud", "studi"])]
     Studio(Studio),
-    #[structopt(no_version)]
     Sup(HabSup),
+
     /// Create a tarball of Habitat Supervisor data to send to support
-    #[structopt(no_version)]
     Supportbundle,
-    #[structopt(no_version)]
     Svc(Svc),
-    #[structopt(no_version)]
     User(User),
 
     /// Alias for 'config apply'
-    #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Apply(ServiceConfigApply),
+
     /// Alias for 'pkg install'
-    #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["i", "in", "ins", "inst", "insta", "instal"])]
     Install(PkgInstall),
+
     /// Alias for 'sup run'
     #[cfg(not(target_os = "macos"))]
-    #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Run(SupRun),
+
     /// Alias for 'cli setup'
-    #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["set", "setu"])]
     Setup(CacheKeyPath),
+
     /// Alias for 'svc start'
-    #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["sta", "star"])]
     Start(SvcStart),
+
     /// Alias for 'svc stop'
-    #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["sto"])]
     Stop(SvcStop),
+
     /// Alias for 'sup term'
     #[cfg(not(target_os = "macos"))]
-    #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Term,
 }
 

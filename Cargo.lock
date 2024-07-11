@@ -570,11 +570,51 @@ dependencies = [
  "ansi_term",
  "atty",
  "bitflags 1.3.2",
- "strsim",
+ "strsim 0.8.0",
  "textwrap",
  "unicode-width",
  "vec_map",
 ]
+
+[[package]]
+name = "clap"
+version = "4.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "64acc1846d54c1fe936a78dc189c34e28d3f5afc348403f28ecf53660b9b8462"
+dependencies = [
+ "clap_builder",
+ "clap_derive",
+]
+
+[[package]]
+name = "clap_builder"
+version = "4.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6fb8393d67ba2e7bfaf28a23458e4e2b543cc73a99595511eb207fdb8aede942"
+dependencies = [
+ "anstream",
+ "anstyle",
+ "clap_lex",
+ "strsim 0.11.1",
+]
+
+[[package]]
+name = "clap_derive"
+version = "4.5.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2bac35c6dafb060fd4d275d9a4ffae97917c13a6327903a8be2153cd964f7085"
+dependencies = [
+ "heck 0.5.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.46",
+]
+
+[[package]]
+name = "clap_lex"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4b82cf0babdbd58558212896d1a4272303a57bdb245c2bf1147185fb45640e70"
 
 [[package]]
 name = "codespan-reporting"
@@ -1250,7 +1290,7 @@ dependencies = [
  "base64 0.22.1",
  "bitflags 2.6.0",
  "chrono",
- "clap",
+ "clap 4.5.9",
  "configopt",
  "ctrlc",
  "dirs",
@@ -1343,7 +1383,7 @@ dependencies = [
 name = "habitat-rst-reader"
 version = "0.0.0"
 dependencies = [
- "clap",
+ "clap 2.33.1",
  "env_logger",
  "habitat_butterfly",
  "log 0.4.22",
@@ -1443,7 +1483,7 @@ dependencies = [
  "async-trait",
  "bimap",
  "bitflags 2.6.0",
- "clap",
+ "clap 2.33.1",
  "dirs",
  "glob",
  "habitat_api_client",
@@ -1551,7 +1591,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
- "clap",
+ "clap 2.33.1",
  "env_logger",
  "hab",
  "habitat_common",
@@ -1577,7 +1617,7 @@ name = "habitat_pkg_export_tar"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "clap",
+ "clap 2.33.1",
  "env_logger",
  "flate2",
  "habitat_common",
@@ -1605,7 +1645,7 @@ dependencies = [
  "byteorder",
  "bytes",
  "caps",
- "clap",
+ "clap 2.33.1",
  "configopt",
  "cpu-time",
  "ctrlc",
@@ -1728,6 +1768,12 @@ name = "heck"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2540771e65fc8cb83cd6e8a237f70c319bd5c29f78ed1084ba5d50eeac86f7f9"
+
+[[package]]
+name = "heck"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "hermit-abi"
@@ -3547,11 +3593,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 
 [[package]]
+name = "strsim"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
+
+[[package]]
 name = "structopt"
 version = "0.3.15"
 source = "git+https://github.com/habitat-sh/structopt.git#63c56f42ae330b15f44a86c160b0cf6868b90a6f"
 dependencies = [
- "clap",
+ "clap 2.33.1",
  "lazy_static 1.5.0",
  "structopt-derive",
 ]
@@ -3649,7 +3701,7 @@ version = "0.1.0"
 dependencies = [
  "actix-rt",
  "actix-web",
- "clap",
+ "clap 2.33.1",
  "serde",
  "serde_json",
  "toml 0.8.2",
