@@ -5,7 +5,7 @@
 //! This allows us to swap out the `docker` CLI for `buildah` if we
 //! want to create containers as a non-root user, for instance.
 use anyhow::Result;
-use clap::{value_t,
+use clap::{value_parser,
            Arg,
            ArgMatches};
 use habitat_core::fs::find_command;
@@ -56,15 +56,18 @@ enum EngineError {
 /// When https://github.com/containers/buildah/issues/2215 is fixed,
 /// we can update our Buildah dependency and remove this check.
 pub fn fail_if_buildah_and_multilayer(matches: &ArgMatches) -> Result<()> {
-    if matches.value_of("ENGINE") == Some("buildah") && matches.is_present("MULTI_LAYER") {
+    if matches.get_one::<EngineKind>("ENGINE") == Some(&EngineKind::Buildah)
+       && matches.get_flag("MULTI_LAYER")
+    {
         return Err(EngineError::BuildahIncompatibleWithMultiLayer.into());
     }
     Ok(())
 }
 
 /// Things that can build containers!
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, clap::ValueEnum)]
 enum EngineKind {
+    #[default]
     Docker,
     #[cfg(not(windows))]
     Buildah,
@@ -83,17 +86,27 @@ impl FromStr for EngineKind {
     }
 }
 
+impl std::fmt::Display for EngineKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let disp = match *self {
+            EngineKind::Docker => "docker",
+
+            #[cfg(not(windows))]
+            EngineKind::Buildah => "buildah",
+        };
+        write!(f, "{}", disp)
+    }
+}
+
 /// Define the CLAP CLI argument for specifying a container build
 /// engine to use.
 #[rustfmt::skip] // otherwise the long_help formatting goes crazy
-pub fn cli_arg<'a, 'b>() -> Arg<'a, 'b> {
+pub fn cli_arg() -> Arg {
     let arg =
-        Arg::with_name("ENGINE").value_name("ENGINE")
+        Arg::new("ENGINE").value_name("ENGINE")
+        .value_parser(value_parser!(EngineKind))
         .long("engine")
-        .required(true)
         .env("HAB_PKG_EXPORT_CONTAINER_ENGINE")
-        .takes_value(true)
-        .multiple(false)
         .default_value("docker")
         .help("The name of the container creation engine to use.");
 
@@ -103,7 +116,7 @@ pub fn cli_arg<'a, 'b>() -> Arg<'a, 'b> {
         // Since there is effectively no choice of engine for
         // Windows, we hide the CLI option and don't document it
         // any further.
-        arg.possible_values(&["docker"]).hidden(true)
+        arg.hide(true)
     } else {
         arg.long_help(
 "Using the `docker` engine allows you to use Docker to create
@@ -121,17 +134,15 @@ Please see https://buildah.io for more details.
 Both engines create equivalent container images.
 ",
         )
-            .possible_values(&["docker", "buildah"])
     }
 }
 
-impl TryFrom<&ArgMatches<'_>> for Box<dyn Engine> {
+impl TryFrom<&ArgMatches> for Box<dyn Engine> {
     type Error = anyhow::Error;
 
     fn try_from(value: &ArgMatches) -> StdResult<Self, Self::Error> {
-        let engine_kind =
-            clap::value_t!(value, "ENGINE", EngineKind).expect("ENGINE is a required option");
-        match engine_kind {
+        let engine = value.get_one::<EngineKind>("ENGINE").unwrap();
+        match engine {
             EngineKind::Docker => Ok(Box::new(docker::DockerEngine::new()?)),
             #[cfg(not(windows))]
             EngineKind::Buildah => Ok(Box::new(buildah::BuildahEngine::new()?)),

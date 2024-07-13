@@ -52,22 +52,23 @@ pub struct Naming {
     pub registry_type: RegistryType,
 }
 
-impl From<&ArgMatches<'_>> for Naming {
+impl From<&ArgMatches> for Naming {
     fn from(matches: &ArgMatches) -> Self {
-        let registry_type =
-            clap::value_t!(matches.value_of("REGISTRY_TYPE"), RegistryType).unwrap_or_default();
+        let registry_type = *matches.get_one::<RegistryType>("REGISTRY_TYPE").unwrap();
 
         // TODO (CM): If registry_type is Docker, we must set this to
         // dockerhub. Otherwise, it MUST be present, because of how
         // clap is set up.
-        let registry_url = matches.value_of("REGISTRY_URL").map(ToString::to_string);
+        let registry_url = matches.get_one::<String>("REGISTRY_URL")
+                                  .map(ToString::to_string);
 
-        Naming { custom_image_name_template: matches.value_of("IMAGE_NAME")
+        Naming { custom_image_name_template: matches.get_one::<String>("IMAGE_NAME")
                                                     .map(ToString::to_string),
-                 include_latest_tag: !matches.is_present("NO_TAG_LATEST"),
-                 include_version_tag: !matches.is_present("NO_TAG_VERSION"),
-                 include_version_release_tag: !matches.is_present("NO_TAG_VERSION_RELEASE"),
-                 custom_tag_template: matches.value_of("TAG_CUSTOM").map(ToString::to_string),
+                 include_latest_tag: !matches.get_flag("TAG_LATEST"),
+                 include_version_tag: !matches.get_flag("TAG_VERSION"),
+                 include_version_release_tag: !matches.get_flag("TAG_VERSION_RELEASE"),
+                 custom_tag_template: matches.get_one::<String>("TAG_CUSTOM")
+                                             .map(ToString::to_string),
                  registry_url,
                  registry_type }
     }

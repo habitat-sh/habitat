@@ -37,6 +37,10 @@ mod os;
 mod rootfs;
 mod util;
 
+mod value_parsers;
+pub(crate) use value_parsers::{HabHartIdParser,
+                               UrlValueParser};
+
 /// The version of this library and program when built.
 pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
@@ -45,16 +49,26 @@ const BUSYBOX_IDENT: &str = "core/busybox-static";
 /// The Habitat Package Identifier string for SSL certificate authorities (CA) certificates package.
 const CACERTS_IDENT: &str = "core/cacerts";
 
-#[derive(Clone, Copy, Debug, Default)]
+// Default values of parameters
+#[cfg(unix)]
+const DEFAULT_BASE_IMAGE: &str = "scratch";
+#[cfg(windows)]
+const DEFAULT_BASE_IMAGE: &str = "mcr.microsoft.com/windows/servercore";
+
+const DEFAULT_HAB_IDENT: &str = "core/hab";
+const DEFAULT_LAUNCHER_IDENT: &str = "core/hab-launcher";
+const DEFAULT_SUP_IDENT: &str = "core/hab-sup";
+const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
+
+const DEFAULT_HAB_UID: u32 = 84;
+const DEFAULT_HAB_GID: u32 = 84;
+
+#[derive(Clone, Copy, Debug, Default, clap::ValueEnum)]
 pub enum RegistryType {
     Amazon,
     Azure,
     #[default]
     Docker,
-}
-
-impl RegistryType {
-    fn variants() -> &'static [&'static str] { &["amazon", "azure", "docker"] }
 }
 
 impl FromStr for RegistryType {
@@ -134,7 +148,7 @@ impl Credentials {
 /// * Parsing of credentials fails.
 /// * The image (tags) cannot be removed.
 pub async fn export_for_cli_matches(ui: &mut UI,
-                                    matches: &clap::ArgMatches<'_>)
+                                    matches: &clap::ArgMatches)
                                     -> Result<Option<ContainerImage>> {
     os::ensure_proper_docker_platform()?;
 
@@ -143,13 +157,14 @@ pub async fn export_for_cli_matches(ui: &mut UI,
     let spec = BuildSpec::try_from(matches)?;
     let naming = Naming::from(matches);
     let engine: Box<dyn Engine> = TryFrom::try_from(matches)?;
-    let memory = matches.value_of("MEMORY_LIMIT");
+    let memory = matches.get_one::<String>("MEMORY_LIMIT");
 
     ui.begin(format!("Building a container image with: {}",
                      spec.idents_or_archives.join(", ")))?;
 
     let build_context = BuildContext::from_build_root(spec.create(ui).await?, ui)?;
-    let container_image = build_context.export(ui, &naming, memory, engine.as_ref())?;
+    let container_image =
+        build_context.export(ui, &naming, memory.map(|x| x.as_str()), engine.as_ref())?;
 
     build_context.destroy(ui)?;
     ui.end(format!("Container image '{}' created with tags: {}",
@@ -158,11 +173,11 @@ pub async fn export_for_cli_matches(ui: &mut UI,
 
     container_image.create_report(ui, env::current_dir()?.join("results"))?;
 
-    if matches.is_present("PUSH_IMAGE") {
+    if matches.get_flag("PUSH_IMAGE") {
         let credentials = Credentials::new(naming.registry_type,
-                                           matches.value_of("REGISTRY_USERNAME")
+                                           matches.get_one::<String>("REGISTRY_USERNAME")
                                                   .expect("Username not specified"),
-                                           matches.value_of("REGISTRY_PASSWORD")
+                                           matches.get_one::<String>("REGISTRY_PASSWORD")
                                                   .expect("Password not specified")).await?;
         push_image(ui,
                    engine.as_ref(),
@@ -170,7 +185,7 @@ pub async fn export_for_cli_matches(ui: &mut UI,
                    &credentials,
                    naming.registry_url.as_deref())?;
     }
-    if matches.is_present("RM_IMAGE") {
+    if matches.get_flag("RM_IMAGE") {
         remove_image(ui, engine.as_ref(), &container_image)?;
         Ok(None)
     } else {
