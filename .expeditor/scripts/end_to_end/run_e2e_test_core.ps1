@@ -267,8 +267,12 @@ function Get-Leader($Remote, $ServiceGroup) {
     }
 }
 
-function Invoke-Build($PackageName) {
-    hab pkg build test/fixtures/$PackageName --reuse
+function Invoke-Build($PackageName, $RefreshChannel) {
+    $commandArgs = @("--reuse")
+    if($RefreshChannel) {
+        $commandArgs += @("--refresh-channel", $RefreshChannel)
+    }
+    hab pkg build test/fixtures/$PackageName $commandArgs
     if ($IsLinux) {
         # This changes the format of last_build from `var=value` to `$var='value'`
         # so that powershell can parse and source the script
@@ -277,8 +281,8 @@ function Invoke-Build($PackageName) {
     }
 }
 
-Function Invoke-BuildAndInstall($PackageName) {
-    Invoke-Build $PackageName
+Function Invoke-BuildAndInstall($PackageName, $RefreshChannel) {
+    Invoke-Build @PSBoundParameters
     . ./results/last_build.ps1
     hab pkg install ./results/$pkg_artifact
     hab studio run "rm /hab/pkgs/$pkg_ident/hooks"

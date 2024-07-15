@@ -348,6 +348,13 @@ pub struct PkgBuild {
     /// Uses a Dockerized Studio for the build
     #[structopt(name = "DOCKER", short = "D", long = "docker")]
     docker:          bool,
+    /// Channel used to retrieve plan dpendencies for Chef supported origins
+    #[structopt(name = "REFRESH_CHANNEL",
+                short = "f",
+                long = "refresh-channel",
+                env = "HAB_REFRESH_CHANNEL",
+                default_value = "LTS-2024")]
+    refresh_channel:          Option<String>,
 }
 
 /// Bulk Uploads Habitat Artifacts to a Depot from a local directory
@@ -523,8 +530,7 @@ pub struct PkgInstall {
     offline:               bool,
     /// Do not use locally-installed packages when a corresponding package cannot be installed
     /// from Builder
-    #[structopt(long = "ignore-local",
-                hidden = !FEATURE_FLAGS.contains(FeatureFlag::IGNORE_LOCAL))]
+    #[structopt(long = "ignore-local")]
     ignore_local:          bool,
 }
 

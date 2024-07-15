@@ -19,6 +19,7 @@ param (
     [switch]$R,
     [string]$command,
     [string]$commandVal,
+    [string]$f,
     [string]$k,
     [string]$o,
     [string]$s
@@ -48,6 +49,8 @@ COMMON FLAGS:
     -D  Use a Docker Studio instead of a native Studio
 
 COMMON OPTIONS:
+    -f <REFRESH_CHANNEL>  Sets the channel used to retrieve plan dpendencies for Chef
+                          supported origins (default: LTS-2024)
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
     -o <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
     -s <SRC_PATH>         Sets the source path (default: \$PWD)
@@ -62,17 +65,18 @@ SUBCOMMANDS:
     version   Prints version information
 
 ENVIRONMENT VARIABLES:
-    HAB_LICENSE           Set to 'accept' or 'accept-no-persist' to accept the Habitat license
-    HAB_ORIGIN            Propagates this variable into any studios
-    HAB_ORIGIN_KEYS       Installs secret keys (\`-k' option overrides)
-    HAB_STUDIOS_HOME      Sets a home path for all Studios (default: /hab/studios)
-    HAB_STUDIO_NOPROFILE  Disables sourcing a \`.studio_profile.ps1' in \`studio enter'
-    HAB_STUDIO_ROOT       Sets a Studio root (\`-r' option overrides)
-    NO_ARTIFACT_PATH      If set, do not mount the source artifact cache path
-    NO_SRC_PATH           If set, do not mount source path (\`-n' flag overrides)
-    QUIET                 Prints less output (\`-q' flag overrides)
-    SRC_PATH              Sets the source path (\`-s' option overrides)
-    VERBOSE               Prints more verbose output (\`-v' flag overrides)
+    HAB_LICENSE                 Set to 'accept' or 'accept-no-persist' to accept the Habitat license
+    HAB_ORIGIN                  Propagates this variable into any studios
+    HAB_ORIGIN_KEYS             Installs secret keys (\`-k' option overrides)
+    HAB_PREFER_LOCAL_CHEF_DEPS  Use locally installed Chef supported dependencies if available
+    HAB_STUDIOS_HOME            Sets a home path for all Studios (default: /hab/studios)
+    HAB_STUDIO_NOPROFILE        Disables sourcing a \`.studio_profile.ps1' in \`studio enter'
+    HAB_STUDIO_ROOT             Sets a Studio root (\`-r' option overrides)
+    NO_ARTIFACT_PATH            If set, do not mount the source artifact cache path
+    NO_SRC_PATH                 If set, do not mount source path (\`-n' flag overrides)
+    QUIET                       Prints less output (\`-q' flag overrides)
+    SRC_PATH                    Sets the source path (\`-s' option overrides)
+    VERBOSE                     Prints more verbose output (\`-v' flag overrides)
 
 SUBCOMMAND HELP:
     $program <SUBCOMMAND> -h
@@ -601,6 +605,7 @@ if ((Test-Path "$env:USERPROFILE\.hab\accepted-licenses\habitat") -or (Test-Path
     $env:HAB_LICENSE = "accept-no-persist"
 }
 
+if($f) { $env:HAB_REFRESH_CHANNEL = $f }
 if($h) { $script:printHelp = $true }
 if($n) { $env:NO_SRC_PATH = $true }
 if($q) { $script:quiet = $true }
