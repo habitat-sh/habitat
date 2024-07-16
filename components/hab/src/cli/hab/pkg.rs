@@ -354,7 +354,7 @@ pub struct PkgBuild {
                 long = "refresh-channel",
                 env = "HAB_REFRESH_CHANNEL",
                 default_value = "LTS-2024")]
-    refresh_channel:          Option<String>,
+    refresh_channel: Option<String>,
 }
 
 /// Bulk Uploads Habitat Artifacts to a Depot from a local directory

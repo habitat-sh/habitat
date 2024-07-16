@@ -687,10 +687,10 @@ _find_system_commands() {
 # ```
 _install_dependency() {
     local dep="${1}"
-    local origin="$(echo "$dep" | cut -d "/" -f 1)"
+    local origin
     local channel="$HAB_BLDR_CHANNEL"
     if [[ -z "${NO_INSTALL_DEPS:-}" ]]; then
-
+    origin="$(echo "$dep" | cut -d "/" -f 1)"
     if [[ $origin == "core" || $origin == "chef" || $origin == "chef-platform" ]]; then
       channel="$HAB_REFRESH_CHANNEL"
       if [[ $HAB_PREFER_LOCAL_CHEF_DEPS == "false" ]]; then
