@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1093 -->
-## [1.6.1093](https://github.com/habitat-sh/habitat/tree/1.6.1093) (2024-07-16)
+<!-- latest_release 1.6.1094 -->
+## [1.6.1094](https://github.com/habitat-sh/habitat/tree/1.6.1094) (2024-07-16)
 
 #### Merged Pull Requests
-- Bump rustls-webpki from 0.102.4 to 0.102.5 [#9297](https://github.com/habitat-sh/habitat/pull/9297) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump async-trait from 0.1.80 to 0.1.81 [#9299](https://github.com/habitat-sh/habitat/pull/9299) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.80 to 0.1.81 [#9299](https://github.com/habitat-sh/habitat/pull/9299) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1094 -->
 - Bump rustls-webpki from 0.102.4 to 0.102.5 [#9297](https://github.com/habitat-sh/habitat/pull/9297) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1093 -->
 - Bump hyper from 1.3.1 to 1.4.0 [#9294](https://github.com/habitat-sh/habitat/pull/9294) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1092 -->
 - Bump cc from 1.0.103 to 1.0.104 [#9296](https://github.com/habitat-sh/habitat/pull/9296) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1091 -->
