@@ -19,19 +19,22 @@ pub fn cli() -> Command {
     let about = "Creates a container image from a set of Habitat packages (and optionally pushes \
                  to a remote repository)";
 
-    let cmd = Command::new(name).about(about)
-                                .version(VERSION)
-                                .author("\nThe Habitat Maintainers <humans@habitat.sh>")
-                                .help_template("{name} {version} {author-section} {about-section} \
-                                                \n{usage-heading}\n\n{all-args}")
-                                .arg(Arg::new("IMAGE_NAME").long("image-name")
-                                                           .short('i')
-                                                           .value_name("IMAGE_NAME")
-                                                           .help("Image name (default: \
-                                                                  {{pkg_origin}}/{{pkg_name}} \
-                                                                  supports: {{pkg_origin}}, \
-                                                                  {{pkg_name}}, {{pkg_version}}, \
-                                                                  {{pkg_release}}, {{channel}})"));
+    let cmd =
+        Command::new(name).max_term_width(80)
+                          .about(about)
+                          .version(VERSION)
+                          .author("\nAuthors: The Habitat Maintainers <humans@habitat.sh>")
+                          .help_template("{name} {version} {author-section} {about-section} \
+                                          \n{usage-heading} {usage}\n\n{all-args}")
+                          .arg(Arg::new("IMAGE_NAME").long("image-name")
+                                                     .short('i')
+                                                     .value_name("IMAGE_NAME")
+                                                     .help("Image name template: supports: \
+                                                            {{pkg_origin}}/{{pkg_name}} \
+                                                            {{pkg_origin}}, {{pkg_name}}, \
+                                                            {{pkg_version}}, {{pkg_release}}, \
+                                                            {{channel}})")
+                                                     .default_value("{{pkg_origin/pkg_name}}"));
 
     let cmd = add_base_packages_args(cmd);
     let cmd = add_builder_args(cmd);
@@ -59,7 +62,7 @@ fn add_base_packages_args(cmd: Command) -> Command {
             .help(
                 "Habitat CLI package identifier (ex: acme/redis) or filepath to a Habitat \
                          artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart) \
-                         to install (default: core/hab)",
+                         to install",
             ),
     )
     .arg(
@@ -72,7 +75,7 @@ fn add_base_packages_args(cmd: Command) -> Command {
                 "Launcher package identifier (ex: core/hab-launcher) or filepath to a \
                          Habitat artifact (ex: \
                          /home/core-hab-launcher-13829-20200527165030-x86_64-linux.hart) to \
-                         install (default: core/hab-launcher)",
+                         install",
             ),
     )
     .arg(
@@ -84,59 +87,37 @@ fn add_base_packages_args(cmd: Command) -> Command {
             .help(
                 "Supervisor package identifier (ex: core/hab-sup) or filepath to a \
                  Habitat artifact (ex: \
-                 /home/core-hab-sup-1.6.39-20200527165021-x86_64-linux.hart) to install \
-                 (default: core/hab-sup)",
+                 /home/core-hab-sup-1.6.39-20200527165021-x86_64-linux.hart) to install",
             ),
     )
 }
 
 fn add_builder_args(cmd: Command) -> Command {
-    cmd.arg(
-        Arg::new("BLDR_URL")
-            .long("url")
-            .short('u')
-            .value_name("BLDR_URL")
-            .default_value(Into::<Str>::into(default_bldr_url()))
-            .value_parser(UrlValueParser)
-            .help(
-                "Install packages from Builder at the specified URL \
-                         (default: https://bldr.habitat.sh)",
-            ),
-    )
-    .arg(
-        Arg::new("CHANNEL")
-            .long("channel")
-            .short('c')
-            .value_name("CHANNEL")
-            .help("Install packages from the specified release channel (default: stable)"),
-    )
-    .arg(
-        Arg::new("BASE_PKGS_BLDR_URL")
-            .long("base-pkgs-url")
-            .value_name("BASE_PKGS_BLDR_URL")
-            .default_value(Into::<Str>::into(default_bldr_url()))
-            .value_parser(UrlValueParser)
-            .help(
-                "Install base packages from Builder at the specified URL \
-                         (default: https://bldr.habitat.sh)",
-            ),
-    )
-    .arg(
-        Arg::new("BASE_PKGS_CHANNEL")
-            .long("base-pkgs-channel")
-            .value_name("BASE_PKGS_CHANNEL")
-            .help(
-                "Install base packages from the specified release channel \
-                         (default: stable)",
-            ),
-    )
-    .arg(
-        Arg::new("BLDR_AUTH_TOKEN")
-            .long("auth")
-            .short('z')
-            .value_name("BLDR_AUTH_TOKEN")
-            .help("Provide a Builder auth token for private pkg export"),
-    )
+    cmd.arg(Arg::new("BLDR_URL").long("url")
+                                .short('u')
+                                .value_name("BLDR_URL")
+                                .default_value(Into::<Str>::into(default_bldr_url()))
+                                .value_parser(UrlValueParser)
+                                .help("Install packages from Builder at the specified URL"))
+       .arg(Arg::new("CHANNEL").long("channel")
+                               .short('c')
+                               .value_name("CHANNEL")
+                               .default_value("stable")
+                               .help("Install packages from the specified release channel"))
+       .arg(Arg::new("BASE_PKGS_BLDR_URL").long("base-pkgs-url")
+                                          .value_name("BASE_PKGS_BLDR_URL")
+                                          .default_value(Into::<Str>::into(default_bldr_url()))
+                                          .value_parser(UrlValueParser)
+                                          .help("Install base packages from Builder at the \
+                                                 specified URL"))
+       .arg(Arg::new("BASE_PKGS_CHANNEL").long("base-pkgs-channel")
+                                         .value_name("BASE_PKGS_CHANNEL")
+                                         .default_value("stable")
+                                         .help("Install base packages from the specified release"))
+       .arg(Arg::new("BLDR_AUTH_TOKEN").long("auth")
+                                       .short('z')
+                                       .value_name("BLDR_AUTH_TOKEN")
+                                       .help("Provide a Builder auth token for private pkg export"))
 }
 
 fn add_tagging_args(cmd: Command) -> Command {
@@ -144,31 +125,28 @@ fn add_tagging_args(cmd: Command) -> Command {
                                            .conflicts_with("NO_TAG_VERSION_RELEASE")
                                            .action(ArgAction::SetTrue)
                                            .help("Tag image with \
-                                                  :\"{{pkg_version}}-{{pkg_release}}\" (default: \
-                                                  yes)"))
+                                                  :\"{{pkg_version}}-{{pkg_release}}\""))
        .arg(Arg::new("NO_TAG_VERSION_RELEASE").long("no-tag-version-release")
                                               .conflicts_with("TAG_VERSION_RELEASE")
                                               .action(ArgAction::SetTrue)
                                               .help("Do not tag image with \
-                                                     :\"{{pkg_version}}-{{pkg_release}}\" \
-                                                     (default: no)"))
+                                                     :\"{{pkg_version}}-{{pkg_release}}\""))
        .arg(Arg::new("TAG_VERSION").long("tag-version")
                                    .conflicts_with("NO_TAG_VERSION")
                                    .action(ArgAction::SetTrue)
-                                   .help("Tag image with :\"{{pkg_version}}\" (default: yes)"))
+                                   .help("Tag image with :\"{{pkg_version}}\""))
        .arg(Arg::new("NO_TAG_VERSION").long("no-tag-version")
                                       .conflicts_with("TAG_VERSION")
                                       .action(ArgAction::SetTrue)
-                                      .help("Do not tag image with :\"{{pkg_version}}\" \
-                                             (default: no)"))
+                                      .help("Do not tag image with :\"{{pkg_version}}\""))
        .arg(Arg::new("TAG_LATEST").long("tag-latest")
                                   .conflicts_with("NO_TAG_LATEST")
                                   .action(ArgAction::SetTrue)
-                                  .help("Tag image with :\"latest\" (default: yes)"))
+                                  .help("Tag image with :\"latest\""))
        .arg(Arg::new("NO_TAG_LATEST").long("no-tag-latest")
                                      .conflicts_with("TAG_LATEST")
                                      .action(ArgAction::SetTrue)
-                                     .help("Do not tag image with :\"latest\" (default: no)"))
+                                     .help("Do not tag image with :\"latest\""))
        .arg(Arg::new("TAG_CUSTOM").long("tag-custom")
                                   .value_name("TAG_CUSTOM")
                                   .help("Tag image with additional custom tag (supports: \

@@ -56,11 +56,13 @@ enum EngineError {
 /// When https://github.com/containers/buildah/issues/2215 is fixed,
 /// we can update our Buildah dependency and remove this check.
 pub fn fail_if_buildah_and_multilayer(matches: &ArgMatches) -> Result<()> {
+    #[cfg(not(windows))]
     if matches.get_one::<EngineKind>("ENGINE") == Some(&EngineKind::Buildah)
        && matches.get_flag("MULTI_LAYER")
     {
         return Err(EngineError::BuildahIncompatibleWithMultiLayer.into());
     }
+
     Ok(())
 }
 
@@ -118,21 +120,18 @@ pub fn cli_arg() -> Arg {
         // any further.
         arg.hide(true)
     } else {
-        arg.long_help(
-"Using the `docker` engine allows you to use Docker to create
-your container images. You must ensure that a Docker daemon
-is running on the host where this command is executed, and
-that the user executing the command has permission to access
-the Docker socket.
-
-Using the `buildah` engine allows you to create container images
-as an unprivileged user, and without having to use a Docker
-daemon. This is the recommended engine for use in CI systems and
-other environments where security is of particular concern.
-Please see https://buildah.io for more details.
-
-Both engines create equivalent container images.
-",
+        arg.long_help("Using the `docker` engine allows you to use Docker to create \
+                        your container images. You must ensure that a Docker daemon \
+                        is running on the host where this command is executed, and \
+                        that the user executing the command has permission to access \
+                        the Docker socket.\n\n\
+                        Using the `buildah` engine allows you to create container images \
+                        as an unprivileged user, and without having to use a Docker \
+                        daemon. This is the recommended engine for use in CI systems and \
+                        other environments where security is of particular concern. \
+                        Please see https://buildah.io for more details.\n\n\
+                        Both engines create equivalent container images. \
+                        ",
         )
     }
 }
