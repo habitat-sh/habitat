@@ -10,7 +10,7 @@ use habitat_common::{liveliness_checker,
 use std::{fs::File,
           io::{BufRead,
                BufReader},
-          net::{SocketAddr,
+               net::{SocketAddr,
                 ToSocketAddrs},
           path::{Path,
                  PathBuf},
@@ -105,10 +105,13 @@ impl PeerWatcher {
             self.have_events.store(false, Ordering::Relaxed);
             return Ok(Vec::new());
         }
+    
         let file = File::open(&self.path).map_err(Error::Io)?;
         let reader = BufReader::new(file);
         let mut members: Vec<Member> = Vec::new();
-        for line in reader.lines().flatten() {
+    
+        for line_result in reader.lines() {
+            let line = line_result.map_err(Error::Io)?;
             let peer_addr = if line.find(':').is_some() {
                 line
             } else {
@@ -122,15 +125,18 @@ impl PeerWatcher {
                 }
             };
             let addr: SocketAddr = addrs[0];
-            let member = Member { address: format!("{}", addr.ip()),
-                                  swim_port: addr.port(),
-                                  gossip_port: addr.port(),
-                                  ..Default::default() };
+            let member = Member {
+                address: format!("{}", addr.ip()),
+                swim_port: addr.port(),
+                gossip_port: addr.port(),
+                ..Default::default()
+            };
             members.push(member);
         }
+    
         self.have_events.store(false, Ordering::Relaxed);
         Ok(members)
-    }
+    }    
 }
 
 #[cfg(test)]

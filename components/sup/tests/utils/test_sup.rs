@@ -109,7 +109,7 @@ async fn unclaimed_port(max_attempts: u16) -> Result<u16> {
 /// Return a random unprivileged, unregistered TCP port number.
 fn random_port() -> u16 {
     // IANA port registrations go to 49151
-    let between = Uniform::new_inclusive(49152, ::std::u16::MAX);
+    let between = Uniform::new_inclusive(49152, u16::MAX);
     let mut rng = rand::thread_rng();
     between.sample(&mut rng)
 }

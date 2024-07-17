@@ -1,5 +1,5 @@
 clippy::assign_op_pattern
-clippy::blocks_in_if_conditions
+clippy::blocks_in_conditions
 clippy::bool_comparison
 clippy::cast_lossless
 clippy::checked_conversions

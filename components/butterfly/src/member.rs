@@ -244,8 +244,8 @@ impl From<Membership> for proto::Membership {
 /// Since protobuf doesn't have support for 16-bit ints, we need to check that
 /// we haven't received something illegal
 fn as_port(x: i32) -> Option<u16> {
-    const PORT_MIN: i32 = ::std::u16::MIN as i32;
-    const PORT_MAX: i32 = ::std::u16::MAX as i32;
+    const PORT_MIN: i32 = u16::MIN as i32;
+    const PORT_MAX: i32 = u16::MAX as i32;
 
     match x {
         PORT_MIN..=PORT_MAX => Some(x as u16),

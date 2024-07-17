@@ -503,7 +503,7 @@ impl CensusGroup {
                 match service_file_rumor.body(key_cache) {
                     Ok(body) => {
                         self.changed_service_files.insert(filename.clone());
-                        file.filename = filename.clone();
+                        file.filename.clone_from(&filename);
                         file.incarnation = service_file_rumor.incarnation;
                         file.body = body;
                     }
@@ -920,7 +920,7 @@ mod tests {
     #[test]
     fn previous_peer_with_no_members() {
         let me = test_census_member("me", Health::Alive);
-        let members = vec![];
+        let members = [];
         assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me), None);
     }
 

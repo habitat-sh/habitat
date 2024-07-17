@@ -452,7 +452,7 @@ mod storage {
         #[test]
         fn update_counter_overflows_safely() {
             let rs = RumorStore::<()> { update_counter:
-                                            Arc::new(AtomicUsize::new(usize::max_value())),
+                                            Arc::new(AtomicUsize::new(usize::MAX)),
                                         ..Default::default() };
             rs.increment_update_counter();
             assert_eq!(rs.get_update_counter(), 0);

@@ -348,6 +348,7 @@ mod tests {
               C: AsRef<str>
     {
         let mut file = std::fs::OpenOptions::new().write(true)
+                                                  .truncate(true)
                                                   .create(true)
                                                   .open(path.as_ref())
                                                   .unwrap();
