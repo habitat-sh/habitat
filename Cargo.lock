@@ -1306,7 +1306,7 @@ dependencies = [
  "libc",
  "log 0.4.22",
  "nix 0.29.0",
- "prost",
+ "prost 0.13.1",
  "semver 1.0.23",
  "thiserror",
  "winapi",
@@ -1324,7 +1324,7 @@ dependencies = [
  "ipc-channel",
  "libc",
  "log 0.4.22",
- "prost",
+ "prost 0.13.1",
  "serde",
  "thiserror",
 ]
@@ -1334,7 +1334,7 @@ name = "habitat-launcher-protocol"
 version = "0.0.0"
 dependencies = [
  "bytes",
- "prost",
+ "prost 0.13.1",
  "prost-build",
  "serde",
 ]
@@ -1358,7 +1358,7 @@ dependencies = [
  "habitat_common",
  "habitat_core",
  "log 0.4.22",
- "prost",
+ "prost 0.13.1",
  "rustls",
  "termcolor",
  "tokio",
@@ -1374,7 +1374,7 @@ dependencies = [
  "habitat_core",
  "lazy_static 1.5.0",
  "log 0.4.22",
- "prost",
+ "prost 0.13.1",
  "prost-build",
  "rand",
  "serde",
@@ -1423,7 +1423,7 @@ dependencies = [
  "mktemp",
  "parking_lot",
  "prometheus",
- "prost",
+ "prost 0.13.1",
  "prost-build",
  "rand",
  "serde",
@@ -1635,7 +1635,7 @@ dependencies = [
  "parking_lot",
  "pin-project",
  "prometheus",
- "prost",
+ "prost 0.13.1",
  "prost-build",
  "prost-types",
  "rand",
@@ -2733,7 +2733,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "deb1435c188b76130da55f17a466d252ff7b1418b2ad3e037d127b94e3411f29"
 dependencies = [
  "bytes",
- "prost-derive",
+ "prost-derive 0.12.6",
+]
+
+[[package]]
+name = "prost"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e13db3d3fde688c61e2446b4d843bc27a7e8af269a69440c0308021dc92333cc"
+dependencies = [
+ "bytes",
+ "prost-derive 0.13.1",
 ]
 
 [[package]]
@@ -2750,7 +2760,7 @@ dependencies = [
  "once_cell",
  "petgraph",
  "prettyplease",
- "prost",
+ "prost 0.12.6",
  "prost-types",
  "regex 1.10.5",
  "syn 2.0.46",
@@ -2771,12 +2781,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "prost-derive"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18bec9b0adc4eba778b33684b7ba3e7137789434769ee3ce3930463ef904cfca"
+dependencies = [
+ "anyhow",
+ "itertools",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.46",
+]
+
+[[package]]
 name = "prost-types"
 version = "0.12.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9091c90b0a32608e984ff2fa4091273cbdd755d54935c51d520887f4a1dbd5b0"
 dependencies = [
- "prost",
+ "prost 0.12.6",
 ]
 
 [[package]]
