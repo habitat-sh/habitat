@@ -245,7 +245,7 @@ impl DisplayProgress for NetProgressBar {
 impl io::Write for NetProgressBar {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         self.inner.position += buf.len() as u64;
-        self.req.reply_partial(self.inner.clone());
+        self.req.reply_partial(self.inner);
         Ok(buf.len())
     }
 
