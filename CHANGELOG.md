@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1099 -->
-## [1.6.1099](https://github.com/habitat-sh/habitat/tree/1.6.1099) (2024-07-17)
+<!-- latest_release 1.6.1100 -->
+## [1.6.1100](https://github.com/habitat-sh/habitat/tree/1.6.1100) (2024-07-17)
 
 #### Merged Pull Requests
-- Bump tokio from 1.38.0 to 1.38.1 [#9308](https://github.com/habitat-sh/habitat/pull/9308) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump hyper from 1.4.0 to 1.4.1 [#9311](https://github.com/habitat-sh/habitat/pull/9311) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump hyper from 1.4.0 to 1.4.1 [#9311](https://github.com/habitat-sh/habitat/pull/9311) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1100 -->
 - Bump tokio from 1.38.0 to 1.38.1 [#9308](https://github.com/habitat-sh/habitat/pull/9308) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1099 -->
 - Bump serde from 1.0.203 to 1.0.204 [#9300](https://github.com/habitat-sh/habitat/pull/9300) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1098 -->
 - Bump serde_json from 1.0.118 to 1.0.120 [#9295](https://github.com/habitat-sh/habitat/pull/9295) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1097 -->
