@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1097 -->
-## [1.6.1097](https://github.com/habitat-sh/habitat/tree/1.6.1097) (2024-07-16)
+<!-- latest_release 1.6.1098 -->
+## [1.6.1098](https://github.com/habitat-sh/habitat/tree/1.6.1098) (2024-07-17)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.118 to 1.0.120 [#9295](https://github.com/habitat-sh/habitat/pull/9295) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde from 1.0.203 to 1.0.204 [#9300](https://github.com/habitat-sh/habitat/pull/9300) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump serde from 1.0.203 to 1.0.204 [#9300](https://github.com/habitat-sh/habitat/pull/9300) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1098 -->
 - Bump serde_json from 1.0.118 to 1.0.120 [#9295](https://github.com/habitat-sh/habitat/pull/9295) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1097 -->
 - Bump cc from 1.0.104 to 1.1.5 [#9305](https://github.com/habitat-sh/habitat/pull/9305) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1096 -->
 - bumping yanked bytes to 1.6.1 [#9307](https://github.com/habitat-sh/habitat/pull/9307) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1095 -->
