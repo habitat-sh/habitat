@@ -3,8 +3,7 @@ pub use crate::{build::BuildSpec,
                 cli::cli,
                 container::{BuildContext,
                             ContainerImage},
-                engine::{fail_if_buildah_and_multilayer,
-                         Engine},
+                engine::Engine,
                 error::Error};
 use anyhow::Result;
 use habitat_common::ui::{Status,
@@ -24,6 +23,10 @@ use std::{convert::TryFrom,
           path::Path,
           result,
           str::FromStr};
+
+#[cfg(not(windows))]
+use crate::engine::fail_if_buildah_and_multilayer;
+
 mod accounts;
 mod build;
 mod cli;
@@ -152,6 +155,7 @@ pub async fn export_for_cli_matches(ui: &mut UI,
                                     -> Result<Option<ContainerImage>> {
     os::ensure_proper_docker_platform()?;
 
+    #[cfg(not(windows))]
     fail_if_buildah_and_multilayer(matches)?;
 
     let spec = BuildSpec::try_from(matches)?;
@@ -164,7 +168,7 @@ pub async fn export_for_cli_matches(ui: &mut UI,
 
     let build_context = BuildContext::from_build_root(spec.create(ui).await?, ui)?;
     let container_image =
-        build_context.export(ui, &naming, memory.map(|x| x.as_str()), engine.as_ref())?;
+        build_context.export(ui, &naming, memory.map(String::as_str), engine.as_ref())?;
 
     build_context.destroy(ui)?;
     ui.end(format!("Container image '{}' created with tags: {}",

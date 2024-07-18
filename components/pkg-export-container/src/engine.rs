@@ -21,6 +21,7 @@ use thiserror::Error;
 
 #[cfg(not(windows))]
 mod buildah;
+
 mod docker;
 
 #[derive(Debug, Error)]
@@ -37,6 +38,7 @@ enum EngineError {
     PushFailed(ExitStatus),
     #[error("Unknown Container Engine '{0}' was specified.")]
     UnknownEngine(String),
+    #[cfg(not(windows))]
     #[error("Cannot use `--engine=buildah` with `--multi-layer` due to https://github.com/containers/buildah/issues/2215. Please use `--engine=docker` or remove `--multi-layer`.")]
     BuildahIncompatibleWithMultiLayer,
     #[cfg(not(windows))]
@@ -44,6 +46,7 @@ enum EngineError {
     EngineSpecificError(#[from] anyhow::Error),
 }
 
+#[cfg(not(windows))]
 /// Due to a bug in Buildah, any layers that we create in a
 /// multi-layer build won't get reused, which eliminates any benefit
 /// we might get from them.
@@ -55,8 +58,8 @@ enum EngineError {
 ///
 /// When https://github.com/containers/buildah/issues/2215 is fixed,
 /// we can update our Buildah dependency and remove this check.
+#[cfg(not(windows))]
 pub fn fail_if_buildah_and_multilayer(matches: &ArgMatches) -> Result<()> {
-    #[cfg(not(windows))]
     if matches.get_one::<EngineKind>("ENGINE") == Some(&EngineKind::Buildah)
        && matches.get_flag("MULTI_LAYER")
     {
