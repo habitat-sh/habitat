@@ -25,6 +25,8 @@ pub mod util;
 
 pub mod cfg_macros;
 
+pub mod consts;
+
 use log::error;
 
 lazy_static::lazy_static! {

@@ -2,8 +2,8 @@
 //! for use in the clap layer of the application. This is not the final form for defaults.
 //! Eventually this will be composed of fully typed default values. But as a first step we
 //! need a spot to consolidate those values and help simplify some of the logic around them.
-use clap::{value_t,
-           ArgMatches};
+use ::clap::{value_t,
+             ArgMatches};
 use habitat_core::{self,
                    crypto::keys::KeyCache,
                    os::process::{ShutdownSignal,
@@ -49,7 +49,8 @@ pub const DEFAULT_BINLINK_DIR: &str = "/bin";
 pub const DEFAULT_BINLINK_DIR: &str = "/usr/local/bin";
 
 pub fn key_cache_from_matches(matches: &ArgMatches<'_>) -> crate::error::Result<KeyCache> {
-    let path = clap::value_t!(matches, "CACHE_KEY_PATH", PathBuf).expect("CACHE_KEY_PATH required");
+    let path =
+        ::clap::value_t!(matches, "CACHE_KEY_PATH", PathBuf).expect("CACHE_KEY_PATH required");
     let key_cache = KeyCache::new(path);
     key_cache.setup()?;
     Ok(key_cache)
@@ -75,6 +76,9 @@ fn line_to_ident(line: &str) -> Option<Result<PackageIdent, habitat_core::error:
         _ => Some(PackageIdent::from_str(trimmed)),
     }
 }
+
+// All Clap v4 common validators here.
+pub mod clap;
 
 #[cfg(test)]
 mod tests {
