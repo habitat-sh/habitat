@@ -1,7 +1,6 @@
-version: '2'
-
 services:
   shell:
+    platform: linux/amd64
     image: habitat/devshell
     build: ./
     privileged: true
@@ -15,24 +14,28 @@ services:
       - etc
 
   cache_artifacts:
+    platform: linux/amd64
     image: tianon/true
     command: /true
     volumes:
       - /hab/cache/artifacts
 
   cache_keys:
+    platform: linux/amd64
     image: tianon/true
     command: /true
     volumes:
       - /hab/cache/keys
 
   cargo:
+    platform: linux/amd64
     image: tianon/true
     command: /true
     volumes:
       - /cargo-cache
 
   etc:
+    platform: linux/amd64
     image: tianon/true
     command: /true
     volumes:

@@ -1,23 +1,19 @@
 #!/bin/sh
 set -eux
 
-sudo -E apt-get update
-
-sudo -E apt-get install -y --no-install-recommends \
+DEBIAN_FRONTEND=noninteractive sudo -E apt-get install -yq --no-install-recommends \
   build-essential \
   ca-certificates \
   cmake \
   curl \
   direnv \
   file \
-  gdb \
   git \
   httpie \
   iproute2 \
   libprotobuf-dev \
   libssl-dev \
   libczmq-dev \
-  man \
   musl-tools \
   net-tools \
   pkg-config \
@@ -26,5 +22,4 @@ sudo -E apt-get install -y --no-install-recommends \
   software-properties-common \
   sudo \
   tmux \
-  vim \
   wget

@@ -42,10 +42,10 @@ main() {
   create_workdir
   get_platform
   validate_target
-  download_archive "$version" "$channel" "$target"
+  download_archive "$version" "stable" "$target"
   verify_archive
   extract_archive
-  install_hab
+  install_hab "$channel"
   print_hab_version
   info "Installation of Habitat 'hab' program complete."
 }
@@ -166,7 +166,7 @@ validate_target() {
 
 download_archive() {
   need_cmd mv
-  
+
   local _version="${1:-latest}"
   local -r _channel="${2:?}"
   local -r _target="${3:?}"
@@ -174,7 +174,7 @@ download_archive() {
 
   if [ "$_version" == "latest" ]; then
     url="${pcio_root}/${_channel}/habitat/latest/hab-${_target}.${ext}"
-  else 
+  else
     local -r _release="$(echo "${_version}" |cut -d'/' -f2)"
     if [ "${_release:+release}" == "release" ]; then
       _version="$(echo "${_version}" |cut -d'/' -f1)"
@@ -182,7 +182,7 @@ download_archive() {
     fi
     url="${pcio_root}/habitat/${_version}/hab-${_target}.${ext}"
   fi
-  
+
   dl_file "${url}" "${workdir}/hab-${_version}.${ext}"
   dl_file "${url}.sha256sum" "${workdir}/hab-${_version}.${ext}.sha256sum"
 
@@ -191,7 +191,7 @@ download_archive() {
 
   mv -v "${workdir}/hab-${_version}.${ext}" "${archive}"
   mv -v "${workdir}/hab-${_version}.${ext}.sha256sum" "${sha_file}"
-  
+
   if command -v gpg >/dev/null; then
     info "GnuPG tooling found, downloading signatures"
     sha_sig_file="${archive}.sha256sum.asc"
@@ -199,7 +199,7 @@ download_archive() {
     local _key_url="https://packages.chef.io/chef.asc"
 
     dl_file "${url}.sha256sum.asc" "${sha_sig_file}"
-    dl_file "${_key_url}" "${key_file}" 
+    dl_file "${_key_url}" "${key_file}"
   fi
 }
 
@@ -244,6 +244,7 @@ extract_archive() {
 }
 
 install_hab() {
+  local _channel=${1:-${channel}}
   case "${sys}" in
     darwin)
       need_cmd mkdir
@@ -271,7 +272,7 @@ install_hab() {
       # /bin means now you have multiple copies of hab on your system and pathing
       # shenanigans might ensue. Rather than deal with that mess, we do it this
       # way.
-      "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
+      "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident"
       ;;
     *)
       exit_with "Unrecognized sys when installing: ${sys}" 5

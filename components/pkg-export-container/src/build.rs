@@ -213,7 +213,7 @@ impl BuildSpec {
 
     fn create_symlink_to_artifact_cache(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
         ui.status(Status::Creating, "artifact cache symlink")?;
-        let src = cache_artifact_path(None::<&Path>);
+        let src = cache_artifact_path::<&Path>(None);
         let dst = rootfs.join(CACHE_ARTIFACT_PATH);
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
         debug!("Symlinking src: {} to dst: {}",

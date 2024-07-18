@@ -21,13 +21,13 @@ EOF
   cd "${RUSTUP_HOME}/bin" && \
     find ! -name rustc -type f \
       -exec ln -s "/usr/local/bin/rustc" "/usr/local/bin/{}" \;
-  rustup target add x86_64-unknown-linux-musl
+  rustup target add aarch64-unknown-linux-musl
 else # non-root user, install in user directory
   ( # Use a subshell to remove CARGO_HOME since `env -u` is non-POSIX
     unset CARGO_HOME
     curl -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
     . "$HOME/.cargo/env"
-    rustup target add x86_64-unknown-linux-musl
+    rustup target add aarch64-unknown-linux-musl
   )
 fi
 
@@ -45,5 +45,7 @@ else
   sudo -E addgroup --system hab || true
 fi
 
-curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash
-sudo HAB_LICENSE="accept-no-persist" hab pkg install core/busybox-static core/hab-studio
+
+#curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash
+cat /tmp/install.sh | sudo bash -s -- -c aarch64-linux
+sudo HAB_LICENSE="accept-no-persist" hab pkg install core/busybox-static core/hab-studio -c aarch64-linux
