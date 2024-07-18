@@ -30,55 +30,63 @@ use tempfile::TempDir;
 // from the Docker exporter. This needs to be abstacted out in
 // the future for use with further exporters.
 // https://github.com/habitat-sh/habitat/issues/4522
-const DEFAULT_HAB_IDENT: &str = "core/hab";
-const DEFAULT_LAUNCHER_IDENT: &str = "core/hab-launcher";
-const DEFAULT_SUP_IDENT: &str = "core/hab-sup";
 
 /// The specification for creating a temporary file system build root, based on Habitat packages.
 ///
 /// When a `BuildSpec` is created, a `BuildRoot` is returned which can be used to produce exported
 /// images, archives, etc.
 #[derive(Debug)]
-pub struct BuildSpec<'a> {
+pub(crate) struct BuildSpec<'a> {
     /// A string representation of a Habitat Package Identifer for the Habitat CLI package.
-    pub hab:               &'a str,
+    pub(crate) hab: &'a str,
+
     /// A string representation of a Habitat Package Identifer for the Habitat Launcher package.
-    pub hab_launcher:      &'a str,
+    hab_launcher: &'a str,
+
     /// A string representation of a Habitat Package Identifer for the Habitat Supervisor package.
-    pub hab_sup:           &'a str,
+    hab_sup: &'a str,
+
     /// The Builder URL which is used to install all service and extra Habitat packages.
-    pub url:               &'a str,
+    url: &'a str,
+
     /// The Habitat release channel which is used to install all service and extra Habitat
     /// packages.
-    pub channel:           ChannelIdent,
+    channel: ChannelIdent,
+
     /// The Builder URL which is used to install all base Habitat packages.
-    pub base_pkgs_url:     &'a str,
+    base_pkgs_url: &'a str,
+
     /// The Habitat release channel which is used to install all base Habitat packages.
-    pub base_pkgs_channel: ChannelIdent,
+    base_pkgs_channel: ChannelIdent,
+
     /// A Habitat Package Identifer or local path to a Habitat Artifact file which
     /// will be installed.
-    pub ident_or_archive:  &'a str,
+    ident_or_archive: &'a str,
+
     /// The Builder Auth Token to use in the request
-    pub auth:              Option<&'a str>,
+    auth: Option<&'a str>,
 }
 
 impl<'a> BuildSpec<'a> {
     /// Creates a `BuildSpec` from cli arguments.
-    pub fn new_from_cli_matches(m: &'a clap::ArgMatches<'_>, default_url: &'a str) -> Self {
-        BuildSpec { hab:               m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
-                    hab_launcher:      m.value_of("HAB_LAUNCHER_PKG")
-                                        .unwrap_or(DEFAULT_LAUNCHER_IDENT),
-                    hab_sup:           m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
-                    url:               m.value_of("BLDR_URL").unwrap_or(default_url),
-                    channel:           m.value_of("CHANNEL")
-                                        .map(ChannelIdent::from)
-                                        .unwrap_or_default(),
-                    base_pkgs_url:     m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(default_url),
-                    base_pkgs_channel: m.value_of("BASE_PKGS_CHANNEL")
-                                        .map(ChannelIdent::from)
-                                        .unwrap_or_default(),
-                    auth:              m.value_of("BLDR_AUTH_TOKEN"),
-                    ident_or_archive:  m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap(), }
+    pub(crate) fn new_from_cli(cli: &'a crate::cli::Cli) -> Self {
+        BuildSpec { hab: cli.hab_pkg.as_str(),
+
+                    hab_launcher: cli.hab_launcher_pkg.as_str(),
+
+                    hab_sup: cli.hab_sup_pkg.as_str(),
+
+                    url: cli.bldr_url.as_str(),
+
+                    channel: cli.channel.as_str().into(),
+
+                    base_pkgs_url: cli.base_pkgs_url.as_str(),
+
+                    base_pkgs_channel: cli.base_pkgs_channel.as_str().into(),
+
+                    auth: cli.bldr_auth_token.as_deref(),
+
+                    ident_or_archive: cli.pkg_ident.as_str(), }
     }
 
     /// Creates a `BuildRoot` for the given specification.
@@ -88,7 +96,7 @@ impl<'a> BuildSpec<'a> {
     /// * If a temporary directory cannot be created
     /// * If the root file system cannot be created
     /// * If the `BuildRootContext` cannot be created
-    pub async fn create(self, ui: &mut UI) -> Result<(TempDir, PackageIdent)> {
+    pub(crate) async fn create(self, ui: &mut UI) -> Result<(TempDir, PackageIdent)> {
         let workdir = TempDir::new()?;
         let rootfs = workdir.path().join("rootfs");
 
@@ -256,11 +264,11 @@ impl<'a> BuildSpec<'a> {
 #[allow(dead_code)]
 struct BasePkgIdents {
     /// Installed package identifer for the Habitat CLI package.
-    pub hab:      PackageIdent,
+    hab:      PackageIdent,
     /// Installed package identifer for the Supervisor package.
-    pub sup:      PackageIdent,
+    sup:      PackageIdent,
     /// Installed package identifer for the Launcher package.
-    pub launcher: PackageIdent,
+    launcher: PackageIdent,
     /// Installed package identifer for the Busybox package.
-    pub busybox:  Option<PackageIdent>,
+    busybox:  Option<PackageIdent>,
 }
