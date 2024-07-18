@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1102 -->
-## [1.6.1102](https://github.com/habitat-sh/habitat/tree/1.6.1102) (2024-07-17)
+<!-- latest_release 1.6.1103 -->
+## [1.6.1103](https://github.com/habitat-sh/habitat/tree/1.6.1103) (2024-07-18)
 
 #### Merged Pull Requests
-- bump all prost* crates to 0.13.1 [#9314](https://github.com/habitat-sh/habitat/pull/9314) ([mwrock](https://github.com/mwrock))
+- Bump thiserror from 1.0.62 to 1.0.63 [#9315](https://github.com/habitat-sh/habitat/pull/9315) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump thiserror from 1.0.62 to 1.0.63 [#9315](https://github.com/habitat-sh/habitat/pull/9315) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1103 -->
 - bump all prost* crates to 0.13.1 [#9314](https://github.com/habitat-sh/habitat/pull/9314) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1102 -->
 - Bump thiserror from 1.0.61 to 1.0.62 [#9309](https://github.com/habitat-sh/habitat/pull/9309) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1101 -->
 - Bump hyper from 1.4.0 to 1.4.1 [#9311](https://github.com/habitat-sh/habitat/pull/9311) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1100 -->
