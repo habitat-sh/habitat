@@ -11,48 +11,49 @@ pub struct Plan {
 }
 
 impl Plan {
-  pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-      let mut name: Option<String> = None;
-      let mut origin: Option<String> = None;
-      let mut version: Option<String> = None;
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
+        let mut name: Option<String> = None;
+        let mut origin: Option<String> = None;
+        let mut version: Option<String> = None;
 
-      let content = std::str::from_utf8(bytes).map_err(|_| Error::PlanMalformed)?;
-      for line in content.lines().map(|line| Ok(line.to_string())).map_while(Result::ok) {
-          // Rather than just blindly accepting values, let's trim all the
-          // whitespace first, verify that we actually have 2 things separated
-          // by an equal sign, and strip out quotes of any kind.
-          //
-          // To do this properly, we probably need some kind of bash parser,
-          // or a plan file syntax that's in a different language that we do
-          // have a parser for (LUA!), but both of those things are beyond the
-          // scope of this task.
-          let parts: Vec<&str> = line.splitn(2, '=').map(str::trim).collect();
+        let content = std::str::from_utf8(bytes).map_err(|_| Error::PlanMalformed)?;
+        for line in content.lines()
+                           .map(|line| Ok(line.to_string()))
+                           .map_while(Result::ok)
+        {
+            // Rather than just blindly accepting values, let's trim all the
+            // whitespace first, verify that we actually have 2 things separated
+            // by an equal sign, and strip out quotes of any kind.
+            //
+            // To do this properly, we probably need some kind of bash parser,
+            // or a plan file syntax that's in a different language that we do
+            // have a parser for (LUA!), but both of those things are beyond the
+            // scope of this task.
+            let parts: Vec<&str> = line.splitn(2, '=').map(str::trim).collect();
 
-          if parts.len() != 2 {
-              continue;
-          }
+            if parts.len() != 2 {
+                continue;
+            }
 
-          let mut val = parts[1].replace('\"', "");
-          val = val.replace('\'', "");
+            let mut val = parts[1].replace('\"', "");
+            val = val.replace('\'', "");
 
-          match parts[0] {
-              "pkg_name" | "$pkg_name" => name = Some(val),
-              "pkg_origin" | "$pkg_origin" => origin = Some(val),
-              "pkg_version" | "$pkg_version" => version = Some(val),
-              _ => (),
-          }
-      }
+            match parts[0] {
+                "pkg_name" | "$pkg_name" => name = Some(val),
+                "pkg_origin" | "$pkg_origin" => origin = Some(val),
+                "pkg_version" | "$pkg_version" => version = Some(val),
+                _ => (),
+            }
+        }
 
-      if name.is_none() || origin.is_none() {
-          return Err(Error::PlanMalformed);
-      }
+        if name.is_none() || origin.is_none() {
+            return Err(Error::PlanMalformed);
+        }
 
-      Ok(Plan {
-          name: name.unwrap(),
-          origin: origin.unwrap(),
-          version,
-      })
-  }
+        Ok(Plan { name: name.unwrap(),
+                  origin: origin.unwrap(),
+                  version })
+    }
 }
 
 #[cfg(test)]

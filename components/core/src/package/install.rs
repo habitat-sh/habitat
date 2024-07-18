@@ -1282,10 +1282,10 @@ mod test {
         expected.insert(
                         "PSModulePath".to_string(),
                         env::join_paths(vec![
-            fs::fs_rooted_path(&pkg_prefix_for(&pkg_install).join("/should/not/be/ignored"), &fs_root_path),
+            fs::fs_rooted_path(&PathBuf::from("/should/not/be/ignored"), &fs_root_path),
             PathBuf::from("c:/my/dir"),
             fs::fs_rooted_path(
-                &pkg_prefix_for(&pkg_install).join("/should/really/not/be/ignored"),
+                &PathBuf::from("/should/really/not/be/ignored"),
                 &fs_root_path,
             ),
         ]).unwrap()

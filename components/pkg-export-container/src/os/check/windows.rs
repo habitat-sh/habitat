@@ -13,7 +13,12 @@ use thiserror::Error;
 pub(crate) fn ensure_proper_docker_platform() -> Result<(), Error> {
     match DockerOS::current() {
         DockerOS::Windows => Ok(()),
-        other => Err(Error::DockerNotInWindowsMode(other)),
+        other => {
+            if let DockerOS::Unknown(ref s) = other {
+                debug!("Unknown Docker OS: {}", s);
+            }
+            Err(Error::DockerNotInWindowsMode(other))
+        }
     }
 }
 
@@ -45,7 +50,7 @@ impl DockerOS {
     /// it is currently running in.
     fn current() -> DockerOS {
         let mut cmd = Command::new(docker::command_path().expect("Unable to locate docker"));
-        cmd.arg("version").arg("--format='{{.Server.Os}}'");
+        cmd.arg("version").arg("--format={{.Server.Os}}");
         debug!("Running command: {:?}", cmd);
         let result = cmd.output().expect("Docker command failed to spawn");
         let result = String::from_utf8_lossy(&result.stdout);

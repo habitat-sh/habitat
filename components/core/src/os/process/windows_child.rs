@@ -718,7 +718,7 @@ impl RawHandle {
     #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
         let mut read = 0;
-        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
+        let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         let res = cvt(unsafe {
             fileapi::ReadFile(self.0,
                               buf.as_mut_ptr() as LPVOID,
@@ -744,7 +744,7 @@ impl RawHandle {
     #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn read_at(&self, buf: &mut [u8], offset: u64) -> io::Result<usize> {
         let mut read = 0;
-        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
+        let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         let res = unsafe {
             let mut overlapped: OVERLAPPED = mem::zeroed();
             overlapped.u.s_mut().Offset = offset as u32;
@@ -769,7 +769,7 @@ impl RawHandle {
                                   buf: &mut [u8],
                                   overlapped: *mut OVERLAPPED)
                                   -> io::Result<Option<usize>> {
-        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
+        let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         let mut amt = 0;
         let res = cvt(fileapi::ReadFile(self.0,
                                         buf.as_ptr() as LPVOID,
@@ -834,7 +834,7 @@ impl RawHandle {
     #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
         let mut amt = 0;
-        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
+        let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         cvt(unsafe {
             fileapi::WriteFile(self.0,
                                buf.as_ptr() as LPVOID,
@@ -849,7 +849,7 @@ impl RawHandle {
     #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn write_at(&self, buf: &[u8], offset: u64) -> io::Result<usize> {
         let mut written = 0;
-        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
+        let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         unsafe {
             let mut overlapped: OVERLAPPED = mem::zeroed();
             overlapped.u.s_mut().Offset = offset as u32;

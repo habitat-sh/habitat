@@ -284,7 +284,7 @@ fn stream_output<T>(out: T, log_file: &Path, preamble_str: &str)
         // truncate the log on each hook execution so that the log only
         // holds the output of the last run. This mimics the behavior of
         // the HookOutput streaming.
-        match OpenOptions::new().write(true).append(true).open(log_file) {
+        match OpenOptions::new().append(true).open(log_file) {
             Ok(mut log) => {
                 if let Err(e) = writeln!(log, "{}", line) {
                     outputln!(preamble preamble_str, "couldn't write line. {}", e);
