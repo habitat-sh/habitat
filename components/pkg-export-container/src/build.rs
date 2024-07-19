@@ -33,7 +33,6 @@ use habitat_core::{env,
                              PackageArchive,
                              PackageIdent,
                              PackageInstall},
-                   url::default_bldr_url,
                    ChannelIdent};
 use log::debug;
 #[cfg(unix)]
@@ -53,30 +52,17 @@ use tempfile::TempDir;
 // the future for use with further exporters.
 // https://github.com/habitat-sh/habitat/issues/4522
 
-#[cfg(unix)]
-const DEFAULT_BASE_IMAGE: &str = "scratch";
-#[cfg(windows)]
-const DEFAULT_BASE_IMAGE: &str = "mcr.microsoft.com/windows/servercore";
-
-const DEFAULT_HAB_IDENT: &str = "core/hab";
-const DEFAULT_LAUNCHER_IDENT: &str = "core/hab-launcher";
-const DEFAULT_SUP_IDENT: &str = "core/hab-sup";
-const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
-
-const DEFAULT_HAB_UID: u32 = 84;
-const DEFAULT_HAB_GID: u32 = 84;
-
 #[allow(clippy::unnecessary_wraps)]
 fn default_base_image() -> Result<String> {
     #[cfg(unix)]
     {
-        Ok(DEFAULT_BASE_IMAGE.to_string())
+        Ok(super::DEFAULT_BASE_IMAGE.to_string())
     }
 
     #[cfg(windows)]
     {
         Ok(format!("{}:{}",
-                   DEFAULT_BASE_IMAGE,
+                   super::DEFAULT_BASE_IMAGE,
                    docker::default_base_tag_for_host()?))
     }
 }
@@ -114,46 +100,45 @@ pub struct BuildSpec {
     pub multi_layer:        bool,
 }
 
-impl TryFrom<&ArgMatches<'_>> for BuildSpec {
+impl TryFrom<&ArgMatches> for BuildSpec {
     type Error = crate::error::Error;
 
-    fn try_from(m: &ArgMatches<'_>) -> std::result::Result<Self, Self::Error> {
-        // TODO (CM): incorporate this into our CLAP definition better
-        let default_url = default_bldr_url();
+    fn try_from(m: &ArgMatches) -> std::result::Result<Self, Self::Error> {
+        let base_image = match m.try_contains_id("BASE_IMAGE") {
+            Ok(_) => {
+                m.get_one::<String>("BASE_IMAGE")
+                 .map(ToString::to_string)
+                 .unwrap_or_else(|| default_base_image().expect("No base image supported"))
+            }
+            Err(_) => default_base_image().expect("No base image supported"),
+        };
 
-        Ok(BuildSpec { hab:                m.value_of("HAB_PKG")
-                                            .unwrap_or(DEFAULT_HAB_IDENT)
-                                            .to_string(),
-                       hab_launcher:       m.value_of("HAB_LAUNCHER_PKG")
-                                            .unwrap_or(DEFAULT_LAUNCHER_IDENT)
-                                            .to_string(),
-                       hab_sup:            m.value_of("HAB_SUP_PKG")
-                                            .unwrap_or(DEFAULT_SUP_IDENT)
-                                            .to_string(),
-                       url:                m.value_of("BLDR_URL")
-                                            .unwrap_or(&default_url)
-                                            .to_string(),
-                       channel:            m.value_of("CHANNEL")
-                                            .map(ChannelIdent::from)
-                                            .unwrap_or_default(),
-                       base_pkgs_url:      m.value_of("BASE_PKGS_BLDR_URL")
-                                            .unwrap_or(&default_url)
-                                            .to_string(),
-                       base_pkgs_channel:  m.value_of("BASE_PKGS_CHANNEL")
-                                            .map(ChannelIdent::from)
-                                            .unwrap_or_default(),
-                       auth:               m.value_of("BLDR_AUTH_TOKEN").map(ToString::to_string),
-                       idents_or_archives: m.values_of("PKG_IDENT_OR_ARTIFACT")
-                                            .expect("No package specified")
-                                            .map(str::to_string)
+        // TODO (CM): incorporate this into our CLAP definition better
+        Ok(BuildSpec { hab: m.get_one::<String>("HAB_PKG").unwrap().to_string(),
+                       hab_launcher: m.get_one::<String>("HAB_LAUNCHER_PKG")
+                                      .unwrap()
+                                      .to_string(),
+                       hab_sup: m.get_one::<String>("HAB_SUP_PKG").unwrap().to_string(),
+                       url: m.get_one::<String>("BLDR_URL").unwrap().to_string(),
+                       channel: m.get_one::<String>("CHANNEL")
+                                 .unwrap_or(&"stable".to_string())
+                                 .to_string()
+                                 .into(),
+                       base_pkgs_url: m.get_one::<String>("BASE_PKGS_BLDR_URL")
+                                       .unwrap()
+                                       .to_string(),
+                       base_pkgs_channel: m.get_one::<String>("BASE_PKGS_CHANNEL")
+                                           .unwrap_or(&"stable".to_string())
+                                           .to_string()
+                                           .into(),
+                       auth: m.get_one::<String>("BLDR_AUTH_TOKEN")
+                              .map(ToString::to_string),
+                       idents_or_archives: m.get_many::<String>("PKG_IDENT_OR_ARTIFACT")
+                                            .unwrap()
+                                            .map(ToString::to_string)
                                             .collect(),
-                       base_image:
-                           m.value_of("BASE_IMAGE")
-                            .map(str::to_string)
-                            .unwrap_or_else(|| {
-                                default_base_image().expect("No base image supported")
-                            }),
-                       multi_layer:        m.is_present("MULTI_LAYER"), })
+                       base_image,
+                       multi_layer: m.get_flag("MULTI_LAYER") })
     }
 }
 
@@ -600,8 +585,8 @@ impl BuildRootContext {
     pub fn svc_users_and_groups(&self) -> Result<(Vec<EtcPasswdEntry>, Vec<EtcGroupEntry>)> {
         let mut users = Vec::new();
         let mut groups = Vec::new();
-        let uid = DEFAULT_USER_AND_GROUP_ID;
-        let gid = DEFAULT_USER_AND_GROUP_ID;
+        let uid = super::DEFAULT_USER_AND_GROUP_ID;
+        let gid = super::DEFAULT_USER_AND_GROUP_ID;
 
         let pkg = self.primary_svc()?;
         let user_name = pkg.svc_user()
@@ -649,15 +634,15 @@ impl BuildRootContext {
         // then we'll use a default, incremented by one on the off
         // chance that matches what the user specified on the command
         // line.
-        let hab_uid = if uid == DEFAULT_HAB_UID {
-            DEFAULT_HAB_UID + 1
+        let hab_uid = if uid == super::DEFAULT_HAB_UID {
+            super::DEFAULT_HAB_UID + 1
         } else {
-            DEFAULT_HAB_UID
+            super::DEFAULT_HAB_UID
         };
-        let hab_gid = if gid == DEFAULT_HAB_GID {
-            DEFAULT_HAB_GID + 1
+        let hab_gid = if gid == super::DEFAULT_HAB_GID {
+            super::DEFAULT_HAB_GID + 1
         } else {
-            DEFAULT_HAB_GID
+            super::DEFAULT_HAB_GID
         };
 
         match (user_name.as_ref(), group_name.as_ref()) {
@@ -818,7 +803,7 @@ mod test {
                                  PackageTarget}};
 
     /// Generate Clap ArgMatches for the exporter from a vector of arguments.
-    fn arg_matches<'a>(args: &[&str]) -> ArgMatches<'a> {
+    fn arg_matches(args: &[&str]) -> ArgMatches {
         let app = crate::cli::cli();
         app.get_matches_from(args)
     }
