@@ -96,7 +96,7 @@ impl DatFileReader {
         let size = OpenOptions::new().create(true)
                                      .read(true)
                                      .write(true)
-                                     .truncate(true)
+                                     .truncate(false)
                                      .open(&data_path)
                                      .map_err(|err| Error::DatFileIO(data_path.clone(), err))?
                                      .metadata()
