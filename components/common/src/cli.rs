@@ -2,8 +2,8 @@
 //! for use in the clap layer of the application. This is not the final form for defaults.
 //! Eventually this will be composed of fully typed default values. But as a first step we
 //! need a spot to consolidate those values and help simplify some of the logic around them.
-use ::clap::{value_t,
-             ArgMatches};
+use clap::{value_t,
+           ArgMatches};
 use habitat_core::{self,
                    crypto::keys::KeyCache,
                    os::process::{ShutdownSignal,
@@ -78,7 +78,7 @@ fn line_to_ident(line: &str) -> Option<Result<PackageIdent, habitat_core::error:
 }
 
 // All Clap v4 common validators here.
-pub mod clap;
+pub mod clap_validators;
 
 #[cfg(test)]
 mod tests {

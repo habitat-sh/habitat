@@ -43,10 +43,6 @@ mod os;
 mod rootfs;
 mod util;
 
-mod value_parsers;
-pub(crate) use value_parsers::{HabHartIdParser,
-                               UrlValueParser};
-
 /// The version of this library and program when built.
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 

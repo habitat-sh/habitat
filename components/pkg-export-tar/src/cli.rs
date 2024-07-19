@@ -1,18 +1,17 @@
 use clap::Parser;
 
-use crate::common::{cli::clap::{HabPackageInstallSourceValueParser,
-                                UrlValueParser},
+use crate::common::{cli::clap_validators::{HabPackageInstallSourceValueParser,
+                                           UrlValueParser},
                     consts::{DEFAULT_BUILDER_URL,
-                             DEFAULT_HAB_LAUNCHER_PKG_NAME,
-                             DEFAULT_HAB_PKG_NAME,
-                             DEFAULT_HAB_SUP_PKG_NAME}};
+                             DEFAULT_HAB_LAUNCHER_PKG_IDENT,
+                             DEFAULT_HAB_PKG_IDENT,
+                             DEFAULT_HAB_SUP_PKG_IDENT}};
 
 #[derive(Debug, Clone, Parser)]
 #[command(
     name = "hab-pkg-export-tar",
     author = concat!("\nAuthors: ", clap::crate_authors!()),
-    about = "Creates a container image from a set of Habitat packages \
-            (and optionally pushes to a remote repository)",
+    about = "Creates a tar package from a Habitat package",
     version = crate::VERSION,
     help_template = "{name} {version} {author-section} {about-section} \
                     \n{usage-heading} {usage}\n\n{all-args}",
@@ -24,7 +23,7 @@ pub(crate) struct Cli {
           long = "hab-pkg",
           value_name = "HAB_PKG",
           value_parser = HabPackageInstallSourceValueParser,
-          default_value = DEFAULT_HAB_PKG_NAME)]
+          default_value = DEFAULT_HAB_PKG_IDENT)]
     pub(crate) hab_pkg: String,
 
     /// Launcher package identifier (ex: core/hab-launcher) or filepath to a Habitat artifact
@@ -33,7 +32,7 @@ pub(crate) struct Cli {
           long = "launcher-pkg",
           value_name = "HAB_LAUNCHER_PKG",
           value_parser = HabPackageInstallSourceValueParser,
-          default_value = DEFAULT_HAB_LAUNCHER_PKG_NAME)]
+          default_value = DEFAULT_HAB_LAUNCHER_PKG_IDENT)]
     pub(crate) hab_launcher_pkg: String,
 
     /// Supervisor package identifier (ex: core/hab-sup) or filepath to a Habitat artifact
@@ -42,7 +41,7 @@ pub(crate) struct Cli {
           long = "sup-pkg",
           value_name = "HAB_SUP_PKG",
           value_parser = HabPackageInstallSourceValueParser,
-          default_value = DEFAULT_HAB_SUP_PKG_NAME)]
+          default_value = DEFAULT_HAB_SUP_PKG_IDENT)]
     pub(crate) hab_sup_pkg: String,
 
     /// Builder URL to Install packages from
@@ -77,7 +76,7 @@ pub(crate) struct Cli {
           default_value = "stable")]
     pub(crate) base_pkgs_channel: String,
 
-    /// Provide a Builder auth token for private pkg export"
+    /// Provide a Builder auth token for private pkg export
     #[arg(name = "BLDR_AUTH_TOKEN",
           long = "auth",
           short = 'z',
