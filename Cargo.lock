@@ -1250,7 +1250,7 @@ dependencies = [
  "anyhow",
  "atty",
  "base64 0.22.1",
- "bitflags 1.3.2",
+ "bitflags 2.6.0",
  "chrono",
  "clap 2.33.1",
  "configopt",
@@ -1443,7 +1443,7 @@ version = "0.0.0"
 dependencies = [
  "async-trait",
  "bimap",
- "bitflags 1.3.2",
+ "bitflags 2.6.0",
  "clap 2.33.1",
  "dirs",
  "glob",
