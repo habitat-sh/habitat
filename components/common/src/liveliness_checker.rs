@@ -27,15 +27,9 @@ lazy_static::lazy_static! {
     static ref THREAD_STATUSES: Mutex<ThreadStatusMap> = Default::default();
 }
 
-habitat_core::env_config_duration!(ThreadAliveThreshold,
-                                       HAB_THREAD_ALIVE_THRESHOLD_SECS => from_secs,
-                                       Duration::from_secs(5 * 60));
-habitat_core::env_config_duration!(ThreadAliveCheckDelay,
-                                       HAB_THREAD_ALIVE_CHECK_DELAY_SECS => from_secs,
-                                       Duration::from_secs(60));
-habitat_core::env_config_duration!(ThreadDeadIgnoreDelay,
-                                       HAB_THREAD_DEAD_IGNORE_DELAY_SECS => from_secs,
-                                       Duration::from_secs(60 * 60 * 24 * 7)); // 1 week
+habitat_core::env_config_duration!(ThreadAliveThreshold, HAB_THREAD_ALIVE_THRESHOLD_SECS => from_secs, Duration::from_secs(5 * 60));
+habitat_core::env_config_duration!(ThreadAliveCheckDelay, HAB_THREAD_ALIVE_CHECK_DELAY_SECS => from_secs, Duration::from_secs(60));
+habitat_core::env_config_duration!(ThreadDeadIgnoreDelay, HAB_THREAD_DEAD_IGNORE_DELAY_SECS => from_secs, Duration::from_secs(60 * 60 * 24 * 7)); // 1 week
 
 /// Call periodically from a thread which has a work loop to indicate that the thread is
 /// still alive and processing its loop. If this function is not called for more than
@@ -67,7 +61,7 @@ fn mark_thread_alive_impl(statuses: &mut ThreadStatusMap) -> CheckedThread {
     } else {
         trace!("Marked {:?} alive", thread)
     }
-    CheckedThread(std::ptr::null())
+    CheckedThread(())
 }
 
 /// A type to enforce that all code paths to exit a thread call unregister_thread. Since this
@@ -106,7 +100,7 @@ impl<T> ThreadUnregistered<T, std::convert::Infallible> {
 //
 // See https://github.com/rust-lang/rust/issues/13231
 #[must_use]
-pub struct CheckedThread(*const ());
+pub struct CheckedThread(());
 
 impl CheckedThread {
     /// Call this method to indicate the checker shouldn't expect future heartbeats.

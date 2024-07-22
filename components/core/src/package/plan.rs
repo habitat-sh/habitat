@@ -2,7 +2,6 @@ use crate::error::{Error,
                    Result};
 use serde::{Deserialize,
             Serialize};
-use std::io::BufRead;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Plan {
@@ -16,7 +15,12 @@ impl Plan {
         let mut name: Option<String> = None;
         let mut origin: Option<String> = None;
         let mut version: Option<String> = None;
-        for line in bytes.lines().flatten() {
+
+        let content = std::str::from_utf8(bytes).map_err(|_| Error::PlanMalformed)?;
+        for line in content.lines()
+                           .map(|line| Ok(line.to_string()))
+                           .map_while(Result::ok)
+        {
             // Rather than just blindly accepting values, let's trim all the
             // whitespace first, verify that we actually have 2 things separated
             // by an equal sign, and strip out quotes of any kind.

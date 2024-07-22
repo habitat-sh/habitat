@@ -105,10 +105,13 @@ impl PeerWatcher {
             self.have_events.store(false, Ordering::Relaxed);
             return Ok(Vec::new());
         }
+
         let file = File::open(&self.path).map_err(Error::Io)?;
         let reader = BufReader::new(file);
         let mut members: Vec<Member> = Vec::new();
-        for line in reader.lines().flatten() {
+
+        for line_result in reader.lines() {
+            let line = line_result.map_err(Error::Io)?;
             let peer_addr = if line.find(':').is_some() {
                 line
             } else {
@@ -128,6 +131,7 @@ impl PeerWatcher {
                                   ..Default::default() };
             members.push(member);
         }
+
         self.have_events.store(false, Ordering::Relaxed);
         Ok(members)
     }

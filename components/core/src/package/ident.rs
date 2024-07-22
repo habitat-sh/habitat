@@ -500,14 +500,8 @@ pub fn version_sort(a_version: &str, b_version: &str) -> Result<Ordering> {
     } else if a_extension.is_none() && b_extension.is_none() {
         Ok(Ordering::Equal)
     } else {
-        let a = match a_extension {
-            Some(a) => a,
-            None => String::new(),
-        };
-        let b = match b_extension {
-            Some(b) => b,
-            None => String::new(),
-        };
+        let a = a_extension.unwrap_or_default();
+        let b = b_extension.unwrap_or_default();
         Ok(a.cmp(&b))
     }
 }

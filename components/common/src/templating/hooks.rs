@@ -894,7 +894,7 @@ echo "The message is Hola Mundo"
 
         assert!(hook.compile(&service_group, &ctx).unwrap());
 
-        let post_change_content = file_content(&hook);
+        let post_change_content = file_content(&hook).replace('\r', "");
         let expected = r#"#!/bin/bash
 
 echo "The message is Hello"
@@ -903,7 +903,7 @@ echo "The message is Hello"
 
         // Compiling again should result in no changes
         assert!(!hook.compile(&service_group, &ctx).unwrap());
-        let post_second_change_content = file_content(&hook);
+        let post_second_change_content = file_content(&hook).replace('\r', "");
         assert_eq!(post_second_change_content, post_change_content);
 
         #[cfg(unix)]

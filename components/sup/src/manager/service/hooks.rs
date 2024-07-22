@@ -897,13 +897,15 @@ mod tests {
                                                        .as_ref()
                                                        .map(convert::AsRef::as_ref)
                                                        .expect("no init hook??"));
+        let init_hook_content_normalized = init_hook_content.replace('\r', "");
         let expected_init_hook = "#!/bin/bash\n\necho \"The message is Hello\"\n";
         let expected_run_hook = "#!/bin/bash\n\necho \"Running a program\"\n";
-        assert_eq!(init_hook_content, expected_init_hook);
+        assert_eq!(init_hook_content_normalized, expected_init_hook);
 
         // Verify run hook
         let run_hook_content = file_content(hook_table.run.as_ref().expect("no run hook??"));
-        assert_eq!(run_hook_content, expected_run_hook);
+        let run_hook_content_normalized = run_hook_content.replace('\r', "");
+        assert_eq!(run_hook_content_normalized, expected_run_hook);
 
         // Recompiling again results in no changes
         assert!(!hook_table.compile(&service_group, &ctx).changed());
@@ -913,11 +915,13 @@ mod tests {
                                                        .as_ref()
                                                        .map(convert::AsRef::as_ref)
                                                        .expect("no init hook??"));
-        assert_eq!(init_hook_content, expected_init_hook);
+        let init_hook_content_normalized = init_hook_content.replace('\r', "");
+        assert_eq!(init_hook_content_normalized, expected_init_hook);
 
         // Re-Verify run hook
         let run_hook_content = file_content(hook_table.run.as_ref().expect("no run hook??"));
-        assert_eq!(run_hook_content, expected_run_hook);
+        let run_hook_content_normalized = run_hook_content.replace('\r', "");
+        assert_eq!(run_hook_content_normalized, expected_run_hook);
     }
 
     #[test]

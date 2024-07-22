@@ -138,12 +138,12 @@ impl RollingUpdateWorker {
                                     debug!("This is the '{}' leader; using the minimum rolling \
                                             update election suitability",
                                            self.service_group);
-                                    break u64::min_value();
+                                    break u64::MIN;
                                 } else {
                                     debug!("This is a '{}' follower; using the maximum rolling \
                                             update election suitability",
                                            self.service_group);
-                                    break u64::max_value();
+                                    break u64::MAX;
                                 };
                             }
                             (Some(_), None) => {
