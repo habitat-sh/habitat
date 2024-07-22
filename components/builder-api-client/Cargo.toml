@@ -9,7 +9,6 @@ workspace = "../../"
 broadcast = "*"
 bytes = "*"
 chrono = "*"
-env = "*"
 futures = "*"
 habitat_core = { path = "../core" }
 habitat_http_client = { path = "../http-client" }
