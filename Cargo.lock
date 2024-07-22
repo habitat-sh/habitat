@@ -904,12 +904,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "env"
-version = "0.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "876927d21ef1ae98001c8c35a1d8dfd682136914b23ef04276820fa6d43c3630"
-
-[[package]]
 name = "env_filter"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1399,7 +1393,6 @@ dependencies = [
  "broadcast",
  "bytes",
  "chrono",
- "env",
  "futures",
  "habitat_core",
  "habitat_http_client",
