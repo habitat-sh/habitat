@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1106 -->
-## [1.6.1106](https://github.com/habitat-sh/habitat/tree/1.6.1106) (2024-07-22)
+<!-- latest_release 1.6.1107 -->
+## [1.6.1107](https://github.com/habitat-sh/habitat/tree/1.6.1107) (2024-07-22)
 
 #### Merged Pull Requests
-- Removed dependency on crate `env` [#9322](https://github.com/habitat-sh/habitat/pull/9322) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump mio from 0.8.11 to 1.0.0 [#9319](https://github.com/habitat-sh/habitat/pull/9319) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump mio from 0.8.11 to 1.0.0 [#9319](https://github.com/habitat-sh/habitat/pull/9319) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1107 -->
 - Removed dependency on crate `env` [#9322](https://github.com/habitat-sh/habitat/pull/9322) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1106 -->
 - Upgrade Rust to 1.79.0 [#9313](https://github.com/habitat-sh/habitat/pull/9313) ([sougata-progress](https://github.com/sougata-progress)) <!-- 1.6.1105 -->
 - Initial support: clap-v4 for `pkg-export-container` [#9306](https://github.com/habitat-sh/habitat/pull/9306) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1104 -->
