@@ -102,7 +102,7 @@ dependencies = [
  "actix-utils",
  "futures-core",
  "futures-util",
- "mio",
+ "mio 0.8.11",
  "socket2",
  "tokio",
  "tracing",
@@ -1635,7 +1635,7 @@ dependencies = [
  "libc",
  "log 0.4.22",
  "log4rs",
- "mio",
+ "mio 1.0.0",
  "multimap",
  "nix 0.29.0",
  "notify",
@@ -2015,7 +2015,7 @@ dependencies = [
  "fnv",
  "lazy_static 1.5.0",
  "libc",
- "mio",
+ "mio 0.8.11",
  "rand",
  "serde",
  "tempfile",
@@ -2341,6 +2341,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "mio"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4929e1f84c5e54c3ec6141cd5d8b5a5c055f031f80cf78f2072920173cb4d880"
+dependencies = [
+ "hermit-abi 0.3.9",
+ "libc",
+ "log 0.4.22",
+ "wasi",
+ "windows-sys 0.52.0",
+]
+
+[[package]]
 name = "mktemp"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2423,7 +2436,7 @@ dependencies = [
  "kqueue",
  "libc",
  "log 0.4.22",
- "mio",
+ "mio 0.8.11",
  "walkdir",
  "windows-sys 0.48.0",
 ]
@@ -3868,7 +3881,7 @@ dependencies = [
  "backtrace",
  "bytes",
  "libc",
- "mio",
+ "mio 0.8.11",
  "num_cpus",
  "parking_lot",
  "pin-project-lite",
