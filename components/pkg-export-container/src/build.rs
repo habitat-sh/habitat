@@ -1,15 +1,24 @@
+// TODO: agadgil: This module is cluttered too much with `cfg(unix)` and `cfg(windows)` like config
+// conditionals, possibly better to have a `build_windows` and `build_linux` kind of modules. Will
+// make the code readable and will remove this cluttering
+
 #[cfg(unix)]
 use crate::rootfs;
-use crate::{accounts::{EtcGroupEntry,
-                       EtcPasswdEntry},
-            error::Error,
+
+#[cfg(unix)]
+use crate::accounts::{EtcGroupEntry,
+                      EtcPasswdEntry};
+
+use crate::{error::Error,
             graph::Graph,
             util,
             BUSYBOX_IDENT,
             CACERTS_IDENT,
             VERSION};
+
 #[cfg(not(windows))]
 use anyhow::anyhow;
+
 use anyhow::Result;
 use clap::{self,
            ArgMatches};
@@ -35,10 +44,13 @@ use habitat_core::{env,
                              PackageInstall},
                    ChannelIdent};
 use log::debug;
+
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
+
 #[cfg(windows)]
 use std::os::windows::fs::symlink_dir as symlink;
+
 use std::{collections::HashMap,
           convert::TryFrom,
           fs as stdfs,
@@ -72,32 +84,43 @@ fn default_base_image() -> Result<String> {
 /// When a `BuildSpec` is created, a `BuildRoot` is returned which can be used to produce exported
 /// images, archives, etc.
 #[derive(Debug)]
-pub struct BuildSpec {
+pub(crate) struct BuildSpec {
     /// A string representation of a Habitat Package Identifer for the Habitat CLI package.
-    pub hab:                String,
+    hab: String,
+
     /// A string representation of a Habitat Package Identifer for the Habitat Launcher package.
-    pub hab_launcher:       String,
+    hab_launcher: String,
+
     /// A string representation of a Habitat Package Identifer for the Habitat Supervisor package.
-    pub hab_sup:            String,
+    hab_sup: String,
+
     /// The Builder URL which is used to install all service and extra Habitat packages.
-    pub url:                String,
+    url: String,
+
     /// The Habitat release channel which is used to install all service and extra Habitat
     /// packages.
-    pub channel:            ChannelIdent,
+    channel: ChannelIdent,
+
     /// The Builder URL which is used to install all base Habitat packages.
-    pub base_pkgs_url:      String,
+    base_pkgs_url: String,
+
     /// The Habitat release channel which is used to install all base Habitat packages.
-    pub base_pkgs_channel:  ChannelIdent,
+    base_pkgs_channel: ChannelIdent,
+
+    // TODO: This pub(crate) can potentially be removed
     /// A list of either Habitat Package Identifiers or local paths to Habitat Artifact files which
     /// will be installed.
-    pub idents_or_archives: Vec<String>,
+    pub(crate) idents_or_archives: Vec<String>,
+
     /// The Builder Auth Token to use in the request
-    pub auth:               Option<String>,
+    auth: Option<String>,
+
     /// Base image used in Dockerfile
-    pub base_image:         String,
+    base_image: String,
+
     /// Whether or not to create an image with a single layer for each
     /// Habitat package.
-    pub multi_layer:        bool,
+    multi_layer: bool,
 }
 
 impl TryFrom<&ArgMatches> for BuildSpec {
@@ -150,7 +173,7 @@ impl BuildSpec {
     /// * If a temporary directory cannot be created
     /// * If the root file system cannot be created
     /// * If the `BuildRootContext` cannot be created
-    pub async fn create(self, ui: &mut UI) -> Result<BuildRoot> {
+    pub(crate) async fn create(self, ui: &mut UI) -> Result<BuildRoot> {
         debug!("Creating BuildRoot from {:?}", &self);
         let workdir = TempDir::new()?;
         let rootfs = workdir.path().join("rootfs");
@@ -398,7 +421,7 @@ impl BuildSpec {
 }
 
 /// A temporary file system build root, based on Habitat packages.
-pub struct BuildRoot {
+pub(crate) struct BuildRoot {
     /// The temporary directory under which all root file system and other related files and
     /// directories will be created.
     workdir: TempDir,
@@ -411,12 +434,12 @@ pub struct BuildRoot {
 
 impl BuildRoot {
     /// Returns the temporary work directory under which a root file system has been created.
-    pub fn workdir(&self) -> &Path { self.workdir.path() }
+    pub(crate) fn workdir(&self) -> &Path { self.workdir.path() }
 
     /// Returns the `BuildRootContext` for this build root.
-    pub fn ctx(&self) -> &BuildRootContext { &self.ctx }
+    pub(crate) fn ctx(&self) -> &BuildRootContext { &self.ctx }
 
-    pub fn graph(&self) -> &Graph { &self.graph }
+    pub(crate) fn graph(&self) -> &Graph { &self.graph }
 
     /// Destroys the temporary build root.
     ///
@@ -427,7 +450,7 @@ impl BuildRoot {
     /// # Errors
     ///
     /// * If the temporary work directory cannot be removed
-    pub fn destroy(self, ui: &mut UI) -> Result<()> {
+    pub(crate) fn destroy(self, ui: &mut UI) -> Result<()> {
         ui.status(Status::Deleting, "temporary files")?;
         self.workdir.close()?;
 
@@ -437,27 +460,34 @@ impl BuildRoot {
 
 /// The file system contents, location, Habitat packages, and other context for a build root.
 #[derive(Debug)]
-pub struct BuildRootContext {
+pub(crate) struct BuildRootContext {
     /// A list of all Habitat service and library packages which were determined from the original
     /// list in a `BuildSpec`.
-    idents:          Vec<PkgIdentType>,
+    idents: Vec<PkgIdentType>,
+
     /// List of environment variables that can overload configuration.
-    pub environment: HashMap<String, String>,
+    pub(crate) environment: HashMap<String, String>,
+
     /// The `bin` path which will be used for all program symlinking.
-    bin_path:        PathBuf,
+    bin_path: PathBuf,
+
     /// A string representation of the build root's `PATH` environment variable value (i.e. a
     /// colon-delimited `PATH` string).
-    env_path:        String,
+    env_path: String,
+
     /// The channel name which was used to install all user-provided Habitat service and library
     /// packages.
-    channel:         ChannelIdent,
+    channel: ChannelIdent,
+
     /// The path to the root of the file system.
-    rootfs:          PathBuf,
+    rootfs: PathBuf,
+
     /// Base image used in Dockerfile
-    base_image:      String,
+    base_image: String,
+
     /// Whether or not to create an image with a single layer for each
     /// Habitat package.
-    multi_layer:     bool,
+    multi_layer: bool,
 }
 
 impl BuildRootContext {
@@ -471,7 +501,7 @@ impl BuildRootContext {
     /// * If an artifact file cannot be read or if a Package Identifier cannot be determined
     /// * If a Package Identifier cannot be parsed from an string representation
     /// * If package metadata cannot be read
-    pub fn from_spec<P: Into<PathBuf>>(spec: &BuildSpec, rootfs: P) -> Result<Self> {
+    fn from_spec<P: Into<PathBuf>>(spec: &BuildSpec, rootfs: P) -> Result<Self> {
         let rootfs = rootfs.into();
         let mut idents = Vec::new();
         let mut tdeps = Vec::new();
@@ -531,7 +561,7 @@ impl BuildRootContext {
     }
 
     /// Returns a list of all provided Habitat packages which contain a runnable service.
-    pub fn svc_idents(&self) -> Vec<&PackageIdent> {
+    pub(crate) fn svc_idents(&self) -> Vec<&PackageIdent> {
         self.idents
             .iter()
             .filter_map(|t| {
@@ -544,7 +574,7 @@ impl BuildRootContext {
     }
 
     /// Returns the first service package from the provided Habitat packages.
-    pub fn primary_svc_ident(&self) -> &PackageIdent {
+    pub(crate) fn primary_svc_ident(&self) -> &PackageIdent {
         self.svc_idents()
             .first()
             .expect("Primary service package was confirmed")
@@ -559,13 +589,17 @@ impl BuildRootContext {
     /// # Errors
     ///
     /// * If the primary service package could not be loaded from disk
-    pub fn installed_primary_svc_ident(&self) -> Result<FullyQualifiedPackageIdent> {
+    pub(crate) fn installed_primary_svc_ident(&self) -> Result<FullyQualifiedPackageIdent> {
         let pkg_install = self.primary_svc()?;
-        Ok(FullyQualifiedPackageIdent::try_from(pkg_install.ident()).expect("We should always have a fully-qualified package identifier at this point"))
+        Ok(FullyQualifiedPackageIdent::try_from(
+                pkg_install
+                .ident())
+            .expect("We should always have a fully-qualified \
+                    package identifier at this point"))
     }
 
     /// Returns the list of package port exposes over all service packages.
-    pub fn svc_exposes(&self) -> Vec<&str> {
+    pub(crate) fn svc_exposes(&self) -> Vec<&str> {
         let mut exposes = Vec::new();
         for svc in self.idents.iter().filter_map(|t| {
                                          match *t {
@@ -582,7 +616,8 @@ impl BuildRootContext {
 
     /// Returns a tuple of users to be added to the image's passwd database and groups to be added
     /// to the image's group database.
-    pub fn svc_users_and_groups(&self) -> Result<(Vec<EtcPasswdEntry>, Vec<EtcGroupEntry>)> {
+    #[cfg(unix)]
+    pub(crate) fn svc_users_and_groups(&self) -> Result<(Vec<EtcPasswdEntry>, Vec<EtcGroupEntry>)> {
         let mut users = Vec::new();
         let mut groups = Vec::new();
         let uid = super::DEFAULT_USER_AND_GROUP_ID;
@@ -719,21 +754,22 @@ impl BuildRootContext {
     }
 
     /// Returns the `bin` path which is used for all program symlinking.
-    pub fn bin_path(&self) -> &Path { self.bin_path.as_ref() }
+    #[cfg(unix)]
+    pub(crate) fn bin_path(&self) -> &Path { self.bin_path.as_ref() }
 
     /// Returns a colon-delimited `PATH` string containing all important program paths.
-    pub fn env_path(&self) -> &str { self.env_path.as_str() }
+    pub(crate) fn env_path(&self) -> &str { self.env_path.as_str() }
 
     /// Returns the release channel name used to install all provided Habitat packages.
-    pub fn channel(&self) -> &ChannelIdent { &self.channel }
+    pub(crate) fn channel(&self) -> &ChannelIdent { &self.channel }
 
     /// Returns the root file system which is used to export an image.
-    pub fn rootfs(&self) -> &Path { self.rootfs.as_ref() }
+    pub(crate) fn rootfs(&self) -> &Path { self.rootfs.as_ref() }
 
     /// Returns the base image used in the Dockerfile
-    pub fn base_image(&self) -> &str { self.base_image.as_str() }
+    pub(crate) fn base_image(&self) -> &str { self.base_image.as_str() }
 
-    pub fn multi_layer(&self) -> bool { self.multi_layer }
+    pub(crate) fn multi_layer(&self) -> bool { self.multi_layer }
 
     fn validate(&self) -> Result<()> {
         // A valid context for a build root will contain at least one service package, called the
@@ -751,26 +787,30 @@ impl BuildRootContext {
 
 /// The package identifiers for installed base packages.
 #[derive(Debug)]
-pub struct BasePkgIdents {
+pub(crate) struct BasePkgIdents {
     /// Installed package identifer for the Habitat CLI package.
-    pub hab:      FullyQualifiedPackageIdent,
+    pub(crate) hab: FullyQualifiedPackageIdent,
+
     /// Installed package identifer for the Supervisor package.
-    pub sup:      FullyQualifiedPackageIdent,
+    pub(crate) sup: FullyQualifiedPackageIdent,
+
     /// Installed package identifer for the Launcher package.
-    pub launcher: FullyQualifiedPackageIdent,
+    pub(crate) launcher: FullyQualifiedPackageIdent,
+
     /// Installed package identifer for the Busybox package.
-    pub busybox:  Option<FullyQualifiedPackageIdent>,
+    pub(crate) busybox: Option<FullyQualifiedPackageIdent>,
+
     /// Installed package identifer for the CA certs package.
-    pub cacerts:  FullyQualifiedPackageIdent,
+    pub(crate) cacerts: FullyQualifiedPackageIdent,
 }
 
 /// A service identifier representing a Habitat package which contains a runnable service.
 #[derive(Debug)]
 struct SvcIdent {
     /// The Package Identifier.
-    pub ident:   PackageIdent,
+    ident:   PackageIdent,
     /// A list of all port exposes for the package.
-    pub exposes: Vec<String>,
+    exposes: Vec<String>,
 }
 
 /// An enum of service and library Habitat packages.
@@ -786,7 +826,7 @@ enum PkgIdentType {
 
 impl PkgIdentType {
     /// Returns the Package Identifier for the package type.
-    pub fn ident(&self) -> &PackageIdent {
+    pub(crate) fn ident(&self) -> &PackageIdent {
         match *self {
             PkgIdentType::Svc(ref svc) => &svc.ident,
             PkgIdentType::Lib(ref ident) => ident,
@@ -831,7 +871,7 @@ mod test {
         svc_group: String,
     }
     impl FakePkg {
-        pub fn new<P>(ident: &str, rootfs: P) -> FakePkg
+        fn new<P>(ident: &str, rootfs: P) -> FakePkg
             where P: AsRef<Path>
         {
             FakePkg { ident:     ident.to_string(),
@@ -843,27 +883,27 @@ mod test {
         }
 
         #[cfg(not(windows))]
-        pub fn add_bin(&mut self, bin: &str) -> &mut FakePkg {
+        fn add_bin(&mut self, bin: &str) -> &mut FakePkg {
             self.bins.push(bin.to_string());
             self
         }
 
-        pub fn set_svc(&mut self, is_svc: bool) -> &mut FakePkg {
+        fn set_svc(&mut self, is_svc: bool) -> &mut FakePkg {
             self.is_svc = is_svc;
             self
         }
 
-        pub fn set_svc_user(&mut self, svc_user: &str) -> &mut FakePkg {
+        fn set_svc_user(&mut self, svc_user: &str) -> &mut FakePkg {
             self.svc_user = svc_user.to_string();
             self
         }
 
-        pub fn set_svc_group(&mut self, svc_group: &str) -> &mut FakePkg {
+        fn set_svc_group(&mut self, svc_group: &str) -> &mut FakePkg {
             self.svc_group = svc_group.to_string();
             self
         }
 
-        pub fn install(&self) -> FullyQualifiedPackageIdent {
+        fn install(&self) -> FullyQualifiedPackageIdent {
             let mut ident = PackageIdent::from_str(&self.ident).unwrap();
             if ident.version.is_none() {
                 ident.version = Some("1.2.3".into());
@@ -1004,6 +1044,8 @@ mod test {
     }
 
     mod build_root_context {
+        // We run these tests only on Unix as such they cannot be run on windows.
+        #![cfg(unix)]
         use super::*;
         use habitat_common::PROGRAM_NAME;
         use habitat_core::package::PackageIdent;
@@ -1033,6 +1075,7 @@ mod test {
                        ctx.primary_svc_ident());
             assert_eq!(runna_install_ident,
                        ctx.installed_primary_svc_ident().unwrap());
+
             assert_eq!(Path::new("/bin"), ctx.bin_path());
             assert_eq!("/bin", ctx.env_path());
             assert_eq!(&spec.channel, ctx.channel());

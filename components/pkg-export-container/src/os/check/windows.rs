@@ -23,7 +23,7 @@ pub(crate) fn ensure_proper_docker_platform() -> Result<(), Error> {
 }
 
 #[derive(Debug, Error)]
-pub enum Error {
+pub(crate) enum Error {
     #[error("Only Windows container export is supported; please set your Docker daemon to \
              Windows container mode.\n\nThe Docker daemon is currently set for: {0:?}")]
     DockerNotInWindowsMode(DockerOS),
@@ -32,7 +32,7 @@ pub enum Error {
 /// Describes the OS of the containers the Docker daemon is currently
 /// configured to manage.
 #[derive(Clone, Debug)]
-pub enum DockerOS {
+enum DockerOS {
     /// Docker daemon is managing Linux containers
     Linux,
     /// Docker daemon is managing Windows containers

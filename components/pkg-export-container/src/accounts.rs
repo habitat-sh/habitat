@@ -7,15 +7,17 @@ use std::fmt;
 
 /// Represents an entry for a user in `/etc/passwd`
 #[derive(Debug)]
-pub struct EtcPasswdEntry {
-    pub name: String,
-    pub uid:  u32,
+pub(crate) struct EtcPasswdEntry {
+    pub(crate) name: String,
+
+    uid: u32,
+
     // Primary GID
-    pub gid:  u32,
+    gid: u32,
 }
 
 impl EtcPasswdEntry {
-    pub fn new(name: &str, uid: u32, gid: u32) -> Self {
+    pub(crate) fn new(name: &str, uid: u32, gid: u32) -> Self {
         Self { name: name.to_string(),
                uid,
                gid }
@@ -34,19 +36,19 @@ impl fmt::Display for EtcPasswdEntry {
 
 /// Represents an entry for a group in `/etc/group`
 #[derive(Debug)]
-pub struct EtcGroupEntry {
-    pub name:  String,
-    pub gid:   u32,
-    pub users: Vec<String>,
+pub(crate) struct EtcGroupEntry {
+    pub(crate) name: String,
+    gid:             u32,
+    users:           Vec<String>,
 }
 
 impl EtcGroupEntry {
-    pub fn empty_group(name: &str, gid: u32) -> Self {
+    pub(crate) fn empty_group(name: &str, gid: u32) -> Self {
         let users: Vec<String> = vec![];
         Self::group_with_users(name, gid, &users)
     }
 
-    pub fn group_with_users<U>(name: &str, gid: u32, users: &[U]) -> Self
+    pub(crate) fn group_with_users<U>(name: &str, gid: u32, users: &[U]) -> Self
         where U: ToString
     {
         Self { name: name.to_string(),

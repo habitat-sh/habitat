@@ -26,7 +26,7 @@ macro_rules! safe {
 ///
 /// This is a value struct which captures the naming and tagging intentions for an image.
 #[derive(Debug, Default)]
-pub struct Naming {
+pub(crate) struct Naming {
     /// An optional custom image name which would override a computed default value.
     custom_image_name_template:  Option<String>,
     /// Whether or not to tag the image with a latest value.
@@ -47,9 +47,9 @@ pub struct Naming {
     // single new type.
     /// A URL to a custom Docker registry to publish to. This will be used as part of every tag
     /// before pushing.
-    pub registry_url:  Option<String>, // TODO (CM): Option<Url>
+    pub(crate) registry_url:  Option<String>, // TODO (CM): Option<Url>
     /// The type of registry we're publishing to. Ex: Amazon, Docker, Google, Azure.
-    pub registry_type: RegistryType,
+    pub(crate) registry_type: RegistryType,
 }
 
 impl From<&ArgMatches> for Naming {
@@ -98,17 +98,17 @@ impl From<&ArgMatches> for Naming {
 ///
 /// With future refactorings, this hopefully goes away, but for now
 /// we'll err on the side of explicitness.
-pub struct ImageIdentifiers {
+pub(crate) struct ImageIdentifiers {
     /// The bare name of an image, like "core/redis"
-    pub name:                 String,
+    pub(crate) name:                 String,
     /// A possibly empty `Vec` of bare tags, like "latest"
-    pub tags:                 Vec<String>,
+    pub(crate) tags:                 Vec<String>,
     /// A `Vec` containing the bare name concatenated with each bare
     /// tag (or just the bare name, if no tags), like
     /// "core/redis:latest".
     ///
     /// Guaranteed to have at least one member.
-    pub expanded_identifiers: Vec<String>,
+    pub(crate) expanded_identifiers: Vec<String>,
 }
 
 impl Naming {
@@ -119,10 +119,10 @@ impl Naming {
     /// Return the image name, along with a (possibly empty) vector of
     /// additional bare tags, and a vector containing "name:tag"
     /// identifiers (or just "name" if there are no tags).
-    pub fn image_identifiers(&self,
-                             ident: &FullyQualifiedPackageIdent,
-                             channel: &ChannelIdent)
-                             -> Result<ImageIdentifiers> {
+    pub(crate) fn image_identifiers(&self,
+                                    ident: &FullyQualifiedPackageIdent,
+                                    channel: &ChannelIdent)
+                                    -> Result<ImageIdentifiers> {
         let context = Self::rendering_context(ident, channel);
 
         let name = self.image_name(&context)?;

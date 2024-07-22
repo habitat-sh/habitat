@@ -7,12 +7,12 @@ use std::{path::{Path,
           result::Result};
 
 #[derive(Debug)]
-pub(super) struct DockerEngine {
+pub(crate) struct DockerEngine {
     binary: PathBuf,
 }
 
 impl DockerEngine {
-    pub fn new() -> Result<Self, EngineError> {
+    pub(crate) fn new() -> Result<Self, EngineError> {
         let binary = resolve_engine_binary("docker")?;
         Ok(DockerEngine { binary })
     }

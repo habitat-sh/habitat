@@ -20,7 +20,7 @@ const SIGNATURE_POLICY: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
                                                     "/defaults/containers-policy.json"));
 
 #[derive(Debug)]
-pub(super) struct BuildahEngine {
+pub(crate) struct BuildahEngine {
     binary: PathBuf,
 
     /// Path to a signature policy file that we control, not
@@ -41,7 +41,7 @@ impl From<BuildahError> for EngineError {
 }
 
 impl BuildahEngine {
-    pub fn new() -> Result<Self, EngineError> {
+    pub(crate) fn new() -> Result<Self, EngineError> {
         let binary = resolve_engine_binary("buildah")?;
         let policy = Self::signature_policy()?;
         Ok(BuildahEngine { binary, policy })

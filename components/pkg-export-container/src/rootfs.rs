@@ -19,7 +19,7 @@ const ETC_NSSWITCH_CONF: &str = include_str!("../defaults/etc/nsswitch.conf");
 /// * If files and/or directories cannot be created
 /// * If permissions for files and/or directories cannot be set
 #[cfg(unix)]
-pub fn create<T>(root: T) -> Result<()>
+pub(crate) fn create<T>(root: T) -> Result<()>
     where T: AsRef<Path>
 {
     let root = root.as_ref();
