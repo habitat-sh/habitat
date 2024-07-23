@@ -11,7 +11,7 @@ hab origin key generate "$env:HAB_ORIGIN"
 
 $tempdir = New-TemporaryDirectory
 $e2e_certname = "e2e-ssl.pem"
-hab pkg install core/openssl --channel stable
+hab pkg install core/openssl --channel LTS-2024
 hab pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout key.pem -x509 -days 365 -out (Join-Path $tempdir $e2e_certname)
 
 if($IsLinux) {

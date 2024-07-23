@@ -160,7 +160,7 @@ impl<'a> BuildSpec<'a> {
         // something other than a "base" package... replacing busybox
         // isn't really something that's going to need to be done.
         let busybox = if cfg!(target_os = "linux") {
-            Some(self.install_stable_pkg(ui, BUSYBOX_IDENT, rootfs).await?)
+            Some(self.install_lts_pkg(ui, BUSYBOX_IDENT, rootfs).await?)
         } else {
             None
         };
@@ -185,7 +185,7 @@ impl<'a> BuildSpec<'a> {
             .await
     }
 
-    async fn install_stable_pkg(&self,
+    async fn install_lts_pkg(&self,
                                 ui: &mut UI,
                                 ident_or_archive: &str,
                                 fs_root_path: &Path)
@@ -193,7 +193,7 @@ impl<'a> BuildSpec<'a> {
         self.install(ui,
                      ident_or_archive,
                      self.base_pkgs_url,
-                     &ChannelIdent::stable(),
+                     &ChannelIdent::lts(),
                      fs_root_path,
                      None)
             .await
