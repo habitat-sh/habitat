@@ -2,7 +2,7 @@ FROM alpine as build_image
 
 # All Supervisor-related packages will be downloaded from this channel
 # on Builder.
-ARG CHANNEL=stable
+ARG CHANNEL=LTS-2024
 
 # Always accept the license when we run this image.
 ENV HAB_LICENSE=accept-no-persist
@@ -21,7 +21,7 @@ RUN apk add bash wget \
 RUN  hab pkg install --channel="${CHANNEL}" core/hab \
   && hab pkg install --channel="${CHANNEL}" core/hab-sup \
   && hab pkg install --channel="${CHANNEL}" core/hab-launcher \
-  && hab pkg install --channel="stable" core/busybox \
+  && hab pkg install --channel="LTS-2024" core/busybox \
   && hab pkg binlink core/hab -d /hab/bin
 
 # Create enough of a filesystem for the Supervisor to operate. We

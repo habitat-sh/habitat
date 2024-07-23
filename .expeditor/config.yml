@@ -136,5 +136,5 @@ artifact_channels:
   - staging
   # prod Builder Supervisors update from here
   - current
-  # Habitat packages in stable, binary packages available to the world
-  - stable
+  # Habitat packages in LTS-2024, binary packages available to the world
+  - LTS-2024
