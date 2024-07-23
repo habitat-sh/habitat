@@ -1,4 +1,4 @@
-hab pkg install core/nginx --channel stable
+hab pkg install core/nginx --channel LTS-2024
 hab pkg install core/windows-service
 
 Describe "Clean Habitat Shutdown" {
