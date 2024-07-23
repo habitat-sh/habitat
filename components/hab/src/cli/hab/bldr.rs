@@ -51,7 +51,10 @@ pub struct BldrJobStatusSourceGroup {
 
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
-/// Commands relating to Habitat Builder jobs
+/// REMOVED: Commands relating to Habitat Builder jobs
+///
+/// NOTICE: Public Builder Build Functions are no longer supported.
+/// Please reach out to your account team if you were using this feature.
 pub enum Job {
     Cancel(JobCancel),
     Demote(JobDemote),
@@ -60,7 +63,10 @@ pub enum Job {
     Status(JobStatus),
 }
 
-/// Get the status of one or more job groups
+/// REMOVED: Get the status of one or more job groups
+///
+/// NOTICE: Public Builder Build Functions are no longer supported.
+/// Please reach out to your account team if you were using this feature.
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "status", no_version)]
 pub struct JobStatus {
@@ -76,7 +82,10 @@ pub struct JobStatus {
     bldr_url:  BldrUrl,
 }
 
-/// Cancel a build job group and any in-progress builds
+/// REMOVED: Cancel a build job group and any in-progress builds
+///
+/// NOTICE: Public Builder Build Functions are no longer supported.
+/// Please reach out to your account team if you were using this feature.
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "cancel", no_version)]
 pub struct JobCancel {
@@ -92,7 +101,10 @@ pub struct JobCancel {
     auth_token: AuthToken,
 }
 
-/// Demote packages from a completed build job from a specified channel
+/// REMOVED: Demote packages from a completed build job from a specified channel
+///
+/// NOTICE: Public Builder Build Functions are no longer supported.
+/// Please reach out to your account team if you were using this feature.
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "demote", no_version)]
 pub struct JobDemote {
@@ -117,7 +129,10 @@ pub struct JobDemote {
     auth_token:  AuthToken,
 }
 
-/// Promote packages from a completed build job to a specified channel
+/// REMOVED: Promote packages from a completed build job to a specified channel
+///
+/// NOTICE: Public Builder Build Functions are no longer supported.
+/// Please reach out to your account team if you were using this feature.
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "promote", no_version)]
 pub struct JobPromote {
@@ -142,7 +157,10 @@ pub struct JobPromote {
     auth_token:  AuthToken,
 }
 
-/// Schedule a build job or group of jobs
+/// REMOVED: Schedule a build job or group of jobs
+///
+/// NOTICE: Public Builder Build Functions are no longer supported.
+/// Please reach out to your account team if you were using this feature.
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "start", no_version)]
 pub struct JobStart {
