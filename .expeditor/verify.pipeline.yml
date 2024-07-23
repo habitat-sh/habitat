@@ -659,7 +659,7 @@ steps:
   - label: "[build] :linux: aarch64 hab"
     env:
       HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "arm64-linux"
+      BUILD_PKG_TARGET: "arm-linux"
     command:
       - .expeditor/scripts/verify/build_package.sh components/hab
     expeditor:
