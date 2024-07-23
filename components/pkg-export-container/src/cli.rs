@@ -13,35 +13,26 @@ use habitat_core::url::default_bldr_url;
 /// The version of this library and program when built.
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
-static SUPPORTED_IMAGE_NAME_TEMPLATES: [&str; 6] = ["{{pkg_origin}}/{{pkg_name}}",
-                                                    "{{pkg_origin}}",
-                                                    "{{pkg_name}}",
-                                                    "{{pkg_version}}",
-                                                    "{{pkg_release}}",
-                                                    "{{channel}}"];
-
 /// Create the Clap CLI for the container exporter
 pub fn cli() -> Command {
     let name: &str = &PROGRAM_NAME;
     let about = "Creates a container image from a set of Habitat packages (and optionally pushes \
                  to a remote repository)";
 
-    let cmd =
-        Command::new(name).max_term_width(80)
-                          .about(about)
-                          .version(VERSION)
-                          .author("\nAuthors: The Habitat Maintainers <humans@habitat.sh>")
-                          .help_template("{name} {version} {author-section} {about-section} \
-                                          \n{usage-heading} {usage}\n\n{all-args}")
-                          .arg(Arg::new("IMAGE_NAME").long("image-name")
-                                                     .short('i')
-                                                     .value_name("IMAGE_NAME")
-                                                     .help("Image name template: supports: \
-                                                            {{pkg_origin}}/{{pkg_name}} \
-                                                            {{pkg_origin}}, {{pkg_name}}, \
-                                                            {{pkg_version}}, {{pkg_release}}, \
-                                                            {{channel}})")
-                                                     .value_parser(SUPPORTED_IMAGE_NAME_TEMPLATES));
+    let cmd = Command::new(name).max_term_width(120)
+                                .about(about)
+                                .version(VERSION)
+                                .author("\nAuthors: The Habitat Maintainers <humans@habitat.sh>")
+                                .help_template("{name} {version} {author-section} {about-section} \
+                                                \n{usage-heading} {usage}\n\n{all-args}")
+                                .arg(Arg::new("IMAGE_NAME").long("image-name")
+                                                           .short('i')
+                                                           .value_name("IMAGE_NAME")
+                                                           .help("Image name template: supports: \
+                                                                  {{pkg_origin}}/{{pkg_name}} \
+                                                                  (default), {{pkg_origin}}, \
+                                                                  {{pkg_name}}, {{pkg_version}}, \
+                                                                  {{pkg_release}}, {{channel}})"));
 
     let cmd = add_base_packages_args(cmd);
     let cmd = add_builder_args(cmd);
@@ -275,6 +266,7 @@ fn add_engine_arg(cmd: Command) -> Command {
 #[cfg(test)]
 mod tests {
 
+    // Added following test due to e2e tests failure.
     #[test]
     fn image_name_cli_arg_no_default_value() {
         let cli = super::cli();
@@ -283,21 +275,6 @@ mod tests {
         assert!(m.get_one::<String>("IMAGE_NAME").is_none());
     }
 
-    #[test]
-    fn image_name_valid_template_is_some() {
-        for template in super::SUPPORTED_IMAGE_NAME_TEMPLATES.iter() {
-            let cli = super::cli();
-            let m =
-                cli.get_matches_from(["hab-pkg-export-container", "core/redis", "-i", template]);
-            assert!(m.get_one::<String>("IMAGE_NAME") == Some(&template.to_string()));
-        }
-    }
-
-    #[test]
-    fn image_name_invalid_template_is_none() {
-        let cli = super::cli();
-        let m =
-            cli.try_get_matches_from(["hab-pkg-export-container", "core/redis", "-i", "{{foo}}"]);
-        assert!(m.is_err(), "{:#?}", m.ok().unwrap());
-    }
+    // If an invalid template is specified, we perform all the work and then finally bail out
+    // informing image name-format is incorrect. TODO: Add validation for it.
 }
