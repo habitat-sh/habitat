@@ -13,6 +13,13 @@ use habitat_core::url::default_bldr_url;
 /// The version of this library and program when built.
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
+static SUPPORTED_IMAGE_NAME_TEMPLATES: [&str; 6] = ["{{pkg_origin}}/{{pkg_name}}",
+                                                    "{{pkg_origin}}",
+                                                    "{{pkg_name}}",
+                                                    "{{pkg_version}}",
+                                                    "{{pkg_release}}",
+                                                    "{{channel}}"];
+
 /// Create the Clap CLI for the container exporter
 pub fn cli() -> Command {
     let name: &str = &PROGRAM_NAME;
@@ -34,7 +41,7 @@ pub fn cli() -> Command {
                                                             {{pkg_origin}}, {{pkg_name}}, \
                                                             {{pkg_version}}, {{pkg_release}}, \
                                                             {{channel}})")
-                                                     .default_value("{{pkg_origin/pkg_name}}"));
+                                                     .value_parser(SUPPORTED_IMAGE_NAME_TEMPLATES));
 
     let cmd = add_base_packages_args(cmd);
     let cmd = add_builder_args(cmd);
@@ -263,4 +270,34 @@ fn add_layer_arg(cmd: Command) -> Command {
 fn add_engine_arg(cmd: Command) -> Command {
     let arg = engine::cli_arg();
     cmd.arg(arg)
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn image_name_cli_arg_no_default_value() {
+        let cli = super::cli();
+        let m = cli.clone()
+                   .get_matches_from(["hab-pkg-export-container", "core/redis"]);
+        assert!(m.get_one::<String>("IMAGE_NAME").is_none());
+    }
+
+    #[test]
+    fn image_name_valid_template_is_some() {
+        for template in super::SUPPORTED_IMAGE_NAME_TEMPLATES.iter() {
+            let cli = super::cli();
+            let m =
+                cli.get_matches_from(["hab-pkg-export-container", "core/redis", "-i", template]);
+            assert!(m.get_one::<String>("IMAGE_NAME") == Some(&template.to_string()));
+        }
+    }
+
+    #[test]
+    fn image_name_invalid_template_is_none() {
+        let cli = super::cli();
+        let m =
+            cli.try_get_matches_from(["hab-pkg-export-container", "core/redis", "-i", "{{foo}}"]);
+        assert!(m.is_err(), "{:#?}", m.ok().unwrap());
+    }
 }
