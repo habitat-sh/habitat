@@ -406,7 +406,7 @@ pub struct PkgDownload {
     #[structopt(name = "CHANNEL",
                 short = "c",
                 long = "channel",
-                default_value = "stable",
+                default_value = "LTS-2024",
                 env = ChannelIdent::ENVVAR)]
     channel:             String,
     /// The path to store downloaded artifacts
@@ -493,7 +493,7 @@ pub struct PkgInstall {
     /// Install from the specified release channel
     #[structopt(short = "c",
                 long = "channel",
-                default_value = "stable",
+                default_value = "LTS-2024",
                 env = ChannelIdent::ENVVAR)]
     channel:               String,
     /// One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat
