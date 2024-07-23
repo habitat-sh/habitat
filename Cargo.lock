@@ -1274,7 +1274,7 @@ dependencies = [
  "reqwest",
  "retry",
  "rustls",
- "rustls-webpki 0.102.5",
+ "rustls-webpki 0.102.6",
  "same-file",
  "serde",
  "serde_json",
@@ -1509,7 +1509,7 @@ dependencies = [
  "reqwest",
  "rustls",
  "rustls-pemfile",
- "rustls-webpki 0.102.5",
+ "rustls-webpki 0.102.6",
  "serde",
  "serde_json",
  "serde_test",
@@ -3283,9 +3283,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-webpki"
-version = "0.102.5"
+version = "0.102.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9a6fccd794a42c2c105b513a2f62bc3fd8f3ba57a4593677ceb0bd035164d78"
+checksum = "8e6b52d4fda176fd835fdc55a835d4a89b8499cad995885a21149d5ad62f852e"
 dependencies = [
  "ring",
  "rustls-pki-types",
