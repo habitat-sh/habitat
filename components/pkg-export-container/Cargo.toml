@@ -26,6 +26,7 @@ handlebars = { version = "0.29.1", default-features = false }
 lazy_static = "*"
 linked-hash-map = "*"
 log = "0.4"
+# TODO: Move this to `aws-sdk-rust`
 rusoto_core = "*"
 rusoto_credential = "*"
 rusoto_ecr = "*"

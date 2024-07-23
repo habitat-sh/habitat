@@ -32,7 +32,7 @@ pub(crate) enum Error {
 /// Describes the OS of the containers the Docker daemon is currently
 /// configured to manage.
 #[derive(Clone, Debug)]
-enum DockerOS {
+pub(crate) enum DockerOS {
     /// Docker daemon is managing Linux containers
     Linux,
     /// Docker daemon is managing Windows containers

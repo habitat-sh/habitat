@@ -2,13 +2,6 @@
 // conditionals, possibly better to have a `build_windows` and `build_linux` kind of modules. Will
 // make the code readable and will remove this cluttering
 
-#[cfg(unix)]
-use crate::rootfs;
-
-#[cfg(unix)]
-use crate::accounts::{EtcGroupEntry,
-                      EtcPasswdEntry};
-
 use crate::{error::Error,
             graph::Graph,
             util,
@@ -16,14 +9,13 @@ use crate::{error::Error,
             CACERTS_IDENT,
             VERSION};
 
-#[cfg(not(windows))]
-use anyhow::anyhow;
-
 use anyhow::Result;
 use clap::{self,
            ArgMatches};
 use hab::license;
-use habitat_common::{command::package::install::{InstallHookMode,
+use habitat_common::{cfg_unix,
+                     cfg_windows,
+                     command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
                                                  LocalPackageUsage},
@@ -31,8 +23,24 @@ use habitat_common::{command::package::install::{InstallHookMode,
                           UIWriter,
                           UI},
                      PROGRAM_NAME};
-#[cfg(windows)]
-use habitat_core::util::docker;
+
+cfg_unix! {
+    use crate::rootfs;
+
+    use crate::accounts::{EtcGroupEntry,
+                      EtcPasswdEntry};
+
+    use anyhow::anyhow;
+
+    use std::os::unix::fs::symlink;
+}
+
+cfg_windows! {
+    use habitat_core::util::docker;
+
+    use std::os::windows::fs::symlink_dir as symlink;
+}
+
 use habitat_core::{env,
                    fs::{cache_artifact_path,
                         CACHE_ARTIFACT_PATH,
@@ -44,12 +52,6 @@ use habitat_core::{env,
                              PackageInstall},
                    ChannelIdent};
 use log::debug;
-
-#[cfg(unix)]
-use std::os::unix::fs::symlink;
-
-#[cfg(windows)]
-use std::os::windows::fs::symlink_dir as symlink;
 
 use std::{collections::HashMap,
           convert::TryFrom,
@@ -166,6 +168,68 @@ impl TryFrom<&ArgMatches> for BuildSpec {
 }
 
 impl BuildSpec {
+    cfg_unix! {
+        async fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<Graph> {
+            ui.status(Status::Creating, "root filesystem")?;
+            rootfs::create(rootfs)?;
+            self.create_symlink_to_artifact_cache(ui, rootfs)?;
+            self.create_symlink_to_key_cache(ui, rootfs)?;
+            let base_pkgs = self.install_base_pkgs(ui, rootfs).await?;
+            let user_pkgs = self.install_user_pkgs(ui, rootfs).await?;
+            self.link_binaries(ui, rootfs, &base_pkgs)?;
+            self.link_cacerts(ui, rootfs, &base_pkgs)?;
+            self.link_user_pkgs(ui, rootfs, &user_pkgs)?;
+            self.remove_symlink_to_key_cache(ui, rootfs)?;
+            self.remove_symlink_to_artifact_cache(ui, rootfs)?;
+
+            let graph = Graph::from_packages(base_pkgs, user_pkgs, rootfs)?;
+
+            Ok(graph)
+        }
+
+        fn link_user_pkgs(&self,
+                          ui: &mut UI,
+                          rootfs: &Path,
+                          user_pkgs: &[FullyQualifiedPackageIdent])
+                          -> Result<()> {
+            let dst = util::bin_path();
+            for pkg in user_pkgs.iter() {
+                hab::command::pkg::binlink::binlink_all_in_pkg(ui, pkg.as_ref(), dst, rootfs, true)
+                    .map_err(|err| anyhow!("{}", err))?;
+            }
+            Ok(())
+        }
+
+        fn link_binaries(&self, ui: &mut UI, rootfs: &Path, base_pkgs: &BasePkgIdents) -> Result<()> {
+            let dst = util::bin_path();
+
+            hab::command::pkg::binlink::binlink_all_in_pkg(ui,
+                                                           base_pkgs.busybox
+                                                                    .as_ref()
+                                                                    .expect("No busybox in idents")
+                                                                    .as_ref(),
+                                                           dst,
+                                                           rootfs,
+                                                           true).map_err(|err| anyhow!("{}", err))?;
+            hab::command::pkg::binlink::start(ui, base_pkgs.hab.as_ref(), "hab", dst, rootfs, true)
+                .map_err(|err| anyhow!("{}", err))?;
+            Ok(())
+        }
+
+        fn link_cacerts(&self, ui: &mut UI, rootfs: &Path, base_pkgs: &BasePkgIdents) -> Result<()> {
+            ui.status(Status::Creating, "cacerts symlink into /etc")?;
+            let src = util::pkg_path_for(base_pkgs.cacerts.as_ref(), rootfs)?.join("ssl");
+            let dst = rootfs.join("etc").join("ssl");
+            stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
+            debug!("Symlinking src: {} to dst: {}",
+                   src.display(),
+                   dst.display());
+            symlink(src, dst)?;
+
+            Ok(())
+        }
+    }
+
     /// Creates a `BuildRoot` for the given specification.
     ///
     /// # Errors
@@ -183,25 +247,6 @@ impl BuildSpec {
         Ok(BuildRoot { workdir,
                        ctx: BuildRootContext::from_spec(&self, &rootfs)?,
                        graph })
-    }
-
-    #[cfg(unix)]
-    async fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<Graph> {
-        ui.status(Status::Creating, "root filesystem")?;
-        rootfs::create(rootfs)?;
-        self.create_symlink_to_artifact_cache(ui, rootfs)?;
-        self.create_symlink_to_key_cache(ui, rootfs)?;
-        let base_pkgs = self.install_base_pkgs(ui, rootfs).await?;
-        let user_pkgs = self.install_user_pkgs(ui, rootfs).await?;
-        self.link_binaries(ui, rootfs, &base_pkgs)?;
-        self.link_cacerts(ui, rootfs, &base_pkgs)?;
-        self.link_user_pkgs(ui, rootfs, &user_pkgs)?;
-        self.remove_symlink_to_key_cache(ui, rootfs)?;
-        self.remove_symlink_to_artifact_cache(ui, rootfs)?;
-
-        let graph = Graph::from_packages(base_pkgs, user_pkgs, rootfs)?;
-
-        Ok(graph)
     }
 
     #[cfg(windows)]
@@ -279,51 +324,6 @@ impl BuildSpec {
         }
 
         Ok(idents)
-    }
-
-    #[cfg(unix)]
-    fn link_user_pkgs(&self,
-                      ui: &mut UI,
-                      rootfs: &Path,
-                      user_pkgs: &[FullyQualifiedPackageIdent])
-                      -> Result<()> {
-        let dst = util::bin_path();
-        for pkg in user_pkgs.iter() {
-            hab::command::pkg::binlink::binlink_all_in_pkg(ui, pkg.as_ref(), dst, rootfs, true)
-                .map_err(|err| anyhow!("{}", err))?;
-        }
-        Ok(())
-    }
-
-    #[cfg(unix)]
-    fn link_binaries(&self, ui: &mut UI, rootfs: &Path, base_pkgs: &BasePkgIdents) -> Result<()> {
-        let dst = util::bin_path();
-
-        hab::command::pkg::binlink::binlink_all_in_pkg(ui,
-                                                       base_pkgs.busybox
-                                                                .as_ref()
-                                                                .expect("No busybox in idents")
-                                                                .as_ref(),
-                                                       dst,
-                                                       rootfs,
-                                                       true).map_err(|err| anyhow!("{}", err))?;
-        hab::command::pkg::binlink::start(ui, base_pkgs.hab.as_ref(), "hab", dst, rootfs, true)
-            .map_err(|err| anyhow!("{}", err))?;
-        Ok(())
-    }
-
-    #[cfg(unix)]
-    fn link_cacerts(&self, ui: &mut UI, rootfs: &Path, base_pkgs: &BasePkgIdents) -> Result<()> {
-        ui.status(Status::Creating, "cacerts symlink into /etc")?;
-        let src = util::pkg_path_for(base_pkgs.cacerts.as_ref(), rootfs)?.join("ssl");
-        let dst = rootfs.join("etc").join("ssl");
-        stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
-        debug!("Symlinking src: {} to dst: {}",
-               src.display(),
-               dst.display());
-        symlink(src, dst)?;
-
-        Ok(())
     }
 
     fn remove_symlink_to_artifact_cache(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
@@ -468,6 +468,7 @@ pub(crate) struct BuildRootContext {
     /// List of environment variables that can overload configuration.
     pub(crate) environment: HashMap<String, String>,
 
+    #[cfg(unix)]
     /// The `bin` path which will be used for all program symlinking.
     bin_path: PathBuf,
 
@@ -549,6 +550,7 @@ impl BuildRootContext {
 
         let context = BuildRootContext { idents,
                                          environment,
+                                         #[cfg(unix)]
                                          bin_path: bin_path.into(),
                                          env_path: bin_path.to_string_lossy().into_owned(),
                                          channel: spec.channel.clone(),
@@ -837,17 +839,6 @@ impl PkgIdentType {
 #[cfg(test)]
 mod test {
     use super::*;
-    use clap::ArgMatches;
-    use habitat_core::{fs,
-                       package::{FullyQualifiedPackageIdent,
-                                 PackageTarget}};
-
-    /// Generate Clap ArgMatches for the exporter from a vector of arguments.
-    fn arg_matches(args: &[&str]) -> ArgMatches {
-        let app = crate::cli::cli();
-        app.get_matches_from(args)
-    }
-
     fn build_spec() -> BuildSpec {
         BuildSpec { hab:                "hab".to_string(),
                     hab_launcher:       "hab_launcher".to_string(),
@@ -862,76 +853,91 @@ mod test {
                     multi_layer:        false, }
     }
 
-    struct FakePkg {
-        ident:     String,
-        bins:      Vec<String>,
-        is_svc:    bool,
-        rootfs:    PathBuf,
-        svc_user:  String,
-        svc_group: String,
-    }
-    impl FakePkg {
-        fn new<P>(ident: &str, rootfs: P) -> FakePkg
-            where P: AsRef<Path>
-        {
-            FakePkg { ident:     ident.to_string(),
-                      bins:      Vec::new(),
-                      is_svc:    false,
-                      rootfs:    rootfs.as_ref().to_path_buf(),
-                      svc_user:  "my_user".to_string(),
-                      svc_group: "my_group".to_string(), }
+    cfg_unix! {
+        use habitat_core::{fs,
+                       package::{FullyQualifiedPackageIdent,
+                                 PackageTarget}};
+
+        use clap::ArgMatches;
+
+        /// Generate Clap ArgMatches for the exporter from a vector of arguments.
+        fn arg_matches(args: &[&str]) -> ArgMatches {
+            let app = crate::cli::cli();
+            app.get_matches_from(args)
         }
 
-        #[cfg(not(windows))]
-        fn add_bin(&mut self, bin: &str) -> &mut FakePkg {
-            self.bins.push(bin.to_string());
-            self
+        struct FakePkg {
+            ident:     String,
+            bins:      Vec<String>,
+            is_svc:    bool,
+            rootfs:    PathBuf,
+            svc_user:  String,
+            svc_group: String,
         }
 
-        fn set_svc(&mut self, is_svc: bool) -> &mut FakePkg {
-            self.is_svc = is_svc;
-            self
-        }
-
-        fn set_svc_user(&mut self, svc_user: &str) -> &mut FakePkg {
-            self.svc_user = svc_user.to_string();
-            self
-        }
-
-        fn set_svc_group(&mut self, svc_group: &str) -> &mut FakePkg {
-            self.svc_group = svc_group.to_string();
-            self
-        }
-
-        fn install(&self) -> FullyQualifiedPackageIdent {
-            let mut ident = PackageIdent::from_str(&self.ident).unwrap();
-            if ident.version.is_none() {
-                ident.version = Some("1.2.3".into());
+        impl FakePkg {
+            fn new<P>(ident: &str, rootfs: P) -> FakePkg
+                where P: AsRef<Path>
+            {
+                FakePkg { ident:     ident.to_string(),
+                          bins:      Vec::new(),
+                          is_svc:    false,
+                          rootfs:    rootfs.as_ref().to_path_buf(),
+                          svc_user:  "my_user".to_string(),
+                          svc_group: "my_group".to_string(), }
             }
-            if ident.release.is_none() {
-                ident.release = Some("21120102121200".into());
+
+            #[cfg(not(windows))]
+            fn add_bin(&mut self, bin: &str) -> &mut FakePkg {
+                self.bins.push(bin.to_string());
+                self
             }
-            let prefix = fs::pkg_install_path(&ident, Some(self.rootfs.as_path()));
-            util::write_file(prefix.join("IDENT"), &ident.to_string()).unwrap();
-            util::write_file(prefix.join("TARGET"), &PackageTarget::active_target()).unwrap();
 
-            util::write_file(prefix.join("SVC_USER"), &self.svc_user).unwrap();
-            util::write_file(prefix.join("SVC_GROUP"), &self.svc_group).unwrap();
+            fn set_svc(&mut self, is_svc: bool) -> &mut FakePkg {
+                self.is_svc = is_svc;
+                self
+            }
 
-            if !self.bins.is_empty() {
-                util::write_file(prefix.join("PATH"),
-                                 fs::pkg_install_path(&ident, None::<&Path>).join("bin")
-                                                                            .to_string_lossy()
-                                                                            .as_ref()).unwrap();
-                for bin in self.bins.iter() {
-                    util::write_file(prefix.join("bin").join(bin), "").unwrap();
+            fn set_svc_user(&mut self, svc_user: &str) -> &mut FakePkg {
+                self.svc_user = svc_user.to_string();
+                self
+            }
+
+            fn set_svc_group(&mut self, svc_group: &str) -> &mut FakePkg {
+                self.svc_group = svc_group.to_string();
+                self
+            }
+
+            fn install(&self) -> FullyQualifiedPackageIdent {
+                let mut ident = PackageIdent::from_str(&self.ident).unwrap();
+                if ident.version.is_none() {
+                    ident.version = Some("1.2.3".into());
                 }
+                if ident.release.is_none() {
+                    ident.release = Some("21120102121200".into());
+                }
+                let prefix = fs::pkg_install_path(&ident, Some(self.rootfs.as_path()));
+                util::write_file(prefix.join("IDENT"), &ident.to_string()).unwrap();
+                util::write_file(prefix.join("TARGET"), &PackageTarget::active_target()).unwrap();
+
+                util::write_file(prefix.join("SVC_USER"), &self.svc_user).unwrap();
+                util::write_file(prefix.join("SVC_GROUP"), &self.svc_group).unwrap();
+
+                if !self.bins.is_empty() {
+                    util::write_file(prefix.join("PATH"),
+                                     fs::pkg_install_path(&ident, None::<&Path>).join("bin")
+                                                                                .to_string_lossy()
+                                                                                .as_ref()).unwrap();
+                    for bin in self.bins.iter() {
+                        util::write_file(prefix.join("bin").join(bin), "").unwrap();
+                    }
+                }
+                if self.is_svc {
+                    util::write_file(prefix.join("run"), "").unwrap();
+                }
+                FullyQualifiedPackageIdent::try_from(ident).expect("this must always be \
+                                                                    fully-qualified")
             }
-            if self.is_svc {
-                util::write_file(prefix.join("run"), "").unwrap();
-            }
-            FullyQualifiedPackageIdent::try_from(ident).expect("this must always be \
-                                                                fully-qualified")
         }
     }
 
@@ -963,89 +969,84 @@ mod test {
             assert_eq!(*CACHE_KEY_PATH, link.read_link().unwrap());
         }
 
-        #[cfg(unix)]
-        #[test]
-        fn link_binaries() {
-            let rootfs = TempDir::new().unwrap();
-            let mut ui = UI::with_sinks();
-            let base_pkgs = base_pkgs(rootfs.path());
-            build_spec().link_binaries(&mut ui, rootfs.path(), &base_pkgs)
-                        .unwrap();
+        cfg_unix! {
+            #[test]
+            fn link_binaries() {
+                let rootfs = TempDir::new().unwrap();
+                let mut ui = UI::with_sinks();
+                let base_pkgs = base_pkgs(rootfs.path());
+                build_spec().link_binaries(&mut ui, rootfs.path(), &base_pkgs)
+                            .unwrap();
 
-            assert_eq!(fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap().as_ref(),
-                                            None::<&Path>).join("bin/busybox"),
-                       rootfs.path().join("bin/busybox").read_link().unwrap(),
-                       "busybox program is symlinked into /bin");
-            assert_eq!(fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap().as_ref(),
-                                            None::<&Path>).join("bin/sh"),
-                       rootfs.path().join("bin/sh").read_link().unwrap(),
-                       "busybox's sh program is symlinked into /bin");
-            assert_eq!(fs::pkg_install_path(base_pkgs.hab.as_ref(), None::<&Path>).join("bin/hab"),
-                       rootfs.path().join("bin/hab").read_link().unwrap(),
-                       "hab program is symlinked into /bin");
-        }
+                assert_eq!(fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap().as_ref(),
+                                                None::<&Path>).join("bin/busybox"),
+                           rootfs.path().join("bin/busybox").read_link().unwrap(),
+                           "busybox program is symlinked into /bin");
+                assert_eq!(fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap().as_ref(),
+                                                None::<&Path>).join("bin/sh"),
+                           rootfs.path().join("bin/sh").read_link().unwrap(),
+                           "busybox's sh program is symlinked into /bin");
+                assert_eq!(fs::pkg_install_path(base_pkgs.hab.as_ref(), None::<&Path>).join("bin/hab"),
+                           rootfs.path().join("bin/hab").read_link().unwrap(),
+                           "hab program is symlinked into /bin");
+            }
 
-        #[cfg(unix)]
-        #[test]
-        fn link_cacerts() {
-            let rootfs = TempDir::new().unwrap();
-            let mut ui = UI::with_sinks();
-            let base_pkgs = base_pkgs(rootfs.path());
-            build_spec().link_cacerts(&mut ui, rootfs.path(), &base_pkgs)
-                        .unwrap();
+            #[test]
+            fn link_cacerts() {
+                let rootfs = TempDir::new().unwrap();
+                let mut ui = UI::with_sinks();
+                let base_pkgs = base_pkgs(rootfs.path());
+                build_spec().link_cacerts(&mut ui, rootfs.path(), &base_pkgs)
+                            .unwrap();
 
-            assert_eq!(fs::pkg_install_path(base_pkgs.cacerts.as_ref(), None::<&Path>).join("ssl"),
-                       rootfs.path().join("etc/ssl").read_link().unwrap(),
-                       "cacerts are symlinked into /etc/ssl");
-        }
+                assert_eq!(fs::pkg_install_path(base_pkgs.cacerts.as_ref(), None::<&Path>).join("ssl"),
+                           rootfs.path().join("etc/ssl").read_link().unwrap(),
+                           "cacerts are symlinked into /etc/ssl");
+            }
 
-        #[cfg(not(windows))]
-        fn base_pkgs<P: AsRef<Path>>(rootfs: P) -> BasePkgIdents {
-            BasePkgIdents { hab:      fake_hab_install(&rootfs),
-                            sup:      fake_sup_install(&rootfs),
-                            launcher: fake_launcher_install(&rootfs),
-                            busybox:  Some(fake_busybox_install(&rootfs)),
-                            cacerts:  fake_cacerts_install(&rootfs), }
-        }
+            fn base_pkgs<P: AsRef<Path>>(rootfs: P) -> BasePkgIdents {
+                BasePkgIdents { hab:      fake_hab_install(&rootfs),
+                                sup:      fake_sup_install(&rootfs),
+                                launcher: fake_launcher_install(&rootfs),
+                                busybox:  Some(fake_busybox_install(&rootfs)),
+                                cacerts:  fake_cacerts_install(&rootfs), }
+            }
 
-        #[cfg(not(windows))]
-        fn fake_hab_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
-            FakePkg::new("acme/hab", rootfs.as_ref()).add_bin("hab")
-                                                     .install()
-        }
-
-        #[cfg(not(windows))]
-        fn fake_sup_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
-            FakePkg::new("acme/hab-sup", rootfs.as_ref()).add_bin("hab-sup")
+            fn fake_hab_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
+                FakePkg::new("acme/hab", rootfs.as_ref()).add_bin("hab")
                                                          .install()
-        }
+            }
 
-        #[cfg(not(windows))]
-        fn fake_launcher_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
-            FakePkg::new("acme/hab-launcher", rootfs.as_ref()).add_bin("hab-launch")
-                                                              .install()
-        }
+            fn fake_sup_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
+                FakePkg::new("acme/hab-sup", rootfs.as_ref()).add_bin("hab-sup")
+                                                             .install()
+            }
 
-        #[cfg(not(windows))]
-        fn fake_busybox_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
-            FakePkg::new("acme/busybox", rootfs.as_ref()).add_bin("busybox")
-                                                         .add_bin("sh")
-                                                         .install()
-        }
+            fn fake_launcher_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
+                FakePkg::new("acme/hab-launcher", rootfs.as_ref()).add_bin("hab-launch")
+                                                                  .install()
+            }
 
-        #[cfg(not(windows))]
-        fn fake_cacerts_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
-            let ident = FakePkg::new("acme/cacerts", rootfs.as_ref()).install();
+            fn fake_busybox_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
+                FakePkg::new("acme/busybox", rootfs.as_ref()).add_bin("busybox")
+                                                             .add_bin("sh")
+                                                             .install()
+            }
 
-            let prefix = fs::pkg_install_path(ident.as_ref(), Some(rootfs));
-            util::write_file(prefix.join("ssl/cacert.pem"), "").unwrap();
-            ident
+            fn fake_cacerts_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
+                let ident = FakePkg::new("acme/cacerts", rootfs.as_ref()).install();
+
+                let prefix = fs::pkg_install_path(ident.as_ref(), Some(rootfs));
+                util::write_file(prefix.join("ssl/cacert.pem"), "").unwrap();
+                ident
+            }
         }
     }
 
     mod build_root_context {
-        // We run these tests only on Unix as such they cannot be run on windows.
+        // All the tests in this modules are only called for `unix` ish targets.
         #![cfg(unix)]
+        // We run these tests only on Unix as such they cannot be run on windows.
         use super::*;
         use habitat_common::PROGRAM_NAME;
         use habitat_core::package::PackageIdent;
@@ -1099,11 +1100,7 @@ mod test {
                                                                         .set_svc_user("root")
                                                                         .set_svc_group("root")
                                                                         .install();
-            #[cfg(unix)]
             let matches = arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg"]);
-            #[cfg(windows)]
-            let matches =
-                arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg", "--base-image", "some/image"]);
 
             let build_spec = BuildSpec::try_from(&matches).unwrap();
             let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();
