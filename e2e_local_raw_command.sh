@@ -23,7 +23,7 @@ fi
 # use.
 commands=(". /opt/ci-studio-common/buildkite-agent-hooks/ci-studio-common.sh"
           ".expeditor/scripts/end_to_end/setup_environment.sh dev"
-          "hab pkg install --binlink --channel=stable core/expect"
+          "hab pkg install --binlink --channel=LTS-2024 core/expect"
           "${*}")
 
 # Add a `;` after every command, for feeding into the container. This
