@@ -186,10 +186,10 @@ impl<'a> BuildSpec<'a> {
     }
 
     async fn install_lts_pkg(&self,
-                                ui: &mut UI,
-                                ident_or_archive: &str,
-                                fs_root_path: &Path)
-                                -> Result<PackageIdent> {
+                             ui: &mut UI,
+                             ident_or_archive: &str,
+                             fs_root_path: &Path)
+                             -> Result<PackageIdent> {
         self.install(ui,
                      ident_or_archive,
                      self.base_pkgs_url,

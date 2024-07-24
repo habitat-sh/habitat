@@ -34,9 +34,9 @@ env_config_string!(#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, Part
                    ChannelIdent::LTS);
 
 impl ChannelIdent {
+    const LTS: &'static str = "LTS-2024";
     const STABLE: &'static str = "stable";
     const UNSTABLE: &'static str = "unstable";
-    const LTS: &'static str = "LTS-2024";
 
     pub fn as_str(&self) -> &str { self.0.as_str() }
 
