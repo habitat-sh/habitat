@@ -6,8 +6,8 @@ use super::util::{AuthToken,
                   ConfigOptBldrOrigin,
                   ConfigOptBldrUrl,
                   ConfigOptCacheKeyPath};
-use crate::cli::{valid_origin,
-                 KeyType};
+use crate::{cli::valid_origin,
+            key_type::KeyType};
 use configopt::ConfigOpt;
 use habitat_core::origin::OriginMemberRole;
 use serde::Serialize;
