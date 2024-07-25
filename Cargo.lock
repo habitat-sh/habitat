@@ -1251,6 +1251,7 @@ dependencies = [
  "bitflags 2.6.0",
  "chrono",
  "clap 2.33.1",
+ "clap 4.5.9",
  "configopt",
  "ctrlc",
  "dirs",

@@ -6,7 +6,12 @@ use habitat_core as hcore;
 use habitat_sup_client as sup_client;
 use habitat_sup_protocol as protocol;
 
+#[cfg(feature = "v2")]
 pub mod cli;
+
+#[cfg(feature = "v4")]
+pub mod cli_v4;
+
 pub mod command;
 pub mod error;
 mod exec;
