@@ -11,10 +11,7 @@ use habitat_common::{cli::{file_into_idents,
 use habitat_core::{origin::Origin as CoreOrigin,
                    package::{Identifiable,
                              PackageIdent}};
-use serde::{Deserialize,
-            Serialize};
-use std::{fmt,
-          path::Path,
+use std::{path::Path,
           result,
           str::FromStr};
 use structopt::StructOpt;
@@ -30,37 +27,6 @@ pub const AFTER_HELP: &str =
      Alias for: 'sup term'\n";
 
 pub fn get(_feature_flags: FeatureFlag) -> App<'static, 'static> { Hab::clap() }
-
-////////////////////////////////////////////////////////////////////////
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize)]
-pub enum KeyType {
-    Public,
-    Secret,
-}
-
-impl FromStr for KeyType {
-    type Err = crate::error::Error;
-
-    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
-        match value {
-            "public" => Ok(Self::Public),
-            "secret" => Ok(Self::Secret),
-            _ => Err(Self::Err::KeyTypeParseError(value.to_string())),
-        }
-    }
-}
-
-impl fmt::Display for KeyType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            KeyType::Public => write!(f, "public"),
-            KeyType::Secret => write!(f, "secret"),
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
 
 pub fn parse_optional_arg<T: FromStr>(name: &str, m: &ArgMatches) -> Option<T>
     where <T as std::str::FromStr>::Err: std::fmt::Debug
@@ -147,20 +113,20 @@ mod tests {
                                                                    "sup",
                                                                    "run",
                                                                    "--application",
-                                                                   "--environment=env"]);
+                                                                   "--environment=env",]);
         assert!(r.is_ok());
         let r = get(no_feature_flags()).get_matches_from_safe(vec!["hab",
                                                                    "svc",
                                                                    "load",
                                                                    "--application=app",
                                                                    "--environment",
-                                                                   "pkg/ident"]);
+                                                                   "pkg/ident",]);
         assert!(r.is_ok());
         let r = get(no_feature_flags()).get_matches_from_safe(vec!["hab",
                                                                    "svc",
                                                                    "load",
                                                                    "--application",
-                                                                   "pkg/ident"]);
+                                                                   "pkg/ident",]);
         assert!(r.is_ok());
     }
 

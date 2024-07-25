@@ -24,3 +24,6 @@ pub const ORIGIN_ENVVAR: &str = "HAB_ORIGIN";
 pub const BLDR_URL_ENVVAR: &str = "HAB_BLDR_URL";
 
 pub use crate::hcore::AUTH_TOKEN_ENVVAR;
+
+// TODO:agadgil: When Clap v2 support is gone, this should become `pub(crate)`
+pub mod key_type;
