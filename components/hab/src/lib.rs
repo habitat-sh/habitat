@@ -10,7 +10,10 @@ use habitat_sup_protocol as protocol;
 pub mod cli;
 
 #[cfg(feature = "v4")]
-pub mod cli_v4;
+mod cli_v4;
+
+#[cfg(feature = "v4")]
+pub use cli_v4::cli_driver;
 
 pub mod command;
 pub mod error;
