@@ -1,8 +1,16 @@
 use clap_v4 as clap;
 
-use clap::Parser;
+use clap::{Parser,
+           Subcommand};
 
-#[derive(Clone, Debug, Parser)]
+use habitat_core::{fs::FS_ROOT_PATH,
+                   package::PackageIdent};
+
+use habitat_common::command::package::binds;
+
+use crate::error::Result as HabResult;
+
+#[derive(Clone, Debug, Subcommand)]
 pub(crate) enum PkgCommand {
     /// Displays the binds for a service
     Binds(PkgBindOptions),
@@ -83,8 +91,22 @@ pub(crate) enum PkgCommand {
     Verify(PkgVerifyOptions),
 }
 
+impl PkgCommand {
+    pub(crate) fn do_command(&self) -> HabResult<()> {
+        match self {
+            Self::Binds(bind_options) => {
+                binds::start(&bind_options.pkg_ident, &*FS_ROOT_PATH).map_err(Into::into)
+            }
+            _ => todo!(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgBindOptions {}
+pub(crate) struct PkgBindOptions {
+    #[arg(name = "PKG_IDENT")]
+    pkg_ident: PackageIdent,
+}
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgBinlinkOptions {}

@@ -2,7 +2,10 @@ use clap_v4 as clap;
 
 use clap::Parser;
 
+use habitat_common::ui::UI;
+
 use crate::{cli::AFTER_HELP,
+            error::Result as HabResult,
             VERSION};
 
 mod pkg;
@@ -66,6 +69,15 @@ pub(crate) enum Hab {
     Term,
 }
 
+impl Hab {
+    async fn do_cli_command(&self, _ui: &mut UI) -> HabResult<()> {
+        match self {
+            Self::Pkg(pkg_command) => pkg_command.do_command(),
+            _ => todo!(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct BldrCommand;
 
@@ -120,7 +132,7 @@ pub(crate) struct SvcStartCommand;
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct SvcStopCommand;
 
-pub fn cli_driver() {
+pub async fn cli_driver(ui: &mut UI) -> HabResult<()> {
     let cli = Hab::parse();
-    eprintln!("Hab: {cli:#?}");
+    cli.do_cli_command(ui).await
 }
