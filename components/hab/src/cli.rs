@@ -20,11 +20,6 @@ use structopt::StructOpt;
 /// ran to completion with a successful result. The Launcher should not attempt to restart
 /// the Supervisor and should exit immediately with a successful exit code.
 pub const OK_NO_RETRY_EXCODE: i32 = 84;
-pub const AFTER_HELP: &str =
-    "\nALIASES:\n    apply      Alias for: 'config apply'\n    install    Alias for: 'pkg \
-     install'\n    run        Alias for: 'sup run'\n    setup      Alias for: 'cli setup'\n    \
-     start      Alias for: 'svc start'\n    stop       Alias for: 'svc stop'\n    term       \
-     Alias for: 'sup term'\n";
 
 pub fn get(_feature_flags: FeatureFlag) -> App<'static, 'static> { Hab::clap() }
 

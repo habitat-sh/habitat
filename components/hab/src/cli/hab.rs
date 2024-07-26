@@ -10,10 +10,12 @@ pub mod ring;
 pub mod studio;
 pub mod sup;
 pub mod svc;
-#[cfg(test)]
-mod tests;
 pub mod user;
 pub mod util;
+
+#[cfg(test)]
+mod tests;
+
 #[cfg(any(target_os = "macos",
               any(all(target_os = "linux",
                       any(target_arch = "x86_64", target_arch = "aarch64")),
@@ -57,7 +59,7 @@ use self::{bldr::*,
                   UserKeyGenerate},
            util::{CacheKeyPath,
                   ConfigOptCacheKeyPath}};
-use crate::{cli::AFTER_HELP,
+use crate::{AFTER_HELP,
             VERSION};
 use configopt::ConfigOpt;
 use structopt::{clap::AppSettings,

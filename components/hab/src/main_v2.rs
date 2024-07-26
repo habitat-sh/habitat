@@ -121,6 +121,7 @@ lazy_static! {
     };
 }
 
+#[cfg(feature = "v2")]
 pub(crate) async fn main_v2() {
     env_logger::init();
     let mut ui = UI::default_with_env();
@@ -1018,56 +1019,27 @@ async fn sub_bldr_channel_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> 
                                           &target_channel).await
 }
 
+#[allow(unused)]
 async fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let ident = required_pkg_ident_from_input(m)?;
-    let url = bldr_url_from_matches(m)?;
-    let target = target_from_matches(m)?;
-    let group = m.is_present("GROUP");
-    let token = auth_token_param_or_env(m)?;
-    command::bldr::job::start::start(ui, &url, (&ident, target), &token, group).await
+    Err(Error::BuilderBuildFunctionsRemoved)
 }
 
+#[allow(unused)]
 async fn sub_bldr_job_cancel(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let url = bldr_url_from_matches(m)?;
-    let group_id = required_value_of(m, "GROUP_ID");
-    let token = auth_token_param_or_env(m)?;
-    let force = m.is_present("FORCE");
-    command::bldr::job::cancel::start(ui, &url, group_id, &token, force).await
+    Err(Error::BuilderBuildFunctionsRemoved)
 }
 
+#[allow(unused)]
 async fn sub_bldr_job_promote_or_demote(ui: &mut UI,
                                         m: &ArgMatches<'_>,
                                         promote: bool)
                                         -> Result<()> {
-    let url = bldr_url_from_matches(m)?;
-    let group_id = required_value_of(m, "GROUP_ID");
-    let channel = required_channel_from_matches(m);
-    let origin = m.value_of("ORIGIN");
-    let interactive = m.is_present("INTERACTIVE");
-    let verbose = m.is_present("VERBOSE");
-    let token = auth_token_param_or_env(m)?;
-    command::bldr::job::promote::start(ui,
-                                       &url,
-                                       group_id,
-                                       &channel,
-                                       origin,
-                                       interactive,
-                                       verbose,
-                                       &token,
-                                       promote).await
+    Err(Error::BuilderBuildFunctionsRemoved)
 }
 
+#[allow(unused)]
 async fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let url = bldr_url_from_matches(m)?;
-    let group_id = m.value_of("GROUP_ID");
-    let origin = m.value_of("ORIGIN");
-    let limit = m.value_of("LIMIT")
-                 .unwrap_or("10")
-                 .parse::<usize>()
-                 .unwrap();
-    let show_jobs = m.is_present("SHOW_JOBS");
-
-    command::bldr::job::status::start(ui, &url, group_id, origin, limit, show_jobs).await
+    Err(Error::BuilderBuildFunctionsRemoved)
 }
 
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
