@@ -11,8 +11,8 @@ expeditor:
       env:
         HAB_ORIGIN: "habitat-testing" # just to be safe
         HAB_BLDR_URL: "https://bldr.habitat.sh"
-        HAB_BLDR_CHANNEL: "dev"
-        HAB_INTERNAL_BLDR_CHANNEL: "dev"
+        HAB_BLDR_CHANNEL: "stable"
+        HAB_INTERNAL_BLDR_CHANNEL: "stable"
 
 steps:
 #######################################################################
