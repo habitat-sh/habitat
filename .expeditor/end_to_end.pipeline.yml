@@ -24,7 +24,7 @@ steps:
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_service_with_password
     artifact_paths:
-      - "*.log"
+      - "/hab/svc/windows-service/logs/habitat.log"
     expeditor:
       executor:
         docker:
@@ -41,7 +41,7 @@ steps:
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_with_hab_user
     artifact_paths:
-      - "*.log"
+      - "/hab/svc/windows-service/logs/habitat.log"
     expeditor:
       executor:
         docker:
