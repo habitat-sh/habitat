@@ -13,9 +13,8 @@ $lsa_wrapper.SetRight($username, "SeServiceLogonRight")
 $env:HAB_ORIGIN = "ci"
 hab origin key generate ci
 
-hab pkg install core/windows-service
-Start-Service Habitat
-Wait-Supervisor -Timeout 45
+$supLog = New-SupervisorLogFile("load_with_hab_user")
+Start-Supervisor -LogFile $supLog -Timeout 45
 
 Describe "with no svc_user" {
     hab pkg build test/fixtures/windows_plans/dummy
