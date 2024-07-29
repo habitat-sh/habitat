@@ -3,23 +3,27 @@ use clap_v4 as clap;
 use clap::{Parser,
            Subcommand};
 
-use habitat_core::{fs::FS_ROOT_PATH,
-                   package::PackageIdent};
-
-use habitat_common::command::package::binds;
+use habitat_common::ui::UI;
 
 use crate::error::Result as HabResult;
 
+mod binds;
+mod binlink;
+mod build;
+
+mod path;
+
 #[derive(Clone, Debug, Subcommand)]
+#[command(arg_required_else_help = true)]
 pub(crate) enum PkgCommand {
     /// Displays the binds for a service
-    Binds(PkgBindOptions),
+    Binds(binds::PkgBindsOptions),
 
     /// Creates a binlink for a package binary in a common 'PATH' location
-    BinLink(PkgBinlinkOptions),
+    Binlink(binlink::PkgBinlinkOptions),
 
     /// Builds a plan using Habitat Studio
-    Build(PkgBuildOptions),
+    Build(build::PkgBuildOptions),
 
     /// Bulk uploads Habitat artifacts from to a depo from a local directory
     Bulkupload(PkgBulkUploadOptions),
@@ -67,7 +71,7 @@ pub(crate) enum PkgCommand {
     List(PkgListOptions),
 
     /// Prints the path to a specific installed release of a package
-    Path(PkgPathOptions),
+    Path(path::PkgPathOptions),
 
     /// Promote a package to a specified channel
     Promote(PkgPromoteOptions),
@@ -92,28 +96,16 @@ pub(crate) enum PkgCommand {
 }
 
 impl PkgCommand {
-    pub(crate) fn do_command(&self) -> HabResult<()> {
+    pub(crate) async fn do_command(&self, ui: &mut UI) -> HabResult<()> {
         match self {
-            Self::Binds(bind_options) => {
-                binds::start(&bind_options.pkg_ident, &*FS_ROOT_PATH).map_err(Into::into)
-            }
+            Self::Binds(opts) => opts.do_binds(),
+            Self::Binlink(opts) => opts.do_binlink(ui),
+            Self::Path(opts) => opts.do_path(),
+            Self::Build(opts) => opts.do_build(ui).await,
             _ => todo!(),
         }
     }
 }
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgBindOptions {
-    #[arg(name = "PKG_IDENT")]
-    pkg_ident: PackageIdent,
-}
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgBinlinkOptions {}
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgPathOptions {}
-
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgDeleteOptions;
 
@@ -155,9 +147,6 @@ pub(crate) struct PkgSignOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgBulkUploadOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgBuildOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgInfoOptions;

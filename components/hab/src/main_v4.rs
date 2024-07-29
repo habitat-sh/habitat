@@ -18,5 +18,5 @@ pub(crate) async fn main_v4() {
 // Hack required for now to have this compile when v4 is not enabled
 #[cfg(not(feature = "v4"))]
 pub(crate) async fn main_v4() {
-    todo!();
+    unreachable!();
 }

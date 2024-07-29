@@ -11,6 +11,9 @@ use crate::{cli::AFTER_HELP,
 mod pkg;
 use pkg::PkgCommand;
 
+mod utils;
+use utils::CacheKeyPath;
+
 #[derive(Debug, Clone, Parser)]
 #[command(name = "hab",
             version = VERSION,
@@ -70,9 +73,9 @@ pub(crate) enum Hab {
 }
 
 impl Hab {
-    async fn do_cli_command(&self, _ui: &mut UI) -> HabResult<()> {
+    async fn do_cli_command(&self, ui: &mut UI) -> HabResult<()> {
         match self {
-            Self::Pkg(pkg_command) => pkg_command.do_command(),
+            Self::Pkg(pkg_command) => pkg_command.do_command(ui).await,
             _ => todo!(),
         }
     }
@@ -122,9 +125,6 @@ pub(crate) struct PkgInstallCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct SupRunCommand;
-
-#[derive(Clone, Debug, Parser)]
-pub(crate) struct CacheKeyPath;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct SvcStartCommand;
