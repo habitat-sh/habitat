@@ -139,6 +139,9 @@ pub enum Hab {
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version, aliases = &["b", "bl", "bld"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat Builder
+///
+/// NOTICE: Public Builder Build Functions are no longer supported.
+/// Please reach out to your account team if you were using this feature.
 pub enum Bldr {
     #[structopt(no_version)]
     Channel(Channel),
@@ -162,7 +165,10 @@ pub enum Channel {
 
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version, aliases = &["j", "jo"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
-/// Commands relating to Habitat Builder jobs
+/// REMOVED: Commands relating to Habitat Builder jobs
+///
+/// NOTICE: Public Builder Build Functions are no longer supported.
+/// Please reach out to your account team if you were using this feature.
 pub enum Job {
     #[structopt(no_version, aliases = &["c", "ca", "can", "cance"])]
     Cancel(JobCancel),

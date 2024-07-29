@@ -24,6 +24,7 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     APIClient(api_client::Error),
     ArgumentError(String),
+    BuilderBuildFunctionsRemoved,
     ButterflyError(String),
     CacheSslCertError(String),
     CannotParseBinlinkBinaryName(PathBuf),
@@ -83,6 +84,11 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::APIClient(ref e) => e.to_string(),
             Error::ArgumentError(ref e) => e.to_string(),
+            Error::BuilderBuildFunctionsRemoved => {
+                "Public Builder Build Functions are no longer supported.\nPlease reach out to your \
+                 account team if you were using this feature."
+                                                              .to_string()
+            }
             Error::ButterflyError(ref e) => e.to_string(),
             Error::CacheSslCertError(ref e) => format!("Cannot cache SSL_CERT_FILE: {}", e),
             Error::CannotParseBinlinkBinaryName(ref p) => {
