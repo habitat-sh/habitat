@@ -13,8 +13,8 @@ hab pkg build test/fixtures/windows_plans/dummy_svc_user
 hab pkg install .\results\$pkg_artifact
 
 hab pkg install core/windows-service
-$supLog = New-SupervisorLogFile("load_with_pass")
-Start-Supervisor -LogFile $supLog -Timeout 45
+Start-Service Habitat
+Wait-Supervisor -Timeout 45
 
 Describe "hab svc load" {
     $loadOut = hab svc load ci/dummy --password $password
