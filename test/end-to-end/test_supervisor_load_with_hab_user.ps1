@@ -49,6 +49,7 @@ Describe "with svc_user" {
     . .\results\last_build.ps1
     hab pkg install .\results\$pkg_artifact
     $loadOut = hab svc load ci/dummy-hab-user --password $password
+    Write-Host $loadOut
     Wait-SupervisorService dummy-hab-user -Timeout 20
 
     It "does create a SVC_USR metafile" {
