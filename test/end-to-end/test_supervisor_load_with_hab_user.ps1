@@ -48,6 +48,7 @@ Describe "with svc_user" {
     hab pkg build test/fixtures/windows_plans/dummy_hab_svc_user
     . .\results\last_build.ps1
     hab pkg install .\results\$pkg_artifact
+    $env:RUST_LOG="debug"
     $loadOut = hab svc load ci/dummy-hab-user --password $password
     Write-Host $loadOut
     try {

@@ -17,6 +17,7 @@ Start-Service Habitat
 Wait-Supervisor -Timeout 45
 
 Describe "hab svc load" {
+    $env:RUST_LOG="debug"
     $loadOut = hab svc load ci/dummy --password $password
     Write-Host $loadOut
     try {
