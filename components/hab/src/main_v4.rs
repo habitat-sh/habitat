@@ -1,6 +1,6 @@
 #[cfg(feature = "v4")]
-use habitat_common::ui::{UIWriter,
-                         UI};
+use habitat_common::{FeatureFlag, ui::{UIWriter,
+                         UI}};
 
 #[cfg(feature = "v4")]
 use hab::cli_driver;
@@ -8,7 +8,8 @@ use hab::cli_driver;
 #[cfg(feature = "v4")]
 pub(crate) async fn main_v4() {
     let mut ui = UI::default_with_env();
-    if let Err(e) = cli_driver(&mut ui).await {
+    let features = FeatureFlag::from_env(&mut ui);
+    if let Err(e) = cli_driver(&mut ui, features).await {
         let exit_code = e.exit_code();
         ui.fatal(e).unwrap();
         std::process::exit(exit_code)

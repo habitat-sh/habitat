@@ -3,7 +3,7 @@ use clap_v4 as clap;
 use clap::{Parser,
            Subcommand};
 
-use habitat_common::ui::UI;
+use habitat_common::{FeatureFlag, ui::UI};
 
 use crate::error::Result as HabResult;
 
@@ -108,12 +108,12 @@ pub(super) enum PkgCommand {
 }
 
 impl PkgCommand {
-    pub(crate) async fn do_command(&self, ui: &mut UI) -> HabResult<()> {
+    pub(crate) async fn do_command(&self, ui: &mut UI, feature_flags: FeatureFlag) -> HabResult<()> {
         match self {
             Self::Binds(opts) => opts.do_binds(),
             Self::Binlink(opts) => opts.do_binlink(ui),
             Self::Path(opts) => opts.do_path(),
-            Self::Build(opts) => opts.do_build(ui).await,
+            Self::Build(opts) => opts.do_build(ui, feature_flags).await,
             Self::Config(opts) => opts.do_config(),
             Self::Env(opts) => opts.do_env(),
             Self::Hash(opts) => opts.do_hash(),

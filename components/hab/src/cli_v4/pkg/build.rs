@@ -16,7 +16,7 @@ use habitat_core::{crypto,
                    origin::Origin};
 
 use crate::{command::pkg::build,
-            error::Result as HabResult};
+            error::Result as HabResult, error::Error as HabError};
 
 use crate::cli_v4::utils::CacheKeyPath;
 
@@ -68,7 +68,9 @@ pub(crate) struct PkgBuildOptions {
 }
 
 impl PkgBuildOptions {
-    pub(super) async fn do_build(&self, ui: &mut UI) -> HabResult<()> {
+    // Required because of lot of `cfg`... 
+    #[allow(unused_variables)]
+    pub(super) async fn do_build(&self, ui: &mut UI, feature_flags: FeatureFlag) -> HabResult<()> {
         if !self.hab_origin_keys.is_empty() {
             crypto::init()?;
             let key_cache = KeyCache::new::<PathBuf>((&self.cache_key_path).into());
@@ -81,10 +83,10 @@ impl PkgBuildOptions {
 
         let native_package = false;
 
-        #[cfg(target_os = "linux")]
+        #[cfg(target_family = "unix")]
         let native_package = if self.native_package {
             if !feature_flags.contains(FeatureFlag::NATIVE_PACKAGE_SUPPORT) {
-                return Err(Error::ArgumentError(String::from("`--native-package` is \
+                return Err(HabError::ArgumentError(String::from("`--native-package` is \
                                                               only available when \
                                                               `HAB_FEAT_NATIVE_PACKAGE_SUPPORT` \
                                                               is set")));
