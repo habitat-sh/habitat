@@ -29,14 +29,18 @@ pub(crate) struct PkgBuildOptions {
     #[arg(name = "HAB_ORIGIN_KEYS", short = 'k', long = "keys", action = ArgAction::Append)]
     hab_origin_keys: Vec<Origin>,
 
+    // TODO: Make it a more semantic `PathBuf` Currently not done due to limitation of
+    // `command::pkg::build`. Revisit it after removing `clap-v2`
     /// Sets the Studio root (default: /hab/studios/<DIR_NAME>)
     #[arg(name = "HAB_STUDIO_ROOT", short = 'r', long = "root")]
     hab_studio_root: Option<String>,
 
+    // TODO: Same as above
     /// Sets the source path [default: $PWD]
     #[structopt(name = "SRC_PATH", short = 's', long = "src")]
     src_path: Option<String>,
 
+    // TODO : Same as above
     /// A directory containing a plan file or a `habitat/` directory which contains the plan
     /// file
     #[arg(name = "PLAN_CONTEXT")]
