@@ -8,6 +8,7 @@ use crate::error::{Error,
                    Result};
 use habitat_win_users::sid::{self,
                              Sid};
+use log::debug;
 use rand::{self,
            Rng};
 use std::{cmp,
@@ -202,6 +203,7 @@ impl Child {
         where U: ToString,
               P: ToString
     {
+        debug!("in spawn");
         let mut os_env: HashMap<OsString, OsString> =
             env::vars_os().map(|(key, val)| (mk_key(key.to_str().unwrap()), val))
                           .collect();
@@ -229,6 +231,7 @@ impl Child {
             }
             res
         };
+        debug!("in spawn2");
 
         let mut si = zeroed_startupinfo();
         si.cb = mem::size_of::<STARTUPINFOW>() as DWORD;
@@ -271,16 +274,18 @@ impl Child {
         let flags = CREATE_UNICODE_ENVIRONMENT | CREATE_NEW_PROCESS_GROUP;
 
         let cred = ServiceCredential::new(svc_user, svc_encrypted_password)?;
+        debug!("in spawn: create process");
         if cred.is_current_user() {
             create_process(cmd_str.as_mut_ptr(), flags, &os_env, &mut si, &mut pi)?;
         } else {
             create_process_as_user(&cred, cmd_str.as_mut_ptr(), flags, env, &mut si, &mut pi)?;
         }
-
+        debug!("in spawn: process created");
         // We close the thread handle because we don't care about keeping
         // the thread id valid, and we aren't keeping the thread handle
         // around to be able to close it later.
         unsafe { handleapi::CloseHandle(pi.hThread) };
+        debug!("in spawn finishing");
         Ok(Child { handle: Handle::new(pi.hProcess),
                    stdout: pipes.stdout.map(ChildStdout::from_inner),
                    stderr: pipes.stderr.map(ChildStderr::from_inner), })
@@ -902,6 +907,7 @@ fn create_process_as_user(credential: &ServiceCredential,
                           pi: LPPROCESS_INFORMATION)
                           -> Result<i32> {
     unsafe {
+        debug!("in create_process_as_user");
         let mut token = ptr::null_mut();
 
         match cvt(LogonUserW(credential.user_wide().as_ptr(),
@@ -917,6 +923,8 @@ fn create_process_as_user(credential: &ServiceCredential,
             }
             Err(_) => return Err(Error::LogonUserFailed(io::Error::last_os_error())),
         };
+
+        debug!("in create_process_as_user: done with logon");
 
         let station = GetProcessWindowStation();
 
@@ -935,6 +943,7 @@ fn create_process_as_user(credential: &ServiceCredential,
         }
 
         let sid = Sid::logon_sid_from_token(token)?;
+        debug!("in create_process_as_user: got sid");
         sid.add_to_user_object(station as HANDLE,
                                sid::CONTAINER_INHERIT_ACE
                                | sid::INHERIT_ONLY_ACE
@@ -965,8 +974,11 @@ fn create_process_as_user(credential: &ServiceCredential,
                                | sid::READ_CONTROL
                                | sid::WRITE_DAC
                                | sid::WRITE_OWNER)?;
+        debug!("in create_process_as_user: added to user obj");
 
         let mut os_env = create_user_environment(token, &mut env.clone())?;
+        debug!("in create_process_as_user: created env");
+
         match cvt(CreateProcessAsUserW(token,
                                        ptr::null(),
                                        command,
@@ -992,9 +1004,11 @@ fn create_user_environment(token: HANDLE,
                            env: &mut HashMap<String, String>)
                            -> io::Result<Vec<u16>> {
     unsafe {
+        debug!("in create_user_environment");
         let mut new_env: Vec<u16> = Vec::new();
         let mut block: LPVOID = ptr::null_mut();
         cvt(userenv::CreateEnvironmentBlock(&mut block, token, FALSE))?;
+        debug!("in create_user_environment: created block");
         let mut tail: u32 = MAXDWORD;
         let mut offset = 0;
         let mut part = ParsePart::Key;
@@ -1005,6 +1019,8 @@ fn create_user_environment(token: HANDLE,
         // when it is 0 we know we are done because a propper environment
         // block ends in \0\0
         while tail != 0 {
+            debug!("in create_user_environment:current env is {}", &String::from_utf16_lossy(&cur_key));
+
             tail <<= 16;
             let next_char = *(block.offset(offset) as *mut u16);
             tail |= u32::from(next_char);
@@ -1037,10 +1053,15 @@ fn create_user_environment(token: HANDLE,
                 }
             }
         }
+        debug!("in create_user_environment: parsed tail");
+
         cvt(userenv::DestroyEnvironmentBlock(block))?;
+        debug!("in create_user_environment: destroyed block");
 
         let len = new_env.len();
         new_env.truncate(len - 1);
+        debug!("in create_user_environment:truncated env");
+
         for (k, v) in env {
             new_env.extend(OsStr::new(k).encode_wide());
             new_env.push('=' as u16);

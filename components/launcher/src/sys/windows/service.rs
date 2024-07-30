@@ -152,13 +152,16 @@ pub fn run(msg: protocol::Spawn) -> Result<Service, ServiceRunError> {
 
     let new_env = msg.env.clone().into_iter().collect();
 
-    match util::spawn_pwsh(&ps_cmd, &new_env, user, password) {
+    debug!("launcher is spawning powershell");
+    let res = match util::spawn_pwsh(&ps_cmd, &new_env, user, password) {
         Ok(child) => {
             let process = Process::new(child.handle);
             Ok(Service::new(msg, process, child.stdout, child.stderr))
         }
         Err(_) => Err(ServiceRunError::Spawn(io::Error::last_os_error())),
-    }
+    };
+    debug!("powershell has spawned");
+    res
 }
 
 fn build_proc_table() -> ProcessTable {

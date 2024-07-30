@@ -11,7 +11,8 @@ pub mod win_perm;
 use crate::{env as henv,
             error::Result,
             os::process::windows_child::Child};
-use log::error;
+use log::{debug,
+          error};
 
 #[cfg(windows)]
 use std::{collections::HashMap,
@@ -132,12 +133,15 @@ pub fn spawn_pwsh<U, P>(command: &str,
     new_env.extend(env.iter().map(|(k, v)| (k.clone(), v.clone())));
 
     with_ps_module_path(&mut new_env);
+    debug!("spawning pwsh.exe");
 
-    Child::spawn("pwsh.exe",
+    let cld = Child::spawn("pwsh.exe",
                  &args,
                  &new_env,
                  svc_user,
-                 svc_encrypted_password)
+                 svc_encrypted_password);
+    debug!("pwsh.exe spawned");
+    cld
 }
 
 /// Makes sure the modules path inside the same package as pwsh.exe
