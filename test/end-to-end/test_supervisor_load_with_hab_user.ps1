@@ -50,7 +50,11 @@ Describe "with svc_user" {
     hab pkg install .\results\$pkg_artifact
     $loadOut = hab svc load ci/dummy-hab-user --password $password
     Write-Host $loadOut
-    Wait-SupervisorService dummy-hab-user -Timeout 20
+    try {
+        Wait-SupervisorService dummy-hab-user -Timeout 20
+    } finally {
+        Copy-Item "c:\hab\svc\windows-service\logs\habitat.log" "yada1.log"
+    }
 
     It "does create a SVC_USR metafile" {
         Test-Path c:\hab\pkgs\$pkg_ident\SVC_USER | Should -Be $true

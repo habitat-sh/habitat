@@ -19,7 +19,11 @@ Wait-Supervisor -Timeout 45
 Describe "hab svc load" {
     $loadOut = hab svc load ci/dummy --password $password
     Write-Host $loadOut
-    Wait-SupervisorService dummy -Timeout 20
+    try {
+        Wait-SupervisorService dummy -Timeout 20
+    } finally {
+        Copy-Item "c:\hab\svc\windows-service\logs\habitat.log" "yada1.log"
+    }
 
     It "Succesfully loads service" {
         $loadOut | Should -Be "The ci/dummy service was successfully loaded"
