@@ -11,11 +11,22 @@ mod binds;
 mod binlink;
 mod build;
 
+mod config;
+
+mod env;
+
+mod hash;
+mod header;
+
+mod info;
+
 mod path;
+
+mod verify;
 
 #[derive(Clone, Debug, Subcommand)]
 #[command(arg_required_else_help = true)]
-pub(crate) enum PkgCommand {
+pub(super) enum PkgCommand {
     /// Displays the binds for a service
     Binds(binds::PkgBindsOptions),
 
@@ -32,7 +43,7 @@ pub(crate) enum PkgCommand {
     Channels(PkgChannelsOptions),
 
     /// Displays the default configuration options for a service
-    Config(PkgConfigOptions),
+    Config(config::PkgConfigOptions),
 
     /// Removes a package from Builder
     Delete(PkgDeleteOptions),
@@ -41,13 +52,14 @@ pub(crate) enum PkgCommand {
     Demote(PkgDemoteOptions),
 
     /// Returns Habitat Artifact dependencies, by default the direct dependencies
+    /// of the package
     Dependencies(PkgDependenciesOptions),
 
     /// Download Habitat artifacts (including dependencies and keys) from Builder
     Download(PkgDownloadOptions),
 
     /// Prints the runtime environment of a specific installed package
-    Env(PkgEnvOptions),
+    Env(env::PkgEnvOptions),
 
     /// Execute a command using the 'PATH' context of an installed package
     Exec(PkgExecOptions),
@@ -56,13 +68,13 @@ pub(crate) enum PkgCommand {
     Export(PkgExportOptions),
 
     /// Generates a blake2b hashsum from a target at any given filepath
-    Hash(PkgHashOptions),
+    Hash(hash::PkgHashOptions),
 
     /// Returns the Habitat Artifact header
-    Header(PkgHeaderOptions),
+    Header(header::PkgHeaderOptions),
 
     /// Returns the Habitat Artifact information
-    Info(PkgInfoOptions),
+    Info(info::PkgInfoOptions),
 
     /// Installs a Habitat package from Builder or locally from a Habitat Artifact
     Install(PkgInstallOptions),
@@ -92,7 +104,7 @@ pub(crate) enum PkgCommand {
     Upload(PkgUploadOptions),
 
     /// Verifies a Habitat Architect with an origin key
-    Verify(PkgVerifyOptions),
+    Verify(verify::PkgVerifyOptions),
 }
 
 impl PkgCommand {
@@ -102,10 +114,17 @@ impl PkgCommand {
             Self::Binlink(opts) => opts.do_binlink(ui),
             Self::Path(opts) => opts.do_path(),
             Self::Build(opts) => opts.do_build(ui).await,
+            Self::Config(opts) => opts.do_config(),
+            Self::Env(opts) => opts.do_env(),
+            Self::Hash(opts) => opts.do_hash(),
+            Self::Header(opts) => opts.do_header(ui),
+            Self::Info(opts) => opts.do_info(ui),
+            Self::Verify(opts) => opts.do_verify(ui),
             _ => todo!(),
         }
     }
 }
+
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgDeleteOptions;
 
@@ -119,16 +138,10 @@ pub(crate) struct PkgDemoteOptions;
 pub(crate) struct PkgPromoteOptions;
 
 #[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgConfigOptions;
-
-#[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgChannelsOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgUploadOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgVerifyOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgUninstallOptions;
@@ -149,12 +162,6 @@ pub(crate) struct PkgSignOptions;
 pub(crate) struct PkgBulkUploadOptions;
 
 #[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgInfoOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgHeaderOptions;
-
-#[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgDependenciesOptions;
 
 #[derive(Debug, Clone, Parser)]
@@ -162,12 +169,6 @@ pub(crate) struct PkgDownloadOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgExecOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgEnvOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgHashOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgExportOptions;

@@ -23,7 +23,7 @@ use utils::CacheKeyPath;
             propagate_version = true,
             arg_required_else_help = true,
         )]
-pub(crate) enum Hab {
+enum Hab {
     /// Commands relating to Habitat Builder
     Bldr(BldrCommand),
 
