@@ -53,6 +53,7 @@ Describe "with svc_user" {
     try {
         Wait-SupervisorService dummy-hab-user -Timeout 20
     } finally {
+        Start-Sleep -Seconds 10
         Copy-Item "c:\hab\svc\windows-service\logs\habitat.log" "yada1.log"
     }
 

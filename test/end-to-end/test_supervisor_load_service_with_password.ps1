@@ -22,6 +22,7 @@ Describe "hab svc load" {
     try {
         Wait-SupervisorService dummy -Timeout 20
     } finally {
+        Start-Sleep -Seconds 10
         Copy-Item "c:\hab\svc\windows-service\logs\habitat.log" "yada1.log"
     }
 
