@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1109 -->
-## [1.6.1109](https://github.com/habitat-sh/habitat/tree/1.6.1109) (2024-07-29)
+<!-- latest_release 1.6.1110 -->
+## [1.6.1110](https://github.com/habitat-sh/habitat/tree/1.6.1110) (2024-07-31)
 
 #### Merged Pull Requests
-- CHEF-12417: Remove hab bldr job commands [#9302](https://github.com/habitat-sh/habitat/pull/9302) ([jasonheath](https://github.com/jasonheath))
+- Bump cc from 1.1.5 to 1.1.7 [#9333](https://github.com/habitat-sh/habitat/pull/9333) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump cc from 1.1.5 to 1.1.7 [#9333](https://github.com/habitat-sh/habitat/pull/9333) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1110 -->
 - CHEF-12417: Remove hab bldr job commands [#9302](https://github.com/habitat-sh/habitat/pull/9302) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1109 -->
 - Bump openssl from 0.10.64 to 0.10.66 [#9323](https://github.com/habitat-sh/habitat/pull/9323) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1108 -->
 - Bump mio from 0.8.11 to 1.0.0 [#9319](https://github.com/habitat-sh/habitat/pull/9319) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1107 -->
