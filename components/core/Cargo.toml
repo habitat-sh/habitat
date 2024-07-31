@@ -60,13 +60,16 @@ winapi = { version = "^0.3", features = [
   "ioapiset",
   "namedpipeapi",
   "synchapi",
-  "userenv",
   "winbase",
   "wincrypt",
   "winerror",
   "ws2def",
 ] }
 windows-acl = "*"
+windows-sys = { version = "^0.52.0", features = [
+  "Win32_Foundation",
+  "Win32_System_Environment",
+] }
 
 [dev-dependencies]
 num_cpus = "*"                                       # For doc tests

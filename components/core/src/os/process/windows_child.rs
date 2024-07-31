@@ -61,7 +61,6 @@ use winapi::{shared::{minwindef::{BOOL,
                                       PROCESS_INFORMATION,
                                       STARTUPINFOW},
                   synchapi,
-                  userenv,
                   winbase::{CREATE_NEW_PROCESS_GROUP,
                             CREATE_UNICODE_ENVIRONMENT,
                             FILE_FLAG_FIRST_PIPE_INSTANCE,
@@ -95,7 +94,7 @@ use winapi::{shared::{minwindef::{BOOL,
                           PHANDLE,
                           READ_CONTROL,
                           WRITE_DAC}}};
-
+use windows_sys::Win32::System::Environment;
 lazy_static::lazy_static! {
     static ref CREATE_PROCESS_LOCK: Mutex<()> = Mutex::new(());
 }
@@ -993,8 +992,10 @@ fn create_user_environment(token: HANDLE,
                            -> io::Result<Vec<u16>> {
     unsafe {
         let mut new_env: Vec<u16> = Vec::new();
-        let mut block: LPVOID = ptr::null_mut();
-        cvt(userenv::CreateEnvironmentBlock(&mut block, token, FALSE))?;
+        let mut block = ptr::null_mut();
+        cvt(Environment::CreateEnvironmentBlock(&mut block,
+                                                token as isize,
+                                                FALSE))?;
         let mut tail: u32 = MAXDWORD;
         let mut offset = 0;
         let mut part = ParsePart::Key;
@@ -1037,7 +1038,7 @@ fn create_user_environment(token: HANDLE,
                 }
             }
         }
-        cvt(userenv::DestroyEnvironmentBlock(block))?;
+        cvt(Environment::DestroyEnvironmentBlock(block))?;
 
         let len = new_env.len();
         new_env.truncate(len - 1);
