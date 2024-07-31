@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1112 -->
-## [1.6.1112](https://github.com/habitat-sh/habitat/tree/1.6.1112) (2024-07-31)
+<!-- latest_release 1.6.1113 -->
+## [1.6.1113](https://github.com/habitat-sh/habitat/tree/1.6.1113) (2024-07-31)
 
 #### Merged Pull Requests
-- Agadgil/e2e test failure container export [#9325](https://github.com/habitat-sh/habitat/pull/9325) ([agadgil-progress](https://github.com/agadgil-progress))
+- use CreateEnvironmentBlock from windows-sys instead of winapi [#9334](https://github.com/habitat-sh/habitat/pull/9334) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- use CreateEnvironmentBlock from windows-sys instead of winapi [#9334](https://github.com/habitat-sh/habitat/pull/9334) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1113 -->
+- Bump toml from 0.8.16 to 0.8.17 [#9335](https://github.com/habitat-sh/habitat/pull/9335) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1113 -->
 - Agadgil/e2e test failure container export [#9325](https://github.com/habitat-sh/habitat/pull/9325) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1112 -->
 - Bump rustls-webpki from 0.102.5 to 0.102.6 [#9324](https://github.com/habitat-sh/habitat/pull/9324) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1111 -->
 - Bump toml from 0.8.14 to 0.8.16 [#9332](https://github.com/habitat-sh/habitat/pull/9332) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1111 -->
