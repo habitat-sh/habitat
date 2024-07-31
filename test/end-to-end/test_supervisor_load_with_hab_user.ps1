@@ -13,7 +13,7 @@ $lsa_wrapper.SetRight($username, "SeServiceLogonRight")
 $env:HAB_ORIGIN = "ci"
 hab origin key generate ci
 
-hab pkg install core/windows-service
+hab pkg install core/windows-service --channel mwrock-test
 Start-Service Habitat
 Wait-Supervisor -Timeout 45
 

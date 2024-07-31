@@ -12,7 +12,7 @@ hab pkg build test/fixtures/windows_plans/dummy_svc_user
 . .\results\last_build.ps1
 hab pkg install .\results\$pkg_artifact
 
-hab pkg install core/windows-service
+hab pkg install core/windows-service --channel mwrock-test
 Start-Service Habitat
 Wait-Supervisor -Timeout 45
 
