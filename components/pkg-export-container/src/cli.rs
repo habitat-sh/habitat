@@ -19,22 +19,21 @@ pub fn cli() -> Command {
     let about = "Creates a container image from a set of Habitat packages (and optionally pushes \
                  to a remote repository)";
 
-    let cmd =
-        Command::new(name).max_term_width(80)
-                          .about(about)
-                          .version(VERSION)
-                          .author("\nAuthors: The Habitat Maintainers <humans@habitat.sh>")
-                          .help_template("{name} {version} {author-section} {about-section} \
-                                          \n{usage-heading} {usage}\n\n{all-args}")
-                          .arg(Arg::new("IMAGE_NAME").long("image-name")
-                                                     .short('i')
-                                                     .value_name("IMAGE_NAME")
-                                                     .help("Image name template: supports: \
-                                                            {{pkg_origin}}/{{pkg_name}} \
-                                                            {{pkg_origin}}, {{pkg_name}}, \
-                                                            {{pkg_version}}, {{pkg_release}}, \
-                                                            {{channel}})")
-                                                     .default_value("{{pkg_origin/pkg_name}}"));
+    let cmd = Command::new(name).max_term_width(120)
+                                .about(about)
+                                .version(VERSION)
+                                .author("\nAuthors: The Habitat Maintainers <humans@habitat.sh>")
+                                .help_template("{name} {version} {author-section} {about-section} \
+                                                \n{usage-heading} {usage}\n\n{all-args}")
+                                .arg(Arg::new("IMAGE_NAME").long("image-name")
+                                                           .short('i')
+                                                           .value_name("IMAGE_NAME")
+                                                           .help("Image name template: supports \
+                                                                  {{pkg_origin}}, {{pkg_name}}, \
+                                                                  {{pkg_version}}, \
+                                                                  {{pkg_release}}, {{channel}} \
+                                                                  variables. [default template: \
+                                                                  {{pkg_origin}}/{{pkg_name}}]"));
 
     let cmd = add_base_packages_args(cmd);
     let cmd = add_builder_args(cmd);
@@ -263,4 +262,20 @@ fn add_layer_arg(cmd: Command) -> Command {
 fn add_engine_arg(cmd: Command) -> Command {
     let arg = engine::cli_arg();
     cmd.arg(arg)
+}
+
+#[cfg(test)]
+mod tests {
+
+    // Added following test due to e2e tests failure.
+    #[test]
+    fn image_name_cli_arg_no_default_value() {
+        let cli = super::cli();
+        let m = cli.clone()
+                   .get_matches_from(["hab-pkg-export-container", "core/redis"]);
+        assert!(m.get_one::<String>("IMAGE_NAME").is_none());
+    }
+
+    // If an invalid template is specified, we perform all the work and then finally bail out
+    // informing image name-format is incorrect. TODO: Add validation for it.
 }
