@@ -28,11 +28,12 @@ pub fn cli() -> Command {
                                 .arg(Arg::new("IMAGE_NAME").long("image-name")
                                                            .short('i')
                                                            .value_name("IMAGE_NAME")
-                                                           .help("Image name template: supports: \
-                                                                  {{pkg_origin}}/{{pkg_name}} \
-                                                                  (default), {{pkg_origin}}, \
-                                                                  {{pkg_name}}, {{pkg_version}}, \
-                                                                  {{pkg_release}}, {{channel}})"));
+                                                           .help("Image name template: supports \
+                                                                  {{pkg_origin}}, {{pkg_name}}, \
+                                                                  {{pkg_version}}, \
+                                                                  {{pkg_release}}, {{channel}} \
+                                                                  variables. [default template: \
+                                                                  {{pkg_origin}}/{{pkg_name}}]"));
 
     let cmd = add_base_packages_args(cmd);
     let cmd = add_builder_args(cmd);
