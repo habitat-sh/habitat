@@ -1,16 +1,20 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1110 -->
-## [1.6.1110](https://github.com/habitat-sh/habitat/tree/1.6.1110) (2024-07-31)
+<!-- latest_release 1.6.1111 -->
+## [1.6.1111](https://github.com/habitat-sh/habitat/tree/1.6.1111) (2024-07-31)
 
 #### Merged Pull Requests
-- Bump cc from 1.1.5 to 1.1.7 [#9333](https://github.com/habitat-sh/habitat/pull/9333) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rustls-webpki from 0.102.5 to 0.102.6 [#9324](https://github.com/habitat-sh/habitat/pull/9324) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump rustls-webpki from 0.102.5 to 0.102.6 [#9324](https://github.com/habitat-sh/habitat/pull/9324) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1111 -->
+- Bump toml from 0.8.14 to 0.8.16 [#9332](https://github.com/habitat-sh/habitat/pull/9332) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1111 -->
+- Bump env_logger from 0.11.3 to 0.11.5 [#9331](https://github.com/habitat-sh/habitat/pull/9331) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1111 -->
+- Bump mio from 1.0.0 to 1.0.1 [#9328](https://github.com/habitat-sh/habitat/pull/9328) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1111 -->
 - Bump cc from 1.1.5 to 1.1.7 [#9333](https://github.com/habitat-sh/habitat/pull/9333) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1110 -->
 - CHEF-12417: Remove hab bldr job commands [#9302](https://github.com/habitat-sh/habitat/pull/9302) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1109 -->
 - Bump openssl from 0.10.64 to 0.10.66 [#9323](https://github.com/habitat-sh/habitat/pull/9323) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1108 -->
