@@ -348,7 +348,7 @@ pub struct PkgBuild {
     /// Uses a Dockerized Studio for the build
     #[structopt(name = "DOCKER", short = "D", long = "docker")]
     docker:          bool,
-    /// Channel used to retrieve plan dpendencies for Chef supported origins
+    /// Channel used to retrieve plan dependencies for Chef supported origins
     #[structopt(name = "REFRESH_CHANNEL",
                 short = "f",
                 long = "refresh-channel",
