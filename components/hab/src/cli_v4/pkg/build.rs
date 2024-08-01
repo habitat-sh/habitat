@@ -8,7 +8,6 @@ use clap::{ArgAction,
 
 use habitat_common::ui::UI;
 
-#[cfg(target_os = "linux")]
 use habitat_common::FeatureFlag;
 
 use habitat_core::{crypto,
@@ -16,7 +15,10 @@ use habitat_core::{crypto,
                    origin::Origin};
 
 use crate::{command::pkg::build,
-            error::Result as HabResult, error::Error as HabError};
+            error::Result as HabResult};
+
+#[cfg(target_os = "linux")]
+use crate::error::Error as HabError;
 
 use crate::cli_v4::utils::CacheKeyPath;
 
@@ -68,7 +70,7 @@ pub(crate) struct PkgBuildOptions {
 }
 
 impl PkgBuildOptions {
-    // Required because of lot of `cfg`... 
+    // Required because of lot of `cfg`...
     #[allow(unused_variables)]
     pub(super) async fn do_build(&self, ui: &mut UI, feature_flags: FeatureFlag) -> HabResult<()> {
         if !self.hab_origin_keys.is_empty() {
@@ -83,20 +85,7 @@ impl PkgBuildOptions {
 
         let native_package = false;
 
-        #[cfg(target_family = "unix")]
-        let native_package = if self.native_package {
-            if !feature_flags.contains(FeatureFlag::NATIVE_PACKAGE_SUPPORT) {
-                return Err(HabError::ArgumentError(String::from("`--native-package` is \
-                                                              only available when \
-                                                              `HAB_FEAT_NATIVE_PACKAGE_SUPPORT` \
-                                                              is set")));
-            }
-            true
-        } else {
-            false
-        };
-        #[cfg(target_family = "windows")]
-        let native_package = false;
+        let native_package = self.should_build_native_package(feature_flags);
 
         let (reuse_flag, docker_flag) = (false, false);
 
@@ -112,4 +101,22 @@ impl PkgBuildOptions {
                      reuse_flag,
                      docker_flag).await
     }
+
+    #[cfg(target_os = "linux")]
+    fn should_build_native_package(&self, feature_flags: FeatureFlag) -> bool {
+        if self.native_package {
+            if !feature_flags.contains(FeatureFlag::NATIVE_PACKAGE_SUPPORT) {
+                return Err(HabError::ArgumentError(String::from("`--native-package` is only \
+                                                                 available when \
+                                                                 `HAB_FEAT_NATIVE_PACKAGE_SUPPORT` \
+                                                                 is set")));
+            }
+            true
+        } else {
+            false
+        }
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    fn should_build_native_package(&self, _: FeatureFlag) -> bool { false }
 }
