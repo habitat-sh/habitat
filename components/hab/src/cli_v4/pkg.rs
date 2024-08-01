@@ -14,6 +14,7 @@ mod build;
 mod bulk_upload;
 
 mod config;
+mod delete;
 
 mod env;
 
@@ -48,7 +49,7 @@ pub(super) enum PkgCommand {
     Config(config::PkgConfigOptions),
 
     /// Removes a package from Builder
-    Delete(PkgDeleteOptions),
+    Delete(delete::PkgDeleteOptions),
 
     /// Demote a package from a specified channel
     Demote(PkgDemoteOptions),
@@ -120,6 +121,7 @@ impl PkgCommand {
             Self::Build(opts) => opts.do_build(ui, feature_flags).await,
             Self::Bulkupload(opts) => opts.do_bulkupload(ui).await,
             Self::Config(opts) => opts.do_config(),
+            Self::Delete(opts) => opts.do_delete(ui).await,
 
             Self::Env(opts) => opts.do_env(),
 
@@ -133,9 +135,6 @@ impl PkgCommand {
         }
     }
 }
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgDeleteOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgListOptions;
