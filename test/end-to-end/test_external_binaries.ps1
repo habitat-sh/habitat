@@ -1,12 +1,16 @@
 Describe "`hab` correctly executes external binaries" {
     It "container exporter help" {
-        $out = hab pkg export container --help
+        $le = "`n"
+        if ($IsWindows) {
+            $le = "`r`n"
+        }
+        $out = (hab pkg export container --help | Out-String)
         $LastExitCode | Should -Be 0
-        "Creates a container image from a set of Habitat packages (and optionally pushes to a remote repository)" | Should -BeIn $out
+        $out | Should -BeLike "*Creates a container image from a set of Habitat packages (and optionally pushes to a remote${le}repository)*"
 
-        $out = hab pkg export docker --help
+        $out = (hab pkg export docker --help | Out-String)
         $LastExitCode | Should -Be 0
-        "Creates a container image from a set of Habitat packages (and optionally pushes to a remote repository)" | Should -BeIn $out
+        $out | Should -BeLike "*Creates a container image from a set of Habitat packages (and optionally pushes to a remote${le}repository)*"
     }
 
     It "cf exporter help" {
