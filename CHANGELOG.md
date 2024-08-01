@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1114 -->
-## [1.6.1114](https://github.com/habitat-sh/habitat/tree/1.6.1114) (2024-08-01)
+<!-- latest_release 1.6.1115 -->
+## [1.6.1115](https://github.com/habitat-sh/habitat/tree/1.6.1115) (2024-08-01)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.120 to 1.0.121 [#9336](https://github.com/habitat-sh/habitat/pull/9336) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- fix external binary test when help is multiline [#9338](https://github.com/habitat-sh/habitat/pull/9338) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- fix external binary test when help is multiline [#9338](https://github.com/habitat-sh/habitat/pull/9338) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1115 -->
+- Bump tokio from 1.38.1 to 1.39.2 [#9337](https://github.com/habitat-sh/habitat/pull/9337) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1115 -->
+- Bump toml from 0.8.17 to 0.8.19 [#9340](https://github.com/habitat-sh/habitat/pull/9340) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1115 -->
 - Bump serde_json from 1.0.120 to 1.0.121 [#9336](https://github.com/habitat-sh/habitat/pull/9336) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1114 -->
 - use CreateEnvironmentBlock from windows-sys instead of winapi [#9334](https://github.com/habitat-sh/habitat/pull/9334) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1113 -->
 - Bump toml from 0.8.16 to 0.8.17 [#9335](https://github.com/habitat-sh/habitat/pull/9335) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1113 -->
