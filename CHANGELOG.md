@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1113 -->
-## [1.6.1113](https://github.com/habitat-sh/habitat/tree/1.6.1113) (2024-07-31)
+<!-- latest_release 1.6.1114 -->
+## [1.6.1114](https://github.com/habitat-sh/habitat/tree/1.6.1114) (2024-08-01)
 
 #### Merged Pull Requests
-- use CreateEnvironmentBlock from windows-sys instead of winapi [#9334](https://github.com/habitat-sh/habitat/pull/9334) ([mwrock](https://github.com/mwrock))
+- Bump serde_json from 1.0.120 to 1.0.121 [#9336](https://github.com/habitat-sh/habitat/pull/9336) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.120 to 1.0.121 [#9336](https://github.com/habitat-sh/habitat/pull/9336) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1114 -->
 - use CreateEnvironmentBlock from windows-sys instead of winapi [#9334](https://github.com/habitat-sh/habitat/pull/9334) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1113 -->
 - Bump toml from 0.8.16 to 0.8.17 [#9335](https://github.com/habitat-sh/habitat/pull/9335) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1113 -->
 - Agadgil/e2e test failure container export [#9325](https://github.com/habitat-sh/habitat/pull/9325) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1112 -->
