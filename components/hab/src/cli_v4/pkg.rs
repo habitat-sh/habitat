@@ -3,13 +3,15 @@ use clap_v4 as clap;
 use clap::{Parser,
            Subcommand};
 
-use habitat_common::{FeatureFlag, ui::UI};
+use habitat_common::{ui::UI,
+                     FeatureFlag};
 
 use crate::error::Result as HabResult;
 
 mod binds;
 mod binlink;
 mod build;
+mod bulk_upload;
 
 mod config;
 
@@ -37,7 +39,7 @@ pub(super) enum PkgCommand {
     Build(build::PkgBuildOptions),
 
     /// Bulk uploads Habitat artifacts from to a depo from a local directory
-    Bulkupload(PkgBulkUploadOptions),
+    Bulkupload(bulk_upload::PkgBulkUploadOptions),
 
     /// Find out what channels a package belongs to
     Channels(PkgChannelsOptions),
@@ -108,17 +110,24 @@ pub(super) enum PkgCommand {
 }
 
 impl PkgCommand {
-    pub(crate) async fn do_command(&self, ui: &mut UI, feature_flags: FeatureFlag) -> HabResult<()> {
+    pub(crate) async fn do_command(&self,
+                                   ui: &mut UI,
+                                   feature_flags: FeatureFlag)
+                                   -> HabResult<()> {
         match self {
             Self::Binds(opts) => opts.do_binds(),
             Self::Binlink(opts) => opts.do_binlink(ui),
-            Self::Path(opts) => opts.do_path(),
             Self::Build(opts) => opts.do_build(ui, feature_flags).await,
+            Self::Bulkupload(opts) => opts.do_bulkupload(ui).await,
             Self::Config(opts) => opts.do_config(),
+
             Self::Env(opts) => opts.do_env(),
+
             Self::Hash(opts) => opts.do_hash(),
             Self::Header(opts) => opts.do_header(ui),
             Self::Info(opts) => opts.do_info(ui),
+
+            Self::Path(opts) => opts.do_path(),
             Self::Verify(opts) => opts.do_verify(ui),
             _ => todo!(),
         }
@@ -157,9 +166,6 @@ pub(crate) struct PkgSearchOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgSignOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgBulkUploadOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgDependenciesOptions;
