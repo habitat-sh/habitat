@@ -85,7 +85,7 @@ impl PkgBuildOptions {
 
         let native_package = false;
 
-        let native_package = self.should_build_native_package(feature_flags);
+        let native_package = self.should_build_native_package(feature_flags)?;
 
         let (reuse_flag, docker_flag) = (false, false);
 
@@ -103,7 +103,7 @@ impl PkgBuildOptions {
     }
 
     #[cfg(target_os = "linux")]
-    fn should_build_native_package(&self, feature_flags: FeatureFlag) -> bool {
+    fn should_build_native_package(&self, feature_flags: FeatureFlag) -> HabResult<bool> {
         if self.native_package {
             if !feature_flags.contains(FeatureFlag::NATIVE_PACKAGE_SUPPORT) {
                 return Err(HabError::ArgumentError(String::from("`--native-package` is only \
@@ -111,12 +111,12 @@ impl PkgBuildOptions {
                                                                  `HAB_FEAT_NATIVE_PACKAGE_SUPPORT` \
                                                                  is set")));
             }
-            true
+            Ok(true)
         } else {
-            false
+            Ok(false)
         }
     }
 
     #[cfg(not(target_os = "linux"))]
-    fn should_build_native_package(&self, _: FeatureFlag) -> bool { false }
+    fn should_build_native_package(&self, _: FeatureFlag) -> HabResult<bool> { Ok(false) }
 }

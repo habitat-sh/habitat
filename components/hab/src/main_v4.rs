@@ -1,6 +1,7 @@
 #[cfg(feature = "v4")]
-use habitat_common::{FeatureFlag, ui::{UIWriter,
-                         UI}};
+use habitat_common::{ui::{UIWriter,
+                          UI},
+                     FeatureFlag};
 
 #[cfg(feature = "v4")]
 use hab::cli_driver;
