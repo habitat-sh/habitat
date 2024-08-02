@@ -69,12 +69,27 @@ pub(crate) struct AuthToken {
 }
 
 impl AuthToken {
+    // This function returns a result. Use this when `auth_token` is required. Either as a command
+    // line option or env or from config.
     pub(crate) fn from_cli_or_config(&self) -> HabResult<String> {
         if self.auth_token.is_some() {
             Ok(self.auth_token.clone().expect("TOKEN EXPECTED"))
         } else {
             CliConfig::load()?.auth_token
                               .ok_or_else(|| HabError::ArgumentError("No auth token specified".into()))
+        }
+    }
+
+    // This function returns an `Option`, so if there is any "error" reading from config or env is
+    // not set simply returns a None.
+    pub(crate) fn try_from_cli_or_config(&self) -> Option<String> {
+        if self.auth_token.is_some() {
+            self.auth_token.clone()
+        } else {
+            match CliConfig::load() {
+                Ok(result) => result.auth_token,
+                Err(_) => None,
+            }
         }
     }
 }
