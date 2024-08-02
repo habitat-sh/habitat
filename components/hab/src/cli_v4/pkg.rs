@@ -1,3 +1,5 @@
+// Implementation of `hab pkg` command
+
 use clap_v4 as clap;
 
 use clap::{Parser,
@@ -13,8 +15,12 @@ mod binlink;
 mod build;
 mod bulk_upload;
 
+mod channels;
 mod config;
 mod delete;
+mod demote;
+mod dependencies;
+mod download;
 
 mod env;
 
@@ -24,6 +30,7 @@ mod header;
 mod info;
 
 mod path;
+mod promote;
 
 mod verify;
 
@@ -43,7 +50,7 @@ pub(super) enum PkgCommand {
     Bulkupload(bulk_upload::PkgBulkUploadOptions),
 
     /// Find out what channels a package belongs to
-    Channels(PkgChannelsOptions),
+    Channels(channels::PkgChannelsOptions),
 
     /// Displays the default configuration options for a service
     Config(config::PkgConfigOptions),
@@ -52,14 +59,14 @@ pub(super) enum PkgCommand {
     Delete(delete::PkgDeleteOptions),
 
     /// Demote a package from a specified channel
-    Demote(PkgDemoteOptions),
+    Demote(demote::PkgDemoteOptions),
 
     /// Returns Habitat Artifact dependencies, by default the direct dependencies
     /// of the package
-    Dependencies(PkgDependenciesOptions),
+    Dependencies(dependencies::PkgDependenciesOptions),
 
     /// Download Habitat artifacts (including dependencies and keys) from Builder
-    Download(PkgDownloadOptions),
+    Download(download::PkgDownloadOptions),
 
     /// Prints the runtime environment of a specific installed package
     Env(env::PkgEnvOptions),
@@ -89,7 +96,7 @@ pub(super) enum PkgCommand {
     Path(path::PkgPathOptions),
 
     /// Promote a package to a specified channel
-    Promote(PkgPromoteOptions),
+    Promote(promote::PkgPromoteOptions),
 
     /// Search installed Habitat packages for a given file
     Provides(PkgProvidesOptions),
@@ -120,8 +127,13 @@ impl PkgCommand {
             Self::Binlink(opts) => opts.do_binlink(ui),
             Self::Build(opts) => opts.do_build(ui, feature_flags).await,
             Self::Bulkupload(opts) => opts.do_bulkupload(ui).await,
+
+            Self::Channels(opts) => opts.do_channels(ui).await,
             Self::Config(opts) => opts.do_config(),
             Self::Delete(opts) => opts.do_delete(ui).await,
+            Self::Demote(opts) => opts.do_demote(ui).await,
+            Self::Dependencies(opts) => opts.do_dependencies(),
+            Self::Download(opts) => opts.do_download(ui).await,
 
             Self::Env(opts) => opts.do_env(),
 
@@ -130,6 +142,7 @@ impl PkgCommand {
             Self::Info(opts) => opts.do_info(ui),
 
             Self::Path(opts) => opts.do_path(),
+            Self::Promote(opts) => opts.do_promote(ui).await,
             Self::Verify(opts) => opts.do_verify(ui),
             _ => todo!(),
         }
@@ -138,15 +151,6 @@ impl PkgCommand {
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgListOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgDemoteOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgPromoteOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgChannelsOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgUploadOptions;
@@ -165,9 +169,6 @@ pub(crate) struct PkgSearchOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgSignOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgDependenciesOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgDownloadOptions;
