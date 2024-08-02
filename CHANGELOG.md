@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1116 -->
-## [1.6.1116](https://github.com/habitat-sh/habitat/tree/1.6.1116) (2024-08-02)
+<!-- latest_release 1.6.1117 -->
+## [1.6.1117](https://github.com/habitat-sh/habitat/tree/1.6.1117) (2024-08-02)
 
 #### Merged Pull Requests
-- Bump bytes from 1.6.1 to 1.7.1 [#9342](https://github.com/habitat-sh/habitat/pull/9342) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_json from 1.0.121 to 1.0.122 [#9343](https://github.com/habitat-sh/habitat/pull/9343) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.121 to 1.0.122 [#9343](https://github.com/habitat-sh/habitat/pull/9343) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1117 -->
 - Bump bytes from 1.6.1 to 1.7.1 [#9342](https://github.com/habitat-sh/habitat/pull/9342) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1116 -->
 - fix external binary test when help is multiline [#9338](https://github.com/habitat-sh/habitat/pull/9338) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1115 -->
 - Bump tokio from 1.38.1 to 1.39.2 [#9337](https://github.com/habitat-sh/habitat/pull/9337) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1115 -->
