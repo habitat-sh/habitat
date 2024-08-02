@@ -2,7 +2,8 @@ use clap_v4 as clap;
 
 use clap::Parser;
 
-use habitat_common::{FeatureFlag, ui::UI};
+use habitat_common::{ui::UI,
+                     FeatureFlag};
 
 use crate::{cli::AFTER_HELP,
             error::Result as HabResult,
