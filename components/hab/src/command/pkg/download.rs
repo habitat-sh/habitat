@@ -100,7 +100,7 @@ impl PackageSetFile {
                         for pkg_set in pkg_sets {
                             let mut idents = vec![];
                             for package in &pkg_set.packages {
-                                let ident = PackageIdent::from_str(&package).map_err(Error::from)?;
+                                let ident = PackageIdent::from_str(package).map_err(Error::from)?;
                                 idents.push(ident);
                             }
                             sets.push(PackageSet { target: *target,
@@ -111,7 +111,7 @@ impl PackageSetFile {
                     Ok(sets)
                 }
             }
-            None => Err(Error::PackageSetParseError(format!("format_version missing!"))),
+            None => Err(Error::PackageSetParseError("format_version missing!".to_string())),
         }
     }
 }
