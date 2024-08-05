@@ -29,6 +29,8 @@ mod header;
 
 mod info;
 
+mod list;
+
 mod path;
 mod promote;
 
@@ -90,7 +92,7 @@ pub(super) enum PkgCommand {
     Install(PkgInstallOptions),
 
     /// List all versions of installed packages
-    List(PkgListOptions),
+    List(list::PkgListOptions),
 
     /// Prints the path to a specific installed release of a package
     Path(path::PkgPathOptions),
@@ -141,6 +143,8 @@ impl PkgCommand {
             Self::Header(opts) => opts.do_header(ui),
             Self::Info(opts) => opts.do_info(ui),
 
+            Self::List(opts) => opts.do_list(),
+
             Self::Path(opts) => opts.do_path(),
             Self::Promote(opts) => opts.do_promote(ui).await,
             Self::Verify(opts) => opts.do_verify(ui),
@@ -148,9 +152,6 @@ impl PkgCommand {
         }
     }
 }
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgListOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgUploadOptions;
@@ -169,9 +170,6 @@ pub(crate) struct PkgSearchOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgSignOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgDownloadOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgExecOptions;
