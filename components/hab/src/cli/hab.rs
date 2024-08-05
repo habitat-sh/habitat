@@ -59,7 +59,7 @@ use self::{bldr::*,
                   UserKeyGenerate},
            util::{CacheKeyPath,
                   ConfigOptCacheKeyPath}};
-use crate::{cli::AFTER_HELP,
+use crate::{AFTER_HELP,
             VERSION};
 use configopt::ConfigOpt;
 use structopt::{clap::AppSettings,

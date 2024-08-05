@@ -5,8 +5,8 @@ use clap::Parser;
 use habitat_common::{ui::UI,
                      FeatureFlag};
 
-use crate::{cli::AFTER_HELP,
-            error::Result as HabResult,
+use crate::{error::Result as HabResult,
+            AFTER_HELP,
             VERSION};
 
 mod pkg;

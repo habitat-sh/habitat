@@ -34,7 +34,10 @@ pub enum Error {
     CannotRemovePackage(hcore::package::PackageIdent, usize),
     CommandNotFoundInPkg((String, String)),
     CliConfig(cli_config::Error),
+
+    #[cfg(feature = "v2")]
     ConfigOpt(configopt::Error),
+
     CryptoCLI(String),
     CtlClient(SrvClientError),
     CtrlcError(ctrlc::Error),
@@ -112,7 +115,11 @@ impl fmt::Display for Error {
                         c, p)
             }
             Error::CliConfig(ref err) => format!("{}", err),
+
+            // TODO: Remove after `v2` is removed
+            #[cfg(feature = "v2")]
             Error::ConfigOpt(ref err) => format!("{}", err),
+
             Error::CryptoCLI(ref e) => e.to_string(),
             Error::CtlClient(ref e) => e.to_string(),
             Error::CtrlcError(ref err) => format!("{}", err),
@@ -234,6 +241,7 @@ impl From<cli_config::Error> for Error {
     fn from(err: cli_config::Error) -> Self { Error::CliConfig(err) }
 }
 
+#[cfg(feature = "v2")]
 impl From<configopt::Error> for Error {
     fn from(err: configopt::Error) -> Self { Error::ConfigOpt(err) }
 }
