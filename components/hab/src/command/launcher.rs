@@ -1,5 +1,4 @@
-use crate::{cli::hab::sup::SupRun,
-            command::sup::{SUP_CMD,
+use crate::{command::sup::{SUP_CMD,
                            SUP_CMD_ENVVAR,
                            SUP_PKG_IDENT},
             common::ui::UI,
@@ -12,14 +11,19 @@ use crate::{cli::hab::sup::SupRun,
                     os::process,
                     package::PackageIdent},
             VERSION};
+
 use std::{ffi::OsString,
           path::PathBuf,
           str::FromStr};
+
+#[cfg(feature = "v2")]
+use crate::cli::hab::sup::SupRun;
 
 const LAUNCH_CMD: &str = "hab-launch";
 const LAUNCH_CMD_ENVVAR: &str = "HAB_LAUNCH_BINARY";
 const LAUNCH_PKG_IDENT: &str = "core/hab-launcher";
 
+#[cfg(feature = "v2")]
 pub async fn start(ui: &mut UI, sup_run: SupRun, args: &[OsString]) -> Result<()> {
     init()?;
     let channel = sup_run.shared_load.channel;

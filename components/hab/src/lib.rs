@@ -25,6 +25,11 @@ pub const PRODUCT: &str = "hab";
 pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 pub const ORIGIN_ENVVAR: &str = "HAB_ORIGIN";
 pub const BLDR_URL_ENVVAR: &str = "HAB_BLDR_URL";
+pub const AFTER_HELP: &str =
+    "\nALIASES:\n    apply      Alias for: 'config apply'\n    install    Alias for: 'pkg \
+     install'\n    run        Alias for: 'sup run'\n    setup      Alias for: 'cli setup'\n    \
+     start      Alias for: 'svc start'\n    stop       Alias for: 'svc stop'\n    term       \
+     Alias for: 'sup term'\n";
 
 pub use crate::hcore::AUTH_TOKEN_ENVVAR;
 

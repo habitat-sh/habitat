@@ -121,6 +121,7 @@ lazy_static! {
     };
 }
 
+#[cfg(feature = "v2")]
 pub(crate) async fn main_v2() {
     env_logger::init();
     let mut ui = UI::default_with_env();
@@ -131,6 +132,9 @@ pub(crate) async fn main_v2() {
         std::process::exit(exit_code)
     }
 }
+
+#[cfg(feature = "v4")]
+pub(crate) async fn main_v2() {}
 
 #[allow(clippy::cognitive_complexity)]
 async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
