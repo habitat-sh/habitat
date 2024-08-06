@@ -23,7 +23,7 @@ Describe "event stream connected to automate" {
         $env:DOCKER_BUILDKIT=1
         try {
             Write-Host "Building automate image..."
-            $output = docker build --build-arg A2_LICENSE="${A2_LICENSE}" --progress=plain -t automate ./test/end-to-end/automate
+            $output = docker build --build-arg A2_LICENSE="$env:A2_LICENSE" --progress=plain -t automate ./test/end-to-end/automate
             if ($LASTEXITCODE -ne 0) {
                 throw "Docker build failed with exit code $LASTEXITCODE. Output: $output"
             }
