@@ -746,6 +746,10 @@ steps:
     artifact_paths:
       - "*.log"
     expeditor:
+      secrets:
+        A2_LICENSE:
+          path: secret/a2/license
+          field: license
       executor:
         linux:
           single-use: true
