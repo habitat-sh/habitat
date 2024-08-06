@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1118 -->
-## [1.6.1118](https://github.com/habitat-sh/habitat/tree/1.6.1118) (2024-08-06)
+<!-- latest_release 1.6.1119 -->
+## [1.6.1119](https://github.com/habitat-sh/habitat/tree/1.6.1119) (2024-08-06)
 
 #### Merged Pull Requests
-- Bump flate2 from 1.0.30 to 1.0.31 [#9347](https://github.com/habitat-sh/habitat/pull/9347) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Apply Automate License in e2e event stream test [#9348](https://github.com/habitat-sh/habitat/pull/9348) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Apply Automate License in e2e event stream test [#9348](https://github.com/habitat-sh/habitat/pull/9348) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1119 -->
 - Bump flate2 from 1.0.30 to 1.0.31 [#9347](https://github.com/habitat-sh/habitat/pull/9347) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1118 -->
 - Bump serde_json from 1.0.121 to 1.0.122 [#9343](https://github.com/habitat-sh/habitat/pull/9343) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1117 -->
 - Bump bytes from 1.6.1 to 1.7.1 [#9342](https://github.com/habitat-sh/habitat/pull/9342) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1116 -->
