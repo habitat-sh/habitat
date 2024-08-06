@@ -94,7 +94,7 @@ impl PkgDownloadOptions {
         package_sets.retain(|set| !set.idents.is_empty());
 
         download::start(ui,
-                        self.bldr_url.as_str(),
+                        &self.bldr_url.to_string(),
                         PRODUCT,
                         VERSION,
                         &package_sets,

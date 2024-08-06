@@ -47,7 +47,7 @@ impl PkgChannelsOptions {
                                     });
 
         channels::start(ui,
-                        self.bldr_url.as_str(),
+                        &self.bldr_url.to_string(),
                         (&self.pkg_ident, target),
                         auth_token.as_deref()).await
     }

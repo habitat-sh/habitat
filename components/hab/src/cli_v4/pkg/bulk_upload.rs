@@ -70,7 +70,7 @@ impl PkgBulkUploadOptions {
         let auth_token = self.auth_token.from_cli_or_config()?;
 
         bulkupload::start(ui,
-                          self.bldr_url.as_str(),
+                          &self.bldr_url.to_string(),
                           &self.channel,
                           &auth_token,
                           &artifact_path,
