@@ -15,7 +15,10 @@ use url::Url;
 use habitat_common::cli_config::CliConfig;
 
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
-                   fs::CACHE_KEY_PATH};
+                   env as hcore_env,
+                   fs::CACHE_KEY_PATH,
+                   url::{BLDR_URL_ENVVAR,
+                         DEFAULT_BLDR_URL}};
 
 use crate::error::{Error as HabError,
                    Result as HabResult};
@@ -46,16 +49,28 @@ impl From<&CacheKeyPath> for PathBuf {
 pub(crate) struct BldrUrl {
     // TODO:agadgil: Use the Url Validator
     /// Specify an alternate Builder endpoint.
-    #[arg(name = "BLDR_URL",
-          short = 'u',
-          long = "url",
-          env = "HAB_BLDR_URL",
-          default_value = "https://bldr.habitat.sh")]
-    bldr_url: Url,
+    #[arg(name = "BLDR_URL", short = 'u', long = "url")]
+    bldr_url: Option<Url>,
 }
 
 impl BldrUrl {
-    pub(crate) fn as_str(&self) -> &str { self.bldr_url.as_str() }
+    //
+    pub(crate) fn to_string(&self) -> String {
+        if let Some(url) = &self.bldr_url {
+            url.to_string()
+        } else {
+            match hcore_env::var(BLDR_URL_ENVVAR) {
+                Ok(v) => v,
+                Err(_) => {
+                    // Okay to unwrap it never returns Err!!
+                    match CliConfig::load().unwrap().bldr_url {
+                        Some(v) => v,
+                        None => DEFAULT_BLDR_URL.to_string(),
+                    }
+                }
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, Parser)]

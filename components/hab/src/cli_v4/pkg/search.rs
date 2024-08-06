@@ -32,7 +32,7 @@ impl PkgSearchOptions {
         let auth_token = self.auth_token.try_from_cli_or_config();
 
         search::start(&self.search_term,
-                      self.bldr_url.as_str(),
+                      &self.bldr_url.to_string(),
                       self.limit,
                       auth_token.as_deref()).await
     }

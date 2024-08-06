@@ -52,7 +52,7 @@ impl PkgDemoteOptions {
                                     });
 
         demote::start(ui,
-                      self.bldr_url.as_str(),
+                      &self.bldr_url.to_string(),
                       (&self.pkg_ident, target),
                       &self.channel,
                       auth_token.as_str()).await

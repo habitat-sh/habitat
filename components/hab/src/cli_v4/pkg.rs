@@ -2,8 +2,7 @@
 
 use clap_v4 as clap;
 
-use clap::{Parser,
-           Subcommand};
+use clap::Subcommand;
 
 use habitat_common::{ui::UI,
                      FeatureFlag};
@@ -35,9 +34,11 @@ mod hash;
 mod header;
 
 mod info;
+mod install;
 
 mod list;
 
+mod uninstall;
 mod upload;
 
 mod path;
@@ -106,7 +107,7 @@ pub(super) enum PkgCommand {
     Info(info::PkgInfoOptions),
 
     /// Installs a Habitat package from Builder or locally from a Habitat Artifact
-    Install(PkgInstallOptions),
+    Install(install::PkgInstallOptions),
 
     /// List all versions of installed packages
     List(list::PkgListOptions),
@@ -127,7 +128,7 @@ pub(super) enum PkgCommand {
     Sign(sign::PkgSignOptions),
 
     /// Safely uninstall a package and dependencies from a local filesystem
-    Uninstall(PkgUninstallOptions),
+    Uninstall(uninstall::PkgUninstallOptions),
 
     /// Uploads a local Habitat Artifact to Builder
     Upload(upload::PkgUploadOptions),
@@ -149,6 +150,7 @@ impl PkgCommand {
 
             Self::Channels(opts) => opts.do_channels(ui).await,
             Self::Config(opts) => opts.do_config(),
+
             Self::Delete(opts) => opts.do_delete(ui).await,
             Self::Demote(opts) => opts.do_demote(ui).await,
             Self::Dependencies(opts) => opts.do_dependencies(),
@@ -156,7 +158,6 @@ impl PkgCommand {
 
             Self::Env(opts) => opts.do_env(),
             Self::Exec(opts) => opts.do_exec(),
-
             #[cfg(any(all(target_os = "linux",
                           any(target_arch = "x86_64", target_arch = "aarch64")),
                       all(target_os = "windows", target_arch = "x86_64")))]
@@ -167,6 +168,7 @@ impl PkgCommand {
             Self::Header(opts) => opts.do_header(ui),
 
             Self::Info(opts) => opts.do_info(ui),
+            Self::Install(opts) => opts.do_install(ui, feature_flags).await,
 
             Self::List(opts) => opts.do_list(),
 
@@ -177,16 +179,10 @@ impl PkgCommand {
             Self::Search(opts) => opts.do_search().await,
             Self::Sign(opts) => opts.do_sign(ui),
 
+            Self::Uninstall(opts) => opts.do_uninstall(ui).await,
             Self::Upload(opts) => opts.do_upload(ui).await,
 
             Self::Verify(opts) => opts.do_verify(ui),
-            _ => todo!(),
         }
     }
 }
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgUninstallOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgInstallOptions;

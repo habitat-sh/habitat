@@ -66,7 +66,7 @@ impl PkgUploadOptions {
 
         for hart_file in &self.hart_file {
             upload::start(ui,
-                          self.bldr_url.as_str(),
+                          &self.bldr_url.to_string(),
                           &self.channel,
                           &auth_token,
                           hart_file,
