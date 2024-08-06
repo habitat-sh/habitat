@@ -994,7 +994,7 @@ fn create_user_environment(token: HANDLE,
         let mut new_env: Vec<u16> = Vec::new();
         let mut block = ptr::null_mut();
         cvt(Environment::CreateEnvironmentBlock(&mut block,
-                                                token as isize,
+                                                token as *mut std::ffi::c_void,
                                                 FALSE))?;
         let mut tail: u32 = MAXDWORD;
         let mut offset = 0;
