@@ -17,12 +17,19 @@ mod bulk_upload;
 
 mod channels;
 mod config;
+
 mod delete;
 mod demote;
 mod dependencies;
 mod download;
 
 mod env;
+mod exec;
+
+#[cfg(any(all(target_os = "linux",
+              any(target_arch = "x86_64", target_arch = "aarch64")),
+          all(target_os = "windows", target_arch = "x86_64")))]
+mod export;
 
 mod hash;
 mod header;
@@ -31,8 +38,14 @@ mod info;
 
 mod list;
 
+mod upload;
+
 mod path;
 mod promote;
+mod provides;
+
+mod search;
+mod sign;
 
 mod verify;
 
@@ -74,10 +87,14 @@ pub(super) enum PkgCommand {
     Env(env::PkgEnvOptions),
 
     /// Execute a command using the 'PATH' context of an installed package
-    Exec(PkgExecOptions),
+    Exec(exec::PkgExecOptions),
 
+    #[cfg(any(all(target_os = "linux",
+                  any(target_arch = "x86_64", target_arch = "aarch64")),
+              all(target_os = "windows", target_arch = "x86_64")))]
+    #[clap(subcommand)]
     /// Exports the package to the specified format
-    Export(PkgExportOptions),
+    Export(export::PkgExportCommand),
 
     /// Generates a blake2b hashsum from a target at any given filepath
     Hash(hash::PkgHashOptions),
@@ -101,19 +118,19 @@ pub(super) enum PkgCommand {
     Promote(promote::PkgPromoteOptions),
 
     /// Search installed Habitat packages for a given file
-    Provides(PkgProvidesOptions),
+    Provides(provides::PkgProvidesOptions),
 
     /// Search for a package in Builder
-    Search(PkgSearchOptions),
+    Search(search::PkgSearchOptions),
 
     /// Signs an archive with an origin key, generating a Habitat Artifact
-    Sign(PkgSignOptions),
+    Sign(sign::PkgSignOptions),
 
     /// Safely uninstall a package and dependencies from a local filesystem
     Uninstall(PkgUninstallOptions),
 
     /// Uploads a local Habitat Artifact to Builder
-    Upload(PkgUploadOptions),
+    Upload(upload::PkgUploadOptions),
 
     /// Verifies a Habitat Architect with an origin key
     Verify(verify::PkgVerifyOptions),
@@ -138,15 +155,30 @@ impl PkgCommand {
             Self::Download(opts) => opts.do_download(ui).await,
 
             Self::Env(opts) => opts.do_env(),
+            Self::Exec(opts) => opts.do_exec(),
+
+            #[cfg(any(all(target_os = "linux",
+                          any(target_arch = "x86_64", target_arch = "aarch64")),
+                      all(target_os = "windows", target_arch = "x86_64")))]
+            #[clap(subcommand)]
+            Self::Export(cmd) => cmd.do_export(ui).await,
 
             Self::Hash(opts) => opts.do_hash(),
             Self::Header(opts) => opts.do_header(ui),
+
             Self::Info(opts) => opts.do_info(ui),
 
             Self::List(opts) => opts.do_list(),
 
             Self::Path(opts) => opts.do_path(),
             Self::Promote(opts) => opts.do_promote(ui).await,
+            Self::Provides(opts) => opts.do_provides(),
+
+            Self::Search(opts) => opts.do_search().await,
+            Self::Sign(opts) => opts.do_sign(ui),
+
+            Self::Upload(opts) => opts.do_upload(ui).await,
+
             Self::Verify(opts) => opts.do_verify(ui),
             _ => todo!(),
         }
@@ -154,25 +186,7 @@ impl PkgCommand {
 }
 
 #[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgUploadOptions;
-
-#[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgUninstallOptions;
 
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgInstallOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgProvidesOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgSearchOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgSignOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgExecOptions;
-
-#[derive(Debug, Clone, Parser)]
-pub(crate) struct PkgExportOptions;
