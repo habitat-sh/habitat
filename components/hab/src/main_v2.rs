@@ -133,9 +133,6 @@ pub(crate) async fn main_v2() {
     }
 }
 
-#[cfg(feature = "v4")]
-pub(crate) async fn main_v2() {}
-
 #[allow(clippy::cognitive_complexity)]
 async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     // We parse arguments with configopt in a separate thread to eliminate

@@ -21,7 +21,8 @@ use crate::error::{Error as HabError,
                    Result as HabResult};
 
 lazy_static! {
-    pub static ref CACHE_KEY_PATH_DEFAULT: String = CACHE_KEY_PATH.to_string_lossy().to_string();
+    pub(crate) static ref CACHE_KEY_PATH_DEFAULT: String =
+        CACHE_KEY_PATH.to_string_lossy().to_string();
 }
 
 #[derive(Debug, Clone, Parser)]
