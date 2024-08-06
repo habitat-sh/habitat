@@ -21,5 +21,9 @@ ENV HAB_LICENSE=accept-no-persist
 RUN mkdir -p /hab/sup/default
 RUN ./chef-automate deploy config.toml --skip-preflight --accept-terms-and-mlsa
 
+# Deploy license
+ARG A2_LICENSE
+RUN ./chef-automate license apply "$A2_LICENSE"
+
 # This is how containers will start automate
 CMD hab sup run
