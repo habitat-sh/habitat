@@ -23,7 +23,7 @@ Describe "event stream connected to automate" {
         $env:DOCKER_BUILDKIT=1
         try {
             Write-Host "Building automate image..."
-            $output = docker build --build-arg A2_LICENSE="$env:A2_LICENSE" --progress=plain -t automate ./test/end-to-end/automate
+            $output = docker build --progress=plain -t automate ./test/end-to-end/automate
             if ($LASTEXITCODE -ne 0) {
                 throw "Docker build failed with exit code $LASTEXITCODE. Output: $output"
             }
@@ -36,6 +36,9 @@ Describe "event stream connected to automate" {
         Write-Host "Waiting for automate to get healthy..."
         docker exec $cid chef-automate status -w
         Write-Host "Automate is healthy!"
+        Write-Host "Applying automate license..."
+        docker exec $cid chef-automate license apply $env:A2_LICENSE
+        Write-Host "Creating auth token..."
         $authToken = $(docker exec $cid chef-automate iam token create my_token --admin)
         Write-Host "Obtained token: $authToken"
         $cert = New-TemporaryFile
