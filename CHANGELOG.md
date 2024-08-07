@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1120 -->
-## [1.6.1120](https://github.com/habitat-sh/habitat/tree/1.6.1120) (2024-08-07)
+<!-- latest_release 1.6.1121 -->
+## [1.6.1121](https://github.com/habitat-sh/habitat/tree/1.6.1121) (2024-08-07)
 
 #### Merged Pull Requests
-- Bump serde_test from 1.0.176 to 1.0.177 [#9349](https://github.com/habitat-sh/habitat/pull/9349) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tempfile from 3.11.0 to 3.12.0 [#9350](https://github.com/habitat-sh/habitat/pull/9350) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump tempfile from 3.11.0 to 3.12.0 [#9350](https://github.com/habitat-sh/habitat/pull/9350) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1121 -->
 - Bump serde_test from 1.0.176 to 1.0.177 [#9349](https://github.com/habitat-sh/habitat/pull/9349) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1120 -->
 - Bump tempfile from 3.10.1 to 3.11.0 [#9344](https://github.com/habitat-sh/habitat/pull/9344) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1120 -->
 - Bump rustls-pemfile from 2.1.2 to 2.1.3 [#9345](https://github.com/habitat-sh/habitat/pull/9345) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1120 -->
