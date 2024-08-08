@@ -251,10 +251,6 @@ pub enum InstallHookMode {
 /// package to satisfy a dependency, or if we should ignore it, thus
 /// giving the user the opportunity to try installing from another
 /// channel.
-///
-/// Usage of this is currently hidden behind the IGNORE_LOCAL feature
-/// flag, as there is still some question as to the best way to solve
-/// this.
 #[derive(Debug, Eq, PartialEq)]
 pub enum LocalPackageUsage {
     /// Use locally-installed packages if they satisfy the desired
@@ -531,7 +527,7 @@ impl<'a> InstallTask<'a> {
 
             match (latest_local, latest_remote) {
                 (Ok(local), Some(remote)) => {
-                    if local > remote {
+                    if local > remote && !self.ignore_locally_installed_packages() {
                         // Return the latest identifier reported by
                         // the Builder API *unless* there is a newer
                         // version found installed locally.
@@ -546,8 +542,6 @@ impl<'a> InstallTask<'a> {
                 }
                 (Ok(local), None) => {
                     if self.ignore_locally_installed_packages() {
-                        // This is the behavior that is currently
-                        // governed by the IGNORE_LOCAL feature-flag
                         self.recommend_channels(ui, (&ident, target), token).await?;
                         ui.warn(format!("Locally-installed package '{}' would satisfy '{}', \
                                          but we are ignoring that as directed",

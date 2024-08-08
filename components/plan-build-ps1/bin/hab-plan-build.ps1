@@ -85,6 +85,10 @@ if (!(Test-Path Env:\HAB_BLDR_CHANNEL)) {
 if (!(Test-Path Env:\HAB_FALLBACK_CHANNEL)) {
     $env:HAB_FALLBACK_CHANNEL = "stable"
 }
+# Use the refresh channel for dependencies in the core/chef/chef-platform origins
+if (!(Test-Path Env:\HAB_REFRESH_CHANNEL)) {
+    $env:HAB_REFRESH_CHANNEL = "LTS-2024"
+}
 # The value of `$env:Path` on initial start of this program
 $script:INITIAL_PATH = "$env:Path"
 # The full target tuple this plan will be built for
@@ -331,55 +335,22 @@ function Set-HabBin {
 
 function Install-Dependency($dependency, $install_args = $null) {
     if (!$env:NO_INSTALL_DEPS) {
-        $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $env:HAB_BLDR_CHANNEL $dependency $install_args"
-        if($env:HAB_FEAT_IGNORE_LOCAL -eq "true") { $cmd += " --ignore-local" }
+        $origin = $dependency.Split("/")[0]
+        $channel = $env:HAB_BLDR_CHANNEL
+        $ignoreLocal = ""
+        if ($origin -eq "core" -or $origin -eq "chef" -or $origin -eq "chef-platform") {
+            $channel="$env:HAB_REFRESH_CHANNEL"
+            if (!$env:HAB_PREFER_LOCAL_CHEF_DEPS) {
+                $ignoreLocal="--ignore-local"
+            }
+        }
+        $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $channel $dependency $install_args $ignoreLocal"
         Invoke-Expression $cmd
-        if ($LASTEXITCODE -ne 0 -and ($env:HAB_BLDR_CHANNEL -ne $env:HAB_FALLBACK_CHANNEL)) {
+        if ($LASTEXITCODE -ne 0 -and ($channel -ne $env:HAB_FALLBACK_CHANNEL)) {
             Write-BuildLine "Trying to install '$dependency' from '$env:HAB_FALLBACK_CHANNEL'"
-            $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $env:HAB_FALLBACK_CHANNEL $dependency $install_args"
-            if($env:HAB_FEAT_IGNORE_LOCAL -eq "true") { $cmd += " --ignore-local" }
+            $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $env:HAB_FALLBACK_CHANNEL $dependency $install_args $ignoreLocal"
             Invoke-Expression $cmd
         }
-    }
-}
-
-# **Internal** Return the path to the latest release of a package on stdout.
-#
-# ```
-# _latest_installed_package acme/nginx
-# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
-# _latest_installed_package acme/nginx/1.8.0
-# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
-# _latest_installed_package acme/nginx/1.8.0/20150911120000
-# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
-# ```
-#
-# Will return the package found on disk, and $false if a package cannot be found.
-function _latest_installed_package($dependency) {
-    if (!(Test-Path "$HAB_PKG_PATH/$dependency")) {
-        Write-Warning "No installed packages of '$dependency' were found"
-        return $false
-    }
-
-    $result = Get-ChildItem "$HAB_PKG_PATH/$dependency" -Recurse -Include MANIFEST -ErrorAction SilentlyContinue
-    if (!$result) {
-        Write-Warning "Could not find a suitable installed package for '$dependency'"
-        return $false
-    } else {
-        return Split-Path ($result[-1].FullName) -Parent
-    }
-}
-
-function Resolve-Dependency($dependency) {
-    if (!$dependency.Contains("/")) {
-        Write-Warning "Origin required for '$dependency' in plan '$pkg_origin/$pkg_name' (example: acme/$dependency)"
-        return $false
-    }
-
-    if ($dep_path = _latest_installed_package $dependency) {
-        return $dep_path
-    } else {
-        return $false
     }
 }
 
@@ -658,10 +629,17 @@ function Resolve-ScaffoldingDependencyList {
 
     if($pkg_scaffolding) {
         $pkg_scaffolding = @($pkg_scaffolding)[0]
-        Install-Dependency $pkg_scaffolding
+        $oldEncoding = [Console]::OutputEncoding
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        $res = Install-Dependency $pkg_scaffolding | Out-String
+        Write-Host $res
+        [Console]::OutputEncoding = $oldEncoding
+        if($res.Split("`n")[-2] -match "\S+/\S+") {
+            $resolved = $Matches[0]
+        }
         # Add scaffolding package to the list of scaffolding build deps
         $scaff_build_deps += $pkg_scaffolding
-        if($resolved=(Resolve-Dependency $pkg_scaffolding)) {
+        if($resolved) {
             Write-BuildLine "Resolved scaffolding dependency '$pkg_scaffolding' to $resolved"
             $scaff_build_deps_resolved+=($resolved)
             $sdeps=(@(Get-DepsFor $resolved) + @(Get-BuildDepsFor $resolved))
@@ -742,10 +720,17 @@ function Resolve-BuildDependencyList {
     # Build `${pkg_build_deps_resolved[@]}` containing all resolved direct build
     # dependencies.
     foreach($dep in $pkg_build_deps) {
-        Install-Dependency $dep
-        if($resolved=(Resolve-Dependency $dep)) {
+        $oldEncoding = [Console]::OutputEncoding
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        $res = Install-Dependency $dep | Out-String
+        Write-Host $res
+        [Console]::OutputEncoding = $oldEncoding
+        if($res.Split("`n")[-2] -match "\S+/\S+") {
+            $resolved = $Matches[0]
+        }
+        if($resolved) {
             Write-BuildLine "Resolved build dependency '$dep' to $resolved"
-            $script:pkg_build_deps_resolved+=($resolved)
+            $script:pkg_build_deps_resolved+=(Resolve-Path "$HAB_PKG_PATH/$resolved").Path
         } else {
             throw "Resolving '$dep' failed, should this be built first?"
         }
@@ -758,10 +743,17 @@ function Resolve-RunDependencyList {
     # Build `${pkg_deps_resolved[@]}` containing all resolved direct run
     # dependencies.
     foreach($dep in $pkg_deps) {
-        Install-Dependency $dep "--ignore-install-hook"
-        if ($resolved=(Resolve-Dependency $dep)) {
+        $oldEncoding = [Console]::OutputEncoding
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        $res = Install-Dependency $dep --ignore-install-hook | Out-String
+        Write-Host $res
+        [Console]::OutputEncoding = $oldEncoding
+        if($res.Split("`n")[-2] -match "\S+/\S+") {
+            $resolved = $Matches[0]
+        }
+        if ($resolved) {
             Write-BuildLine "Resolved dependency '$dep' to $resolved"
-            $script:pkg_deps_resolved+=$resolved
+            $script:pkg_deps_resolved+=(Resolve-Path "$HAB_PKG_PATH/$resolved").Path
         } else {
             throw "Resolving '$dep' failed, should this be built first?"
         }

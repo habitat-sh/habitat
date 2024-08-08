@@ -70,6 +70,8 @@ COMMON FLAGS:
 COMMON OPTIONS:
     -a <ARTIFACT_PATH>    Sets the source artifact cache path (default: /hab/cache/artifacts)
     -c <CERT_PATH>        Sets the SSL certs cache path (default: /hab/cache/ssl)
+    -f <REFRESH_CHANNEL>  Sets the channel used to retrieve plan dpendencies for Chef
+                          supported origins (default: LTS-2024)
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
     -r <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
     -s <SRC_PATH>         Sets the source path (default: \$PWD)
@@ -86,27 +88,28 @@ SUBCOMMANDS:
     version   Prints version information
 
 ENVIRONMENT VARIABLES:
-    ARTIFACT_PATH          Sets the source artifact cache path (\`-a' option overrides)
-    CERT_PATH              Sets the SSL cert cache path (\`-c' option overrides)
-    HAB_NOCOLORING         Disables text coloring mode despite TERM capabilities
-    HAB_NONINTERACTIVE     Disables interactive progress bars despite tty
-    HAB_LICENSE            Set to 'accept' or 'accept-no-persist' to accept the Habitat license
-    HAB_ORIGIN             Propagates this variable into any studios
-    HAB_ORIGIN_KEYS        Installs secret keys (\`-k' option overrides)
-    HAB_STUDIOS_HOME       Sets a home path for all Studios (default: /hab/studios)
-    HAB_STUDIO_NOSTUDIORC  Disables sourcing a \`.studiorc' in \`studio enter'
-    HAB_STUDIO_ROOT        Sets a Studio root (\`-r' option overrides)
-    HAB_STUDIO_SUP         Sets args for a Supervisor in \`studio enter'
-    NO_ARTIFACT_PATH       If set, do not mount the source artifact cache path (\`-N' flag overrides)
-    NO_CERT_PATH           If set, do not mount the SSL cert cache path (\`-M' flag overrides)
-    NO_SRC_PATH            If set, do not mount the source path (\`-n' flag overrides)
-    QUIET                  Prints less output (\`-q' flag overrides)
-    SRC_PATH               Sets the source path (\`-s' option overrides)
-    STUDIO_TYPE            Sets a Studio type when creating (\`-t' option overrides)
-    VERBOSE                Prints more verbose output (\`-v' flag overrides)
-    http_proxy             Sets an http_proxy environment variable inside the Studio
-    https_proxy            Sets an https_proxy environment variable inside the Studio
-    no_proxy               Sets a no_proxy environment variable inside the Studio
+    ARTIFACT_PATH               Sets the source artifact cache path (\`-a' option overrides)
+    CERT_PATH                   Sets the SSL cert cache path (\`-c' option overrides)
+    HAB_NOCOLORING              Disables text coloring mode despite TERM capabilities
+    HAB_NONINTERACTIVE          Disables interactive progress bars despite tty
+    HAB_LICENSE                 Set to 'accept' or 'accept-no-persist' to accept the Habitat license
+    HAB_ORIGIN                  Propagates this variable into any studios
+    HAB_ORIGIN_KEYS             Installs secret keys (\`-k' option overrides)
+    HAB_PREFER_LOCAL_CHEF_DEPS  Use locally installed Chef supported dependencies if available
+    HAB_STUDIOS_HOME            Sets a home path for all Studios (default: /hab/studios)
+    HAB_STUDIO_NOSTUDIORC       Disables sourcing a \`.studiorc' in \`studio enter'
+    HAB_STUDIO_ROOT             Sets a Studio root (\`-r' option overrides)
+    HAB_STUDIO_SUP              Sets args for a Supervisor in \`studio enter'
+    NO_ARTIFACT_PATH            If set, do not mount the source artifact cache path (\`-N' flag overrides)
+    NO_CERT_PATH                If set, do not mount the SSL cert cache path (\`-M' flag overrides)
+    NO_SRC_PATH                 If set, do not mount the source path (\`-n' flag overrides)
+    QUIET                       Prints less output (\`-q' flag overrides)
+    SRC_PATH                    Sets the source path (\`-s' option overrides)
+    STUDIO_TYPE                 Sets a Studio type when creating (\`-t' option overrides)
+    VERBOSE                     Prints more verbose output (\`-v' flag overrides)
+    http_proxy                  Sets an http_proxy environment variable inside the Studio
+    https_proxy                 Sets an https_proxy environment variable inside the Studio
+    no_proxy                    Sets a no_proxy environment variable inside the Studio
 
 SUBCOMMAND HELP:
     $program <SUBCOMMAND> -h
@@ -854,6 +857,11 @@ chroot_env() {
   if [ -n "${HAB_BLDR_CHANNEL:-}" ]; then
     env="$env HAB_BLDR_CHANNEL=$HAB_BLDR_CHANNEL"
   fi
+  # If a Habitat refresh Channel is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_REFRESH_CHANNEL:-}" ]; then
+    env="$env HAB_REFRESH_CHANNEL=$HAB_REFRESH_CHANNEL"
+  fi
   # If a no coloring environment variable is set, then propagate it into the Studio's
   # environment.
   if [ -n "${HAB_NOCOLORING:-}" ]; then
@@ -971,7 +979,9 @@ report_env_vars() {
   if [ -n "${no_proxy:-}" ]; then
     info "Exported: no_proxy=$no_proxy"
   fi
-
+  if [ -n "${HAB_REFRESH_CHANNEL:-}" ]; then
+    info "Exported: HAB_REFRESH_CHANNEL=$HAB_REFRESH_CHANNEL"
+  fi
   for secret_name in $(load_secrets | $bb cut -d = -f 1); do
     info "Exported: $secret_name=[redacted]"
   done
@@ -1267,13 +1277,16 @@ ensure_root
 # ## CLI Argument Parsing
 
 # Parse command line flags and options.
-while getopts ":nNMa:c:k:r:s:t:D:vqVh" opt; do
+while getopts ":nNMa:c:f:k:r:s:t:D:vqVh" opt; do
   case $opt in
     a)
       ARTIFACT_PATH=$OPTARG
       ;;
     c)
       CERT_PATH=$OPTARG
+      ;;
+    f)
+      export HAB_REFRESH_CHANNEL="$OPTARG"
       ;;
     n)
       NO_SRC_PATH=true
