@@ -1,10 +1,11 @@
-use crate::naming::Naming;
-pub use crate::{build::BuildSpec,
-                cli::cli,
-                container::{BuildContext,
-                            ContainerImage},
-                engine::Engine,
-                error::Error};
+use crate::{build::BuildSpec,
+            cli::cli,
+            container::{BuildContext,
+                        ContainerImage},
+            engine::Engine,
+            error::Error,
+            naming::Naming};
+
 use anyhow::Result;
 use habitat_common::ui::{Status,
                          UIWriter,
@@ -27,7 +28,9 @@ use std::{convert::TryFrom,
 #[cfg(not(windows))]
 use crate::engine::fail_if_buildah_and_multilayer;
 
+#[cfg(unix)]
 mod accounts;
+
 mod build;
 mod cli;
 mod container;
@@ -45,10 +48,11 @@ pub(crate) use value_parsers::{HabHartIdParser,
                                UrlValueParser};
 
 /// The version of this library and program when built.
-pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 /// The Habitat Package Identifier string for a Busybox package.
 const BUSYBOX_IDENT: &str = "core/busybox-static";
+
 /// The Habitat Package Identifier string for SSL certificate authorities (CA) certificates package.
 const CACERTS_IDENT: &str = "core/cacerts";
 
@@ -61,13 +65,18 @@ const DEFAULT_BASE_IMAGE: &str = "mcr.microsoft.com/windows/servercore";
 const DEFAULT_HAB_IDENT: &str = "core/hab";
 const DEFAULT_LAUNCHER_IDENT: &str = "core/hab-launcher";
 const DEFAULT_SUP_IDENT: &str = "core/hab-sup";
+
+#[cfg(unix)]
 const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
 
+#[cfg(unix)]
 const DEFAULT_HAB_UID: u32 = 84;
+
+#[cfg(unix)]
 const DEFAULT_HAB_GID: u32 = 84;
 
 #[derive(Clone, Copy, Debug, Default, clap::ValueEnum)]
-pub enum RegistryType {
+pub(crate) enum RegistryType {
     Amazon,
     Azure,
     #[default]
@@ -102,12 +111,15 @@ impl fmt::Display for RegistryType {
 ///
 /// This is a value struct which references username and password values.
 #[derive(Debug)]
-pub struct Credentials {
-    pub token: String,
+pub(crate) struct Credentials {
+    token: String,
 }
 
 impl Credentials {
-    pub async fn new(registry_type: RegistryType, username: &str, password: &str) -> Result<Self> {
+    pub(crate) async fn new(registry_type: RegistryType,
+                            username: &str,
+                            password: &str)
+                            -> Result<Self> {
         match registry_type {
             RegistryType::Amazon => {
                 // The username and password should be valid IAM credentials
@@ -150,9 +162,9 @@ impl Credentials {
 /// * Pushing the image to remote registry fails.
 /// * Parsing of credentials fails.
 /// * The image (tags) cannot be removed.
-pub async fn export_for_cli_matches(ui: &mut UI,
-                                    matches: &clap::ArgMatches)
-                                    -> Result<Option<ContainerImage>> {
+async fn export_for_cli_matches(ui: &mut UI,
+                                matches: &clap::ArgMatches)
+                                -> Result<Option<ContainerImage>> {
     os::ensure_proper_docker_platform()?;
 
     #[cfg(not(windows))]
@@ -261,4 +273,12 @@ fn create_docker_config_file(credentials: &Credentials,
 
     util::write_file(config, &serde_json::to_string(&json).unwrap())?;
     Ok(())
+}
+
+/// cli_driver: Public API for the package
+pub async fn cli_driver(ui: &mut UI) -> Result<()> {
+    let cli = cli();
+    let m = cli.get_matches();
+    debug!("clap cli args: {:?}", m);
+    export_for_cli_matches(ui, &m).await.map(|_| ())
 }

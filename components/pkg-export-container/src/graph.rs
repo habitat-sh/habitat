@@ -6,17 +6,17 @@ use habitat_core::package::{FullyQualifiedPackageIdent,
 use linked_hash_map::LinkedHashMap;
 use std::path::Path;
 
-pub struct Graph {
+pub(crate) struct Graph {
     g:    PackageGraph,
     base: BasePkgIdents,
     user: Vec<FullyQualifiedPackageIdent>,
 }
 
 impl Graph {
-    pub fn from_packages(base: BasePkgIdents,
-                         user: Vec<FullyQualifiedPackageIdent>,
-                         rootfs: &Path)
-                         -> Result<Graph> {
+    pub(crate) fn from_packages(base: BasePkgIdents,
+                                user: Vec<FullyQualifiedPackageIdent>,
+                                rootfs: &Path)
+                                -> Result<Graph> {
         let g = PackageGraph::from_root_path(rootfs)?;
         Ok(Graph { g, base, user })
     }
@@ -65,7 +65,7 @@ impl Graph {
     /// User packages will be last. Ideally, as users are iterating on
     /// their packages and creating images, this should mean that all
     /// the dependencies are already available as cached layers.
-    pub fn reverse_topological_sort(&self) -> Vec<PackageIdent> {
+    pub(crate) fn reverse_topological_sort(&self) -> Vec<PackageIdent> {
         self.idents_from_base()
             .into_iter()
             .chain(self.user_idents())

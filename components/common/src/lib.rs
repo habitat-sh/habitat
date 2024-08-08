@@ -23,6 +23,8 @@ pub mod types;
 pub mod ui;
 pub mod util;
 
+pub mod cfg_macros;
+
 use log::error;
 
 lazy_static::lazy_static! {

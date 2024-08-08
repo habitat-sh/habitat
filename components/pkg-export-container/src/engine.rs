@@ -59,7 +59,7 @@ enum EngineError {
 /// When https://github.com/containers/buildah/issues/2215 is fixed,
 /// we can update our Buildah dependency and remove this check.
 #[cfg(not(windows))]
-pub fn fail_if_buildah_and_multilayer(matches: &ArgMatches) -> Result<()> {
+pub(crate) fn fail_if_buildah_and_multilayer(matches: &ArgMatches) -> Result<()> {
     if matches.get_one::<EngineKind>("ENGINE") == Some(&EngineKind::Buildah)
        && matches.get_flag("MULTI_LAYER")
     {
@@ -106,7 +106,7 @@ impl std::fmt::Display for EngineKind {
 /// Define the CLAP CLI argument for specifying a container build
 /// engine to use.
 #[rustfmt::skip] // otherwise the long_help formatting goes crazy
-pub fn cli_arg() -> Arg {
+pub(crate) fn cli_arg() -> Arg {
     let arg =
         Arg::new("ENGINE").value_name("ENGINE")
         .value_parser(value_parser!(EngineKind))
@@ -152,7 +152,7 @@ impl TryFrom<&ArgMatches> for Box<dyn Engine> {
     }
 }
 
-pub trait Engine {
+pub(crate) trait Engine {
     /// A command that takes a container image reference and returns
     /// the ID of that image on the first line of standard output.
     fn image_id_command(&self, image_reference: &str) -> Command;

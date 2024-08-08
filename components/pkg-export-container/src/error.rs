@@ -1,12 +1,9 @@
-use base64::DecodeError;
 use rusoto_core::RusotoError;
 use rusoto_ecr::GetAuthorizationTokenError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum Error {
-    #[error(transparent)]
-    Base64DecodeError(DecodeError),
+pub(crate) enum Error {
     #[error("Invalid registry type: {0}")]
     InvalidRegistryType(String),
     #[error("No ECR Tokens returned")]
