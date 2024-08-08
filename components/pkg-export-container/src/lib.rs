@@ -58,10 +58,6 @@ const DEFAULT_BASE_IMAGE: &str = "scratch";
 #[cfg(windows)]
 const DEFAULT_BASE_IMAGE: &str = "mcr.microsoft.com/windows/servercore";
 
-const DEFAULT_HAB_IDENT: &str = "core/hab";
-const DEFAULT_LAUNCHER_IDENT: &str = "core/hab-launcher";
-const DEFAULT_SUP_IDENT: &str = "core/hab-sup";
-
 #[cfg(unix)]
 const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
 

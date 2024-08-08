@@ -1,7 +1,5 @@
 use crate::{engine,
-            HabHartIdParser,
             RegistryType,
-            UrlValueParser,
             VERSION};
 use clap::{builder::Str,
            value_parser,
