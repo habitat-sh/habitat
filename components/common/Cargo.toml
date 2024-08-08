@@ -58,7 +58,7 @@ tokio = { version = "*", features = ["full"] }
 toml = { version = "*", features = ["preserve_order"] }
 uuid = { version = "*", features = ["v4"] }
 valico = "*"
-url = { version = "2.5" }
+url = { version = "*" }
 
 [target.'cfg(not(windows))'.dependencies]
 nix = { version = "*", features = ["signal", "user"] }
