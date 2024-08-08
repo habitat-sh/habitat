@@ -63,7 +63,7 @@ pub struct PkgPath {
 
 /// Displays the binds for a service
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name = "binds", no_version)]
+#[structopt(name = "binds", no_version, settings = &[AppSettings::ArgRequiredElseHelp])]
 pub struct PkgBinds {
     #[structopt(flatten)]
     pkg_ident: PkgIdent,
