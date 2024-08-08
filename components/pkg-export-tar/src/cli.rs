@@ -88,7 +88,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .long("channel")
                     .short("c")
                     .value_name("CHANNEL")
-                    .help("Install packages from the specified release channel (default: stable)"),
+                    .help("Install packages from the specified release channel (default: LTS-2024)"),
             )
             .arg(
                 Arg::with_name("BASE_PKGS_BLDR_URL")
@@ -106,7 +106,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .value_name("BASE_PKGS_CHANNEL")
                     .help(
                         "Install base packages from the specified release channel \
-                         (default: stable)",
+                         (default: LTS-2024)",
                     ),
             )
             .arg(

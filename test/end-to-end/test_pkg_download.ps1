@@ -64,27 +64,27 @@ Describe "hab pkg download" {
         }
     }
 
-    It "'hab pkg download --channel stable --download-directory $cacheDir core/gzip' succeeds" {
-        hab pkg download --channel stable --download-directory $cacheDir core/gzip
+    It "'hab pkg download --channel LTS-2024 --download-directory $cacheDir core/gzip' succeeds" {
+        hab pkg download --channel LTS-2024 --download-directory $cacheDir core/gzip
         Test-GzipIdent
     }
-    It "'hab pkg download --channel stable --download-directory $cacheDir --file $identFile' succeeds" {
+    It "'hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile' succeeds" {
         Set-Content $identFile -Value "core/gzip"
-        hab pkg download --channel stable --download-directory $cacheDir --file $identFile
+        hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile
         Test-GzipIdent
     }
-    It "'hab pkg download --channel stable --download-directory $cacheDir --file $identFile' succeeds with comments and empty lines" {
+    It "'hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile' succeeds with comments and empty lines" {
         Set-Content $identFile -Value @"
 # this is a series
 # of comments, followed by empty lines and whitespaces
 
  core/gzip
 "@
-        hab pkg download --channel stable --download-directory $cacheDir --file $identFile
+        hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile
         Test-GzipIdent
     }
-    It "'hab pkg download --channel stable --download-directory $cacheDir core/rust --target=x86_64-windows' succeeds" {
-        hab pkg download --channel stable --download-directory $cacheDir core/rust --target=x86_64-windows
+    It "'hab pkg download --channel LTS-2024 --download-directory $cacheDir core/rust --target=x86_64-windows' succeeds" {
+        hab pkg download --channel LTS-2024 --download-directory $cacheDir core/rust --target=x86_64-windows
         Test-RustIdent
     }
     It "fails when package is invalid" {
@@ -97,7 +97,7 @@ Describe "hab pkg download" {
     }
     It "fails when invalid package is provided in file" {
         Set-Content $identFile -Value "arglebargle"
-        hab pkg download --channel stable --download-directory $cacheDir --file $identFile
+        hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when package does not exist" {
