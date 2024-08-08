@@ -43,10 +43,6 @@ mod os;
 mod rootfs;
 mod util;
 
-mod value_parsers;
-pub(crate) use value_parsers::{HabHartIdParser,
-                               UrlValueParser};
-
 /// The version of this library and program when built.
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
@@ -61,10 +57,6 @@ const CACERTS_IDENT: &str = "core/cacerts";
 const DEFAULT_BASE_IMAGE: &str = "scratch";
 #[cfg(windows)]
 const DEFAULT_BASE_IMAGE: &str = "mcr.microsoft.com/windows/servercore";
-
-const DEFAULT_HAB_IDENT: &str = "core/hab";
-const DEFAULT_LAUNCHER_IDENT: &str = "core/hab-launcher";
-const DEFAULT_SUP_IDENT: &str = "core/hab-sup";
 
 #[cfg(unix)]
 const DEFAULT_USER_AND_GROUP_ID: u32 = 42;

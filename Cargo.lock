@@ -1445,6 +1445,7 @@ dependencies = [
  "bimap",
  "bitflags 2.6.0",
  "clap 2.33.1",
+ "clap 4.5.9",
  "dirs",
  "glob",
  "habitat_api_client",
@@ -1472,6 +1473,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml 0.8.19",
+ "url",
  "uuid",
  "valico",
  "winapi",
@@ -1579,22 +1581,16 @@ name = "habitat_pkg_export_tar"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "clap 2.33.1",
+ "clap 4.5.9",
  "env_logger",
  "flate2",
  "habitat_common",
  "habitat_core",
- "handlebars 0.29.1",
- "lazy_static 1.5.0",
  "log 0.4.22",
  "mktemp",
- "serde",
- "serde_json",
  "tar",
  "tempfile",
- "thiserror",
  "tokio",
- "url",
 ]
 
 [[package]]

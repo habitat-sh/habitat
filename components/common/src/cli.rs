@@ -49,7 +49,7 @@ pub const DEFAULT_BINLINK_DIR: &str = "/bin";
 pub const DEFAULT_BINLINK_DIR: &str = "/usr/local/bin";
 
 pub fn key_cache_from_matches(matches: &ArgMatches<'_>) -> crate::error::Result<KeyCache> {
-    let path = clap::value_t!(matches, "CACHE_KEY_PATH", PathBuf).expect("CACHE_KEY_PATH required");
+    let path = value_t!(matches, "CACHE_KEY_PATH", PathBuf).expect("CACHE_KEY_PATH required");
     let key_cache = KeyCache::new(path);
     key_cache.setup()?;
     Ok(key_cache)
@@ -75,6 +75,9 @@ fn line_to_ident(line: &str) -> Option<Result<PackageIdent, habitat_core::error:
         _ => Some(PackageIdent::from_str(trimmed)),
     }
 }
+
+// All Clap v4 common validators here.
+pub mod clap_validators;
 
 #[cfg(test)]
 mod tests {

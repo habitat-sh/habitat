@@ -14,21 +14,15 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = ["suggestions", "color", "unstable"] }
-env_logger = "*"
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
-# We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.
-handlebars = { version = "0.29.1", default-features = false }
-lazy_static = "*"
-log = "0.4"
-mktemp = "*"
-serde = { version = "*", features = ["rc"] }
-serde_json = { version = "*", features = [ "preserve_order" ] }
-tokio = { version = "*", features = ["full"] }
-url = "*"
-thiserror = "*"
-anyhow = { version = "*", features = ["backtrace"] }
-tempfile = "*"
-tar = "*"
-flate2 = "*"
+
+clap = { version = "4" , features = [ "derive", "wrap_help", "cargo" ] }
+env_logger = { version = "0.11" }
+log = {version = "0.4" }
+mktemp = { version = "0.5" }
+tokio = { version = "1", features = ["full"] }
+anyhow = { version = "1", features = ["backtrace"] }
+tempfile = { version = "3" }
+tar = { version = "0.4" }
+flate2 = {version = "1" }

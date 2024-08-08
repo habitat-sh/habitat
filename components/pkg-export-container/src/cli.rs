@@ -1,14 +1,17 @@
 use crate::{engine,
-            HabHartIdParser,
             RegistryType,
-            UrlValueParser,
             VERSION};
 use clap::{builder::Str,
            value_parser,
            Arg,
            ArgAction,
            Command};
-use habitat_common::PROGRAM_NAME;
+use habitat_common::{cli::clap_validators::{HabPackageInstallSourceValueParser,
+                                            UrlValueParser},
+                     consts::{DEFAULT_HAB_LAUNCHER_PKG_IDENT,
+                              DEFAULT_HAB_PKG_IDENT,
+                              DEFAULT_HAB_SUP_PKG_IDENT},
+                     PROGRAM_NAME};
 use habitat_core::url::default_bldr_url;
 
 /// Create the Clap CLI for the container exporter
@@ -54,8 +57,8 @@ fn add_base_packages_args(cmd: Command) -> Command {
         Arg::new("HAB_PKG")
             .long("hab-pkg")
             .value_name("HAB_PKG")
-            .default_value(super::DEFAULT_HAB_IDENT)
-            .value_parser(HabHartIdParser)
+            .default_value(DEFAULT_HAB_PKG_IDENT)
+            .value_parser(HabPackageInstallSourceValueParser)
             .help(
                 "Habitat CLI package identifier (ex: acme/redis) or filepath to a Habitat \
                          artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart) \
@@ -66,8 +69,8 @@ fn add_base_packages_args(cmd: Command) -> Command {
         Arg::new("HAB_LAUNCHER_PKG")
             .long("launcher-pkg")
             .value_name("HAB_LAUNCHER_PKG")
-            .default_value(super::DEFAULT_LAUNCHER_IDENT)
-            .value_parser(HabHartIdParser)
+            .default_value(DEFAULT_HAB_LAUNCHER_PKG_IDENT)
+            .value_parser(HabPackageInstallSourceValueParser)
             .help(
                 "Launcher package identifier (ex: core/hab-launcher) or filepath to a \
                          Habitat artifact (ex: \
@@ -79,8 +82,8 @@ fn add_base_packages_args(cmd: Command) -> Command {
         Arg::new("HAB_SUP_PKG")
             .long("sup-pkg")
             .value_name("HAB_SUP_PKG")
-            .default_value(super::DEFAULT_SUP_IDENT)
-            .value_parser(HabHartIdParser)
+            .default_value(DEFAULT_HAB_SUP_PKG_IDENT)
+            .value_parser(HabPackageInstallSourceValueParser)
             .help(
                 "Supervisor package identifier (ex: core/hab-sup) or filepath to a \
                  Habitat artifact (ex: \

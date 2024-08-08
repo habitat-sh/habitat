@@ -2,14 +2,11 @@ use habitat_common as common;
 use habitat_core as hcore;
 
 mod build;
-pub mod cli;
 mod rootfs;
 
-pub use crate::cli::Cli;
 use crate::{common::ui::UI,
-            hcore::{package::{PackageIdent,
-                              PackageInstall},
-                    url as hurl}};
+            hcore::package::{PackageIdent,
+                             PackageInstall}};
 use anyhow::Result;
 use flate2::{write::GzEncoder,
              Compression};
@@ -19,22 +16,29 @@ use std::{fs::File,
           str::FromStr};
 use tar::Builder;
 
-pub use crate::build::BuildSpec;
+use crate::build::BuildSpec;
+
+use clap::Parser;
+mod cli;
 
 /// The version of this library and program when built.
-pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+
 /// The Habitat Package Identifier string for a Busybox package.
 const BUSYBOX_IDENT: &str = "core/busybox-static";
 
-pub async fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches<'_>) -> Result<()> {
-    let default_url = hurl::default_bldr_url();
-    let spec = BuildSpec::new_from_cli_matches(matches, &default_url);
-    export(ui, spec).await?;
-
-    Ok(())
+/// cli_driver: Public API. This is used by the caller to use the CLI.
+pub async fn cli_driver(ui: &mut UI) -> Result<()> {
+    let cli = cli::Cli::parse();
+    export_for_cli_matches(ui, &cli).await
 }
 
-pub async fn export(ui: &mut UI, build_spec: BuildSpec<'_>) -> Result<()> {
+async fn export_for_cli_matches(ui: &mut UI, cli: &cli::Cli) -> Result<()> {
+    let spec = BuildSpec::new_from_cli(cli);
+    export(ui, spec).await
+}
+
+async fn export(ui: &mut UI, build_spec: BuildSpec<'_>) -> Result<()> {
     let hab_pkg = build_spec.hab;
     let build_result = build_spec.create(ui).await.unwrap();
     let builder_dir_path = build_result.0.path();
