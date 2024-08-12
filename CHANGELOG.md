@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1124 -->
-## [1.6.1124](https://github.com/habitat-sh/habitat/tree/1.6.1124) (2024-08-08)
+<!-- latest_release 1.6.1125 -->
+## [1.6.1125](https://github.com/habitat-sh/habitat/tree/1.6.1125) (2024-08-12)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.204 to 1.0.205 [#9352](https://github.com/habitat-sh/habitat/pull/9352) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_json from 1.0.122 to 1.0.124 [#9353](https://github.com/habitat-sh/habitat/pull/9353) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.122 to 1.0.124 [#9353](https://github.com/habitat-sh/habitat/pull/9353) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1125 -->
 - Bump serde from 1.0.204 to 1.0.205 [#9352](https://github.com/habitat-sh/habitat/pull/9352) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1124 -->
 - Bump cc from 1.1.7 to 1.1.8 [#9351](https://github.com/habitat-sh/habitat/pull/9351) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1123 -->
 - `pkg-export-container`: Remove `pub` visibilty [#9321](https://github.com/habitat-sh/habitat/pull/9321) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1122 -->
