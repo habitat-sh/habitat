@@ -18,7 +18,8 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    env as hcore_env,
                    fs::CACHE_KEY_PATH,
                    url::{BLDR_URL_ENVVAR,
-                         DEFAULT_BLDR_URL}};
+                         DEFAULT_BLDR_URL},
+                   AUTH_TOKEN_ENVVAR};
 
 use crate::error::{Error as HabError,
                    Result as HabResult};
@@ -77,10 +78,7 @@ impl BldrUrl {
 pub(crate) struct AuthToken {
     // TODO: Add Validator for this?
     /// Authentication token for Builder.
-    #[arg(name = "AUTH_TOKEN",
-          short = 'z',
-          long = "auth",
-          env = "HAB_AUTH_TOKEN")]
+    #[arg(name = "AUTH_TOKEN", short = 'z', long = "auth")]
     auth_token: Option<String>,
 }
 
@@ -88,24 +86,221 @@ impl AuthToken {
     // This function returns a result. Use this when `auth_token` is required. Either as a command
     // line option or env or from config.
     pub(crate) fn from_cli_or_config(&self) -> HabResult<String> {
-        if self.auth_token.is_some() {
-            Ok(self.auth_token.clone().expect("TOKEN EXPECTED"))
+        if let Some(auth_token) = &self.auth_token {
+            Ok(auth_token.clone())
         } else {
-            CliConfig::load()?.auth_token
-                              .ok_or_else(|| HabError::ArgumentError("No auth token specified".into()))
+            match hcore_env::var(AUTH_TOKEN_ENVVAR) {
+                Ok(v) => Ok(v),
+                Err(_) => {
+                    CliConfig::load()?.auth_token.ok_or_else(|| {
+                                                     HabError::ArgumentError("No auth token \
+                                                                              specified"
+                                                                                        .into())
+                                                 })
+                }
+            }
         }
     }
 
     // This function returns an `Option`, so if there is any "error" reading from config or env is
     // not set simply returns a None.
     pub(crate) fn try_from_cli_or_config(&self) -> Option<String> {
-        if self.auth_token.is_some() {
-            self.auth_token.clone()
-        } else {
-            match CliConfig::load() {
-                Ok(result) => result.auth_token,
-                Err(_) => None,
-            }
+        match self.from_cli_or_config() {
+            Ok(v) => Some(v),
+            Err(_) => None,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    mod auth_token {
+
+        use crate::cli_v4::utils::AuthToken;
+
+        use clap_v4 as clap;
+
+        use clap::Parser;
+
+        habitat_core::locked_env_var!(HAB_AUTH_TOKEN, locked_auth_token);
+
+        #[derive(Debug, Clone, Parser)]
+        struct TestAuthToken {
+            #[command(flatten)]
+            a: AuthToken,
+        }
+
+        #[test]
+        fn required_env_no_cli_success() {
+            let env_var = locked_auth_token();
+            env_var.set("env-auth-token");
+
+            let args = ["test-auth-token"];
+            let result = TestAuthToken::try_parse_from(args);
+            assert!(result.is_ok(), "{:?}", result.err().unwrap());
+
+            let test_auth_token = result.unwrap();
+            let auth_token = test_auth_token.a.from_cli_or_config();
+            assert!(auth_token.is_ok(), "{:#?}", auth_token.err().unwrap());
+        }
+
+        #[test]
+        fn required_no_env_cli_success() {
+            let env_var = locked_auth_token();
+            env_var.unset();
+
+            let args = ["test-auth-token", "--auth", "foo-bar"];
+            let result = TestAuthToken::try_parse_from(args);
+            assert!(result.is_ok(), "{:?}", result.err().unwrap());
+        }
+
+        #[test]
+        fn required_no_env_no_cli_error() {
+            let env_var = locked_auth_token();
+            env_var.unset();
+
+            let args = ["test-auth-token"];
+            let result = TestAuthToken::try_parse_from(args);
+            assert!(result.is_ok(), "{:?}", result.err().unwrap());
+
+            let test_auth_token = result.unwrap();
+            let auth_token = test_auth_token.a.from_cli_or_config();
+            assert!(auth_token.is_err(), "{:#?}", auth_token.ok().unwrap());
+        }
+
+        #[test]
+        fn required_empty_env_no_cli_error() {
+            let env_var = locked_auth_token();
+            env_var.set("");
+
+            let args = ["test-auth-token"];
+            let result = TestAuthToken::try_parse_from(args);
+            assert!(result.is_ok(), "{:?}", result.err().unwrap());
+
+            let test_auth_token = result.unwrap();
+            let auth_token = test_auth_token.a.from_cli_or_config();
+            assert!(auth_token.is_err(), "{:#?}", auth_token.ok().unwrap());
+        }
+        #[test]
+        fn optional_empty_env_no_cli_none() {
+            let env_var = locked_auth_token();
+            env_var.set("");
+
+            let args = ["test-auth-token"];
+            let result = TestAuthToken::try_parse_from(args);
+            assert!(result.is_ok(), "{:?}", result.err().unwrap());
+
+            let test_auth_token = result.unwrap();
+            let auth_token = test_auth_token.a.try_from_cli_or_config();
+            assert!(auth_token.is_none(), "{:#?}", auth_token.unwrap());
+        }
+
+        #[test]
+        fn tok_optional_from_env_no_cli_some() {
+            let env_var = locked_auth_token();
+            env_var.set("env-auth-token");
+
+            let args = ["test-auth-token"];
+            let result = TestAuthToken::try_parse_from(args);
+            assert!(result.is_ok(), "{:?}", result.err().unwrap());
+
+            let test_auth_token = result.unwrap();
+            let auth_token = test_auth_token.a.try_from_cli_or_config();
+            assert_eq!(Some("env-auth-token".to_string()),
+                       auth_token,
+                       "{:#?}",
+                       auth_token);
+        }
+
+        #[test]
+        fn optional_no_env_from_cli_some() {
+            let env_var = locked_auth_token();
+            env_var.set("env-auth-token");
+
+            let args = ["test-auth-token", "--auth", "foo-bar"];
+            let result = TestAuthToken::try_parse_from(args);
+            assert!(result.is_ok(), "{:?}", result.err().unwrap());
+
+            let test_auth_token = result.unwrap();
+            let auth_token = test_auth_token.a.try_from_cli_or_config();
+            assert_eq!(Some("foo-bar".to_string()), auth_token, "{:#?}", auth_token);
+        }
+    }
+
+    mod bldr_url {
+
+        use crate::cli_v4::utils::{BldrUrl,
+                                   DEFAULT_BLDR_URL};
+
+        use clap_v4 as clap;
+
+        use clap::Parser;
+
+        habitat_core::locked_env_var!(HAB_BLDR_URL, locked_bldr_url);
+
+        #[derive(Debug, Clone, Parser)]
+        struct TestBldrUrl {
+            #[command(flatten)]
+            u: BldrUrl,
+        }
+
+        #[test]
+        fn no_env_no_cli_default() {
+            let env_var = locked_bldr_url();
+            env_var.unset();
+
+            let args = ["test-bldr-url"];
+            let result = TestBldrUrl::try_parse_from(args);
+            assert!(result.is_ok(), "{:#?}", result.err().unwrap());
+
+            let test_bldr_url = result.unwrap();
+            let bldr_url = test_bldr_url.u.to_string();
+            assert_eq!(bldr_url.as_str(), DEFAULT_BLDR_URL, "{:#?}", bldr_url);
+        }
+
+        #[test]
+        fn empty_env_no_cli_default() {
+            let env_var = locked_bldr_url();
+            env_var.set("");
+
+            let args = ["test-bldr-url"];
+            let result = TestBldrUrl::try_parse_from(args);
+            assert!(result.is_ok(), "{:#?}", result.err().unwrap());
+
+            let test_bldr_url = result.unwrap();
+            let bldr_url = test_bldr_url.u.to_string();
+            assert_eq!(bldr_url.as_str(), DEFAULT_BLDR_URL, "{:#?}", bldr_url);
+        }
+
+        #[test]
+        fn env_cli_passed_value() {
+            let test_bldr_url_val = "https://test.bldr.habitat.sh/";
+            let cli_bldr_url_val = "https://cli.bldr.habitat.sh/";
+            let env_var = locked_bldr_url();
+            env_var.set(test_bldr_url_val);
+
+            let args = ["test-bldr-url", "--url", cli_bldr_url_val];
+            let result = TestBldrUrl::try_parse_from(args);
+            assert!(result.is_ok(), "{:#?}", result.err().unwrap());
+
+            let test_bldr_url = result.unwrap();
+            let bldr_url = test_bldr_url.u.to_string();
+            assert_eq!(bldr_url.as_str(), cli_bldr_url_val, "{:#?}", bldr_url);
+        }
+
+        #[test]
+        fn env_no_cli_env_value() {
+            let test_bldr_url_val = "https://test.bldr.habitat.sh/";
+            let env_var = locked_bldr_url();
+            env_var.set(test_bldr_url_val);
+
+            let args = ["test-bldr-url"];
+            let result = TestBldrUrl::try_parse_from(args);
+            assert!(result.is_ok(), "{:#?}", result.err().unwrap());
+
+            let test_bldr_url = result.unwrap();
+            let bldr_url = test_bldr_url.u.to_string();
+            assert_eq!(bldr_url.as_str(), test_bldr_url_val, "{:#?}", bldr_url);
         }
     }
 }
