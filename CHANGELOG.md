@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1128 -->
-## [1.6.1128](https://github.com/habitat-sh/habitat/tree/1.6.1128) (2024-08-13)
+<!-- latest_release 1.6.1129 -->
+## [1.6.1129](https://github.com/habitat-sh/habitat/tree/1.6.1129) (2024-08-13)
 
 #### Merged Pull Requests
-- Bump mio from 1.0.1 to 1.0.2 [#9358](https://github.com/habitat-sh/habitat/pull/9358) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde from 1.0.206 to 1.0.207 [#9357](https://github.com/habitat-sh/habitat/pull/9357) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump serde from 1.0.206 to 1.0.207 [#9357](https://github.com/habitat-sh/habitat/pull/9357) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1129 -->
 - Bump mio from 1.0.1 to 1.0.2 [#9358](https://github.com/habitat-sh/habitat/pull/9358) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1128 -->
 - clap-4 support for `pkg-export-tar` [#9316](https://github.com/habitat-sh/habitat/pull/9316) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1127 -->
 - Bump serde from 1.0.205 to 1.0.206 [#9355](https://github.com/habitat-sh/habitat/pull/9355) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1126 -->
