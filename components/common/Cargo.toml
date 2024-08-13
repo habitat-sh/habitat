@@ -15,6 +15,10 @@ clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", f
   "color",
   "unstable",
 ] }
+# TODO: When we finally get rid of everything, in clap_v2 make it just `clap`.
+# This is required right now because we would like to start common Validation code for all
+# the other packages that are using it.
+clap_v4 = { package = "clap", version = "4", features = ["derive" ] }
 dirs = "*"
 glob = "*"
 habitat_api_client = { path = "../builder-api-client" }
@@ -54,6 +58,7 @@ tokio = { version = "*", features = ["full"] }
 toml = { version = "*", features = ["preserve_order"] }
 uuid = { version = "*", features = ["v4"] }
 valico = "*"
+url = { version = "*" }
 
 [target.'cfg(not(windows))'.dependencies]
 nix = { version = "*", features = ["signal", "user"] }

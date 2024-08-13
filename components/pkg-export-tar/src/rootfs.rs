@@ -9,7 +9,7 @@ use anyhow::Result;
 /// * If files and/or directories cannot be created
 /// * If permissions for files and/or directories cannot be set
 #[cfg(unix)]
-pub fn create<T>(root: T) -> Result<()>
+pub(crate) fn create<T>(root: T) -> Result<()>
     where T: AsRef<Path>
 {
     use std::fs;
@@ -23,7 +23,7 @@ pub fn create<T>(root: T) -> Result<()>
 }
 
 #[cfg(windows)]
-pub fn create<T>(_root: T) -> Result<()>
+pub(crate) fn create<T>(_root: T) -> Result<()>
     where T: AsRef<Path>
 {
     Ok(())
