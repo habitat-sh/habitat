@@ -126,3 +126,52 @@ impl PkgDownloadOptions {
         Ok(sources)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{PackageTarget,
+                Parser,
+                PkgDownloadOptions};
+    use std::{collections::HashMap,
+              path::Path};
+
+    #[test]
+    fn test_package_sets_from_file_e2e_tests_toml() {
+        let mut toml_files_map = HashMap::<String, bool>::new();
+        toml_files_map.insert("bad_header.toml".to_string(), false);
+        toml_files_map.insert("bad_ident.toml".to_string(), false);
+        toml_files_map.insert("bad_target.toml".to_string(), false);
+        toml_files_map.insert("no_header.toml".to_string(), false);
+        toml_files_map.insert("no_target.toml".to_string(), true);
+        toml_files_map.insert("happy_path.toml".to_string(), true);
+
+        let tomls_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+        let tomls_dir = Path::new(&tomls_dir).join("../../test/end-to-end/fixtures/pkg_download/");
+        assert!(tomls_dir.is_dir());
+
+        let no_header_toml_string = "no_header.toml".to_string();
+        let _ = toml_files_map.get(&no_header_toml_string);
+        for toml in tomls_dir.read_dir().unwrap() {
+            if let Ok(toml) = toml {
+                let key = toml.file_name().into_string().unwrap();
+                let path = toml.path().into_os_string().into_string();
+                eprintln!("{}: {:#?}", key, path);
+                if let Ok(path) = path {
+                    let args = ["download", "--file", &path];
+                    let result = PkgDownloadOptions::try_parse_from(args);
+                    assert!(result.is_ok(), "{:#?}", result.err().unwrap());
+
+                    let pkg_download = result.unwrap();
+                    let result =
+                        pkg_download.idents_from_file_matches(PackageTarget::active_target());
+                    let should_be_ok = toml_files_map.get(&key).unwrap();
+                    assert_eq!(result.is_ok(),
+                               *should_be_ok,
+                               "{}: {:#?}",
+                               key,
+                               result.err().unwrap());
+                }
+            }
+        }
+    }
+}
