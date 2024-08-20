@@ -7,7 +7,8 @@ use std::path::PathBuf;
 use clap::{ArgAction,
            Parser};
 
-use habitat_common::ui::UI;
+use habitat_common::{cli::clap_validators::DirExistsValueParser,
+                     ui::UI};
 
 use habitat_core::{crypto::keys::KeyCache,
                    ChannelIdent};
@@ -50,7 +51,7 @@ pub(crate) struct PkgBulkUploadOptions {
 
     // TODO: Add Path Exists validator.
     /// Directory Path from which artifacts will be uploaded
-    #[arg(name = "UPLOAD_DIRECTORY")]
+    #[arg(name = "UPLOAD_DIRECTORY", value_parser = DirExistsValueParser)]
     upload_directory: PathBuf,
 }
 

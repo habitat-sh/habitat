@@ -7,7 +7,8 @@ use std::path::PathBuf;
 use clap::{ArgAction,
            Parser};
 
-use habitat_common::ui::UI;
+use habitat_common::{cli::clap_validators::FileExistsValueParser,
+                     ui::UI};
 
 use habitat_core::{crypto::keys::KeyCache,
                    ChannelIdent};
@@ -31,24 +32,24 @@ pub(crate) struct PkgUploadOptions {
 
     /// Optional additional release channel to upload package to. Packages are always uploaded
     /// to `unstable`, regardless of the value of this option
-    #[structopt(name = "CHANNEL", short = 'c', long = "channel")]
+    #[arg(name = "CHANNEL", short = 'c', long = "channel")]
     channel: Option<ChannelIdent>,
 
     /// Skips checking availability of package and force uploads, potentially overwriting a
     /// stored copy of a package. (default: false)
-    #[structopt(name = "FORCE", long = "force", action = ArgAction::SetTrue)]
+    #[arg(name = "FORCE", long = "force", action = ArgAction::SetTrue)]
     force: bool,
 
     /// Disable auto-build for all packages in this upload
-    #[structopt(name = "NO_BUILD", long = "no-build", action = ArgAction::SetTrue)]
+    #[arg(name = "NO_BUILD", long = "no-build", action = ArgAction::SetTrue)]
     no_build: bool,
 
     /// One or more filepaths to a Habitat Artifact (ex:
     /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-    #[structopt(name = "HART_FILE", required = true)]
+    #[arg(name = "HART_FILE", required = true, value_parser = FileExistsValueParser)]
     hart_file: Vec<PathBuf>,
 
-    #[structopt(flatten)]
+    #[command(flatten)]
     cache_key_path: CacheKeyPath,
 }
 

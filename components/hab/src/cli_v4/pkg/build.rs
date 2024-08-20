@@ -39,7 +39,7 @@ pub(crate) struct PkgBuildOptions {
 
     // TODO: Same as above
     /// Sets the source path [default: $PWD]
-    #[structopt(name = "SRC_PATH", short = 's', long = "src")]
+    #[arg(name = "SRC_PATH", short = 's', long = "src")]
     src_path: Option<String>,
 
     // TODO : Same as above

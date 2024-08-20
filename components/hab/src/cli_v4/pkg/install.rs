@@ -4,7 +4,8 @@ use clap_v4 as clap;
 
 use std::path::PathBuf;
 
-use clap::{parser::ValueSource,
+use clap::{builder::NonEmptyStringValueParser,
+           parser::ValueSource,
            ArgAction,
            CommandFactory,
            Parser};
@@ -58,7 +59,7 @@ pub(crate) struct PkgInstallOptions {
     /// Binlink all binaries from installed package(s) into BINLINK_DIR
     #[arg(long = "binlink-dir",
                 default_value = DEFAULT_BINLINK_DIR,
-                env = BINLINK_DIR_ENVVAR)]
+                env = BINLINK_DIR_ENVVAR, value_parser = NonEmptyStringValueParser::new())]
     binlink_dir: PathBuf,
 
     /// Overwrite existing binlinks

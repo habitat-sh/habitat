@@ -6,6 +6,8 @@ use clap::Parser;
 
 use habitat_core::package::PackageIdent;
 
+use habitat_common::cli::clap_validators::HabOriginValueParser;
+
 use crate::{command::pkg::{list,
                            list::ListingType},
             error::Result as HabResult};
@@ -20,7 +22,7 @@ pub(crate) struct PkgListOptions {
 
     // TODO : Validations
     /// An origin to list
-    #[arg(name = "ORIGIN", short = 'o', long = "origin")]
+    #[arg(name = "ORIGIN", short = 'o', long = "origin", value_parser = HabOriginValueParser)]
     origin: Option<String>,
 
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)

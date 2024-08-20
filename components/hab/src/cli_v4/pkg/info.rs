@@ -8,7 +8,8 @@ use clap::{ArgAction,
 
 use habitat_core::crypto;
 
-use habitat_common::ui::UI;
+use habitat_common::{cli::clap_validators::FileExistsValueParser,
+                     ui::UI};
 
 use crate::{command::pkg::info,
             error::Result as HabResult};
@@ -24,7 +25,7 @@ pub(crate) struct PkgInfoOptions {
     json: bool,
 
     /// A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-    #[arg(name = "SOURCE")]
+    #[arg(name = "SOURCE", value_parser = FileExistsValueParser)]
     source: PathBuf,
 }
 

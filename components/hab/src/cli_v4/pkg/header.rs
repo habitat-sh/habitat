@@ -7,7 +7,8 @@ use clap::Parser;
 
 use habitat_core::crypto;
 
-use habitat_common::ui::UI;
+use habitat_common::{cli::clap_validators::FileExistsValueParser,
+                     ui::UI};
 
 use crate::{command::pkg::header,
             error::Result as HabResult};
@@ -16,9 +17,8 @@ use crate::{command::pkg::header,
 #[command(arg_required_else_help = true)]
 pub(crate) struct PkgHeaderOptions {
     /// Filepath to the Habitat Package file
-    #[arg(name = "SOURCE")]
-    source: PathBuf, /* TODO: Convert it to more semantic `PathBuf`, when we get rid of
-                      * `clap-v2` functionality, revisit `command::pkg::hash` */
+    #[arg(name = "SOURCE", value_parser = FileExistsValueParser)]
+    source: PathBuf,
 }
 
 impl PkgHeaderOptions {
