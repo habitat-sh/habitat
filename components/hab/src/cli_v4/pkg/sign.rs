@@ -10,7 +10,9 @@ use habitat_core::{crypto,
                    crypto::keys::KeyCache,
                    origin::Origin};
 
-use habitat_common::{cli_config::CliConfig,
+use habitat_common::{cli::clap_validators::{FileExistsValueParser,
+                                            HabOriginValueParser},
+                     cli_config::CliConfig,
                      ui::UI};
 
 use crate::{cli_v4::utils::CacheKeyPath,
@@ -22,19 +24,19 @@ use crate::{cli_v4::utils::CacheKeyPath,
 #[command(arg_required_else_help = true)]
 pub(crate) struct PkgSignOptions {
     /// Origin key used to create signature
-    #[arg(name = "ORIGIN", long = "origin", env=crate::ORIGIN_ENVVAR)]
+    #[arg(name = "ORIGIN", long = "origin", env=crate::ORIGIN_ENVVAR, value_parser = HabOriginValueParser)]
     origin: Option<Origin>,
 
     /// A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
-    #[structopt(name = "SOURCE")]
+    #[arg(name = "SOURCE", value_parser = FileExistsValueParser)]
     source: PathBuf,
 
     /// The destination path to the signed Habitat Artifact (ex:
     /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-    #[structopt(name = "DEST")]
+    #[arg(name = "DEST")]
     dest: PathBuf,
 
-    #[structopt(flatten)]
+    #[command(flatten)]
     cache_key_path: CacheKeyPath,
 }
 

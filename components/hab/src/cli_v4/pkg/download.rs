@@ -7,7 +7,8 @@ use std::path::PathBuf;
 use clap::{ArgAction,
            Parser};
 
-use habitat_common::{cli::{file_into_idents,
+use habitat_common::{cli::{clap_validators::TomlOrPkgIdentFileValueParser,
+                           file_into_idents,
                            is_toml_file,
                            PACKAGE_TARGET_ENVVAR},
                      ui::UI,
@@ -30,7 +31,7 @@ use crate::{cli_v4::utils::{AuthToken,
 #[derive(Debug, Clone, Parser)]
 #[command(arg_required_else_help = true)]
 pub(crate) struct PkgDownloadOptions {
-    #[structopt(flatten)]
+    #[command(flatten)]
     auth_token: AuthToken,
 
     #[command(flatten)]
@@ -48,9 +49,8 @@ pub(crate) struct PkgDownloadOptions {
     #[arg(name = "DOWNLOAD_DIRECTORY", long = "download-directory")]
     download_directory: Option<PathBuf>,
 
-    // TODO: Add validations
     /// File with newline separated package identifiers, or TOML file (ending with .toml extension)
-    #[arg(name = "PKG_IDENT_FILE", long = "file", num_args = 1..=10)]
+    #[arg(name = "PKG_IDENT_FILE", long = "file", num_args = 1..=10, value_parser = TomlOrPkgIdentFileValueParser)]
     pkg_ident_file: Vec<String>,
 
     /// One or more Package Identifiers to download (eg. core/redis)

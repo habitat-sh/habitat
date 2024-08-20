@@ -13,7 +13,7 @@ use crate::{cli_v4::utils::{AuthToken,
 #[command(arg_required_else_help = true)]
 pub(crate) struct PkgSearchOptions {
     /// Search term
-    #[structopt(name = "SEARCH_TERM")]
+    #[arg(name = "SEARCH_TERM")]
     search_term: String,
 
     #[command(flatten)]

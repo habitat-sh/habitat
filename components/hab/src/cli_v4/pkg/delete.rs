@@ -27,10 +27,10 @@ pub(crate) struct PkgDeleteOptions {
     pkg_ident: PackageIdent,
 
     /// A package target (ex: x86_64-windows) (default: system appropriate target)
-    #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
+    #[arg(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
     pkg_target: Option<PackageTarget>,
 
-    #[structopt(flatten)]
+    #[command(flatten)]
     auth_token: AuthToken,
 }
 

@@ -6,6 +6,8 @@ use std::io::BufRead;
 
 use clap::Parser;
 
+use habitat_common::cli::clap_validators::FileExistsValueParser;
+
 use crate::command::pkg::hash;
 
 use crate::error::Result as HabResult;
@@ -13,7 +15,7 @@ use crate::error::Result as HabResult;
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct PkgHashOptions {
     /// Filepath to the Habitat Package file
-    #[arg(name = "SOURCE")]
+    #[arg(name = "SOURCE", value_parser = FileExistsValueParser)]
     source: Option<String>, /* TODO: Convert it to more semantic `PathBuf`, when we get rid of
                              * `clap-v2` functionality, revisit `command::pkg::hash` */
 }

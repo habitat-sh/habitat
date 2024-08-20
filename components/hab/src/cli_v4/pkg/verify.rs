@@ -9,7 +9,8 @@ use clap::Parser;
 use habitat_core::{crypto,
                    crypto::keys::KeyCache};
 
-use habitat_common::ui::UI;
+use habitat_common::{cli::clap_validators::FileExistsValueParser,
+                     ui::UI};
 
 use crate::{cli_v4::utils::CacheKeyPath,
             command::pkg::verify,
@@ -19,7 +20,7 @@ use crate::{cli_v4::utils::CacheKeyPath,
 #[command(arg_required_else_help = true)]
 pub(crate) struct PkgVerifyOptions {
     /// A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-    #[arg(name = "SOURCE")]
+    #[arg(name = "SOURCE", value_parser = FileExistsValueParser)]
     source: PathBuf,
 
     #[command(flatten)]
