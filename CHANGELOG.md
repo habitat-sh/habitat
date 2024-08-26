@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1139 -->
-## [1.6.1139](https://github.com/habitat-sh/habitat/tree/1.6.1139) (2024-08-21)
+<!-- latest_release 1.6.1140 -->
+## [1.6.1140](https://github.com/habitat-sh/habitat/tree/1.6.1140) (2024-08-26)
 
 #### Merged Pull Requests
-- Bump flate2 from 1.0.31 to 1.0.32 [#9369](https://github.com/habitat-sh/habitat/pull/9369) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_json from 1.0.125 to 1.0.127 [#9372](https://github.com/habitat-sh/habitat/pull/9372) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.125 to 1.0.127 [#9372](https://github.com/habitat-sh/habitat/pull/9372) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1140 -->
 - Bump flate2 from 1.0.31 to 1.0.32 [#9369](https://github.com/habitat-sh/habitat/pull/9369) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1139 -->
 - Bump libc from 0.2.157 to 0.2.158 [#9368](https://github.com/habitat-sh/habitat/pull/9368) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1138 -->
 - Bump tokio from 1.39.2 to 1.39.3 [#9367](https://github.com/habitat-sh/habitat/pull/9367) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1137 -->
