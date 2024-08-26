@@ -4,7 +4,8 @@ use clap_v4 as clap;
 
 use clap::Parser;
 
-use habitat_common::{cli::PACKAGE_TARGET_ENVVAR,
+use habitat_common::{cli::{clap_validators::HabPkgIdentValueParser,
+                           PACKAGE_TARGET_ENVVAR},
                      ui::UI};
 
 use habitat_core::package::{target,
@@ -24,8 +25,8 @@ pub(crate) struct PkgChannelsOptions {
     #[command(flatten)]
     bldr_url: BldrUrl,
 
-    /// Fully Qualified package identifier for the package
-    #[arg(name = "PKG_IDENT")]
+    /// A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
+    #[arg(name = "PKG_IDENT", value_parser = HabPkgIdentValueParser::full())]
     pkg_ident: PackageIdent,
 
     /// A package target (ex: x86_64-windows) (default: system appropriate target)

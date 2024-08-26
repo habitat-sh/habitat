@@ -29,9 +29,10 @@ pub(crate) struct PkgSignOptions {
     #[arg(name = "ORIGIN", long = "origin", env=crate::ORIGIN_ENVVAR, value_parser = HabOriginValueParser)]
     origin: Option<Origin>,
 
+    // TODO: Move to semantic PathBuf after CLAP-v2 support is removed kept due to Clap V2 quirk
     /// A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
     #[arg(name = "SOURCE", value_parser = FileExistsValueParser)]
-    source: PathBuf,
+    source: String,
 
     /// The destination path to the signed Habitat Artifact (ex:
     /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
@@ -56,6 +57,9 @@ impl PkgSignOptions {
         crypto::init()?;
         let key_cache = KeyCache::new::<PathBuf>((&self.cache_key_path).into());
         let key = key_cache.latest_secret_origin_signing_key(&origin)?;
-        sign::start(ui, &key, &self.source, &self.dest)
+        sign::start(ui,
+                    &key,
+                    &Into::<PathBuf>::into(self.source.clone()),
+                    &self.dest)
     }
 }

@@ -4,6 +4,8 @@ use clap_v4 as clap;
 
 use clap::Parser;
 
+use habitat_common::cli::clap_validators::HabPkgIdentValueParser;
+
 use habitat_core::{fs::FS_ROOT_PATH,
                    package::PackageIdent};
 
@@ -17,7 +19,7 @@ use crate::error::Result as HabResult;
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgEnvOptions {
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
-    #[arg(name = "PKG_IDENT")]
+    #[arg(name = "PKG_IDENT", value_parser = HabPkgIdentValueParser::simple())]
     pkg_ident: PackageIdent,
 }
 

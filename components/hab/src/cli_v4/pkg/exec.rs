@@ -7,6 +7,8 @@ use std::{ffi::OsString,
 
 use clap::Parser;
 
+use habitat_common::cli::clap_validators::HabPkgIdentValueParser;
+
 use habitat_core::package::PackageIdent;
 
 use crate::{command::pkg::exec,
@@ -18,10 +20,10 @@ use crate::{command::pkg::exec,
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgExecOptions {
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
-    #[arg(name = "PKG_IDENT")]
+    #[arg(name = "PKG_IDENT", value_parser = HabPkgIdentValueParser::simple())]
     pkg_ident: PackageIdent,
 
-    /// Command to execute
+    /// The command to execute (ex: ls)
     #[arg(name = "CMD")]
     cmd: PathBuf,
 

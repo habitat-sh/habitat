@@ -63,7 +63,7 @@ pub(crate) struct PkgInstallOptions {
     #[arg(long = "binlink-dir",
                 default_value = DEFAULT_BINLINK_DIR,
                 env = BINLINK_DIR_ENVVAR, value_parser = NonEmptyStringValueParser::new())]
-    binlink_dir: PathBuf,
+    binlink_dir: String,
 
     /// Overwrite existing binlinks
     #[arg(short = 'f', long = "force", action = ArgAction::SetTrue)]
@@ -86,7 +86,7 @@ pub(crate) struct PkgInstallOptions {
     /// from Builder
     #[arg(long = "ignore-local",
                 action = ArgAction::SetTrue,
-                hide = !FEATURE_FLAGS.contains(FeatureFlag::IGNORE_LOCAL))]
+                )]
     ignore_local: bool,
 }
 
@@ -105,12 +105,11 @@ impl PkgInstallOptions {
             InstallMode::default()
         };
 
-        let local_package_usage =
-            if feature_flags.contains(FeatureFlag::IGNORE_LOCAL) && self.ignore_local {
-                LocalPackageUsage::Ignore
-            } else {
-                LocalPackageUsage::default()
-            };
+        let local_package_usage = if self.ignore_local {
+            LocalPackageUsage::Ignore
+        } else {
+            LocalPackageUsage::default()
+        };
 
         let install_hook_mode = if !self.ignore_install_hook {
             InstallHookMode::Ignore
@@ -140,9 +139,10 @@ impl PkgInstallOptions {
                                              install_hook_mode).await?;
 
             if do_binlink {
+                let binlink_dir = PathBuf::from(&self.binlink_dir);
                 binlink::binlink_all_in_pkg(ui,
                                             pkg_install.ident(),
-                                            &self.binlink_dir,
+                                            &binlink_dir,
                                             &FS_ROOT_PATH,
                                             self.force)?;
             }

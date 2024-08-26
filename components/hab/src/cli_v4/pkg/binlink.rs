@@ -10,7 +10,8 @@ use clap::{ArgAction,
 use habitat_core::{fs::FS_ROOT_PATH,
                    package::PackageIdent};
 
-use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
+use habitat_common::{cli::{clap_validators::HabPkgIdentValueParser,
+                           BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR},
                      ui::UI};
 
@@ -23,7 +24,7 @@ use crate::{command::pkg::binlink,
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgBinlinkOptions {
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
-    #[arg(name = "PKG_IDENT")]
+    #[arg(name = "PKG_IDENT", value_parser = HabPkgIdentValueParser::simple())]
     pkg_ident: PackageIdent,
 
     /// The command to binlink (ex: bash)

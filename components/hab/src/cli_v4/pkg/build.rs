@@ -69,6 +69,14 @@ pub(crate) struct PkgBuildOptions {
     /// Uses a Dockerized Studio for the build
     #[arg(name = "DOCKER", short = 'D', long = "docker", action = ArgAction::SetTrue)]
     docker: bool,
+
+    /// Channel used to retrieve plan dependencies for Chef supported origins
+    #[arg(name = "REFRESH_CHANNEL",
+          short = 'f',
+          long = "refresh-channel",
+          env = "HAB_REFRESH_CHANNEL",
+          default_value = "stable")]
+    refresh_channel: Option<String>,
 }
 
 impl PkgBuildOptions {
@@ -101,7 +109,8 @@ impl PkgBuildOptions {
                      &self.hab_origin_keys,
                      native_package,
                      reuse_flag,
-                     docker_flag).await
+                     docker_flag,
+                     self.refresh_channel.as_deref()).await
     }
 
     #[cfg(target_os = "linux")]

@@ -65,7 +65,7 @@ pub(super) enum PkgCommand {
     /// Builds a plan using Habitat Studio
     Build(build::PkgBuildOptions),
 
-    /// Bulk uploads Habitat artifacts from to a depo from a local directory
+    /// Bulk uploads Habitat artifacts from to a depot from a local directory
     Bulkupload(bulk_upload::PkgBulkUploadOptions),
 
     /// Find out what channels a package belongs to
@@ -136,7 +136,7 @@ pub(super) enum PkgCommand {
     /// Uploads a local Habitat Artifact to Builder
     Upload(upload::PkgUploadOptions),
 
-    /// Verifies a Habitat Architect with an origin key
+    /// Verifies a Habitat Artifact with an origin key
     Verify(verify::PkgVerifyOptions),
 }
 
@@ -164,7 +164,6 @@ impl PkgCommand {
             #[cfg(any(all(target_os = "linux",
                           any(target_arch = "x86_64", target_arch = "aarch64")),
                       all(target_os = "windows", target_arch = "x86_64")))]
-            #[clap(subcommand)]
             Self::Export(cmd) => cmd.do_export(ui).await,
 
             Self::Hash(opts) => opts.do_hash(),

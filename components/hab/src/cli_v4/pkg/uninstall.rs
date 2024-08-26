@@ -7,7 +7,8 @@ use clap::{ArgAction,
 use habitat_core::{fs::FS_ROOT_PATH,
                    package::PackageIdent};
 
-use habitat_common::ui::UI;
+use habitat_common::{cli::clap_validators::HabPkgIdentValueParser,
+                     ui::UI};
 
 use crate::{command::pkg::{uninstall,
                            uninstall::UninstallHookMode,
@@ -20,7 +21,8 @@ use crate::{command::pkg::{uninstall,
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgUninstallOptions {
-    #[arg(name = "PKG_IDENT")]
+    /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+    #[arg(name = "PKG_IDENT", value_parser = HabPkgIdentValueParser::simple())]
     pkg_ident: PackageIdent,
 
     /// Just show what would be uninstalled, don't actually do it

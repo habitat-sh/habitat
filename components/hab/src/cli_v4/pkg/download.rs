@@ -7,7 +7,8 @@ use std::path::PathBuf;
 use clap::{ArgAction,
            Parser};
 
-use habitat_common::{cli::{clap_validators::TomlOrPkgIdentFileValueParser,
+use habitat_common::{cli::{clap_validators::{HabPkgIdentValueParser,
+                                             TomlOrPkgIdentFileValueParser},
                            file_into_idents,
                            is_toml_file,
                            PACKAGE_TARGET_ENVVAR},
@@ -56,7 +57,7 @@ pub(crate) struct PkgDownloadOptions {
     pkg_ident_file: Vec<String>,
 
     /// One or more Package Identifiers to download (eg. core/redis)
-    #[arg(name = "PKG_IDENT", num_args = 1.., last = true)]
+    #[arg(name = "PKG_IDENT", num_args = 1.., value_parser = HabPkgIdentValueParser::simple())]
     pkg_ident: Vec<PackageIdent>,
 
     /// A package target (ex: x86_64-windows) (default: system appropriate target)

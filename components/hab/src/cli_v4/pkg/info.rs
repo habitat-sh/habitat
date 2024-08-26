@@ -26,15 +26,16 @@ pub(crate) struct PkgInfoOptions {
           action = ArgAction::SetTrue)]
     json: bool,
 
+    // TODO: Move to semantic PathBuf after CLAP-v2 support is removed kept due to Clap V2 quirk
     /// A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
     #[arg(name = "SOURCE", value_parser = FileExistsValueParser)]
-    source: PathBuf,
+    source: String,
 }
 
 impl PkgInfoOptions {
     pub(super) fn do_info(&self, ui: &mut UI) -> HabResult<()> {
         crypto::init()?;
 
-        info::start(ui, &self.source, self.json)
+        info::start(ui, &Into::<PathBuf>::into(self.source.clone()), self.json)
     }
 }

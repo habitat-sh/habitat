@@ -5,6 +5,8 @@ use clap_v4 as clap;
 use clap::{ArgAction,
            Parser};
 
+use habitat_common::cli::clap_validators::HabPkgIdentValueParser;
+
 use habitat_core::{fs::FS_ROOT_PATH,
                    package::PackageIdent};
 
@@ -19,7 +21,7 @@ use crate::{command::pkg::{dependencies,
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgDependenciesOptions {
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
-    #[arg(name = "PKG_IDENT")]
+    #[arg(name = "PKG_IDENT", value_parser = HabPkgIdentValueParser::simple())]
     pkg_ident: PackageIdent,
 
     /// Show transitive dependencies

@@ -297,10 +297,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                                   all(target_os = "windows", target_arch = "x86_64"),))]
                         Pkg::Export(export) => {
                             match export {
-                                #[cfg(target_os = "linux")]
-                                PkgExportCommand::Cf(args) => {
-                                    return command::pkg::export::cf::start(ui, &args.args).await;
-                                }
                                 #[cfg(any(target_os = "linux", target_os = "windows"))]
                                 PkgExportCommand::Container(args) => {
                                     return command::pkg::export::container::start(ui, &args.args).await;
@@ -311,10 +307,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                                              for 'hab pkg export container'. Please update your \
                                              automation and processes accordingly.")?;
                                     return command::pkg::export::container::start(ui, &args.args).await;
-                                }
-                                #[cfg(target_os = "linux")]
-                                PkgExportCommand::Mesos(args) => {
-                                    return command::pkg::export::mesos::start(ui, &args.args).await;
                                 }
                                 #[cfg(any(target_os = "linux", target_os = "windows"))]
                                 PkgExportCommand::Tar(args) => {
@@ -807,6 +799,7 @@ async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>, feature_flags: FeatureFl
     let plan_context = required_value_of(m, "PLAN_CONTEXT");
     let root = m.value_of("HAB_STUDIO_ROOT");
     let src = m.value_of("SRC_PATH");
+    let refresh_channel = m.value_of("REFRESH_CHANNEL");
 
     let origins = hab_key_origins(m)?;
     if !origins.is_empty() {
@@ -844,7 +837,8 @@ async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>, feature_flags: FeatureFl
                                &origins,
                                native_package,
                                reuse,
-                               docker).await
+                               docker,
+                               refresh_channel).await
 }
 
 fn sub_pkg_config(m: &ArgMatches<'_>) -> Result<()> {
@@ -1102,12 +1096,11 @@ async fn sub_pkg_install(ui: &mut UI,
             InstallMode::default()
         };
 
-    let local_package_usage =
-        if feature_flags.contains(FeatureFlag::IGNORE_LOCAL) && m.is_present("IGNORE_LOCAL") {
-            LocalPackageUsage::Ignore
-        } else {
-            LocalPackageUsage::default()
-        };
+    let local_package_usage = if m.is_present("IGNORE_LOCAL") {
+        LocalPackageUsage::Ignore
+    } else {
+        LocalPackageUsage::default()
+    };
 
     let install_hook_mode = if m.is_present("IGNORE_INSTALL_HOOK") {
         InstallHookMode::Ignore
