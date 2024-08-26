@@ -18,6 +18,9 @@ pub(crate) struct PkgExportCommandOptions {
 }
 
 #[derive(Debug, Clone, Subcommand)]
+#[command(arg_required_else_help = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(crate) enum PkgExportCommand {
     /// Cloud Foundry Exporter
     #[cfg(target_os = "linux")]

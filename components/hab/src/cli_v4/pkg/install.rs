@@ -35,7 +35,10 @@ use crate::cli_v4::utils::{AuthToken,
                            BldrUrl};
 
 #[derive(Debug, Clone, Parser)]
-#[command(arg_required_else_help = true, rename_all = "screaming_snake")]
+#[command(arg_required_else_help = true,
+          rename_all = "screaming_snake",
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgInstallOptions {
     #[command(flatten)]
     bldr_url: BldrUrl,

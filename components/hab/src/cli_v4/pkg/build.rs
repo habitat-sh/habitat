@@ -23,7 +23,9 @@ use crate::error::Error as HabError;
 use crate::cli_v4::utils::CacheKeyPath;
 
 #[derive(Debug, Clone, Parser)]
-#[command(arg_required_else_help = true)]
+#[command(arg_required_else_help = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgBuildOptions {
     // TODO: Should multiple Origins be supported? The semantics looks like that but the original
     // v2 code does not look like supporting.

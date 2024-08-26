@@ -19,10 +19,12 @@ use utils::CacheKeyPath;
 #[command(name = "hab",
             version = VERSION,
             about = "Patents: https://chef.io/patents\n\"A Habitat is the natural environment for your services\" - Alan Turing",
-            author = "\nThe Habitat Maintainers <humans@habitat.sh>\n",
+            author = "\nThe Habitat Maintainers <humans@habitat.sh>",
             after_help = AFTER_HELP,
-            propagate_version = true,
             arg_required_else_help = true,
+            propagate_version = true,
+            help_template = "{name} {version} {author-section} {about-section} \
+                    \n{usage-heading} {usage}\n\n{all-args}\n{after-help}\n",
         )]
 enum Hab {
     /// Commands relating to Habitat Builder

@@ -13,7 +13,9 @@ use crate::{command::pkg::{list,
             error::Result as HabResult};
 
 #[derive(Debug, Clone, Parser)]
-#[command(arg_required_else_help = true)]
+#[command(arg_required_else_help = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 #[group(required = true, multiple = false)]
 pub(crate) struct PkgListOptions {
     /// List all installed packages

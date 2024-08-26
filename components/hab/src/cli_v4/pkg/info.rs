@@ -15,7 +15,9 @@ use crate::{command::pkg::info,
             error::Result as HabResult};
 
 #[derive(Debug, Clone, Parser)]
-#[command(arg_required_else_help = true)]
+#[command(arg_required_else_help = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgInfoOptions {
     /// Output will be rendered in json. (Includes extended metadata)
     #[arg(name = "TO_JSON",
