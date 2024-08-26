@@ -51,7 +51,10 @@ mod sign;
 mod verify;
 
 #[derive(Clone, Debug, Subcommand)]
-#[command(arg_required_else_help = true)]
+#[command(author = "\nThe Habitat Maintainers <humans@habitat.sh>",
+          arg_required_else_help = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(super) enum PkgCommand {
     /// Displays the binds for a service
     Binds(binds::PkgBindsOptions),

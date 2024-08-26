@@ -11,6 +11,9 @@ use crate::{command::pkg::path,
             error::Result as HabResult};
 
 #[derive(Debug, Clone, Parser)]
+#[command(arg_required_else_help = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgPathOptions {
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
     #[arg(name = "PKG_IDENT")]

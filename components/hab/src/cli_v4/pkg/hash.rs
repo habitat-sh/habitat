@@ -13,6 +13,9 @@ use crate::command::pkg::hash;
 use crate::error::Result as HabResult;
 
 #[derive(Debug, Clone, Parser)]
+#[command(arg_required_else_help = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgHashOptions {
     /// Filepath to the Habitat Package file
     #[arg(name = "SOURCE", value_parser = FileExistsValueParser)]

@@ -17,7 +17,9 @@ use crate::{cli_v4::utils::CacheKeyPath,
             error::Result as HabResult};
 
 #[derive(Debug, Clone, Parser)]
-#[command(arg_required_else_help = true)]
+#[command(arg_required_else_help = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgVerifyOptions {
     /// A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
     #[arg(name = "SOURCE", value_parser = FileExistsValueParser)]

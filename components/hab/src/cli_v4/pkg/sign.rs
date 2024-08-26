@@ -21,7 +21,9 @@ use crate::{cli_v4::utils::CacheKeyPath,
                     Result as HabResult}};
 
 #[derive(Debug, Clone, Parser)]
-#[command(arg_required_else_help = true)]
+#[command(arg_required_else_help = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgSignOptions {
     /// Origin key used to create signature
     #[arg(name = "ORIGIN", long = "origin", env=crate::ORIGIN_ENVVAR, value_parser = HabOriginValueParser)]
