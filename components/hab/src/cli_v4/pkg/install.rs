@@ -63,7 +63,7 @@ pub(crate) struct PkgInstallOptions {
     #[arg(long = "binlink-dir",
                 default_value = DEFAULT_BINLINK_DIR,
                 env = BINLINK_DIR_ENVVAR, value_parser = NonEmptyStringValueParser::new())]
-    binlink_dir: PathBuf,
+    binlink_dir: String,
 
     /// Overwrite existing binlinks
     #[arg(short = 'f', long = "force", action = ArgAction::SetTrue)]
@@ -140,9 +140,10 @@ impl PkgInstallOptions {
                                              install_hook_mode).await?;
 
             if do_binlink {
+                let binlink_dir = PathBuf::from(&self.binlink_dir);
                 binlink::binlink_all_in_pkg(ui,
                                             pkg_install.ident(),
-                                            &self.binlink_dir,
+                                            &binlink_dir,
                                             &FS_ROOT_PATH,
                                             self.force)?;
             }

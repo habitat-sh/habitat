@@ -193,7 +193,7 @@ fn parse_ref_internal(cmd: &clap_v4::Command,
     let val = value.to_str().unwrap().to_string();
 
     let result = std::path::Path::new(&val);
-    if check_valid_file_dir_stdin(result, check_dir, check_stdin) {
+    if !check_valid_file_dir_stdin(result, check_dir, check_stdin) {
         let mut err = clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
         if let Some(arg) = arg {
             err.insert(clap_v4::error::ContextKind::InvalidArg,
@@ -208,7 +208,6 @@ fn parse_ref_internal(cmd: &clap_v4::Command,
         Ok(value.to_str().unwrap().to_string())
     }
 }
-
 /// Validate a given file is a 'toml' file or contains valid package idents only.
 ///
 /// Packages to be installed can be read from a 'toml' file or a file containing package idents

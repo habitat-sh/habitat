@@ -164,7 +164,6 @@ impl PkgCommand {
             #[cfg(any(all(target_os = "linux",
                           any(target_arch = "x86_64", target_arch = "aarch64")),
                       all(target_os = "windows", target_arch = "x86_64")))]
-            #[clap(subcommand)]
             Self::Export(cmd) => cmd.do_export(ui).await,
 
             Self::Hash(opts) => opts.do_hash(),
