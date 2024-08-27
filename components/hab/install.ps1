@@ -16,7 +16,7 @@ Specifies a version (ex: 0.75.0, 0.75.0/20190219232208)
 
 param (
     [Alias("c")]
-    [string]$Channel="LTS-2024",
+    [string]$Channel="stable",
     [Alias("v")]
     [string]$Version
 )
