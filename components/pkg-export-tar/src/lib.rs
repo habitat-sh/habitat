@@ -40,7 +40,7 @@ async fn export_for_cli_matches(ui: &mut UI, cli: &cli::Cli) -> Result<()> {
 
 async fn export(ui: &mut UI, build_spec: BuildSpec<'_>) -> Result<()> {
     let hab_pkg = build_spec.hab;
-    let build_result = build_spec.create(ui).await.unwrap();
+    let build_result = build_spec.create(ui).await?;
     let builder_dir_path = build_result.0.path();
     let pkg_ident = build_result.1;
 

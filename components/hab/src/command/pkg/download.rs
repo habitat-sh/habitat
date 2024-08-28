@@ -31,7 +31,8 @@ use std::{collections::{HashMap,
                         HashSet},
           fs::DirBuilder,
           path::{Path,
-                 PathBuf}};
+                 PathBuf},
+          str::FromStr};
 
 use crate::{api_client::{self,
                          retry_builder_api,
@@ -76,6 +77,43 @@ pub struct PackageSetFile {
     // This is a limitation of the target as keys choice for the TOML file format.
     #[serde(flatten)]
     pub targets: HashMap<PackageTarget, Vec<PackageSetValue>>,
+}
+
+// TODO: Remove this clippy allow once `v2` support is removed.
+#[allow(dead_code)]
+impl PackageSetFile {
+    // Get Package Sets from the `toml` data. Following validations are performed -
+    // format_version is 1
+    pub(crate) fn to_package_sets(&self) -> Result<Vec<PackageSet>> {
+        match self.format_version {
+            Some(version) => {
+                if version != 1 {
+                    Err(Error::PackageSetParseError(format!("format_version \
+                                                             invalid, only \
+                                                             version 1 allowed \
+                                                             ({} provided",
+                                                            self.format_version
+                                                                .unwrap())))
+                } else {
+                    let mut sets = vec![];
+                    for (target, pkg_sets) in &self.targets {
+                        for pkg_set in pkg_sets {
+                            let mut idents = vec![];
+                            for package in &pkg_set.packages {
+                                let ident = PackageIdent::from_str(package).map_err(Error::from)?;
+                                idents.push(ident);
+                            }
+                            sets.push(PackageSet { target: *target,
+                                                   channel: pkg_set.channel.clone(),
+                                                   idents });
+                        }
+                    }
+                    Ok(sets)
+                }
+            }
+            None => Err(Error::PackageSetParseError("format_version missing!".to_string())),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
