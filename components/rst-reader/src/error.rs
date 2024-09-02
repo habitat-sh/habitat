@@ -3,11 +3,11 @@ use std::{error,
           result};
 
 #[derive(Debug)]
-pub enum Error {
+pub(crate) enum Error {
     Butterfly(habitat_butterfly::error::Error),
 }
 
-pub type Result<T> = result::Result<T, Error>;
+pub(crate) type Result<T> = result::Result<T, Error>;
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
