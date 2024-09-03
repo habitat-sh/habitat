@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1146 -->
-## [1.6.1146](https://github.com/habitat-sh/habitat/tree/1.6.1146) (2024-09-03)
+<!-- latest_release 1.6.1147 -->
+## [1.6.1147](https://github.com/habitat-sh/habitat/tree/1.6.1147) (2024-09-03)
 
 #### Merged Pull Requests
-- Bump tokio from 1.39.3 to 1.40.0 [#9378](https://github.com/habitat-sh/habitat/pull/9378) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- use mac os 12 in release pipeline to fix broken mac builds [#9381](https://github.com/habitat-sh/habitat/pull/9381) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- use mac os 12 in release pipeline to fix broken mac builds [#9381](https://github.com/habitat-sh/habitat/pull/9381) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1147 -->
+- Studio can build against downgraded channels [#9282](https://github.com/habitat-sh/habitat/pull/9282) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1147 -->
 - Bump tokio from 1.39.3 to 1.40.0 [#9378](https://github.com/habitat-sh/habitat/pull/9378) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1146 -->
 - Bump prost-build from 0.13.1 to 0.13.2 [#9379](https://github.com/habitat-sh/habitat/pull/9379) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1145 -->
 - Bump rustls-webpki from 0.102.6 to 0.102.7 [#9375](https://github.com/habitat-sh/habitat/pull/9375) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1144 -->
