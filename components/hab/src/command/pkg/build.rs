@@ -14,7 +14,8 @@ pub async fn start(ui: &mut UI,
                    origins: &[Origin],
                    native_package: bool,
                    reuse: bool,
-                   docker: bool)
+                   docker: bool,
+                   refresh_channel: Option<&str>)
                    -> Result<()> {
     let mut args: Vec<OsString> = Vec::new();
     if let Some(root) = root {
@@ -24,6 +25,10 @@ pub async fn start(ui: &mut UI,
     if let Some(src) = src {
         args.push("-s".into());
         args.push(src.into());
+    }
+    if let Some(refresh_channel) = refresh_channel {
+        args.push("-f".into());
+        args.push(refresh_channel.into());
     }
 
     if !origins.is_empty() {

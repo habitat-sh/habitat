@@ -365,6 +365,11 @@ export HAB_BLDR_CHANNEL
 # Also note that this only really comes into play if HAB_BLDR_CHANNEL
 # has been set to something different.
 : "${HAB_FALLBACK_CHANNEL=stable}"
+# Use the refresh channel for dependencies in the core/chef/chef-platform origins
+: "${HAB_REFRESH_CHANNEL:=stable}"
+# If we prefer to use local core/chef/chef-platform deps then a locally installed
+# package in one of these origins will be used in preference to what is in the refresh
+: "${HAB_PREFER_LOCAL_CHEF_DEPS:=false}"
 # The value of `$PATH` on initial start of this program
 INITIAL_PATH="$PATH"
 # The value of `pwd` on initial start of this program
@@ -670,64 +675,6 @@ _find_system_commands() {
   fi
 }
 
-# **Internal** Return the path to the latest release of a package on stdout.
-#
-# ```
-# _latest_installed_package acme/nginx
-# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
-# _latest_installed_package acme/nginx/1.8.0
-# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
-# _latest_installed_package acme/nginx/1.8.0/20150911120000
-# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
-# ```
-#
-# Will return 0 if a package was found on disk, and 1 if a package cannot be
-# found. A message will be printed to stderr explaining that no package was
-# found.
-_latest_installed_package() {
-  local result
-  if result="$($HAB_BIN pkg path "$1" 2> /dev/null)"; then
-    echo "$result"
-    return 0
-  else
-    warn "Could not find a suitable installed package for '$1'"
-    return 1
-  fi
-}
-
-# **Internal** Returns the path to the desired package on stdout, using the
-# constraints specified in `$pkg_deps` or `$pkg_build_deps`. If a package
-# cannot be found locally on disk, and the `hab` CLI package is present,
-# this program will attempt to install the package from a remote repository.
-#
-# ```
-# _resolve_dependency acme/zlib
-# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
-# _resolve_dependency acme/zlib/1.2.8
-# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
-# _resolve_dependency acme/zlib/1.2.8/20151216221001
-# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
-# ```
-#
-# Will return 0 if a package was found or installed on disk, and 1 if a package
-# cannot be found or remotely installed. A message will be printed to stderr to
-# provide context.
-_resolve_dependency() {
-  local dep="$1"
-  local dep_path
-  if ! echo "$dep" | grep -q '\/' > /dev/null; then
-    warn "Origin required for '$dep' in plan '$pkg_origin/$pkg_name' (example: acme/$dep)"
-    return 1
-  fi
-
-  if dep_path=$(_latest_installed_package "$dep"); then
-    echo "${dep_path}"
-    return 0
-  else
-    return 1
-  fi
-}
-
 # **Internal** Attempts to download a package dependency. If the value of the
 # `$NO_INSTALL_DEPS` variable is set, then no package installation will occur.
 # If an installation is attempted but there is an error, this function will
@@ -740,17 +687,19 @@ _resolve_dependency() {
 # ```
 _install_dependency() {
     local dep="${1}"
+    local origin
+    local channel="$HAB_BLDR_CHANNEL"
     if [[ -z "${NO_INSTALL_DEPS:-}" ]]; then
-
-    # Enable --ignore-local if invoked with HAB_FEAT_IGNORE_LOCAL in
-    # the environment, set to either "true" or "TRUE" (features are
-    # not currently enabled by the mere presence of an environment variable)
-    if [[ "${HAB_FEAT_IGNORE_LOCAL:-}" = "true" ||
-              "${HAB_FEAT_IGNORE_LOCAL:-}" = "TRUE" ]]; then
+    origin="$(echo "$dep" | cut -d "/" -f 1)"
+    if [[ $origin == "core" || $origin == "chef" || $origin == "chef-platform" ]]; then
+      channel="$HAB_REFRESH_CHANNEL"
+      if [[ $HAB_PREFER_LOCAL_CHEF_DEPS == "false" ]]; then
         IGNORE_LOCAL="--ignore-local"
+      fi
     fi
-    $HAB_BIN pkg install -u $HAB_BLDR_URL --channel $HAB_BLDR_CHANNEL ${IGNORE_LOCAL:-} "$@" || {
-      if [[ "$HAB_BLDR_CHANNEL" != "$HAB_FALLBACK_CHANNEL" ]]; then
+
+    $HAB_BIN pkg install -u $HAB_BLDR_URL --channel $channel ${IGNORE_LOCAL:-} "$@" || {
+      if [[ "$channel" != "$HAB_FALLBACK_CHANNEL" ]]; then
         build_line "Trying to install '$dep' from '$HAB_FALLBACK_CHANNEL'"
         $HAB_BIN pkg install -u $HAB_BLDR_URL --channel "$HAB_FALLBACK_CHANNEL" ${IGNORE_LOCAL:-} "$@" || true
       fi
@@ -1030,10 +979,12 @@ _resolve_scaffolding_dependencies() {
   scaff_build_deps=()
   scaff_build_deps_resolved=()
 
-  _install_dependency "$pkg_scaffolding"
+  res=$(_install_dependency "$pkg_scaffolding")
+  echo "$res"
+  resolved=$(echo "$res" | tail -n 1 | grep -Eo "\S+/\S+")
   # Add scaffolding package to the list of scaffolding build deps
   scaff_build_deps+=("$pkg_scaffolding")
-  if resolved="$(_resolve_dependency "$pkg_scaffolding")"; then
+  if [[ $resolved != "" ]]; then
     build_line "Resolved scaffolding dependency '$pkg_scaffolding' to $resolved"
     scaff_build_deps_resolved+=("$resolved")
     # Add each (fully qualified) direct run dependency of the scaffolding
@@ -1087,10 +1038,12 @@ _resolve_build_dependencies() {
   # Append to `${pkg_build_deps_resolved[@]}` all resolved direct build
   # dependencies.
   for dep in "${pkg_build_deps[@]}"; do
-    _install_dependency "$dep"
-    if resolved="$(_resolve_dependency "$dep")"; then
+    res=$(_install_dependency "$dep")
+    echo "$res"
+    resolved=$(echo "$res" | tail -n 1 | grep -Eo "\S+/\S+")
+    if [[ $resolved != "" ]]; then
       build_line "Resolved build dependency '$dep' to $resolved"
-      pkg_build_deps_resolved+=("$resolved")
+      pkg_build_deps_resolved+=("/hab/pkgs/$resolved")
     else
       exit_with "Resolving '$dep' failed, should this be built first?" 1
     fi
@@ -1162,10 +1115,12 @@ _resolve_run_dependencies() {
 
   # Append to `${pkg_deps_resolved[@]}` all resolved direct run dependencies.
   for dep in "${pkg_deps[@]}"; do
-    _install_dependency "$dep" "--ignore-install-hook"
-    if resolved="$(_resolve_dependency "$dep")"; then
+    res=$(_install_dependency "$dep" "--ignore-install-hook")
+    echo "$res"
+    resolved=$(echo "$res" | tail -n 1 | grep -Eo "\S+/\S+")
+    if [[ $resolved != "" ]]; then
       build_line "Resolved dependency '$dep' to $resolved"
-      pkg_deps_resolved+=("$resolved")
+      pkg_deps_resolved+=("/hab/pkgs/$resolved")
     else
       exit_with "Resolving '$dep' failed, should this be built first?" 1
     fi
