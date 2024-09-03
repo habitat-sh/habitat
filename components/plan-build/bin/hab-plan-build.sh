@@ -366,7 +366,7 @@ export HAB_BLDR_CHANNEL
 # has been set to something different.
 : "${HAB_FALLBACK_CHANNEL=stable}"
 # Use the refresh channel for dependencies in the core/chef/chef-platform origins
-: "${HAB_REFRESH_CHANNEL:=LTS-2024}"
+: "${HAB_REFRESH_CHANNEL:=stable}"
 # If we prefer to use local core/chef/chef-platform deps then a locally installed
 # package in one of these origins will be used in preference to what is in the refresh
 : "${HAB_PREFER_LOCAL_CHEF_DEPS:=false}"

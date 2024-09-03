@@ -155,7 +155,7 @@ Describe "Targeting different refresh channels" {
         }
 
         It "Can target default LTS-2024" {
-            Invoke-BuildAndInstall -PackageName breakable-refresh-downgrade
+            Invoke-BuildAndInstall -PackageName breakable-refresh-downgrade -RefreshChannel LTS-2024
             . ./results/last_build.ps1
             "/hab/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/glibc/2.36"
         }

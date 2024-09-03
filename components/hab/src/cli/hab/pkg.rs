@@ -353,7 +353,7 @@ pub struct PkgBuild {
                 short = "f",
                 long = "refresh-channel",
                 env = "HAB_REFRESH_CHANNEL",
-                default_value = "LTS-2024")]
+                default_value = "stable")]
     refresh_channel: Option<String>,
 }
 
