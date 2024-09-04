@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1147 -->
-## [1.6.1147](https://github.com/habitat-sh/habitat/tree/1.6.1147) (2024-09-03)
+<!-- latest_release 1.6.1148 -->
+## [1.6.1148](https://github.com/habitat-sh/habitat/tree/1.6.1148) (2024-09-04)
 
 #### Merged Pull Requests
-- use mac os 12 in release pipeline to fix broken mac builds [#9381](https://github.com/habitat-sh/habitat/pull/9381) ([mwrock](https://github.com/mwrock))
+- Bump async-trait from 0.1.81 to 0.1.82 [#9382](https://github.com/habitat-sh/habitat/pull/9382) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.81 to 0.1.82 [#9382](https://github.com/habitat-sh/habitat/pull/9382) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1148 -->
 - use mac os 12 in release pipeline to fix broken mac builds [#9381](https://github.com/habitat-sh/habitat/pull/9381) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1147 -->
 - Studio can build against downgraded channels [#9282](https://github.com/habitat-sh/habitat/pull/9282) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1147 -->
 - Bump tokio from 1.39.3 to 1.40.0 [#9378](https://github.com/habitat-sh/habitat/pull/9378) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1146 -->
