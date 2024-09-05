@@ -1,3 +1,4 @@
+# shellcheck disable=2154
 pkg_name="dummy-scaffolding"
 pkg_origin=$HAB_ORIGIN
 pkg_version="0.1.0"
