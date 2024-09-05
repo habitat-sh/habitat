@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1149 -->
-## [1.6.1149](https://github.com/habitat-sh/habitat/tree/1.6.1149) (2024-09-05)
+<!-- latest_release 1.6.1150 -->
+## [1.6.1150](https://github.com/habitat-sh/habitat/tree/1.6.1150) (2024-09-05)
 
 #### Merged Pull Requests
-- Bump tokio-util from 0.7.11 to 0.7.12 [#9384](https://github.com/habitat-sh/habitat/pull/9384) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_json from 1.0.127 to 1.0.128 [#9385](https://github.com/habitat-sh/habitat/pull/9385) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.127 to 1.0.128 [#9385](https://github.com/habitat-sh/habitat/pull/9385) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1150 -->
 - Bump tokio-util from 0.7.11 to 0.7.12 [#9384](https://github.com/habitat-sh/habitat/pull/9384) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1149 -->
 - Bump async-trait from 0.1.81 to 0.1.82 [#9382](https://github.com/habitat-sh/habitat/pull/9382) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1148 -->
 - use mac os 12 in release pipeline to fix broken mac builds [#9381](https://github.com/habitat-sh/habitat/pull/9381) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1147 -->
