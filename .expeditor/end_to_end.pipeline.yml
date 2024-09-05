@@ -575,6 +575,18 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[:linux: test_studio_can_build_scaffolded_package]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_can_build_scaffolded_package
+    artifact_paths:
+      - "*.log"
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
   - label: "[:linux: test_studio_unmount_with_long_filesystem]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_unmount_with_long_filesystem
