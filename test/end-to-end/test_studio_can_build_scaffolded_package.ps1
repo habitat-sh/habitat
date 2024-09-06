@@ -15,11 +15,15 @@ Function Invoke-PlanBuild($package) {
 Describe "package using scaffolding" {
     $minimal = Invoke-PlanBuild minimal-package
     $depPkg = Invoke-PlanBuild dep-pkg-1
+    if ($IsLinux) {
+        hab studio run "rm -rf /hab/pkgs/$($depPkg.Ident)/hooks"
+    }
     $scaffolding = Invoke-PlanBuild scaffolding
     $consumer = Invoke-PlanBuild use_scaffolding
     It "inherits scaffolding dependencies" {
         hab pkg install "results/$($minimal.Artifact)"
         hab pkg install "results/$($depPkg.Artifact)"
+        Remove-Item "/hab/pkgs/$($depPkg.Ident)/hooks" -Recurse -Force
         hab pkg install "results/$($scaffolding.Artifact)"
         hab pkg install "results/$($consumer.Artifact)"
         # scaffolding has minimal_package as runtime and dep-pkg-1 as build time deps
