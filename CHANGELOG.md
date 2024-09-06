@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1151 -->
-## [1.6.1151](https://github.com/habitat-sh/habitat/tree/1.6.1151) (2024-09-05)
+<!-- latest_release 1.6.1152 -->
+## [1.6.1152](https://github.com/habitat-sh/habitat/tree/1.6.1152) (2024-09-06)
 
 #### Merged Pull Requests
-- Bump cc from 1.1.15 to 1.1.16 [#9383](https://github.com/habitat-sh/habitat/pull/9383) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- fix regression breaking pathing of scaffolding dependencies and add test for linux [#9386](https://github.com/habitat-sh/habitat/pull/9386) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- fix regression breaking pathing of scaffolding dependencies and add test for linux [#9386](https://github.com/habitat-sh/habitat/pull/9386) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1152 -->
 - Bump cc from 1.1.15 to 1.1.16 [#9383](https://github.com/habitat-sh/habitat/pull/9383) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1151 -->
 - Bump serde_json from 1.0.127 to 1.0.128 [#9385](https://github.com/habitat-sh/habitat/pull/9385) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1150 -->
 - Bump tokio-util from 0.7.11 to 0.7.12 [#9384](https://github.com/habitat-sh/habitat/pull/9384) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1149 -->
