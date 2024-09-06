@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1152 -->
-## [1.6.1152](https://github.com/habitat-sh/habitat/tree/1.6.1152) (2024-09-06)
+<!-- latest_release 1.6.1153 -->
+## [1.6.1153](https://github.com/habitat-sh/habitat/tree/1.6.1153) (2024-09-06)
 
 #### Merged Pull Requests
-- fix regression breaking pathing of scaffolding dependencies and add test for linux [#9386](https://github.com/habitat-sh/habitat/pull/9386) ([mwrock](https://github.com/mwrock))
+- remove install hook to fix linux e2e test [#9387](https://github.com/habitat-sh/habitat/pull/9387) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- remove install hook to fix linux e2e test [#9387](https://github.com/habitat-sh/habitat/pull/9387) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1153 -->
 - fix regression breaking pathing of scaffolding dependencies and add test for linux [#9386](https://github.com/habitat-sh/habitat/pull/9386) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1152 -->
 - Bump cc from 1.1.15 to 1.1.16 [#9383](https://github.com/habitat-sh/habitat/pull/9383) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1151 -->
 - Bump serde_json from 1.0.127 to 1.0.128 [#9385](https://github.com/habitat-sh/habitat/pull/9385) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1150 -->
