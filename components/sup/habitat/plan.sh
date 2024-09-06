@@ -57,7 +57,7 @@ do_before() {
 do_prepare() {
   _common_prepare
 
-  export rustc_target="x86_64-unknown-linux-gnu"
+  export rustc_target="${pkg_target%%-*}-unknown-linux-gnu"
   build_line "Setting rustc_target=$rustc_target"
 
   export LIBZMQ_PREFIX=$(pkg_path_for zeromq)
