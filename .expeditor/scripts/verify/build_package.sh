@@ -21,5 +21,10 @@ HAB_CACHE_KEY_PATH="$JOB_TEMP_ROOT/keys"
 
 echo "--- :key: Generating fake origin key"
 ${hab_binary} origin key generate
+# Install the hab-studio from the 'aarch64-linux' channel.
+# Once hab is released in the LTS channel, we can use either HAB_BLDR_CHANNEL or HAB_REFRESH_CHANNEL to install the studio.
+if [ "$BUILD_PKG_TARGET" = "aarch64-linux" ]; then
+  ${hab_binary} pkg install core/hab-studio/1.6.706 --channel aarch64-linux
+fi
 echo "--- :hab: Running hab pkg build for $package_path"
 ${hab_binary} pkg build "$package_path"
