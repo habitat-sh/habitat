@@ -641,7 +641,7 @@ function Resolve-ScaffoldingDependencyList {
         $scaff_build_deps += $pkg_scaffolding
         if($resolved) {
             Write-BuildLine "Resolved scaffolding dependency '$pkg_scaffolding' to $resolved"
-            $scaff_build_deps_resolved+=($resolved)
+            $scaff_build_deps_resolved+=(Resolve-Path "$HAB_PKG_PATH/$resolved").Path
             $sdeps=(@(Get-DepsFor $resolved) + @(Get-BuildDepsFor $resolved))
             foreach($sdep in $sdeps) {
                 $scaff_build_deps += $sdep

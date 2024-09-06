@@ -986,7 +986,7 @@ _resolve_scaffolding_dependencies() {
   scaff_build_deps+=("$pkg_scaffolding")
   if [[ $resolved != "" ]]; then
     build_line "Resolved scaffolding dependency '$pkg_scaffolding' to $resolved"
-    scaff_build_deps_resolved+=("$resolved")
+    scaff_build_deps_resolved+=("$HAB_PKG_PATH/$resolved")
     # Add each (fully qualified) direct run dependency of the scaffolding
     # package.
     mapfile -t sdeps < <(_get_deps_for "$resolved") # See syntax note @ _get_deps_for
@@ -1043,7 +1043,7 @@ _resolve_build_dependencies() {
     resolved=$(echo "$res" | tail -n 1 | grep -Eo "\S+/\S+")
     if [[ $resolved != "" ]]; then
       build_line "Resolved build dependency '$dep' to $resolved"
-      pkg_build_deps_resolved+=("/hab/pkgs/$resolved")
+      pkg_build_deps_resolved+=("$HAB_PKG_PATH/$resolved")
     else
       exit_with "Resolving '$dep' failed, should this be built first?" 1
     fi
@@ -1120,7 +1120,7 @@ _resolve_run_dependencies() {
     resolved=$(echo "$res" | tail -n 1 | grep -Eo "\S+/\S+")
     if [[ $resolved != "" ]]; then
       build_line "Resolved dependency '$dep' to $resolved"
-      pkg_deps_resolved+=("/hab/pkgs/$resolved")
+      pkg_deps_resolved+=("$HAB_PKG_PATH/$resolved")
     else
       exit_with "Resolving '$dep' failed, should this be built first?" 1
     fi
