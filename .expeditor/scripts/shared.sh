@@ -27,7 +27,7 @@ curlbash_hab() {
     if [ "$pkg_target" = "aarch64-linux" ]; then
         install_args="$install_args -c aarch64-linux -v 1.6.706"
     fi
-    curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- $install_args
+    curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- "$install_args"
     case "${pkg_target}" in
         x86_64-linux | aarch64-linux | x86_64-linux-kernel2)
             hab_binary="/bin/hab"
