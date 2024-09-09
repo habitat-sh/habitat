@@ -637,7 +637,6 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
     retry:
       automatic:
         limit: 1
