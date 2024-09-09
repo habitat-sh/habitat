@@ -13,7 +13,7 @@ do_begin() {
   PLAN_CONTEXT=$(abspath ..)
 }
 
-# shellcheck disable=2155
+# shellcheck disable=2155,SC2154
 do_prepare() {
   _common_prepare
 
