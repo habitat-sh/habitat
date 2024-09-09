@@ -661,7 +661,7 @@ steps:
   # This build currently fails due to a circular dependency in 'LTS-2024' and needs investigation.
   - label: "[build] :linux: aarch64 backline"
     agents:
-      queue: docker-linux-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -692,7 +692,7 @@ steps:
 
   - label: "[build] :linux: aarch64 hab"
     agents:
-      queue: docker-linux-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -716,7 +716,7 @@ steps:
 
   - label: "[build] :linux: aarch64 launcher"
     agents:
-      queue: docker-linux-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -750,7 +750,7 @@ steps:
   # This build currently fails due to a dependency on 'pkg-export-container'
   - label: "[build] :linux: aarch64 pkg-cfize"
     agents:
-      queue: docker-linux-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -782,7 +782,7 @@ steps:
   # This build currently fails due to a dependency on 'core/buildah', which is not available in 'LTS-2024'.
   - label: "[build] :linux: aarch64 pkg-export-containe"
     agents:
-      queue: docker-linux-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -813,7 +813,7 @@ steps:
 
   - label: "[build] :linux: aarch64 pkg-export-tar"
     agents:
-      queue: docker-linux-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -844,7 +844,7 @@ steps:
 
   - label: "[build] :linux: aarch64 pkg-mesosize"
     agents:
-      queue: docker-linux-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -875,7 +875,7 @@ steps:
 
   - label: "[build] :linux: aarch64 plan-build"
     agents:
-      queue: docker-linux-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -906,7 +906,7 @@ steps:
 
   - label: "[build] :linux: aarch64 studio"
     agents:
-      queue: docker-linux-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -937,7 +937,7 @@ steps:
 
   - label: "[build] :linux: aarch64 sup"
     agents:
-      queue: docker-linux-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
