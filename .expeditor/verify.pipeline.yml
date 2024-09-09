@@ -657,7 +657,7 @@ steps:
 
   - label: "[build] :linux: aarch64 hab"
     agents:
-      queue: docker-linux-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
