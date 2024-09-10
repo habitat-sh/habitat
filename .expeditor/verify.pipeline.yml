@@ -674,7 +674,7 @@ steps:
 
   - label: "[build] :linux: aarch64 hab"
     agents:
-      queue: default-privileged-aarch64
+      queue: default-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
