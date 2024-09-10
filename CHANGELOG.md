@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1155 -->
-## [1.6.1155](https://github.com/habitat-sh/habitat/tree/1.6.1155) (2024-09-09)
+<!-- latest_release 1.6.1156 -->
+## [1.6.1156](https://github.com/habitat-sh/habitat/tree/1.6.1156) (2024-09-10)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.209 to 1.0.210 [#9388](https://github.com/habitat-sh/habitat/pull/9388) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rustls-webpki from 0.102.7 to 0.102.8 [#9392](https://github.com/habitat-sh/habitat/pull/9392) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump rustls-webpki from 0.102.7 to 0.102.8 [#9392](https://github.com/habitat-sh/habitat/pull/9392) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1156 -->
 - Bump serde from 1.0.209 to 1.0.210 [#9388](https://github.com/habitat-sh/habitat/pull/9388) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1155 -->
 - Bump cc from 1.1.16 to 1.1.18 [#9389](https://github.com/habitat-sh/habitat/pull/9389) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1155 -->
 - Bump anyhow from 1.0.86 to 1.0.87 [#9390](https://github.com/habitat-sh/habitat/pull/9390) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1154 -->
