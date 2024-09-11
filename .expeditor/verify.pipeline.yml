@@ -12,7 +12,7 @@ steps:
     command:
       - .expeditor/scripts/verify/run_native_cargo_test.sh
     agents:
-      queue: default-privileged-aarch64
+      queue: default-aarch64
     plugins:
       - docker#v3.13.0:
           image: "rust:1.62.1-buster"
