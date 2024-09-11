@@ -11,10 +11,8 @@ steps:
   - label: "[unit] :linux: ARM Platform Support"
     command:
       - .expeditor/scripts/verify/run_native_cargo_test.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true  
+    
+    privileged: true  
     agents:
       queue: default-privileged-aarch64
     plugins:
@@ -677,12 +675,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: aarch64 hab"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
     agents:
-      queue: default-privileged-aarch64  
+      queue: default-privileged-aarch64 
+    privileged: true  
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
