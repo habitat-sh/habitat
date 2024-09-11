@@ -11,6 +11,9 @@ steps:
   - label: "[unit] :linux: ARM Platform Support"
     command:
       - .expeditor/scripts/verify/run_native_cargo_test.sh
+    expeditor:
+      executor:
+        privileged: true  
     agents:
       queue: default-privileged-aarch64
     plugins:
