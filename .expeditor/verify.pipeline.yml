@@ -12,7 +12,7 @@ steps:
     command:
       - .expeditor/scripts/verify/run_native_cargo_test.sh
     agents:
-      queue: default-aarch64
+      queue: default-privileged-aarch64
     plugins:
       - docker#v3.13.0:
           image: "rust:1.62.1-buster"
@@ -679,7 +679,7 @@ steps:
 
   - label: "[build] :linux: aarch64 hab"
     agents:
-      queue: default-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
