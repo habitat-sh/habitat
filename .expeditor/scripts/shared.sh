@@ -25,9 +25,10 @@ curlbash_hab() {
     # Once hab is released in the LTS channel, we can use either HAB_BLDR_CHANNEL or HAB_REFRESH_CHANNEL to install hab.
     install_args="-t $pkg_target"
     if [ "$pkg_target" = "aarch64-linux" ]; then
-        install_args="$install_args -c aarch64-linux -v 1.6.706"
+        install_args+="-c aarch64-linux -v 1.6.706"
     fi
-    curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- "$install_args"
+    echo "install_args: $install_args"
+    curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- ${install_args}
     case "${pkg_target}" in
         x86_64-linux | aarch64-linux | x86_64-linux-kernel2)
             hab_binary="/bin/hab"
