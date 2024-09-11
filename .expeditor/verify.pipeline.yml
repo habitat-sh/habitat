@@ -10,7 +10,7 @@ steps:
 
   - label: "[unit] :linux: ARM Platform Support"
     command:
-      - sudo.expeditor/scripts/verify/run_native_cargo_test.sh
+      - expeditor/scripts/verify/run_native_cargo_test.sh
     expeditor:
       executor:
         linux:
@@ -656,7 +656,7 @@ steps:
       - .expeditor/scripts/verify/build_package.sh test-services/test-probe
     expeditor:
       executor:
-        docker:
+        linux:
           privileged: true
     retry:
       automatic:
@@ -677,6 +677,10 @@ steps:
         limit: 1
 
   - label: "[build] :linux: aarch64 hab"
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     agents:
       queue: default-privileged-aarch64  
     env:
