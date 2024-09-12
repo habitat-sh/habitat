@@ -1343,7 +1343,7 @@ dependencies = [
 name = "habitat-rst-reader"
 version = "0.0.0"
 dependencies = [
- "clap 2.33.1",
+ "clap 4.5.9",
  "env_logger",
  "habitat_butterfly",
  "log 0.4.22",

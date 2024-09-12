@@ -1,6 +1,6 @@
 use crate::error::Result;
-use clap::{App,
-           Arg};
+use clap::Parser;
+
 use habitat_butterfly::rumor::{dat_file,
                                Departure,
                                Election,
@@ -12,33 +12,39 @@ use log::error;
 use std::{path::PathBuf,
           process};
 
-pub mod error;
+mod error;
 
-fn main() {
+#[derive(Debug, Clone, Parser)]
+#[command(name = "Habitat Rst Reader",
+          about = "Introspection for the butterfly RST file.",
+          arg_required_else_help = true,
+          help_template = "{name}\n{about-section}\n{usage-heading} {usage}\n\n{all-args}")]
+struct RstReader {
+    #[arg(name = "FILE", help = "Path to the RST file.")]
+    file: String,
+
+    #[arg(name = "STATS",
+          short = 's',
+          long = "stats",
+          help = "Display statistics about the contents of the file.")]
+    stats: bool,
+}
+
+fn main() -> error::Result<()> {
     env_logger::init();
-    let matches =
-        App::new("Habitat RST Reader").about("Introspection for the butterfly RST file")
-                                      .arg(Arg::with_name("FILE").required(true)
-                                                                 .index(1)
-                                                                 .help("Path to the RST file"))
-                                      .arg(Arg::with_name("STATS").short("s")
-                                                                  .long("stats")
-                                                                  .conflicts_with("FOLLOW")
-                                                                  .help("Display statistics \
-                                                                         about the contents of \
-                                                                         the file"))
-                                      .get_matches();
 
-    let file = matches.value_of("FILE").unwrap();
-    let stats = matches.is_present("STATS");
-    let dat_file = dat_file::DatFileReader::read(PathBuf::from(file)).unwrap_or_else(|e| {
-                                                                         error!("Could not read \
-                                                                                 dat file {}: {}",
-                                                                                file, e);
-                                                                         process::exit(1);
-                                                                     });
+    let rst_reader = RstReader::parse();
 
-    let result = if stats {
+    let dat_file =
+        dat_file::DatFileReader::read(PathBuf::from(&rst_reader.file)).unwrap_or_else(|e| {
+                                                                          error!("Could not read \
+                                                                                  dat file {}: {}",
+                                                                                 &rst_reader.file,
+                                                                                 e);
+                                                                          process::exit(1);
+                                                                      });
+
+    let result = if rst_reader.stats {
         output_stats(dat_file)
     } else {
         output_rumors(dat_file)
@@ -48,6 +54,8 @@ fn main() {
         error!("Error processing dat file: {:?}", result);
         process::exit(1);
     }
+
+    Ok(())
 }
 
 fn output_rumors(mut dat_file: dat_file::DatFileReader) -> Result<()> {
