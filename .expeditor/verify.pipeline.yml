@@ -16,7 +16,7 @@ steps:
         linux:
           privileged: true
     agents:
-      queue: default-privileged-aarch64
+      queue: docker-linux-arm64
     plugins:
       - docker#v3.13.0:
           image: "rust:1.62.1-buster"
@@ -647,7 +647,7 @@ steps:
 
   - label: "[build] :linux: aarch64 test-probe"
     agents:
-      queue: default-arm64
+      queue: docker-linux-arm64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -656,7 +656,8 @@ steps:
       - .expeditor/scripts/verify/build_package.sh test-services/test-probe
     expeditor:
       executor:
-      privileged: true
+        docker:
+         privileged: true
     retry:
       automatic:
         limit: 1      
@@ -674,9 +675,10 @@ steps:
   - label: "[build] :linux: aarch64 hab"
     expeditor:
       executor:
-      privileged: true
+        docker:
+          privileged: true
     agents:
-      queue: default-privileged-aarch64  
+      queue: docker-linux-arm64  
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
