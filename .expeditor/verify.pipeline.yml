@@ -656,8 +656,7 @@ steps:
       - .expeditor/scripts/verify/build_package.sh test-services/test-probe
     expeditor:
       executor:
-        linux:
-          privileged: true
+        privileged: true
     retry:
       automatic:
         limit: 1      
@@ -675,8 +674,7 @@ steps:
   - label: "[build] :linux: aarch64 hab"
     expeditor:
       executor:
-        docker:
-          privileged: true
+        privileged: true
     agents:
       queue: default-privileged-aarch64  
     env:
