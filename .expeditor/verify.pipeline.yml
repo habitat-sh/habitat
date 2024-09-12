@@ -16,7 +16,7 @@ steps:
         linux:
           privileged: true
     agents:
-      queue: docker-linux-arm64
+      queue: docker-linux-amazon-2023-arm64
     plugins:
       - docker#v3.13.0:
           image: "rust:1.62.1-buster"
@@ -668,7 +668,9 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[build] :linux: aarch64 hab" 
+  - label: "[build] :linux: aarch64 hab"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
