@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1158 -->
-## [1.6.1158](https://github.com/habitat-sh/habitat/tree/1.6.1158) (2024-09-16)
+<!-- latest_release 1.6.1159 -->
+## [1.6.1159](https://github.com/habitat-sh/habitat/tree/1.6.1159) (2024-09-16)
 
 #### Merged Pull Requests
-- Bump cc from 1.1.18 to 1.1.19 [#9395](https://github.com/habitat-sh/habitat/pull/9395) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump anyhow from 1.0.87 to 1.0.89 [#9396](https://github.com/habitat-sh/habitat/pull/9396) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump anyhow from 1.0.87 to 1.0.89 [#9396](https://github.com/habitat-sh/habitat/pull/9396) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1159 -->
 - Bump cc from 1.1.18 to 1.1.19 [#9395](https://github.com/habitat-sh/habitat/pull/9395) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1158 -->
 - clap-v4 support for RST Reader [#9380](https://github.com/habitat-sh/habitat/pull/9380) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1157 -->
 - Bump rustls-webpki from 0.102.7 to 0.102.8 [#9392](https://github.com/habitat-sh/habitat/pull/9392) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1156 -->
