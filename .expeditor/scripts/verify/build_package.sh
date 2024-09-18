@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -ex
 set -eou pipefail
 
 source .expeditor/scripts/shared.sh
