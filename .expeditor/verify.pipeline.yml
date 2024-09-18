@@ -644,7 +644,7 @@ steps:
   - label: "[build] :linux: aarch64 test-probe"
     agents:
       queue: docker-linux-amazon-2023-arm64
-      privileged: true
+    privileged: true
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -668,7 +668,7 @@ steps:
   - label: "[build] :linux: aarch64 hab"
     agents:
       queue: docker-linux-amazon-2023-arm64
-      privileged: true
+    privileged: true
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
