@@ -644,12 +644,13 @@ steps:
   - label: "[build] :linux: aarch64 test-probe"
     agents:
       queue: docker-linux-amazon-2023-arm64
+      privileged: true
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - .expeditor/scripts/verify/build_package.sh test-services/test-probe
+      - .expeditor/scripts/verify/build_package.sh test-services/test-probe  
     retry:
       automatic:
         limit: 1      
@@ -667,6 +668,7 @@ steps:
   - label: "[build] :linux: aarch64 hab"
     agents:
       queue: docker-linux-amazon-2023-arm64
+      privileged: true
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
