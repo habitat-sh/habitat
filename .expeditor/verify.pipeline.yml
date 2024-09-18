@@ -672,11 +672,10 @@ steps:
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - .expeditor/scripts/verify/build_package.sh components/hab
-    expeditor:
-      executor:
-        docker:
-          privileged: true  
-
+    retry:
+      automatic:
+        limit: 1  
+ 
   - label: "[build] :linux: launcher"
     env:
       HAB_LICENSE: "accept-no-persist"
