@@ -11,10 +11,6 @@ steps:
   - label: "[unit] :linux: ARM Platform Support"
     command:
       - expeditor/scripts/verify/run_native_cargo_test.sh
-    expeditor:
-      executor:
-        linux:
-          privileged: true
     agents:
       queue: docker-linux-arm64
     plugins:
