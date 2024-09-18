@@ -643,7 +643,7 @@ steps:
 
   - label: "[build] :linux: aarch64 test-probe"
     agents:
-      queue: docker-linux-arm64
+      queue: docker-linux-amazon-2023-arm64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
