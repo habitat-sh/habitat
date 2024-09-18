@@ -19,7 +19,7 @@ steps:
       queue: default-privileged-aarch64
     plugins:
       - docker#v3.13.0:
-          image: "rust:1.62.1-buster"
+          image: "chefes/buildkite:latest"
 
   - label: "[lint] :linux: :bash: Shellcheck"
     command:
