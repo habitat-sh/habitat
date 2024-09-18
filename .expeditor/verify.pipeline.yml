@@ -12,10 +12,10 @@ steps:
     command:
       - expeditor/scripts/verify/run_native_cargo_test.sh
     agents:
-      queue: docker-linux-arm64
+      queue: docker-linux-amazon-2023-arm64
     plugins:
       - docker#v3.13.0:
-          image: "chefes/buildkite:latest"
+          image: "rust:1.62.1-buster"
 
   - label: "[lint] :linux: :bash: Shellcheck"
     command:
