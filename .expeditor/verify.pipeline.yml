@@ -16,7 +16,7 @@ steps:
         linux:
           privileged: true
     agents:
-      queue: default-privileged-aarch64
+      queue: docker-linux-arm64
     plugins:
       - docker#v3.13.0:
           image: "chefes/buildkite:latest"
