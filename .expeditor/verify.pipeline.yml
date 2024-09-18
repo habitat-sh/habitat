@@ -10,7 +10,7 @@ steps:
 
   - label: "[unit] :linux: ARM Platform Support"
     command:
-      - expeditor/scripts/verify/run_native_cargo_test.sh
+       - .expeditor/scripts/verify/run_native_cargo_test.sh
     agents:
       queue: docker-linux-amazon-2023-arm64
     plugins:
