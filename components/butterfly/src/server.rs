@@ -815,7 +815,9 @@ impl Server {
         // This could be converted to a more FP approach and avoid the need for `mut`
         let mut electorate = vec![];
         for s in self.service_store.lock_rsr().service_group(key).rumors() {
-            if self.member_list.health_of_by_id_mlr(&s.member_id) == Some(Health::Alive) {
+            // See CHEF-15511 : It is observed that sometimes a subset of nodes can enter `Suspect`
+            // state briefly and could lead potentially to new leader election.
+            if self.member_list.health_of_by_id_mlr(&s.member_id) < Some(Health::Confirmed) {
                 electorate.push(s.member_id.clone());
             }
         }
@@ -862,13 +864,20 @@ impl Server {
         #[allow(clippy::integer_division)]
         let has_quorum = alive_population > total_population / 2;
 
-        trace!("check_quorum({}): {}/{} alive/total => {}, electorate: {:?}, service_group: {:?}",
-               key,
-               alive_population,
-               total_population,
-               has_quorum,
-               electorate,
-               service_group_members);
+        let quorum_log_entry = format!("check_quorum({}): {}/{} alive/total => {}, electorate: \
+                                        {:?}, service_group: {:?}",
+                                       key,
+                                       alive_population,
+                                       total_population,
+                                       has_quorum,
+                                       electorate,
+                                       service_group_members);
+
+        if !has_quorum {
+            warn!("{}", quorum_log_entry);
+        } else {
+            trace!("{}", quorum_log_entry);
+        }
 
         has_quorum
     }

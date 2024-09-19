@@ -163,6 +163,11 @@ fn process_pingreq_mlr_smr_rhw(server: &Server,
         let ping_msg = Ping { membership: vec![],
                               from:       server.myself.lock_smr().to_member(),
                               forward_to: Some(msg.from.clone()), };
+
+        // Add requester to hot rumors, as Requester is now `Alive`?
+        let originator = msg.from.clone();
+        server.insert_member_mlw_rhw(originator, Health::Alive);
+
         let swim = outbound::populate_membership_rumors_mlr_rhw(server, &target, ping_msg);
         // Set the route-back address to the one we received the
         // pingreq from
@@ -188,6 +193,8 @@ fn process_ack_mlw_smw_rhw(server: &Server,
                            addr: SocketAddr,
                            mut msg: Ack) {
     trace!("Ack from {}@{}", msg.from.id, addr);
+
+    let originator = msg.from.clone();
     if msg.forward_to.is_some() && *server.member_id != msg.forward_to.as_ref().unwrap().id {
         let (forward_to_addr, from_addr) = {
             let forward_to = msg.forward_to.as_ref().unwrap();
@@ -207,8 +214,18 @@ fn process_ack_mlw_smw_rhw(server: &Server,
                    forward_to.address,);
             (forward_to_addr, addr.ip().to_string())
         };
+
         msg.from.address = from_addr;
         outbound::forward_ack(server, socket, forward_to_addr, msg);
+
+        // Mark the one we received message from as `Alive` or `Departed` (it should be `Alive`
+        // Normally). Similar to `process_ping..` below.
+        if originator.departed {
+            server.insert_member_mlw_rhw(originator, Health::Departed);
+        } else {
+            server.insert_member_mlw_rhw(originator, Health::Alive);
+        }
+
         return;
     }
     let memberships = msg.membership.clone();
@@ -216,6 +233,14 @@ fn process_ack_mlw_smw_rhw(server: &Server,
         Ok(()) => {
             for membership in memberships {
                 server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+            }
+
+            // TODO: Mark the one we received from either as `Departed` or `Alive`.
+            // Similar to `process_ping..` below.
+            if originator.departed {
+                server.insert_member_mlw_rhw(originator, Health::Departed);
+            } else {
+                server.insert_member_mlw_rhw(originator, Health::Alive);
             }
         }
         Err(e) => panic!("Outbound thread has died - this shouldn't happen: #{:?}", e),
@@ -231,12 +256,17 @@ fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAdd
     // Populate the member for this sender with its remote address
     msg.from.address = addr.ip().to_string();
     trace!("Ping from {}@{}", msg.from.id, addr);
+    for membership in msg.membership {
+        server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+    }
+
+    // Mark the sender `Alive` (overwrite if the `membership` in the Ping contains sender in a
+    // state that is not `Alive`.This may happen if a node is partitioned and hence determines
+    // everyone as either `Suspect`/`Confirmed` and thus will `gossip` everyone is dead which may
+    // include sender.)
     if msg.from.departed {
         server.insert_member_mlw_rhw(msg.from, Health::Departed);
     } else {
         server.insert_member_mlw_rhw(msg.from, Health::Alive);
-    }
-    for membership in msg.membership {
-        server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
     }
 }

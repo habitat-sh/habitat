@@ -492,7 +492,7 @@ pub fn ack_mlr_smr_rhw(server: &Server,
     let ack_msg = Ack { membership: vec![],
                         from:       server.myself.lock_smr().to_member(),
                         forward_to: forward_to.map(Member::from), };
-    let member_id = ack_msg.from.id.clone();
+
     let swim = populate_membership_rumors_mlr_rhw(server, target, ack_msg);
     let bytes = match swim.encode() {
         Ok(bytes) => bytes,
@@ -514,8 +514,8 @@ pub fn ack_mlr_smr_rhw(server: &Server,
             SWIM_MESSAGES_SENT.with_label_values(label_values).inc();
             SWIM_BYTES_SENT.with_label_values(label_values)
                            .set(payload.len().to_i64());
-            trace!("Sent ack to {}@{}", member_id, addr);
+            trace!("Sent ack to {}@{}", target.id, addr);
         }
-        Err(e) => error!("Failed ack to {}@{}: {}", member_id, addr, e),
+        Err(e) => error!("Failed ack to {}@{}: {}", target.id, addr, e),
     }
 }
