@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1160 -->
-## [1.6.1160](https://github.com/habitat-sh/habitat/tree/1.6.1160) (2024-09-19)
+<!-- latest_release 1.6.1161 -->
+## [1.6.1161](https://github.com/habitat-sh/habitat/tree/1.6.1161) (2024-09-19)
 
 #### Merged Pull Requests
-- Bump bytes from 1.7.1 to 1.7.2 [#9399](https://github.com/habitat-sh/habitat/pull/9399) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.1.19 to 1.1.21 [#9398](https://github.com/habitat-sh/habitat/pull/9398) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump cc from 1.1.19 to 1.1.21 [#9398](https://github.com/habitat-sh/habitat/pull/9398) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1161 -->
 - Bump bytes from 1.7.1 to 1.7.2 [#9399](https://github.com/habitat-sh/habitat/pull/9399) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1160 -->
 - Bump anyhow from 1.0.87 to 1.0.89 [#9396](https://github.com/habitat-sh/habitat/pull/9396) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1159 -->
 - Bump cc from 1.1.18 to 1.1.19 [#9395](https://github.com/habitat-sh/habitat/pull/9395) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1158 -->
