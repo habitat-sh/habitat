@@ -662,11 +662,7 @@ steps:
       - .expeditor/scripts/verify/build_package.sh components/hab
     retry:
       automatic:
-        limit: 1
-    expeditor:
-      executor:
-        docker:
-          privileged: true    
+        limit: 1    
 
   - label: "[build] :linux: aarch64 hab"
     agents:
