@@ -657,17 +657,13 @@ steps:
   # This build currently fails due to a circular dependency in 'LTS-2024' and needs investigation.
   - label: "[build] :linux: aarch64 backline"
     agents:
-      queue: default-privileged-aarch64
+      queue: docker-linux-amazon-2023-arm64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - .expeditor/scripts/verify/build_package.sh components/backline
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/backline
     retry:
       automatic:
         limit: 1
@@ -688,17 +684,16 @@ steps:
 
   - label: "[build] :linux: aarch64 hab"
     agents:
-      queue: default-privileged-aarch64
+      queue: docker-linux-amazon-2023-arm64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - .expeditor/scripts/verify/build_package.sh components/hab
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/hab
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[build] :linux: launcher"
     env:
@@ -716,17 +711,13 @@ steps:
 
   - label: "[build] :linux: aarch64 launcher"
     agents:
-      queue: default-privileged-aarch64
+      queue: docker-linux-amazon-2023-arm64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - .expeditor/scripts/verify/build_package.sh components/launcher
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/launcher
     retry:
       automatic:
         limit: 1
@@ -750,17 +741,13 @@ steps:
   # This build currently fails due to a dependency on 'pkg-export-container'
   - label: "[build] :linux: aarch64 pkg-cfize"
     agents:
-      queue: default-privileged-aarch64
+      queue: docker-linux-amazon-2023-arm64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - .expeditor/scripts/verify/build_package.sh components/pkg-cfize
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-cfize
     retry:
       automatic:
         limit: 1
@@ -782,17 +769,13 @@ steps:
   # This build currently fails due to a dependency on 'core/buildah', which is not available in 'LTS-2024'.
   - label: "[build] :linux: aarch64 pkg-export-containe"
     agents:
-      queue: default-privileged-aarch64
+      queue: docker-linux-amazon-2023-arm64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - .expeditor/scripts/verify/build_package.sh components/pkg-export-containe
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-export-containe
     retry:
       automatic:
         limit: 1
@@ -813,17 +796,13 @@ steps:
 
   - label: "[build] :linux: aarch64 pkg-export-tar"
     agents:
-      queue: default-privileged-aarch64
+      queue: docker-linux-amazon-2023-arm64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - .expeditor/scripts/verify/build_package.sh components/pkg-export-tar
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-export-tar
     retry:
       automatic:
         limit: 1
@@ -844,17 +823,13 @@ steps:
 
   - label: "[build] :linux: aarch64 pkg-mesosize"
     agents:
-      queue: default-privileged-aarch64
+      queue: docker-linux-amazon-2023-arm64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - .expeditor/scripts/verify/build_package.sh components/pkg-mesosize
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-mesosize
     retry:
       automatic:
         limit: 1
@@ -875,17 +850,13 @@ steps:
 
   - label: "[build] :linux: aarch64 plan-build"
     agents:
-      queue: default-privileged-aarch64
+      queue: docker-linux-amazon-2023-arm64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - .expeditor/scripts/verify/build_package.sh components/plan-build
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/plan-build
     retry:
       automatic:
         limit: 1
@@ -906,17 +877,13 @@ steps:
 
   - label: "[build] :linux: aarch64 studio"
     agents:
-      queue: default-privileged-aarch64
+      queue: docker-linux-amazon-2023-arm64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - .expeditor/scripts/verify/build_package.sh components/studio
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/studio
     retry:
       automatic:
         limit: 1
@@ -937,17 +904,13 @@ steps:
 
   - label: "[build] :linux: aarch64 sup"
     agents:
-      queue: default-privileged-aarch64
+      queue: docker-linux-amazon-2023-arm64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - .expeditor/scripts/verify/build_package.sh components/sup
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/sup
     retry:
       automatic:
         limit: 1
