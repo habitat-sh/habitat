@@ -669,14 +669,13 @@ impl Server {
     fn insert_member_from_rumor_mlw_smw_rhw(&self, member: Member, mut health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
 
-        if member.id == self.member_id()
-           && health != Health::Alive
-           && member.incarnation >= self.myself.lock_smr().incarnation()
-        {
-            self.myself
-                .lock_smw()
-                .refute_incarnation(member.incarnation);
+        if member.id == self.member_id() && health != Health::Alive {
             health = Health::Alive;
+            if member.incarnation >= self.myself.lock_smr().incarnation() {
+                self.myself
+                    .lock_smw()
+                    .refute_incarnation(member.incarnation);
+            }
         }
 
         let member_id = member.id.clone();
