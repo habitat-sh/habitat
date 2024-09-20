@@ -165,7 +165,8 @@ fn process_pingreq_mlr_smr_rhw(server: &Server,
                               forward_to: Some(msg.from.clone()), };
 
         // Add requester to hot rumors, as Requester is now `Alive`?
-        let originator = msg.from.clone();
+        let mut originator = msg.from.clone();
+        originator.address = addr.ip().to_string();
         server.insert_member_mlw_rhw(originator, Health::Alive);
 
         let swim = outbound::populate_membership_rumors_mlr_rhw(server, &target, ping_msg);
@@ -194,7 +195,7 @@ fn process_ack_mlw_smw_rhw(server: &Server,
                            mut msg: Ack) {
     trace!("Ack from {}@{}", msg.from.id, addr);
 
-    let originator = msg.from.clone();
+    let mut originator = msg.from.clone();
     if msg.forward_to.is_some() && *server.member_id != msg.forward_to.as_ref().unwrap().id {
         let (forward_to_addr, from_addr) = {
             let forward_to = msg.forward_to.as_ref().unwrap();
@@ -220,6 +221,7 @@ fn process_ack_mlw_smw_rhw(server: &Server,
 
         // Mark the one we received message from as `Alive` or `Departed` (it should be `Alive`
         // Normally). Similar to `process_ping..` below.
+        originator.address = addr.ip().to_string();
         if originator.departed {
             server.insert_member_mlw_rhw(originator, Health::Departed);
         } else {
@@ -237,6 +239,7 @@ fn process_ack_mlw_smw_rhw(server: &Server,
 
             // TODO: Mark the one we received from either as `Departed` or `Alive`.
             // Similar to `process_ping..` below.
+            originator.address = addr.ip().to_string();
             if originator.departed {
                 server.insert_member_mlw_rhw(originator, Health::Departed);
             } else {
