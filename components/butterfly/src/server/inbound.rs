@@ -223,9 +223,11 @@ fn process_ack_mlw_smw_rhw(server: &Server,
         // Normally). Similar to `process_ping..` below.
         originator.address = addr.ip().to_string();
         if originator.departed {
-            server.insert_member_mlw_rhw(originator, Health::Departed);
+            server.member_list
+                  .insert_member_ignore_incarnation_mlw(originator, Health::Departed);
         } else {
-            server.insert_member_mlw_rhw(originator, Health::Alive);
+            server.member_list
+                  .insert_member_ignore_incarnation_mlw(originator, Health::Alive);
         }
 
         return;
@@ -233,17 +235,22 @@ fn process_ack_mlw_smw_rhw(server: &Server,
     let memberships = msg.membership.clone();
     match tx_outbound.send((addr, msg)) {
         Ok(()) => {
-            for membership in memberships {
-                server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+            if server.member_list.health_of_by_id_mlr(&originator.id) != Some(Health::Confirmed) {
+                for membership in memberships {
+                    server.insert_member_from_rumor_mlw_smw_rhw(membership.member,
+                                                                membership.health);
+                }
             }
 
             // TODO: Mark the one we received from either as `Departed` or `Alive`.
             // Similar to `process_ping..` below.
             originator.address = addr.ip().to_string();
             if originator.departed {
-                server.insert_member_mlw_rhw(originator, Health::Departed);
+                server.member_list
+                      .insert_member_ignore_incarnation_mlw(originator, Health::Departed);
             } else {
-                server.insert_member_mlw_rhw(originator, Health::Alive);
+                server.member_list
+                      .insert_member_ignore_incarnation_mlw(originator, Health::Alive);
             }
         }
         Err(e) => panic!("Outbound thread has died - this shouldn't happen: #{:?}", e),
@@ -259,8 +266,10 @@ fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAdd
     // Populate the member for this sender with its remote address
     msg.from.address = addr.ip().to_string();
     trace!("Ping from {}@{}", msg.from.id, addr);
-    for membership in msg.membership {
-        server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+    if server.member_list.health_of_by_id_mlr(&msg.from.id) != Some(Health::Confirmed) {
+        for membership in msg.membership {
+            server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+        }
     }
 
     // Mark the sender `Alive` (overwrite if the `membership` in the Ping contains sender in a
@@ -268,8 +277,10 @@ fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAdd
     // everyone as either `Suspect`/`Confirmed` and thus will `gossip` everyone is dead which may
     // include sender.)
     if msg.from.departed {
-        server.insert_member_mlw_rhw(msg.from, Health::Departed);
+        server.member_list
+              .insert_member_ignore_incarnation_mlw(msg.from, Health::Departed);
     } else {
-        server.insert_member_mlw_rhw(msg.from, Health::Alive);
+        server.member_list
+              .insert_member_ignore_incarnation_mlw(msg.from, Health::Alive);
     }
 }
