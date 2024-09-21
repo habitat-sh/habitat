@@ -223,11 +223,9 @@ fn process_ack_mlw_smw_rhw(server: &Server,
         // Normally). Similar to `process_ping..` below.
         originator.address = addr.ip().to_string();
         if originator.departed {
-            server.member_list
-                  .insert_member_ignore_incarnation_mlw(originator, Health::Departed);
+            server.insert_member_mlw_rhw(originator, Health::Departed);
         } else {
-            server.member_list
-                  .insert_member_ignore_incarnation_mlw(originator, Health::Alive);
+            server.insert_member_mlw_rhw(originator, Health::Alive);
         }
 
         return;
@@ -246,11 +244,9 @@ fn process_ack_mlw_smw_rhw(server: &Server,
             // Similar to `process_ping..` below.
             originator.address = addr.ip().to_string();
             if originator.departed {
-                server.member_list
-                      .insert_member_ignore_incarnation_mlw(originator, Health::Departed);
+                server.insert_member_mlw_rhw(originator, Health::Departed);
             } else {
-                server.member_list
-                      .insert_member_ignore_incarnation_mlw(originator, Health::Alive);
+                server.insert_member_mlw_rhw(originator, Health::Alive);
             }
         }
         Err(e) => panic!("Outbound thread has died - this shouldn't happen: #{:?}", e),
@@ -277,10 +273,8 @@ fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAdd
     // everyone as either `Suspect`/`Confirmed` and thus will `gossip` everyone is dead which may
     // include sender.)
     if msg.from.departed {
-        server.member_list
-              .insert_member_ignore_incarnation_mlw(msg.from, Health::Departed);
+        server.insert_member_mlw_rhw(msg.from, Health::Departed);
     } else {
-        server.member_list
-              .insert_member_ignore_incarnation_mlw(msg.from, Health::Alive);
+        server.insert_member_mlw_rhw(msg.from, Health::Alive);
     }
 }

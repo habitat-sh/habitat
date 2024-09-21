@@ -541,7 +541,7 @@ impl MemberList {
     pub(crate) fn insert_member_ignore_incarnation_mlw(&self,
                                                        incoming_member: Member,
                                                        incoming_health: Health) {
-        trace!("Inserting Member: {} with Health: {}",
+        trace!("Inserting Member: {:?} with Health: {}",
                incoming_member,
                incoming_health);
         self.insert_membership_mlw(Membership { member: incoming_member,
