@@ -225,6 +225,7 @@ impl Membership {
                                   other_incarnation: Incarnation,
                                   other_health: Health)
                                   -> bool {
+        trace!("newer: {}", self.member.incarnation > other_incarnation);
         self.member.incarnation > other_incarnation
         || (self.member.incarnation == other_incarnation && self.health > other_health)
     }
@@ -508,17 +509,30 @@ impl MemberList {
     fn insert_membership_mlw(&self, incoming: Membership, ignore_incarnation_health: bool) -> bool {
         // Is this clone necessary, or can a key be a reference to a field contained in the value?
         // Maybe the members we store should not contain the ID to reduce the duplication?
+        trace!("insert_membership_mlw: Member: {}, Health: {}",
+               incoming.member.id,
+               incoming.health);
         let modified = match self.write_entries().entry(incoming.member.id.clone()) {
             hash_map::Entry::Occupied(mut entry) => {
                 let val = entry.get_mut();
                 if incoming.newer_or_less_healthy_than(val.member.incarnation, val.health)
                    || ignore_incarnation_health
                 {
-                    *val = member_list::Entry { member:            incoming.member,
-                                                health:            incoming.health,
-                                                health_updated_at: Instant::now(), };
-                    true
+                    if val.health != incoming.health || !ignore_incarnation_health {
+                        *val = member_list::Entry { member:            incoming.member,
+                                                    health:            incoming.health,
+                                                    health_updated_at: Instant::now(), };
+                        trace!("Occupied: Updated");
+                        eprintln!("1");
+                        true
+                    } else {
+                        trace!("Occupied: Not Updated");
+                        eprintln!("2");
+                        false
+                    }
                 } else {
+                    trace!("Occupied: Not Updated");
+                    eprintln!("3");
                     false
                 }
             }
@@ -526,6 +540,7 @@ impl MemberList {
                 entry.insert(member_list::Entry { member:            incoming.member,
                                                   health:            incoming.health,
                                                   health_updated_at: Instant::now(), });
+                trace!("Empty: Created!");
                 true
             }
         };
@@ -540,13 +555,14 @@ impl MemberList {
 
     pub(crate) fn insert_member_ignore_incarnation_mlw(&self,
                                                        incoming_member: Member,
-                                                       incoming_health: Health) {
-        trace!("Inserting Member: {:?} with Health: {}",
+                                                       incoming_health: Health)
+                                                       -> bool {
+        trace!("Inserting Member Ignore Incarnation: {:?} with Health: {}",
                incoming_member,
                incoming_health);
         self.insert_membership_mlw(Membership { member: incoming_member,
                                                 health: incoming_health, },
-                                   true);
+                                   true)
     }
 
     /// # Locking (see locking.md)

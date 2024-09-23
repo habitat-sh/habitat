@@ -195,7 +195,8 @@ fn process_ack_mlw_smw_rhw(server: &Server,
                            mut msg: Ack) {
     trace!("Ack from {}@{}", msg.from.id, addr);
 
-    let mut originator = msg.from.clone();
+    let originator_id = msg.from.id.clone();
+
     if msg.forward_to.is_some() && *server.member_id != msg.forward_to.as_ref().unwrap().id {
         let (forward_to_addr, from_addr) = {
             let forward_to = msg.forward_to.as_ref().unwrap();
@@ -219,34 +220,37 @@ fn process_ack_mlw_smw_rhw(server: &Server,
         msg.from.address = from_addr;
         outbound::forward_ack(server, socket, forward_to_addr, msg);
 
-        // Mark the one we received message from as `Alive` or `Departed` (it should be `Alive`
-        // Normally). Similar to `process_ping..` below.
-        originator.address = addr.ip().to_string();
-        if originator.departed {
-            server.insert_member_mlw_rhw(originator, Health::Departed);
-        } else {
-            server.insert_member_mlw_rhw(originator, Health::Alive);
-        }
-
         return;
     }
+
     let memberships = msg.membership.clone();
     match tx_outbound.send((addr, msg)) {
         Ok(()) => {
-            if server.member_list.health_of_by_id_mlr(&originator.id) != Some(Health::Confirmed) {
-                for membership in memberships {
+            // For Every member in the received `membership` if the health of the originator is
+            // `Alive` or `Suspect`, accept it's membership info.
+            // Else just mark Originator our ourselves as active (ignore what the originator says
+            // about us).
+            for membership in memberships {
+                if server.member_list.health_of_by_id_mlr(&originator_id) < Some(Health::Confirmed)
+                {
+                    trace!("Ack:: Originator: {}, member: {}, health: {}",
+                           originator_id,
+                           membership.member.id,
+                           membership.health);
                     server.insert_member_from_rumor_mlw_smw_rhw(membership.member,
                                                                 membership.health);
+                } else {
+                    trace!("Originator is in Confirmed or > State.");
+                    if membership.member.id == originator_id {
+                        // We try to make `Originator` alive - we may or may not succeed.
+                        server.insert_member_from_rumor_mlw_smw_rhw(membership.member,
+                                                                    Health::Alive);
+                    } else if membership.member.id == server.member_id() {
+                        // Use the "received" membership state to `refute_incarnation`.
+                        server.insert_member_from_rumor_mlw_smw_rhw(membership.member,
+                                                                    membership.health);
+                    }
                 }
-            }
-
-            // TODO: Mark the one we received from either as `Departed` or `Alive`.
-            // Similar to `process_ping..` below.
-            originator.address = addr.ip().to_string();
-            if originator.departed {
-                server.insert_member_mlw_rhw(originator, Health::Departed);
-            } else {
-                server.insert_member_mlw_rhw(originator, Health::Alive);
             }
         }
         Err(e) => panic!("Outbound thread has died - this shouldn't happen: #{:?}", e),
@@ -258,16 +262,14 @@ fn process_ack_mlw_smw_rhw(server: &Server,
 /// * `Server::member` (write)
 /// * `RumorHeat::inner` (write)
 fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: Ping) {
+    trace!("Ping from {}@{}", msg.from.id, addr);
+
     outbound::ack_mlr_smr_rhw(server, socket, &msg.from, addr, msg.forward_to);
+
     // Populate the member for this sender with its remote address
     msg.from.address = addr.ip().to_string();
-    trace!("Ping from {}@{}", msg.from.id, addr);
-    if server.member_list.health_of_by_id_mlr(&msg.from.id) != Some(Health::Confirmed) {
-        for membership in msg.membership {
-            server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
-        }
-    }
 
+    let originator_id = msg.from.id.clone();
     // Mark the sender `Alive` (overwrite if the `membership` in the Ping contains sender in a
     // state that is not `Alive`.This may happen if a node is partitioned and hence determines
     // everyone as either `Suspect`/`Confirmed` and thus will `gossip` everyone is dead which may
@@ -275,6 +277,24 @@ fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAdd
     if msg.from.departed {
         server.insert_member_mlw_rhw(msg.from, Health::Departed);
     } else {
-        server.insert_member_mlw_rhw(msg.from, Health::Alive);
+        server.mark_sender_alive_mlw_rhw(msg.from);
+    }
+
+    // For Every member in the received `membership` if the health of the originator is
+    // `Alive` or `Suspect`, accept it's membership info.
+    // Else just mark Originator our ourselves as active (ignore what the originator says
+    // about us).
+    for membership in msg.membership {
+        if server.member_list.health_of_by_id_mlr(&originator_id) < Some(Health::Confirmed) {
+            trace!("Ping:: Originator: {}, member: {}, health: {}",
+                   originator_id,
+                   membership.member.id,
+                   membership.health);
+            server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+        } else {
+            if membership.member.id == originator_id || membership.member.id == server.member_id() {
+                server.insert_member_from_rumor_mlw_smw_rhw(membership.member, Health::Alive);
+            }
+        }
     }
 }

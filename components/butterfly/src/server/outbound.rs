@@ -251,7 +251,7 @@ fn recv_ack_mlw_rhw(server: &Server,
                     if ack.from.departed {
                         server.insert_member_mlw_rhw(ack.from, Health::Departed);
                     } else {
-                        server.insert_member_mlw_rhw(ack.from, Health::Alive);
+                        server.mark_sender_alive_mlw_rhw(ack.from);
                     }
                     // Keep listening, we want the ack we expected
                     continue;
@@ -260,7 +260,7 @@ fn recv_ack_mlw_rhw(server: &Server,
                     if ack.from.departed {
                         server.insert_member_mlw_rhw(ack.from, Health::Departed);
                     } else {
-                        server.insert_member_mlw_rhw(ack.from, Health::Alive);
+                        server.mark_sender_alive_mlw_rhw(ack.from);
                     }
                     return true;
                 }
