@@ -117,8 +117,13 @@ fn run_loop(server: &Server) -> ! {
             continue 'recv;
         }
 
+        trace!("Received Message from {}", proto.from_id);
         match proto.kind {
             RumorKind::Membership(membership) => {
+                trace!("Received Rumour : {}, Health: {}, from: {}",
+                       membership.member.id,
+                       membership.health,
+                       proto.from_id);
                 server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
             }
             RumorKind::Service(service) => server.insert_service_rsw_mlw_rhw(*service),

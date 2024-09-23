@@ -292,6 +292,7 @@ fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAdd
                    membership.health);
             server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
         } else {
+            trace!("Originator is in Confirmed or > State.");
             if membership.member.id == originator_id || membership.member.id == server.member_id() {
                 server.insert_member_from_rumor_mlw_smw_rhw(membership.member, Health::Alive);
             }

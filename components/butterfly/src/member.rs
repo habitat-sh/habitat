@@ -523,16 +523,13 @@ impl MemberList {
                                                     health:            incoming.health,
                                                     health_updated_at: Instant::now(), };
                         trace!("Occupied: Updated");
-                        eprintln!("1");
                         true
                     } else {
                         trace!("Occupied: Not Updated");
-                        eprintln!("2");
                         false
                     }
                 } else {
                     trace!("Occupied: Not Updated");
-                    eprintln!("3");
                     false
                 }
             }
