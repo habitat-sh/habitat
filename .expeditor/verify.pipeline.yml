@@ -767,7 +767,7 @@ steps:
         limit: 1
 
   # This build currently fails due to a dependency on 'core/buildah', which is not available in 'LTS-2024'.
-  - label: "[build] :linux: aarch64 pkg-export-containe"
+  - label: "[build] :linux: aarch64 pkg-export-container"
     agents:
       queue: docker-linux-amazon-2023-arm64
     env:
@@ -775,7 +775,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-export-containe
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-export-container
     retry:
       automatic:
         limit: 1
