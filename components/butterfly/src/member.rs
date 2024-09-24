@@ -690,8 +690,21 @@ impl MemberList {
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
     pub fn check_list_mlr(&self, exclude_id: &str) -> Vec<Member> {
+        let cool_off_interval = Duration::from_millis(2100);
+        let now = Instant::now();
         let mut members: Vec<_> = self.read_entries()
                                       .values()
+                                      // If a member was recently updated, it's okay to 'skip'
+                                      // sending gossip to that member for the time we take it to
+                                      // determine it's `Suspect`. This may lead to some additional
+                                      // time to converge to a state after a partition/outage
+                                      // event, but would avoid false positives of sending rumors
+                                      // that may be out-dated. - agadgil
+                                      // TODO: Make this interval configurable and move it to
+                                      // `timing` modulea
+                                      .filter(|member_list::Entry { health_updated_at, .. }| {
+                                          now > *health_updated_at + cool_off_interval
+                                      })
                                       .map(|member_list::Entry { member, .. }| member)
                                       .filter(|member| member.id != exclude_id)
                                       .cloned()
@@ -969,6 +982,8 @@ mod tests {
         fn check_list() {
             let ml = populated_member_list(1000);
             let list_a = ml.check_list_mlr("foo");
+            // Added due to new change to add cool-off interval
+            std::thread::sleep(std::time::Duration::from_millis(2500));
             let list_b = ml.check_list_mlr("foo");
             assert!(list_a != list_b);
         }
