@@ -666,13 +666,17 @@ steps:
 
   - label: "[build] :linux: aarch64 hab"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/hab    
+      - .expeditor/scripts/verify/build_package.sh components/hab 
+    expeditor:
+      executor:
+        docker:
+          privileged: true     
  
   - label: "[build] :linux: launcher"
     env:
