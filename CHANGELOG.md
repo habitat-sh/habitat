@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1163 -->
-## [1.6.1163](https://github.com/habitat-sh/habitat/tree/1.6.1163) (2024-09-23)
+<!-- latest_release 1.6.1164 -->
+## [1.6.1164](https://github.com/habitat-sh/habitat/tree/1.6.1164) (2024-09-25)
 
 #### Merged Pull Requests
-- Bump prost-build from 0.13.2 to 0.13.3 [#9403](https://github.com/habitat-sh/habitat/pull/9403) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump async-trait from 0.1.82 to 0.1.83 [#9407](https://github.com/habitat-sh/habitat/pull/9407) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.82 to 0.1.83 [#9407](https://github.com/habitat-sh/habitat/pull/9407) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1164 -->
 - Bump prost-build from 0.13.2 to 0.13.3 [#9403](https://github.com/habitat-sh/habitat/pull/9403) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1163 -->
 - Bump thiserror from 1.0.63 to 1.0.64 [#9405](https://github.com/habitat-sh/habitat/pull/9405) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1163 -->
 - Bump prost from 0.13.2 to 0.13.3 [#9404](https://github.com/habitat-sh/habitat/pull/9404) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1162 -->
