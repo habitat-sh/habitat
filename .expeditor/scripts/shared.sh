@@ -28,6 +28,7 @@ curlbash_hab() {
         install_args+=" -c aarch64-linux -v 1.6.706"
     fi
     echo "install_args: $install_args"
+    # shellcheck disable=SC2086
     curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- ${install_args}
     case "${pkg_target}" in
         x86_64-linux | aarch64-linux | x86_64-linux-kernel2)
