@@ -354,7 +354,7 @@ HAB_PLAN_FILENAME="plan.sh"
 export HAB_BLDR_URL
 # The default Habitat channel from where to download dependencies. If
 # `HAB_BLDR_CHANNEL` is set, this value is overridden.
-: "${HAB_BLDR_CHANNEL:=LTS-2024}"
+: "${HAB_BLDR_CHANNEL:=stable}"
 # Export Builder channel so all other programs and subshells use this same one
 export HAB_BLDR_CHANNEL
 # Fall back here if package can't be installed from $HAB_BLDR_CHANNEL

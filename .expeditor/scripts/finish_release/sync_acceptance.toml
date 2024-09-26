@@ -4,7 +4,7 @@ file_descriptor = "Packages to sync acceptance from production after release"
 # These are all packages that we officially produce in a release.
 
 [[x86_64-linux]]
-channel = "LTS-2024"
+channel = "stable"
 packages = [
   "core/hab-launcher",
   "core/hab",
@@ -19,7 +19,7 @@ packages = [
 ]
 
 [[x86_64-linux-kernel2]]
-channel = "LTS-2024"
+channel = "stable"
 packages = [
   "core/hab-launcher",
   "core/hab",
@@ -30,7 +30,7 @@ packages = [
 ]
 
 [[x86_64-windows]]
-channel = "LTS-2024"
+channel = "stable"
 packages = [
   "core/windows-service",
   "core/hab-launcher",
