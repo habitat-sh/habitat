@@ -3,7 +3,7 @@ $pkg_origin = "core"
 $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_deps=@(
-    "core/visual-cpp-redist-2015"
+    "core/visual-cpp-redist-2022"
 )
 $pkg_bin_dirs = @("bin")
 $pkg_build_deps = @(

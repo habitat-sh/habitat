@@ -5,7 +5,7 @@ $pkg_license = @("Apache-2.0")
 $pkg_bin_dirs = @("bin")
 $pkg_deps=@(
     "core/powershell/$(Get-Content "$PLAN_CONTEXT/../../../POWERSHELL_VERSION")",
-    "core/visual-cpp-redist-2015",
+    "core/visual-cpp-redist-2022",
     "core/zeromq"
 )
 $pkg_build_deps = @(
