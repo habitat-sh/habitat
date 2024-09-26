@@ -47,7 +47,7 @@ function Test-GzipIdent {
 function Test-RustIdent {
     Test-IdentDownloaded "core-rust"
     Test-IdentDownloaded "core-visual-cpp-redist-2015"
-    Test-IdentDownloaded "core-visual-cpp-build-tools-2015"
+    Test-IdentDownloaded "core-visual-build-tools-2022"
 
     if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 3) {
         Write-Error "did not find 3 gzip artifacts"

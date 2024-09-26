@@ -9,7 +9,7 @@ $pkg_deps=@(
 )
 $pkg_build_deps = @(
     "core/rust",
-    "core/visual-cpp-build-tools-2015"
+    "core/visual-build-tools-2022"
 )
 
 $pkg_binds_optional = @{

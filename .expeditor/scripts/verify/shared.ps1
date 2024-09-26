@@ -20,7 +20,7 @@ function Initialize-Environment {
     Install-HabPkg @(
         "core/cacerts",
         "core/protobuf",
-        "core/visual-cpp-build-tools-2015",
+        "core/visual-build-tools-2022",
         "core/zeromq"
     )
 
@@ -35,7 +35,7 @@ function Initialize-Environment {
     $env:LD_LIBRARY_PATH            = "$env:LIBZMQ_PREFIX\lib;$env:SODIUM_LIB_DIR"
     $env:PATH                       = New-PathString -StartingPath $env:PATH -Path "$protobufDir\bin;$zeromqDir\bin"
 
-    $vsDir = & hab pkg path core/visual-cpp-build-tools-2015
+    $vsDir = & hab pkg path core/visual-build-tools-2022
     $env:LIB = "$(Get-Content "$vsDir\LIB_DIRS");$env:LIBZMQ_PREFIX\lib"
     $env:INCLUDE = (Get-Content "$vsDir\INCLUDE_DIRS")
     $env:PATH = New-PathString -StartingPath $env:PATH -Path (Get-Content "$vsDir\PATH")

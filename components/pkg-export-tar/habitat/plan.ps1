@@ -8,7 +8,7 @@ $pkg_deps=@(
     "core/visual-cpp-redist-2015"
 )
 $pkg_build_deps = @(
-    "core/visual-cpp-build-tools-2015",
+    "core/visual-build-tools-2022",
     "core/rust/$((ConvertFrom-StringData (Get-Content "$PLAN_CONTEXT/../../../rust-toolchain")[1]).channel.Replace('"', ''))",
     "core/cacerts"
 )

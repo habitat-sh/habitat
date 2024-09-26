@@ -9,7 +9,7 @@ $pkg_deps=@(
     "core/zeromq"
 )
 $pkg_build_deps = @(
-    "core/visual-cpp-build-tools-2015",
+    "core/visual-build-tools-2022",
     "core/rust/$((ConvertFrom-StringData (Get-Content "$PLAN_CONTEXT/../../../rust-toolchain")[1]).channel.Replace('"', ''))",
     "core/cacerts",
     "core/raml2html",
