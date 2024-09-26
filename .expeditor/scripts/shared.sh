@@ -22,7 +22,7 @@ curlbash_hab() {
     fi
     curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
     case "${pkg_target}" in
-        x86_64-linux | x86_64-linux-kernel2)
+        x86_64-linux)
             hab_binary="/bin/hab"
             ;;
         x86_64-darwin)

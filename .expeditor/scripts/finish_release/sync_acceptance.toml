@@ -18,17 +18,6 @@ packages = [
   "core/hab-pkg-cfize"
 ]
 
-[[x86_64-linux-kernel2]]
-channel = "stable"
-packages = [
-  "core/hab-launcher",
-  "core/hab",
-  "core/hab-sup",
-  "core/hab-studio",
-  "core/hab-plan-build",
-  "core/hab-backline"
-]
-
 [[x86_64-windows]]
 channel = "stable"
 packages = [
