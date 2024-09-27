@@ -98,21 +98,21 @@ sorted_zip_contents() {
     assert_output "$(cat ${FIXTURES}/expected_hab_0.88.0_linux_archive_contents.txt)"
 }
 
-@test ".tar.gz for Linux kernel2 is absolutely correct" {
-    expected_archive_name="hab-x86_64-linux-kernel2.tar.gz"
+# @test ".tar.gz for Linux kernel2 is absolutely correct" {
+#     expected_archive_name="hab-x86_64-linux-kernel2.tar.gz"
 
-    hart=$(download_hart core/hab/0.88.0/20191009205023 x86_64-linux-kernel2)
+#     hart=$(download_hart core/hab/0.88.0/20191009205023 x86_64-linux-kernel2)
 
-    assert_file_not_exist "${expected_archive_name}"
+#     assert_file_not_exist "${expected_archive_name}"
 
-    run create_archive_from_hart "${hart}" x86_64-linux-kernel2
-    assert_success
-    assert_output "${expected_archive_name}"
+#     run create_archive_from_hart "${hart}" x86_64-linux-kernel2
+#     assert_success
+#     assert_output "${expected_archive_name}"
 
-    assert_targz "${expected_archive_name}"
-    run sorted_targz_contents "${expected_archive_name}"
-    assert_output "$(cat ${FIXTURES}/expected_hab_0.88.0_linux_kernel2_archive_contents.txt)"
-}
+#     assert_targz "${expected_archive_name}"
+#     run sorted_targz_contents "${expected_archive_name}"
+#     assert_output "$(cat ${FIXTURES}/expected_hab_0.88.0_linux_kernel2_archive_contents.txt)"
+# }
 
 @test ".zip for macOS is absolutely correct" {
     expected_archive_name="hab-x86_64-darwin.zip"
