@@ -20,6 +20,7 @@ $env:HAB_CACHE_KEY_PATH="$job_temp_root/keys"
 Write-Host "--- :key: Generating fake origin key"
 hab origin key generate
 Write-Host "--- :hab: Running hab pkg build for $PackagePath"
+hab pkg install core/hab-studio --channel=stable
 
 hab studio build $PackagePath -R
 
