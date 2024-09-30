@@ -860,7 +860,7 @@ impl WriteStream {
     }
 }
 
-mod tty {
+pub mod tty {
     #[derive(Clone, Copy)]
     pub enum StdStream {
         Stdin,

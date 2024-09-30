@@ -1246,7 +1246,6 @@ name = "hab"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "atty",
  "base64 0.22.1",
  "bitflags 2.6.0",
  "chrono",
