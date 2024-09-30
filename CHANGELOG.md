@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1166 -->
-## [1.6.1166](https://github.com/habitat-sh/habitat/tree/1.6.1166) (2024-09-27)
+<!-- latest_release 1.6.1167 -->
+## [1.6.1167](https://github.com/habitat-sh/habitat/tree/1.6.1167) (2024-09-30)
 
 #### Merged Pull Requests
-- Bump flate2 from 1.0.33 to 1.0.34 [#9410](https://github.com/habitat-sh/habitat/pull/9410) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tempfile from 3.12.0 to 3.13.0 [#9413](https://github.com/habitat-sh/habitat/pull/9413) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump tempfile from 3.12.0 to 3.13.0 [#9413](https://github.com/habitat-sh/habitat/pull/9413) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1167 -->
 - Bump flate2 from 1.0.33 to 1.0.34 [#9410](https://github.com/habitat-sh/habitat/pull/9410) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1166 -->
 - Bump tar from 0.4.41 to 0.4.42 [#9409](https://github.com/habitat-sh/habitat/pull/9409) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1165 -->
 - Bump libc from 0.2.158 to 0.2.159 [#9408](https://github.com/habitat-sh/habitat/pull/9408) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1165 -->
