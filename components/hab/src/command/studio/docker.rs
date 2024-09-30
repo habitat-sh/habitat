@@ -4,7 +4,7 @@ use log::{debug,
 use crate::{command::studio::enter::{ARTIFACT_PATH_ENVVAR,
                                      CERT_PATH_ENVVAR,
                                      SSL_CERT_FILE_ENVVAR},
-            common::ui::UI,
+            common::ui::{tty, UI},
             error::{Error,
                     Result},
             hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
@@ -252,7 +252,7 @@ fn run_container<I, J, S, T>(docker_cmd: PathBuf,
         cmd_args.push("--privileged".into());
     }
 
-    if atty::is(atty::Stream::Stderr) || atty::is(atty::Stream::Stdout) {
+    if tty::isatty(tty::StdStream::Stderr) || tty::isatty(tty::StdStream::Stdout) {
         cmd_args.push("--tty".into());
         cmd_args.push("--interactive".into());
     }

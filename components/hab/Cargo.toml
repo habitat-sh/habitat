@@ -12,7 +12,6 @@ doc = false
 
 [dependencies]
 # Can we keep these alphabetized? We're not savages.
-atty = "*"
 base64 = "*"
 bitflags = "*"
 chrono = {version = "*", features = ["serde"]}
