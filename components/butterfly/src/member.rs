@@ -535,6 +535,25 @@ impl MemberList {
         modified
     }
 
+    /// Get Expired or Departed Members
+    pub(crate) fn confirmed_or_departed_peers_count_mlr(&self, exclude_id: &str) -> usize {
+        self.read_entries()
+            .iter()
+            .filter(|(key, member_list::Entry { health, .. })| {
+                *key != exclude_id && *health >= Health::Confirmed
+            })
+            .count()
+    }
+
+    /// Clear and Purge entries in member-list except self
+    pub(crate) fn clear_mlw(&self, exclude_id: &str) -> Vec<String> {
+        self.read_entries()
+            .keys()
+            .filter(|e| *e != exclude_id)
+            .map(String::to_string)
+            .collect()
+    }
+
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (write)
     pub fn set_departed_mlw(&self, member_id: &str) {

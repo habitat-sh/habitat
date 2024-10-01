@@ -1252,6 +1252,36 @@ impl Server {
 
     #[allow(dead_code)]
     pub fn is_departed(&self) -> bool { self.departed.load(Ordering::Relaxed) }
+
+    /// Clear membership info and rumor stores if we think we are partitioned.
+    ///
+    /// When a Supervisor is partitioned (More than half of it's peers, in Confirmed or Departed
+    /// state), We should just delete the member information for those peers (really just, purge
+    /// them). When they come out of 'partition', We will not be sending them wrong information.
+    pub(crate) fn clear_if_partitioned_mlw_rhw(&self) {
+        let total_members = self.member_list.len_mlr();
+        let dep_or_conf_members = self.member_list
+                                      .confirmed_or_departed_peers_count_mlr(&self.member_id);
+        if dep_or_conf_members > total_members / 2 {
+            warn!(" {} of {} appear to be dead! Likely we are in partition!",
+                  dep_or_conf_members, total_members);
+            let cleared_entries = self.member_list.clear_mlw(&self.member_id);
+            for entry in cleared_entries {
+                debug!("Puring entry: {}", entry);
+                self.rumor_heat.lock_rhw().purge(&entry);
+            }
+            // *******
+            // let service_groups = self.election_store
+            // .lock_rsr()
+            // .keys()
+            // .map(String::to_string)
+            // .collect::<Vec<String>>();
+            // for sg in service_groups {
+            // debug!("Clearing Election for Service Group : {}", sg);
+            // self.election_store.remove_rsw(&sg, Election::const_id());
+            // }
+        }
+    }
 }
 
 impl fmt::Display for Server {

@@ -41,6 +41,8 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                   .start_hot_rumor(RumorKey::new(RumorType::Member, &id, ""));
         }
 
+        server.clear_if_partitioned_mlw_rhw();
+
         thread::sleep(Duration::from_millis(LOOP_DELAY_MS));
     }
 }
