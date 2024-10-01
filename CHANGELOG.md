@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1170 -->
-## [1.6.1170](https://github.com/habitat-sh/habitat/tree/1.6.1170) (2024-09-30)
+<!-- latest_release 1.6.1171 -->
+## [1.6.1171](https://github.com/habitat-sh/habitat/tree/1.6.1171) (2024-10-01)
 
 #### Merged Pull Requests
-- suppress audit failure for atty used via clap and remove intrnal atty usage [#9415](https://github.com/habitat-sh/habitat/pull/9415) ([mwrock](https://github.com/mwrock))
+- Bump httparse from 1.9.4 to 1.9.5 [#9417](https://github.com/habitat-sh/habitat/pull/9417) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump httparse from 1.9.4 to 1.9.5 [#9417](https://github.com/habitat-sh/habitat/pull/9417) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1171 -->
 - suppress audit failure for atty used via clap and remove intrnal atty usage [#9415](https://github.com/habitat-sh/habitat/pull/9415) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1170 -->
 - Bump cc from 1.1.21 to 1.1.23 [#9414](https://github.com/habitat-sh/habitat/pull/9414) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1169 -->
 - Bump regex from 1.10.6 to 1.11.0 [#9411](https://github.com/habitat-sh/habitat/pull/9411) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1168 -->
