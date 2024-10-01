@@ -618,6 +618,28 @@ impl Server {
         }
     }
 
+    /// Set the Sender to Alive
+    ///
+    /// If we simply use `insert_member_mlw_rhw` as above, the sender may be having the current
+    /// Incarnation and hence if we try to "update" the sender, it does not get updated. So the
+    /// sender might remain in `Confirmed` state even after having received a message/ack from the
+    /// sender. We need to ignore the `Incarnation` in this case.
+    pub(crate) fn mark_sender_alive_mlw_rhw(&self, sender: Member) {
+        trace!("Marking sender as Alive!");
+        let rk: RumorKey = RumorKey::from(&sender);
+
+        let sender_id = sender.id.clone();
+
+        if self.member_list
+               .insert_member_ignore_incarnation_mlw(sender, Health::Alive)
+        {
+            debug!("Marking member as 'Alive' again, we are 'purging' all old rumours and start \
+                    a new rumour.");
+            self.rumor_heat.lock_rhw().purge(&sender_id);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
+        }
+    }
+
     /// Set our member to departed, then send up to 10 out of order ack messages to other
     /// members to seed our status.
     ///

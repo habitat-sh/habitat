@@ -164,6 +164,10 @@ fn process_pingreq_mlr_smr_rhw(server: &Server,
                               from:       server.myself.lock_smr().to_member(),
                               forward_to: Some(msg.from.clone()), };
         let swim = outbound::populate_membership_rumors_mlr_rhw(server, &target, ping_msg);
+
+        // We received PingReq from someone mark them as alive.
+        server.mark_sender_alive_mlw_rhw(msg.from.clone());
+
         // Set the route-back address to the one we received the
         // pingreq from
         outbound::ping(server,
@@ -212,10 +216,29 @@ fn process_ack_mlw_smw_rhw(server: &Server,
         return;
     }
     let memberships = msg.membership.clone();
+
+    // This happens only in the case of forwarded Acks, but let's be conservative
+    // B sends PingReq to C asking it to forward to A, but C still thinks I am `Confirmed`
+    // And may be I think `C` is Confirmed? But sender will be marked as alive by `outbound`. What
+    // about me? If I am in `C`'s memberlist as `Confirmed`, I should increase my own incarnation
+    // as soon as possible.
+    let sender_maybe_dead = server.member_list.health_of_by_id_mlr(&msg.from.id);
+    // If we don't know about the sender yet, don't mark it as dead
+    let sender_maybe_dead = sender_maybe_dead.is_some() && sender_maybe_dead > Some(Health::Suspect);
+
+
     match tx_outbound.send((addr, msg)) {
         Ok(()) => {
             for membership in memberships {
-                server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+                if !sender_maybe_dead {
+                    server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+                } else {
+                    // If we are in the member list, this shoud give us the opportunity to increase our
+                    // incarnation to earliest, so that our pings/acks go out with newer in carnation.
+                    if membership.member.id == server.member_id() {
+                        server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+                    }
+                }
             }
         }
         Err(e) => panic!("Outbound thread has died - this shouldn't happen: #{:?}", e),
@@ -227,16 +250,34 @@ fn process_ack_mlw_smw_rhw(server: &Server,
 /// * `Server::member` (write)
 /// * `RumorHeat::inner` (write)
 fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: Ping) {
-    outbound::ack_mlr_smr_rhw(server, socket, &msg.from, addr, msg.forward_to);
+    trace!("Ping from {}@{}", msg.from.id, addr);
+
     // Populate the member for this sender with its remote address
     msg.from.address = addr.ip().to_string();
-    trace!("Ping from {}@{}", msg.from.id, addr);
+
+    outbound::ack_mlr_smr_rhw(server, socket, &msg.from, addr, msg.forward_to);
+
+    let sender_maybe_dead = server.member_list.health_of_by_id_mlr(&msg.from.id);
+    // If we don't know about the sender yet, don't mark it as dead
+    let sender_maybe_dead = sender_maybe_dead.is_some() && sender_maybe_dead > Some(Health::Suspect);
+
     if msg.from.departed {
         server.insert_member_mlw_rhw(msg.from, Health::Departed);
     } else {
-        server.insert_member_mlw_rhw(msg.from, Health::Alive);
+        server.mark_sender_alive_mlw_rhw(msg.from);
     }
+
+    // If Sender is not currently presumed to be dead, we take their memberlist, otherwise we
+    // ignore their memberlist.
     for membership in msg.membership {
-        server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+        if !sender_maybe_dead {
+            server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+        } else {
+            // If we are in the member list, this shoud give us the opportunity to increase our
+            // incarnation to earliest, so that our pings/acks go out with newer in carnation.
+            if membership.member.id == server.member_id() {
+                server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+            }
+        }
     }
 }
