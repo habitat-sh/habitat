@@ -335,6 +335,7 @@ mod member_list {
         pub member:            super::Member,
         pub health:            super::Health,
         pub health_updated_at: std::time::Instant,
+        pub prev_health: Option<super::Health>
     }
 }
 
@@ -516,8 +517,10 @@ impl MemberList {
                 {
                     if val.health != incoming.health || !ignore_incarnation_health {
                         println!("++ current health: {}, incoming health: {}", val.health, incoming.health);
+                        let prev_health = val.health;
                         *val = member_list::Entry { member:            incoming.member,
                                                     health:            incoming.health,
+                                                    prev_health: Some(prev_health),
                                                     health_updated_at: Instant::now(), };
                         trace!("Occupied: Updated");
                         true
@@ -535,7 +538,7 @@ impl MemberList {
             hash_map::Entry::Vacant(entry) => {
                 entry.insert(member_list::Entry { member:            incoming.member,
                                                   health:            incoming.health,
-                                                  health_updated_at: Instant::now(), });
+                                                  health_updated_at: Instant::now() , prev_health: None});
                 trace!("Empty: Created!");
                 true
             }
@@ -689,8 +692,11 @@ impl MemberList {
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
     pub fn check_list_mlr(&self, exclude_id: &str) -> Vec<Member> {
+        let cool_off_interval = Duration::from_millis(3500);
+        let now = Instant::now();
         let mut members: Vec<_> = self.read_entries()
                                       .values()
+                                      .filter(|member_list::Entry { prev_health, health_updated_at, .. } | prev_health.is_none() || *prev_health < Some(Health::Confirmed) || now  > *health_updated_at + cool_off_interval)
                                       .map(|member_list::Entry { member, .. }| member)
                                       .filter(|member| member.id != exclude_id)
                                       .cloned()

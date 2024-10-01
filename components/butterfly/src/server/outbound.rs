@@ -311,7 +311,10 @@ pub fn populate_membership_rumors_mlr_rhw(server: &Server,
         .collect();
 
     for rkey in rumors.iter() {
-        if let Some(member) = server.member_list.membership_for_mlr(&rkey.to_string()) {
+        if let Some(mut member) = server.member_list.membership_for_mlr(&rkey.to_string()) {
+            if member.member.id == server.member_id() {
+                member.health = Health::Alive;
+            }
             swim.membership.push(member);
         }
     }
