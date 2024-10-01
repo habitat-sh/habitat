@@ -10,6 +10,7 @@ $pkg_build_deps = @(
     "core/rust/$((ConvertFrom-StringData (Get-Content "$PLAN_CONTEXT/../../../rust-toolchain")[1]).channel.Replace('"', ''))",
     "core/cacerts",
     "core/git",
+    "core/windows-11-sdk",
     "core/protobuf"
 )
 

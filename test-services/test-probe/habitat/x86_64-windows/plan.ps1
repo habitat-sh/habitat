@@ -9,6 +9,7 @@ $pkg_deps=@(
 )
 $pkg_build_deps = @(
     "core/rust",
+    "core/windows-11-sdk",
     "core/visual-build-tools-2022"
 )
 
