@@ -335,7 +335,7 @@ mod member_list {
         pub member:            super::Member,
         pub health:            super::Health,
         pub health_updated_at: std::time::Instant,
-        pub prev_health: Option<super::Health>
+        pub prev_health:       Option<super::Health>,
     }
 }
 
@@ -500,7 +500,8 @@ impl MemberList {
     // TODO (CM): why don't we just insert a membership record here?
     pub fn insert_mlw(&self, incoming_member: Member, incoming_health: Health) -> bool {
         self.insert_membership_mlw(Membership { member: incoming_member,
-                                                health: incoming_health, }, false)
+                                                health: incoming_health, },
+                                   false)
     }
 
     /// # Locking (see locking.md)
@@ -508,7 +509,9 @@ impl MemberList {
     fn insert_membership_mlw(&self, incoming: Membership, ignore_incarnation_health: bool) -> bool {
         // Is this clone necessary, or can a key be a reference to a field contained in the value?
         // Maybe the members we store should not contain the ID to reduce the duplication?
-        trace!("insert_membership_mlw: Member: {}, Health: {}", incoming.member.id, incoming.health);
+        trace!("insert_membership_mlw: Member: {}, Health: {}",
+               incoming.member.id,
+               incoming.health);
         let modified = match self.write_entries().entry(incoming.member.id.clone()) {
             hash_map::Entry::Occupied(mut entry) => {
                 let val = entry.get_mut();
@@ -516,21 +519,24 @@ impl MemberList {
                    || ignore_incarnation_health
                 {
                     if val.health != incoming.health || !ignore_incarnation_health {
-                        println!("++ current health: {}, incoming health: {}", val.health, incoming.health);
+                        println!("++ current health: {}, incoming health: {}",
+                                 val.health, incoming.health);
                         let prev_health = val.health;
                         *val = member_list::Entry { member:            incoming.member,
                                                     health:            incoming.health,
-                                                    prev_health: Some(prev_health),
+                                                    prev_health:       Some(prev_health),
                                                     health_updated_at: Instant::now(), };
                         trace!("Occupied: Updated");
                         true
                     } else {
-                        println!("~~ current health: {}, incoming health: {}.", val.health, incoming.health);
+                        println!("~~ current health: {}, incoming health: {}.",
+                                 val.health, incoming.health);
                         trace!("Occupied: Not Updated");
                         false
                     }
                 } else {
-                    println!("-- current health: {}, incoming health: {}, incarnation: {}, ", val.health, incoming.health, val.member.incarnation);
+                    println!("-- current health: {}, incoming health: {}, incarnation: {}, ",
+                             val.health, incoming.health, val.member.incarnation);
                     trace!("Occupied: Not Updated");
                     false
                 }
@@ -538,7 +544,8 @@ impl MemberList {
             hash_map::Entry::Vacant(entry) => {
                 entry.insert(member_list::Entry { member:            incoming.member,
                                                   health:            incoming.health,
-                                                  health_updated_at: Instant::now() , prev_health: None});
+                                                  health_updated_at: Instant::now(),
+                                                  prev_health:       None, });
                 trace!("Empty: Created!");
                 true
             }
@@ -696,7 +703,13 @@ impl MemberList {
         let now = Instant::now();
         let mut members: Vec<_> = self.read_entries()
                                       .values()
-                                      .filter(|member_list::Entry { prev_health, health_updated_at, .. } | prev_health.is_none() || *prev_health < Some(Health::Confirmed) || now  > *health_updated_at + cool_off_interval)
+                                      .filter(|member_list::Entry { prev_health,
+                                                                    health_updated_at,
+                                                                    .. }| {
+                                                  prev_health.is_none()
+                                                  || *prev_health < Some(Health::Confirmed)
+                                                  || now > *health_updated_at + cool_off_interval
+                                              })
                                       .map(|member_list::Entry { member, .. }| member)
                                       .filter(|member| member.id != exclude_id)
                                       .cloned()

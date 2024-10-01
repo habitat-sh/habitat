@@ -224,19 +224,22 @@ fn process_ack_mlw_smw_rhw(server: &Server,
     // as soon as possible.
     let sender_maybe_dead = server.member_list.health_of_by_id_mlr(&msg.from.id);
     // If we don't know about the sender yet, don't mark it as dead
-    let sender_maybe_dead = sender_maybe_dead.is_some() && sender_maybe_dead > Some(Health::Suspect);
-
+    let sender_maybe_dead =
+        sender_maybe_dead.is_some() && sender_maybe_dead > Some(Health::Suspect);
 
     match tx_outbound.send((addr, msg)) {
         Ok(()) => {
             for membership in memberships {
                 if !sender_maybe_dead {
-                    server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+                    server.insert_member_from_rumor_mlw_smw_rhw(membership.member,
+                                                                membership.health);
                 } else {
-                    // If we are in the member list, this shoud give us the opportunity to increase our
-                    // incarnation to earliest, so that our pings/acks go out with newer in carnation.
+                    // If we are in the member list, this shoud give us the opportunity to increase
+                    // our incarnation to earliest, so that our pings/acks go
+                    // out with newer in carnation.
                     if membership.member.id == server.member_id() {
-                        server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+                        server.insert_member_from_rumor_mlw_smw_rhw(membership.member,
+                                                                    membership.health);
                     }
                 }
             }
@@ -259,7 +262,8 @@ fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAdd
 
     let sender_maybe_dead = server.member_list.health_of_by_id_mlr(&msg.from.id);
     // If we don't know about the sender yet, don't mark it as dead
-    let sender_maybe_dead = sender_maybe_dead.is_some() && sender_maybe_dead > Some(Health::Suspect);
+    let sender_maybe_dead =
+        sender_maybe_dead.is_some() && sender_maybe_dead > Some(Health::Suspect);
 
     if msg.from.departed {
         server.insert_member_mlw_rhw(msg.from, Health::Departed);

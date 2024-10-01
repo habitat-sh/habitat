@@ -1095,20 +1095,30 @@ impl Server {
                                    .map(|stored_term| election.term > stored_term)
                                    .unwrap_or(false);
                 if new_term {
-                    if Some(self.member_id()) == self.election_store.lock_rsr().get_member_id(election.key()) {
+                    if Some(self.member_id())
+                       == self.election_store.lock_rsr().get_member_id(election.key())
+                    {
                         debug!("I am the leader of previous term!");
                         debug!("removing old rumor and starting new election");
-                        self.election_store.remove_rsw(election.key(), election.id());
+                        self.election_store
+                            .remove_rsw(election.key(), election.id());
                         self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term);
                     } else {
-                        if Some(election.member_id.as_str()) == self.election_store.lock_rsr().get_member_id(election.key()) {
-                            debug!("Received New Term election from the leader. Starting my own to merge. Term: {}", election.term);
-                            self.election_store.remove_rsw(election.key(), election.id());
+                        if Some(election.member_id.as_str())
+                           == self.election_store.lock_rsr().get_member_id(election.key())
+                        {
+                            debug!("Received New Term election from the leader. Starting my own \
+                                    to merge. Term: {}",
+                                   election.term);
+                            self.election_store
+                                .remove_rsw(election.key(), election.id());
                             trace!("Removed old election.");
-                            self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term);
+                            self.start_election_rsw_mlr_rhw_msr(&election.service_group,
+                                                                election.term);
                             trace!("Started new election.");
                         } else {
-                            warn!("Received a New Term Election, but not from the current leader, ignoring!");
+                            warn!("Received a New Term Election, but not from the current \
+                                   leader, ignoring!");
                             return;
                         }
                     }
