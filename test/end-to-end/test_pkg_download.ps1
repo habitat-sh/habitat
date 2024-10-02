@@ -46,7 +46,7 @@ function Test-GzipIdent {
 
 function Test-RustIdent {
     Test-IdentDownloaded "core-rust"
-    Test-IdentDownloaded "core-visual-cpp-redist-2015"
+    Test-IdentDownloaded "core-visual-cpp-redist-2022"
     Test-IdentDownloaded "core-visual-build-tools-2022"
 
     if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 3) {
