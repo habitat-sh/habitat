@@ -23,6 +23,7 @@ use crate::{error::{Error,
                      MemberList,
                      MemberListProxy},
             message,
+            probe_list::ProbeList,
             rumor::{dat_file::{DatFileReader,
                                DatFileWriter},
                     departure::Departure,
@@ -40,6 +41,7 @@ use crate::{error::{Error,
                     RumorStoreProxy,
                     RumorType},
             swim::Ack};
+
 use habitat_common::{liveliness_checker,
                      sync::Lock,
                      FeatureFlag};
@@ -286,6 +288,7 @@ pub struct Server {
     // depends on it being so. Refactor so it can be private.
     myself:                   Arc<Myself>,
     pub member_list:          Arc<MemberList>,
+    pub probe_list:           Arc<ProbeList>,
     ring_key:                 Arc<Option<RingKey>>,
     rumor_heat:               Arc<RumorHeat>,
     pub service_store:        RumorStore<Service>,
@@ -315,6 +318,7 @@ impl Clone for Server {
                  member_id:            self.member_id.clone(),
                  myself:               self.myself.clone(),
                  member_list:          self.member_list.clone(),
+                 probe_list:           self.probe_list.clone(),
                  ring_key:             self.ring_key.clone(),
                  rumor_heat:           self.rumor_heat.clone(),
                  service_store:        self.service_store.clone(),
@@ -377,6 +381,7 @@ impl Server {
                             member_id: Arc::new(member_id),
                             myself: Arc::new(myself),
                             member_list: Arc::new(MemberList::new()),
+                            probe_list: Arc::new(ProbeList::new()),
                             ring_key: Arc::new(ring_key),
                             rumor_heat: Arc::default(),
                             service_store: RumorStore::default(),
@@ -669,14 +674,43 @@ impl Server {
     fn insert_member_from_rumor_mlw_smw_rhw(&self, member: Member, mut health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
 
-        if member.id == self.member_id()
-           && health != Health::Alive
-           && member.incarnation >= self.myself.lock_smr().incarnation()
-        {
-            self.myself
-                .lock_smw()
-                .refute_incarnation(member.incarnation);
-            health = Health::Alive;
+        if member.id != self.member_id() {
+            // Incoming Health is Confirmed
+            if health == Health::Confirmed {
+                let membership = self.member_list.membership_for_mlr(&member.id);
+                if let Some(mship) = membership {
+                    match mship.health {
+                        Health::Alive | Health::Suspect => {
+                            if mship.member.incarnation > member.incarnation {
+                                debug!("Member: {}, Incoming Incarnation {} is older, current incarnation is \
+                                        {}. No-OP.",
+                                       member.id, member.incarnation, mship.member.incarnation);
+                            } else {
+                                warn!("Member: {}, Our Information about the member is '{}', Incoming \
+                                       information is '{}'. Will Send a `ProbePing` to the \
+                                       member.",
+                                      member.id, mship.health, health);
+                                self.probe_list.members_write().insert(member.clone());
+                                return;
+                            }
+                        }
+                        _ => {
+                            debug!("Member: {}, Incoming Health {}, Member Health: {}. No-op",
+                                   member.id, health, mship.health);
+                        }
+                    }
+                } else {
+                    debug!("Member: {} Does not exist in the Member List.", member.id);
+                }
+            }
+        } else {
+            if health != Health::Alive && member.incarnation >= self.myself.lock_smr().incarnation()
+            {
+                self.myself
+                    .lock_smw()
+                    .refute_incarnation(member.incarnation);
+                health = Health::Alive;
+            }
         }
 
         let member_id = member.id.clone();

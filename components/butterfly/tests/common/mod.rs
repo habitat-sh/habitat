@@ -56,6 +56,8 @@ pub fn start_server_smw_rhw(name: &str, ring_key: Option<RingKey>, suitability: 
     let member = Member { swim_port,
                           gossip_port,
                           ..Default::default() };
+    eprintln!("member: {:#?}", member);
+
     let mut server = Server::new(listen_swim,
                                  listen_gossip,
                                  member,

@@ -59,7 +59,7 @@ lazy_static! {
 ///
 /// Note: we're intentionally deriving `Copy` to be able to treat this
 /// like a "normal" numeric type.
-#[derive(Clone, Debug, Ord, PartialEq, PartialOrd, Eq, Copy, Default)]
+#[derive(Clone, Debug, Ord, PartialEq, PartialOrd, Eq, Copy, Default, Hash)]
 pub struct Incarnation(u64);
 
 impl From<u64> for Incarnation {
@@ -128,7 +128,7 @@ pub type UuidSimple = String;
 
 /// A member in the swim group. Passes most of its functionality along to the internal protobuf
 /// representation.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Member {
     pub id:          String,
     pub incarnation: Incarnation,
@@ -137,6 +137,7 @@ pub struct Member {
     pub gossip_port: u16,
     pub persistent:  bool,
     pub departed:    bool,
+    pub probe_ping:  bool,
 }
 
 impl Member {
@@ -170,7 +171,8 @@ impl Default for Member {
                  swim_port:   0,
                  gossip_port: 0,
                  persistent:  false,
-                 departed:    false, }
+                 departed:    false,
+                 probe_ping:  false, }
     }
 }
 
@@ -194,7 +196,8 @@ impl From<Member> for proto::Member {
                         swim_port:   Some(value.swim_port.into()),
                         gossip_port: Some(value.gossip_port.into()),
                         persistent:  Some(value.persistent),
-                        departed:    Some(value.departed), }
+                        departed:    Some(value.departed),
+                        probe_ping:  Some(value.probe_ping), }
     }
 }
 
@@ -305,7 +308,8 @@ impl FromProto<proto::Member> for Member {
                                       .and_then(as_port)
                                       .ok_or(Error::ProtocolMismatch("gossip-port"))?,
                     persistent:  proto.persistent.unwrap_or(false),
-                    departed:    proto.departed.unwrap_or(false), })
+                    departed:    proto.departed.unwrap_or(false),
+                    probe_ping:  proto.probe_ping.unwrap_or(false), })
     }
 }
 
