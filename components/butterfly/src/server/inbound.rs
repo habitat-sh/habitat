@@ -9,6 +9,7 @@ use crate::{member::Health,
             swim::{Ack,
                    Ping,
                    PingReq,
+                   ProbePing,
                    Swim,
                    SwimKind}};
 use habitat_common::liveliness_checker;
@@ -123,7 +124,15 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                                    pingreq.from.id);
                             continue;
                         }
-                        process_pingreq_mlr_smr_rhw(server, socket, addr, pingreq);
+                        process_pingreq_mlr_smw_rhw(server, socket, addr, pingreq);
+                    }
+                    SwimKind::ProbePing(probe_ping) => {
+                        if server.is_member_blocked_sblr(&probe_ping.from.id) {
+                            debug!("Not processing message from {} - it is blocked",
+                                   probe_ping.from.id);
+                            continue;
+                        }
+                        process_probeping_mlw_smw_rhw(server, socket, addr, probe_ping);
                     }
                 }
             }
@@ -154,7 +163,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
 /// * `MemberList::entries` (read)
 /// * `Server::member` (read)
 /// * `RumorHeat::inner` (write)
-fn process_pingreq_mlr_smr_rhw(server: &Server,
+fn process_pingreq_mlr_smw_rhw(server: &Server,
                                socket: &UdpSocket,
                                addr: SocketAddr,
                                mut msg: PingReq) {
@@ -227,10 +236,12 @@ fn process_ack_mlw_smw_rhw(server: &Server,
 /// * `Server::member` (write)
 /// * `RumorHeat::inner` (write)
 fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: Ping) {
+    trace!("Ping from {}@{}", msg.from.id, addr);
+
     outbound::ack_mlr_smr_rhw(server, socket, &msg.from, addr, msg.forward_to);
     // Populate the member for this sender with its remote address
     msg.from.address = addr.ip().to_string();
-    trace!("Ping from {}@{}", msg.from.id, addr);
+
     if msg.from.departed {
         server.insert_member_mlw_rhw(msg.from, Health::Departed);
     } else {
@@ -238,5 +249,34 @@ fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAdd
     }
     for membership in msg.membership {
         server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+    }
+}
+
+/// # Locking (see locking.md)
+/// * `MemberList::entries` (write)
+/// * `Server::member` (write)
+/// * `RumorHeat::inner` (write)
+fn process_probeping_mlw_smw_rhw(server: &Server,
+                                 socket: &UdpSocket,
+                                 addr: SocketAddr,
+                                 mut msg: ProbePing) {
+    trace!("ProbePing from {}@{}", msg.from.id, addr);
+
+    // We received this message because someone believed we are `Confirmed`. For that member to
+    // know we are `Alive` quickly, we will increment our `Incarnation`. This will create a `hot`
+    // rumor in the network (through 'successful' `insert_mlw`) when our `Ack` is processed.
+    server.myself.lock_smw().increment_incarnation();
+
+    // Ack now.
+    outbound::ack_mlr_smr_rhw(server, socket, &msg.from, addr, None);
+
+    // Populate the member for this sender with its remote address
+    msg.from.address = addr.ip().to_string();
+
+    // Mark Sender as `Alive`
+    if msg.from.departed {
+        server.insert_member_mlw_rhw(msg.from, Health::Departed);
+    } else {
+        server.insert_member_mlw_rhw(msg.from, Health::Alive);
     }
 }
