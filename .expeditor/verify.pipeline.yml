@@ -137,6 +137,20 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :linux: aarch64 builder-api-client"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh builder-api-client
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[unit] :linux: butterfly lock_as_mutex"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh butterfly --features "lock_as_mutex" -- --test-threads=1 --format=pretty
@@ -147,6 +161,18 @@ steps:
     timeout_in_minutes: 20
     soft_fail: true
 
+  - label: "[unit] :linux: aarch64 butterfly lock_as_mutex"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh butterfly --features "lock_as_mutex" -- --test-threads=1 --format=pretty
+    timeout_in_minutes: 20
+    soft_fail: true
+
   - label: "[unit] :linux: butterfly lock_as_rwlock"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh butterfly --features "lock_as_rwlock" -- --test-threads=1 --format=pretty
@@ -154,6 +180,20 @@ steps:
       executor:
         docker:
           privileged: true
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: aarch64 butterfly lock_as_rwlock"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh butterfly --features "lock_as_rwlock" -- --test-threads=1 --format=pretty
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -176,6 +216,20 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :linux: aarch64 common"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh common
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[unit] :linux: core"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh core
@@ -183,6 +237,20 @@ steps:
       executor:
         docker:
           privileged: true
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: aarch64 core"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh core
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -197,6 +265,17 @@ steps:
           privileged: true
     timeout_in_minutes: 20
 
+  - label: "[unit] :linux: aarch64 core functional"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh core --features "functional" -- --format=pretty
+    timeout_in_minutes: 20
+
   - label: "[unit] :linux: http-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh http-client
@@ -204,6 +283,20 @@ steps:
       executor:
         docker:
           privileged: true
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: aarch64 http-client"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh http-client
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -221,6 +314,20 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :linux: aarch64 hab"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh hab
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[unit] :linux: launcher-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh launcher-client
@@ -228,6 +335,20 @@ steps:
       executor:
         docker:
           privileged: true
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: aarch64 launcher-client"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh launcher-client
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -245,6 +366,20 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :linux: aarch64 launcher-protocol"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh launcher-protocol
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[unit] :linux: pkg-export-container"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-container
@@ -252,6 +387,20 @@ steps:
       executor:
         docker:
           privileged: true
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: aarch64 pkg-export-container"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh pkg-export-container
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -269,6 +418,20 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :linux: aarch64 pkg-export-tar"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh pkg-export-tar
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[unit] :linux: sup lock_as_rwlock"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh sup --features "lock_as_rwlock"
@@ -276,6 +439,20 @@ steps:
       executor:
         docker:
           privileged: true
+    timeout_in_minutes: 40
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: aarch64 sup lock_as_rwlock"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup --features "lock_as_rwlock"
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -291,6 +468,18 @@ steps:
     timeout_in_minutes: 40
     soft_fail: true
 
+  - label: "[unit] :linux: aarch64 sup lock_as_mutex"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup --features "lock_as_mutex"
+    timeout_in_minutes: 40
+    soft_fail: true
+
   - label: "[unit] :linux: sup-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh sup-client
@@ -303,6 +492,20 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :linux: aarch64 sup-client"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup-client
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[unit] :linux: sup-protocol"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh sup-protocol
@@ -310,6 +513,20 @@ steps:
       executor:
         docker:
           privileged: true
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: aarch64 sup-protocol"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup-protocol
     timeout_in_minutes: 10
     retry:
       automatic:
