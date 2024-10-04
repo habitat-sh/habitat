@@ -643,7 +643,8 @@ impl Server {
         if self.member_list
                .insert_member_ignore_incarnation_mlw(sender, Health::Alive)
         {
-            debug!("Marking member '{}' as 'Alive' again, startng a new rumour.", sender_id);
+            debug!("Marking member '{}' as 'Alive' again, startng a new rumour.",
+                   sender_id);
             self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
@@ -708,13 +709,13 @@ impl Server {
                     match mship.health {
                         Health::Alive | Health::Suspect => {
                             if mship.member.incarnation > member.incarnation {
-                                debug!("Member: {}, Incoming Incarnation {} is older, current incarnation is \
-                                        {}. No-OP.",
+                                debug!("Member: {}, Incoming Incarnation {} is older, current \
+                                        incarnation is {}. No-OP.",
                                        member.id, member.incarnation, mship.member.incarnation);
                             } else {
-                                warn!("Member: {}, Our Information about the member is '{}', Incoming \
-                                       information is '{}'. Will Send a `ProbePing` to the \
-                                       member.",
+                                warn!("Member: {}, Our Information about the member is '{}', \
+                                       Incoming information is '{}'. Will Send a `ProbePing` to \
+                                       the member.",
                                       member.id, mship.health, health);
                                 self.probe_list.members_write().insert(member.clone());
                                 return;
@@ -729,14 +730,13 @@ impl Server {
                     debug!("Member: {} Does not exist in the Member List.", member.id);
                 }
             }
-        } else {
-            if health != Health::Alive && member.incarnation >= self.myself.lock_smr().incarnation()
-            {
-                self.myself
-                    .lock_smw()
-                    .refute_incarnation(member.incarnation);
-                health = Health::Alive;
-            }
+        } else if health != Health::Alive
+                  && member.incarnation >= self.myself.lock_smr().incarnation()
+        {
+            self.myself
+                .lock_smw()
+                .refute_incarnation(member.incarnation);
+            health = Health::Alive;
         }
 
         let member_id = member.id.clone();
@@ -1112,6 +1112,7 @@ impl Server {
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (read)
+    #[allow(clippy::cognitive_complexity)]
     pub fn insert_election_rsw_mlr_rhw_msr(&self, mut election: Election) {
         debug!("insert_election: {:?}", election);
         let rk = RumorKey::from(&election);
@@ -1133,22 +1134,29 @@ impl Server {
                                    .map(|stored_term| election.term > stored_term)
                                    .unwrap_or(false);
                 if new_term {
-                    if Some(self.member_id()) == self.election_store.lock_rsr().get_member_id(election.key()) {
+                    if Some(self.member_id())
+                       == self.election_store.lock_rsr().get_member_id(election.key())
+                    {
                         debug!("I am the leader of previous term!");
                         debug!("removing old rumor and starting new election");
-                        self.election_store.remove_rsw(election.key(), election.id());
+                        self.election_store
+                            .remove_rsw(election.key(), election.id());
                         self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term);
+                    } else if Some(election.member_id.as_str())
+                              == self.election_store.lock_rsr().get_member_id(election.key())
+                    {
+                        debug!("Received New Term election from the leader. Starting my own to \
+                                merge. Term: {}",
+                               election.term);
+                        self.election_store
+                            .remove_rsw(election.key(), election.id());
+                        trace!("Removed old election.");
+                        self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term);
+                        trace!("Started new election.");
                     } else {
-                        if Some(election.member_id.as_str()) == self.election_store.lock_rsr().get_member_id(election.key()) {
-                            debug!("Received New Term election from the leader. Starting my own to merge. Term: {}", election.term);
-                            self.election_store.remove_rsw(election.key(), election.id());
-                            trace!("Removed old election.");
-                            self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term);
-                            trace!("Started new election.");
-                        } else {
-                            warn!("Received a New Term Election, but not from the current leader, ignoring!");
-                            return;
-                        }
+                        warn!("Received a New Term Election, but not from the current leader, \
+                               ignoring!");
+                        return;
                     }
                 }
                 // If we are the member that this election is voting for, then check to see if the
