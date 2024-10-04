@@ -28,15 +28,15 @@ use prometheus::{register_histogram_vec,
                  HistogramVec,
                  IntCounterVec,
                  IntGaugeVec};
-use std::{fmt,
+use std::{collections::HashSet,
+          fmt,
+          iter::FromIterator,
           net::{SocketAddr,
                 UdpSocket},
           sync::mpsc,
           thread,
           time::{Duration,
                  Instant}};
-use std::collections::HashSet;
-use std::iter::FromIterator;
 
 /// How long to sleep between calls to `recv`.
 const PING_RECV_QUEUE_EMPTY_SLEEP_MS: u64 = 10;

@@ -30,7 +30,7 @@ use serde::{de,
             Serialize,
             Serializer};
 use std::{collections::{hash_map,
-                        HashMap },
+                        HashMap},
           convert::TryFrom,
           fmt,
           net::SocketAddr,
@@ -522,19 +522,26 @@ impl MemberList {
                    || ignore_incarnation_health
                 {
                     if val.health != incoming.health || !ignore_incarnation_health {
-                        trace!("++ current health: {}, incoming health: {}", val.health, incoming.health);
+                        trace!("++ current health: {}, incoming health: {}",
+                               val.health,
+                               incoming.health);
                         *val = member_list::Entry { member:            incoming.member,
                                                     health:            incoming.health,
                                                     health_updated_at: Instant::now(), };
                         trace!("Occupied: Updated");
                         true
                     } else {
-                        trace!("~~ current health: {}, incoming health: {}.", val.health, incoming.health);
+                        trace!("~~ current health: {}, incoming health: {}.",
+                               val.health,
+                               incoming.health);
                         trace!("Occupied: Not Updated");
                         false
                     }
                 } else {
-                    trace!("-- current health: {}, incoming health: {}, incarnation: {}, ", val.health, incoming.health, val.member.incarnation);
+                    trace!("-- current health: {}, incoming health: {}, incarnation: {}, ",
+                           val.health,
+                           incoming.health,
+                           val.member.incarnation);
                     trace!("Occupied: Not Updated");
                     false
                 }
@@ -567,6 +574,7 @@ impl MemberList {
                                                 health: incoming_health, },
                                    true)
     }
+
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (write)
     pub fn set_departed_mlw(&self, member_id: &str) {
