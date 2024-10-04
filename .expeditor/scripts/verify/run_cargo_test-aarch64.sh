@@ -24,15 +24,19 @@ hab pkg install core/openssl
 hab pkg install core/perl
 hab pkg install core/make
 
-export OPENSSL_DIR="$(hab pkg path core/openssl)/bin"
-export OPENSSL_LIB_DIR="$(hab pkg path core/openssl)/lib"
+export OPENSSL_DIR
+OPENSSL_DIR="$(hab pkg path core/openssl)/bin"
+export OPENSSL_LIB_DIR
+OPENSSL_LIB_DIR="$(hab pkg path core/openssl)/lib"
 
 export LIBZMQ_PREFIX
 LIBZMQ_PREFIX=$(hab pkg path core/zeromq)
 # now include zeromq and gcc so they exist in the runtime library path when cargo test is run
 export LD_LIBRARY_PATH
 LD_LIBRARY_PATH="$(hab pkg path core/gcc-base)/lib:$(hab pkg path core/zeromq)/lib:$(hab pkg path core/xz)/lib:$(hab pkg path core/openssl)/lib"
-export LIBRARY_PATH="$(hab pkg path core/xz)/lib"
+
+export LIBRARY_PATH
+LIBRARY_PATH="$(hab pkg path core/xz)/lib"
 
 export PROTOC_NO_VENDOR=1
 export PROTOC
