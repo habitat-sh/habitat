@@ -242,13 +242,14 @@ fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAdd
     // Populate the member for this sender with its remote address
     msg.from.address = addr.ip().to_string();
 
+    for membership in msg.membership {
+        server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+    }
+
     if msg.from.departed {
         server.insert_member_mlw_rhw(msg.from, Health::Departed);
     } else {
-        server.insert_member_mlw_rhw(msg.from, Health::Alive);
-    }
-    for membership in msg.membership {
-        server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
+        server.mark_sender_alive_mlw_rhw(msg.from);
     }
 }
 
