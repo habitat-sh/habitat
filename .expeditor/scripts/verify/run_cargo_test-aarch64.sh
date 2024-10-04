@@ -21,6 +21,11 @@ hab pkg install core/rust/"$toolchain"
 hab pkg install core/xz
 hab pkg install core/coreutils
 hab pkg install core/openssl
+hab pkg install core/perl
+hab pkg install core/make
+
+export OPENSSL_DIR="$(hab pkg path core/openssl)/bin"
+export OPENSSL_LIB_DIR="$(hab pkg path core/openssl)/lib"
 
 export LIBZMQ_PREFIX
 LIBZMQ_PREFIX=$(hab pkg path core/zeromq)
@@ -34,12 +39,9 @@ export PROTOC
 PROTOC=$(hab pkg path core/protobuf)/bin/protoc
 
 _oldPth=$PATH
-_pth="$(hab pkg path core/coreutils)/bin:$(hab pkg path core/openssl)/bin"
+_pth="$(hab pkg path core/coreutils)/bin:$(hab pkg path core/openssl)/bin:$(hab pkg path core/perl)/bin:$(hab pkg path core/make)/bin"
 eval "$(hab pkg env core/rust/"$toolchain"):$PATH"
 export PATH="$PATH:$_pth:$_oldPth"
-
-export OPENSSL_DIR="$(hab pkg path core/openssl)/bin"
-export OPENSSL_LIB_DIR="$(hab pkg path core/openssl)/lib"
 
 # Set testing filesystem root
 export FS_ROOT
