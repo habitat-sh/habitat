@@ -110,6 +110,20 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :linux: aarch64 ignored"
+    agents:
+      queue: docker-linux-amazon-2023-arm64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_BLDR_CHANNEL: "LTS-2024"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/run_cargo_test.sh -- --ignored
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[unit] :linux: builder-api-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh builder-api-client
