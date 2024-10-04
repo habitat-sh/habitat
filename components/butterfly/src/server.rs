@@ -607,6 +607,7 @@ impl Server {
     /// * `MemberList::entries` (write)
     /// * `RumorHeat::inner` (write)
     pub fn insert_member_mlw_rhw(&self, member: Member, health: Health) {
+        trace!("insert_member_mlw_rhw");
         let rk: RumorKey = RumorKey::from(&member);
         let member_id = member.id.clone();
         if self.member_list.insert_mlw(member, health) {
@@ -619,6 +620,30 @@ impl Server {
                 self.rumor_heat.lock_rhw().purge(&member_id);
             }
 
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
+        }
+    }
+
+    /// Set the Sender to Alive
+    ///
+    /// If we simply use `insert_member_mlw_rhw` as above, the sender may be having the current
+    /// Incarnation and hence if we try to "update" the sender, it does not get updated. So the
+    /// sender might remain in `Confirmed` state even after having received a message/ack from the
+    /// sender. We need to ignore the `Incarnation` in this case.
+    ///
+    /// Ideally this should be fixed by fixing the `insert_mlw` API from `crate::member` (by taking
+    /// extra parameter, but in the interest of not breaking existing usage, we are defining this
+    /// new function. At some point revisit (and fix affected unit tests).
+    pub(crate) fn mark_sender_alive_mlw_rhw(&self, sender: Member) {
+        trace!("mark_sender_alive_mlw_rhw");
+        let rk: RumorKey = RumorKey::from(&sender);
+
+        let sender_id = sender.id.clone();
+
+        if self.member_list
+               .insert_member_ignore_incarnation_mlw(sender, Health::Alive)
+        {
+            debug!("Marking member '{}' as 'Alive' again, startng a new rumour.", sender_id);
             self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
@@ -672,6 +697,7 @@ impl Server {
     /// * `Server::member` (write)
     /// * `RumorHeat::inner` (write)
     fn insert_member_from_rumor_mlw_smw_rhw(&self, member: Member, mut health: Health) {
+        trace!("insert_member_from_rumor_mlw_smw_rhw");
         let rk: RumorKey = RumorKey::from(&member);
 
         if member.id != self.member_id() {

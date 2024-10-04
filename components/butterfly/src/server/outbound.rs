@@ -35,6 +35,8 @@ use std::{fmt,
           thread,
           time::{Duration,
                  Instant}};
+use std::collections::HashSet;
+use std::iter::FromIterator;
 
 /// How long to sleep between calls to `recv`.
 const PING_RECV_QUEUE_EMPTY_SLEEP_MS: u64 = 10;
@@ -284,7 +286,7 @@ fn recv_ack_mlw_rhw(server: &Server,
                     if ack.from.departed {
                         server.insert_member_mlw_rhw(ack.from, Health::Departed);
                     } else {
-                        server.insert_member_mlw_rhw(ack.from, Health::Alive);
+                        server.mark_sender_alive_mlw_rhw(ack.from);
                     }
                     // Keep listening, we want the ack we expected
                     continue;
@@ -293,7 +295,7 @@ fn recv_ack_mlw_rhw(server: &Server,
                     if ack.from.departed {
                         server.insert_member_mlw_rhw(ack.from, Health::Departed);
                     } else {
-                        server.insert_member_mlw_rhw(ack.from, Health::Alive);
+                        server.mark_sender_alive_mlw_rhw(ack.from);
                     }
                     return true;
                 }
@@ -342,6 +344,9 @@ pub fn populate_membership_rumors_mlr_rhw(server: &Server,
         .filter(|r| r.kind == RumorType::Member)
         .take(5) // TODO (CM): magic number!
         .collect();
+
+    let rumors_set: HashSet<_> = HashSet::from_iter(rumors);
+    let rumors = Vec::from_iter(rumors_set);
 
     for rkey in rumors.iter() {
         if let Some(member) = server.member_list.membership_for_mlr(&rkey.to_string()) {
