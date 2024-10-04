@@ -118,7 +118,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test.sh -- --ignored
+      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh -- --ignored
     timeout_in_minutes: 20
     retry:
       automatic:
