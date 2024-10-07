@@ -15,14 +15,14 @@ fi
 
 toolchain=$(get_toolchain)
 
-hab pkg install core/zeromq
-hab pkg install core/protobuf
-hab pkg install core/rust/"$toolchain"
-hab pkg install core/xz
-hab pkg install core/coreutils
-hab pkg install core/openssl
-hab pkg install core/perl
-hab pkg install core/make
+sudo -E hab pkg install core/zeromq
+sudo -E hab pkg install core/protobuf
+sudo -E hab pkg install core/rust/"$toolchain"
+sudo -E hab pkg install core/xz
+sudo -E hab pkg install core/coreutils
+sudo -E hab pkg install core/openssl
+sudo -E hab pkg install core/perl
+sudo -E hab pkg install core/make
 
 export OPENSSL_DIR
 OPENSSL_DIR="$(hab pkg path core/openssl)/bin"
