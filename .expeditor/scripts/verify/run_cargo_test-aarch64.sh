@@ -2,11 +2,11 @@
 
 set -eou pipefail
 
-# shellcheck source=.expeditor/scripts/shared.sh
-source .expeditor/scripts/verify/shared.sh
-
 # Install hab
 curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- -t aarch64-linux -c aarch64-linux -v 1.6.706
+
+# shellcheck source=.expeditor/scripts/shared.sh
+source .expeditor/scripts/verify/shared.sh
 
 if [[ ${1:-"--"} = "--" ]]; then
   scope="habitat workspace"
