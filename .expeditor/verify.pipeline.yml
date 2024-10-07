@@ -119,7 +119,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh -- --ignored
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh -- --ignored
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -145,7 +145,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh builder-api-client
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh builder-api-client
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -169,7 +169,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh butterfly --features "lock_as_mutex" -- --test-threads=1 --format=pretty
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh butterfly --features "lock_as_mutex" -- --test-threads=1 --format=pretty
     timeout_in_minutes: 20
     soft_fail: true
 
@@ -193,7 +193,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh butterfly --features "lock_as_rwlock" -- --test-threads=1 --format=pretty
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh butterfly --features "lock_as_rwlock" -- --test-threads=1 --format=pretty
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -224,7 +224,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh common
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh common
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -250,7 +250,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh core
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh core
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -273,7 +273,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh core --features "functional" -- --format=pretty
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh core --features "functional" -- --format=pretty
     timeout_in_minutes: 20
 
   - label: "[unit] :linux: http-client"
@@ -296,7 +296,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh http-client
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh http-client
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -322,7 +322,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh hab
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh hab
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -348,7 +348,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh launcher-client
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh launcher-client
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -374,7 +374,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh launcher-protocol
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh launcher-protocol
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -400,7 +400,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh pkg-export-container
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh pkg-export-container
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -426,7 +426,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh pkg-export-tar
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh pkg-export-tar
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -452,7 +452,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup --features "lock_as_rwlock"
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup --features "lock_as_rwlock"
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -476,7 +476,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup --features "lock_as_mutex"
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup --features "lock_as_mutex"
     timeout_in_minutes: 40
     soft_fail: true
 
@@ -500,7 +500,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup-client
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup-client
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -526,7 +526,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup-protocol
+      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup-protocol
     timeout_in_minutes: 10
     retry:
       automatic:

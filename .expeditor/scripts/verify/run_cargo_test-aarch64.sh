@@ -5,6 +5,9 @@ set -eou pipefail
 # shellcheck source=.expeditor/scripts/shared.sh
 source .expeditor/scripts/verify/shared.sh
 
+# Install hab
+curlbash_hab "${BUILD_PKG_TARGET}"
+
 if [[ ${1:-"--"} = "--" ]]; then
   scope="habitat workspace"
 else
