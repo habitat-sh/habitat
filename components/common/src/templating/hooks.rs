@@ -635,7 +635,6 @@ mod tests {
                             test_helpers::*};
     #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
                       all(target_os = "windows", target_arch = "x86_64"),)))]
-    use habitat_core::package::metadata::MetaFile;
     use habitat_core::{package::{PackageIdent,
                                  PackageInstall},
                        service::ServiceGroup};
@@ -866,16 +865,6 @@ echo "The message is Hola Mundo"
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"));
 
-        // Platforms without standard package support require all packages to be native packages
-        #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
-                      all(target_os = "windows", target_arch = "x86_64"))))]
-        {
-            tokio::fs::create_dir_all(pkg_install.installed_path()).await
-                                                                   .unwrap();
-            create_with_content(pkg_install.installed_path()
-                                           .join(MetaFile::PackageType.to_string()),
-                                "native");
-        }
         let pkg = Pkg::from_install(&pkg_install).await
                                                  .expect("Could not create package!");
 
