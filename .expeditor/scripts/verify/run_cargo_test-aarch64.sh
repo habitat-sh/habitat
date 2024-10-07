@@ -6,7 +6,7 @@ set -eou pipefail
 source .expeditor/scripts/verify/shared.sh
 
 # Install hab
-curlbash_hab "${BUILD_PKG_TARGET}"
+curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- -t aarch64-linux -c aarch64-linux -v 1.6.706
 
 if [[ ${1:-"--"} = "--" ]]; then
   scope="habitat workspace"
