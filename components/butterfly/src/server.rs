@@ -730,14 +730,13 @@ impl Server {
                     debug!("Member: {} Does not exist in the Member List.", member.id);
                 }
             }
-        } else {
-            if health != Health::Alive && member.incarnation >= self.myself.lock_smr().incarnation()
-            {
-                self.myself
-                    .lock_smw()
-                    .refute_incarnation(member.incarnation);
-                health = Health::Alive;
-            }
+        } else if health != Health::Alive
+                  && member.incarnation >= self.myself.lock_smr().incarnation()
+        {
+            self.myself
+                .lock_smw()
+                .refute_incarnation(member.incarnation);
+            health = Health::Alive;
         }
 
         let member_id = member.id.clone();
@@ -1113,6 +1112,7 @@ impl Server {
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (read)
+    #[allow(clippy::cognitive_complexity)]
     pub fn insert_election_rsw_mlr_rhw_msr(&self, mut election: Election) {
         debug!("insert_election: {:?}", election);
         let rk = RumorKey::from(&election);
@@ -1142,24 +1142,21 @@ impl Server {
                         self.election_store
                             .remove_rsw(election.key(), election.id());
                         self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term);
+                    } else if Some(election.member_id.as_str())
+                              == self.election_store.lock_rsr().get_member_id(election.key())
+                    {
+                        debug!("Received New Term election from the leader. Starting my own to \
+                                merge. Term: {}",
+                               election.term);
+                        self.election_store
+                            .remove_rsw(election.key(), election.id());
+                        trace!("Removed old election.");
+                        self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term);
+                        trace!("Started new election.");
                     } else {
-                        if Some(election.member_id.as_str())
-                           == self.election_store.lock_rsr().get_member_id(election.key())
-                        {
-                            debug!("Received New Term election from the leader. Starting my own \
-                                    to merge. Term: {}",
-                                   election.term);
-                            self.election_store
-                                .remove_rsw(election.key(), election.id());
-                            trace!("Removed old election.");
-                            self.start_election_rsw_mlr_rhw_msr(&election.service_group,
-                                                                election.term);
-                            trace!("Started new election.");
-                        } else {
-                            warn!("Received a New Term Election, but not from the current \
-                                   leader, ignoring!");
-                            return;
-                        }
+                        warn!("Received a New Term Election, but not from the current leader, \
+                               ignoring!");
+                        return;
                     }
                 }
                 // If we are the member that this election is voting for, then check to see if the

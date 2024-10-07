@@ -129,7 +129,7 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
                                      .drain()
                                      .collect::<Vec<_>>();
 
-        if members_to_probe.len() > 0 {
+        if !members_to_probe.is_empty() {
             debug!("Probing {} members in the Probe List.",
                    members_to_probe.len());
 
