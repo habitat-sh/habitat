@@ -171,8 +171,16 @@ impl Rumor for Election {
             *self = other;
             true
         } else if other.term == self.term && self.status == ElectionStatus::Finished {
-            debug!("stored rumor is finished and received rumor is for same term; nothing to do");
-            false
+            if other.status == ElectionStatus::Finished {
+                debug!("stored rumor is finished and received rumor is for same term; nothing to \
+                        do");
+                false
+            } else {
+                debug!("stored rumor is finished and received rumor is for same term; Received \
+                        rumor is not 'Finished'. Taking their votes and sharing ourselves.");
+                self.steal_votes(&mut other);
+                true
+            }
         } else if self.term > other.term {
             debug!("stored rumor represents a newer term than received; keep sharing it");
             true
