@@ -184,9 +184,6 @@ impl Rumor for Election {
         } else if self.term > other.term {
             debug!("stored rumor represents a newer term than received; keep sharing it");
             true
-        } else if self.term > other.term {
-            debug!("stored rumor represents a newer term than received; keep sharing it");
-            true
         } else if self.suitability > other.suitability {
             debug!("stored rumor is more suitable; take received rumor's votes and share");
             self.steal_votes(&mut other);
