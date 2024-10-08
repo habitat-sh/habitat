@@ -922,13 +922,19 @@ impl Server {
         #[allow(clippy::integer_division)]
         let has_quorum = alive_population > total_population / 2;
 
-        trace!("check_quorum({}): {}/{} alive/total => {}, electorate: {:?}, service_group: {:?}",
-               key,
-               alive_population,
-               total_population,
-               has_quorum,
-               electorate,
-               service_group_members);
+        let quorum_log_entry = format!("check_quorum({}): {}/{} alive/total => {}, electorate: \
+                                        {:?}, service_group: {:?}",
+                                       key,
+                                       alive_population,
+                                       total_population,
+                                       has_quorum,
+                                       electorate,
+                                       service_group_members);
+        if !has_quorum {
+            warn!("{}", quorum_log_entry);
+        } else {
+            trace!("{}", quorum_log_entry);
+        }
 
         has_quorum
     }
