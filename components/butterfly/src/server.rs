@@ -941,8 +941,13 @@ impl Server {
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (read)
-    pub fn start_election_rsw_mlr_rhw_msr(&self, service_group: &str, term: u64) {
-        let suitability = self.suitability_lookup.suitability_for_msr(service_group);
+    pub fn start_election_rsw_mlr_rhw_msr(&self,
+                                          service_group: &str,
+                                          term: u64,
+                                          suitability: Option<u64>) {
+        let suitability = suitability.unwrap_or_else(|| {
+                                         self.suitability_lookup.suitability_for_msr(service_group)
+                                     });
         let has_quorum = self.check_quorum_mlr(service_group);
         let e = Election::new(self.member_id(),
                               service_group,
@@ -1091,7 +1096,7 @@ impl Server {
             warn!("Starting a new election for {} {}", service_group, term);
             self.election_store
                 .remove_rsw(&service_group, Election::const_id());
-            self.start_election_rsw_mlr_rhw_msr(&service_group, term);
+            self.start_election_rsw_mlr_rhw_msr(&service_group, term, None);
         }
 
         for (service_group, old_term) in update_elections_to_restart {
@@ -1138,10 +1143,13 @@ impl Server {
                        == self.election_store.lock_rsr().get_member_id(election.key())
                     {
                         debug!("I am the leader of previous term!");
-                        debug!("removing old rumor and starting new election");
+                        debug!("removing old rumor and starting new election with highest \
+                                `Suitability`");
                         self.election_store
                             .remove_rsw(election.key(), election.id());
-                        self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term);
+                        self.start_election_rsw_mlr_rhw_msr(&election.service_group,
+                                                            election.term,
+                                                            Some(u64::MAX));
                     } else if Some(election.member_id.as_str())
                               == self.election_store.lock_rsr().get_member_id(election.key())
                     {
@@ -1150,9 +1158,9 @@ impl Server {
                                election.term);
                         self.election_store
                             .remove_rsw(election.key(), election.id());
-                        trace!("Removed old election.");
-                        self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term);
-                        trace!("Started new election.");
+                        self.start_election_rsw_mlr_rhw_msr(&election.service_group,
+                                                            election.term,
+                                                            None);
                     } else {
                         warn!("Received a New Term Election, but not from the current leader, \
                                ignoring!");
@@ -1207,7 +1215,7 @@ impl Server {
                                               .lock()
                                               .expect("Election timers lock poisoned");
                 existing_timers.insert(election.service_group.clone(), ElectionTimer(timer));
-                self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term);
+                self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term, None);
             }
 
             if !election.is_finished() {
