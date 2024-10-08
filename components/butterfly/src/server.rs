@@ -945,8 +945,9 @@ impl Server {
                                           service_group: &str,
                                           term: u64,
                                           suitability: Option<u64>) {
-        let suitability =
-            suitability.unwrap_or(self.suitability_lookup.suitability_for_msr(service_group));
+        let suitability = suitability.unwrap_or_else(|| {
+                                         self.suitability_lookup.suitability_for_msr(service_group)
+                                     });
         let has_quorum = self.check_quorum_mlr(service_group);
         let e = Election::new(self.member_id(),
                               service_group,
