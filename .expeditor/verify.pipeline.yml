@@ -112,7 +112,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 ignored"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -138,7 +138,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 builder-api-client"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -162,7 +162,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 butterfly lock_as_mutex"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -186,7 +186,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 butterfly lock_as_rwlock"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -217,7 +217,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 common"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -243,7 +243,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 core"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -266,7 +266,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 core functional"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -289,7 +289,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 http-client"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -315,7 +315,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 hab"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -341,7 +341,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 launcher-client"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -367,7 +367,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 launcher-protocol"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -393,7 +393,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 pkg-export-container"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -419,7 +419,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 pkg-export-tar"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -445,7 +445,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 sup lock_as_rwlock"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -469,7 +469,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 sup lock_as_mutex"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -493,7 +493,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 sup-client"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -519,7 +519,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 sup-protocol"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -858,13 +858,13 @@ steps:
 
   - label: "[build] :linux: aarch64 test-probe"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh test-services/test-probe
+      - .expeditor/scripts/verify/build_package.sh test-services/test-probe
     retry:
       automatic:
         limit: 1
@@ -888,13 +888,13 @@ steps:
   # This build currently fails due to a circular dependency in 'LTS-2024' and needs investigation.
   - label: "[build] :linux: aarch64 backline"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/backline
+      - .expeditor/scripts/verify/build_package.sh components/backline
     retry:
       automatic:
         limit: 1
@@ -915,13 +915,13 @@ steps:
 
   - label: "[build] :linux: aarch64 hab"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/hab
+      - .expeditor/scripts/verify/build_package.sh components/hab
     retry:
       automatic:
         limit: 1
@@ -942,13 +942,13 @@ steps:
 
   - label: "[build] :linux: aarch64 launcher"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/launcher
+      - .expeditor/scripts/verify/build_package.sh components/launcher
     retry:
       automatic:
         limit: 1
@@ -972,13 +972,13 @@ steps:
   # This build currently fails due to a dependency on 'pkg-export-container'
   - label: "[build] :linux: aarch64 pkg-cfize"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-cfize
+      - .expeditor/scripts/verify/build_package.sh components/pkg-cfize
     retry:
       automatic:
         limit: 1
@@ -1000,13 +1000,13 @@ steps:
   # This build currently fails due to a dependency on 'core/buildah', which is not available in 'LTS-2024'.
   - label: "[build] :linux: aarch64 pkg-export-container"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-export-container
+      - .expeditor/scripts/verify/build_package.sh components/pkg-export-container
     retry:
       automatic:
         limit: 1
@@ -1027,13 +1027,13 @@ steps:
 
   - label: "[build] :linux: aarch64 pkg-export-tar"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-export-tar
+      - .expeditor/scripts/verify/build_package.sh components/pkg-export-tar
     retry:
       automatic:
         limit: 1
@@ -1054,13 +1054,13 @@ steps:
 
   - label: "[build] :linux: aarch64 pkg-mesosize"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-mesosize
+      - .expeditor/scripts/verify/build_package.sh components/pkg-mesosize
     retry:
       automatic:
         limit: 1
@@ -1081,13 +1081,13 @@ steps:
 
   - label: "[build] :linux: aarch64 plan-build"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/plan-build
+      - .expeditor/scripts/verify/build_package.sh components/plan-build
     retry:
       automatic:
         limit: 1
@@ -1108,13 +1108,13 @@ steps:
 
   - label: "[build] :linux: aarch64 studio"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/studio
+      - .expeditor/scripts/verify/build_package.sh components/studio
     retry:
       automatic:
         limit: 1
@@ -1135,13 +1135,13 @@ steps:
 
   - label: "[build] :linux: aarch64 sup"
     agents:
-      queue: docker-linux-amazon-2023-arm64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/sup
+      - .expeditor/scripts/verify/build_package.sh components/sup
     retry:
       automatic:
         limit: 1
