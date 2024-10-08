@@ -56,6 +56,7 @@ pub fn start_server_smw_rhw(name: &str, ring_key: Option<RingKey>, suitability: 
     let member = Member { swim_port,
                           gossip_port,
                           ..Default::default() };
+
     let mut server = Server::new(listen_swim,
                                  listen_gossip,
                                  member,
@@ -449,7 +450,7 @@ impl SwimNet {
     pub fn add_election(&mut self, member: usize, service: &str) {
         self[member].start_election_rsw_mlr_rhw_msr(&ServiceGroup::new(service, "prod",
                                                                        None).unwrap(),
-                                                    0);
+                                                    0, None);
     }
 }
 
