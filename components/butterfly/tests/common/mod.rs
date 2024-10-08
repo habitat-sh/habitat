@@ -224,7 +224,7 @@ impl SwimNet {
 
     pub fn max_rounds(&self) -> isize { 4 }
 
-    pub fn max_gossip_rounds(&self) -> isize { 5 }
+    pub fn max_gossip_rounds(&self) -> isize { 8 }
 
     pub fn rounds(&self) -> Vec<isize> { self.members.iter().map(Server::swim_rounds).collect() }
 
@@ -364,6 +364,28 @@ impl SwimNet {
                 println!("UnPartitioning {} from {}", *l, *r);
                 self.unblock(*l, *r);
                 self.unblock(*r, *l);
+            }
+        }
+    }
+
+    /// Partition a node from the rest of the network
+    pub fn partition_node(&self, idx: usize) {
+        println!("Partitioning {} from the network.", idx);
+        for i in 0..self.members.len() {
+            if i != idx {
+                self.block(idx, i);
+                self.block(i, idx);
+            }
+        }
+    }
+
+    /// UnPartition a node from the rest of the network
+    pub fn unpartition_node(&self, idx: usize) {
+        println!("UnPartitioning {} from the network.", idx);
+        for i in 0..self.members.len() {
+            if i != idx {
+                self.unblock(idx, i);
+                self.unblock(i, idx);
             }
         }
     }

@@ -1,3 +1,7 @@
+use std::iter::FromIterator;
+
+use rand::prelude::SliceRandom;
+
 use crate::btest;
 use habitat_butterfly::{member::Health,
                         rumor::{election::ElectionStatus,
@@ -92,8 +96,6 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
 #[test]
 #[allow(clippy::cognitive_complexity)]
 fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
-    env_logger::init();
-
     let mut net = btest::SwimNet::new_with_suitability_rhw(vec![1, 0, 0, 0, 0]);
     net[0].myself().lock_smw().set_persistent();
     net[4].myself().lock_smw().set_persistent();
@@ -172,4 +174,109 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
               println!("MINORITY: {:#?}", e);
               assert_eq!(new_leader_id.as_ref(), Some(&e.member_id));
           });
+}
+
+#[test]
+#[allow(clippy::cognitive_complexity)]
+fn three_persistent_members_reelect_same_leader_follower_partition() {
+    // Server '0' will be the leader always.
+    let mut net = btest::SwimNet::new_with_suitability_rhw(vec![1, 0, 0]);
+    net[0].myself().lock_smw().set_persistent();
+    net[1].myself().lock_smw().set_persistent();
+    net[2].myself().lock_smw().set_persistent();
+
+    net.add_service(0, "core/foobar/1.2.3/20241010101010");
+    net.add_service(1, "core/foobar/1.2.3/20241010101010");
+    net.add_service(2, "core/foobar/1.2.3/20241010101010");
+    net.add_election(0, "foobar");
+    net.connect_smr(0, 1);
+    net.connect_smr(1, 2);
+    assert_wait_for_health_of_mlr!(net, [0..3, 0..3], Health::Alive);
+    assert_wait_for_election_status!(net, [0..3], "foobar.prod", ElectionStatus::Finished);
+    assert_wait_for_equal_election!(net, [0..3, 0..3], "foobar.prod");
+
+    let leader_id = net[0].election_store
+                          .lock_rsr()
+                          .service_group("foobar.prod")
+                          .map_rumor(Election::const_id(), |e| e.member_id.clone());
+
+    assert_eq!(leader_id, Some(net[0].member_id().to_string()));
+
+    net.partition(0..2, 2..3);
+    assert_wait_for_health_of_mlr!(net, [0..2, 2..3], Health::Confirmed);
+    assert_wait_for_election_status!(net, 0, "foobar.prod", ElectionStatus::Finished);
+    assert_wait_for_election_status!(net, 1, "foobar.prod", ElectionStatus::Finished);
+
+    net[2].restart_elections_rsw_mlr_rhw_msr(FeatureFlag::empty());
+    assert_wait_for_election_status!(net, 2, "foobar.prod", ElectionStatus::NoQuorum);
+
+    net.unpartition(0..2, 2..3);
+    assert_wait_for_health_of_mlr!(net, [0..2, 2..3], Health::Alive);
+    assert_wait_for_election_status!(net, 2, "foobar.prod", ElectionStatus::Finished);
+
+    let new_leader_id = net[2].election_store
+                              .lock_rsr()
+                              .service_group("foobar.prod")
+                              .map_rumor(Election::const_id(), |e| e.member_id.clone());
+
+    assert_eq!(leader_id, new_leader_id,
+               "OLD: {:?}, NEW: {:?}",
+               leader_id, new_leader_id);
+}
+
+#[test]
+#[allow(clippy::cognitive_complexity)]
+fn five_persistent_members_same_leader_multiple_non_quorum_partitions() {
+    let mut net = btest::SwimNet::new_with_suitability_rhw(vec![1, 0, 0, 0, 0]);
+    for i in 0..5 {
+        net[i].myself().lock_smw().set_persistent();
+        net.add_service(i, "core/foobar/1.2.3/20241010101010");
+    }
+    net.add_election(0, "foobar");
+
+    for servers in Vec::from_iter(0..5).windows(2) {
+        net.connect_smr(servers[0], servers[1])
+    }
+    assert_wait_for_health_of_mlr!(net, [0..5, 0..5], Health::Alive);
+    assert_wait_for_election_status!(net, [0..5], "foobar.prod", ElectionStatus::Finished);
+    assert_wait_for_equal_election!(net, [0..3, 0..3], "foobar.prod");
+
+    let leader_id = net[0].election_store
+                          .lock_rsr()
+                          .service_group("foobar.prod")
+                          .map_rumor(Election::const_id(), |e| e.member_id.clone());
+
+    assert_eq!(leader_id, Some(net[0].member_id().to_string()));
+
+    // Making sure - running multiple times after a subset of follower (non-quorum) is partitioned
+    // and reconnected the leader stays the same.
+    let mut rng = rand::thread_rng();
+    let idxes = Vec::from_iter(1_usize..5_usize).choose_multiple(&mut rng, 2)
+                                                .copied()
+                                                .collect::<Vec<usize>>();
+    for idx in idxes.iter() {
+        println!("idx: {}", idx);
+        net.partition_node(*idx);
+        assert_wait_for_health_of_mlr!(net, *idx, Health::Confirmed);
+    }
+    let first = idxes[0];
+    net[first].restart_elections_rsw_mlr_rhw_msr(FeatureFlag::empty());
+    assert_wait_for_election_status!(net, 0, "foobar.prod", ElectionStatus::Finished);
+
+    assert_wait_for_election_status!(net, first, "foobar.prod", ElectionStatus::NoQuorum);
+
+    for idx in idxes.iter() {
+        net.unpartition_node(*idx);
+        assert_wait_for_health_of_mlr!(net, *idx, Health::Alive);
+    }
+    assert_wait_for_election_status!(net, first, "foobar.prod", ElectionStatus::Finished);
+
+    let new_leader_id = net[first].election_store
+                                  .lock_rsr()
+                                  .service_group("foobar.prod")
+                                  .map_rumor(Election::const_id(), |e| e.member_id.clone());
+
+    assert_eq!(leader_id, new_leader_id,
+               "OLD: {:?}, NEW: {:?}",
+               leader_id, new_leader_id);
 }

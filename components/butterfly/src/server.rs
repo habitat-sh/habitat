@@ -922,13 +922,19 @@ impl Server {
         #[allow(clippy::integer_division)]
         let has_quorum = alive_population > total_population / 2;
 
-        trace!("check_quorum({}): {}/{} alive/total => {}, electorate: {:?}, service_group: {:?}",
-               key,
-               alive_population,
-               total_population,
-               has_quorum,
-               electorate,
-               service_group_members);
+        let quorum_log_entry = format!("check_quorum({}): {}/{} alive/total => {}, electorate: \
+                                        {:?}, service_group: {:?}",
+                                       key,
+                                       alive_population,
+                                       total_population,
+                                       has_quorum,
+                                       electorate,
+                                       service_group_members);
+        if !has_quorum {
+            warn!("{}", quorum_log_entry);
+        } else {
+            trace!("{}", quorum_log_entry);
+        }
 
         has_quorum
     }
@@ -1094,9 +1100,17 @@ impl Server {
         for (service_group, old_term) in elections_to_restart {
             let term = old_term + 1;
             warn!("Starting a new election for {} {}", service_group, term);
+            let suitability = if Some(self.member_id())
+                                 == self.election_store.lock_rsr().get_member_id(&service_group)
+            {
+                Some(u64::MAX)
+            } else {
+                None
+            };
+
             self.election_store
                 .remove_rsw(&service_group, Election::const_id());
-            self.start_election_rsw_mlr_rhw_msr(&service_group, term, None);
+            self.start_election_rsw_mlr_rhw_msr(&service_group, term, suitability);
         }
 
         for (service_group, old_term) in update_elections_to_restart {
