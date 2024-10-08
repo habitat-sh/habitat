@@ -124,7 +124,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                                    pingreq.from.id);
                             continue;
                         }
-                        process_pingreq_mlr_smw_rhw(server, socket, addr, pingreq);
+                        process_pingreq_mlr_smr_rhw(server, socket, addr, pingreq);
                     }
                     SwimKind::ProbePing(probe_ping) => {
                         if server.is_member_blocked_sblr(&probe_ping.from.id) {
@@ -163,7 +163,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
 /// * `MemberList::entries` (read)
 /// * `Server::member` (read)
 /// * `RumorHeat::inner` (write)
-fn process_pingreq_mlr_smw_rhw(server: &Server,
+fn process_pingreq_mlr_smr_rhw(server: &Server,
                                socket: &UdpSocket,
                                addr: SocketAddr,
                                mut msg: PingReq) {
