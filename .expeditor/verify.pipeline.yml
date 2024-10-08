@@ -493,7 +493,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 sup-client"
     agents:
-      queue: default-privileged-aarch64
+      queue: default-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -519,7 +519,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 sup-protocol"
     agents:
-      queue: default-privileged-aarch64
+      queue: default-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
