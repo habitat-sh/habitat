@@ -13,11 +13,11 @@ do_begin() {
   PLAN_CONTEXT=$(abspath ..)
 }
 
-# shellcheck disable=2155
+# shellcheck disable=2155,SC2154
 do_prepare() {
   _common_prepare
 
-  export rustc_target="x86_64-unknown-linux-musl"
+  export rustc_target="${pkg_target%%-*}-unknown-linux-musl"
   build_line "Setting rustc_target=$rustc_target"
 
   # Used to find libgcc_s.so.1 when compiling `build.rs` in dependencies. Since

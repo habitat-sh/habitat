@@ -1,0 +1,4 @@
+#!{{pkgPathFor "core/bash"}}/bin/bash
+
+echo "Running post-run script: {{pkg.ident}} (PID: $$, PPID: $PPID, PGID: $(ps h -o pgid -p $$))"
+echo "Done"

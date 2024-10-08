@@ -58,7 +58,7 @@ do_before() {
 do_prepare() {
   _common_prepare
 
-  export rustc_target="x86_64-unknown-linux-musl"
+  export rustc_target="${pkg_target%%-*}-unknown-linux-musl"
   build_line "Setting rustc_target=$rustc_target"
 
   # Used to find libgcc_s.so.1 when compiling `build.rs` in dependencies. Since
@@ -89,12 +89,12 @@ do_prepare() {
 
 do_build() {
   pushd "$PLAN_CONTEXT" || exit
-  cargo build ${build_type#--debug} --target=$rustc_target --verbose
+  cargo build ${build_type#--debug} --target="$rustc_target" --verbose
   popd || exit
 }
 
 do_install() {
-  install -v -D "$CARGO_TARGET_DIR"/$rustc_target/${build_type#--}/$bin \
+  install -v -D "$CARGO_TARGET_DIR"/"$rustc_target"/${build_type#--}/$bin \
     "$pkg_prefix"/bin/$bin
 }
 
