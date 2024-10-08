@@ -112,7 +112,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 ignored"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -138,7 +138,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 builder-api-client"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -162,7 +162,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 butterfly lock_as_mutex"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -186,7 +186,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 butterfly lock_as_rwlock"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -217,7 +217,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 common"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -243,7 +243,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 core"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -266,7 +266,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 core functional"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -289,7 +289,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 http-client"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -315,7 +315,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 hab"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -341,7 +341,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 launcher-client"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -367,7 +367,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 launcher-protocol"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -393,7 +393,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 pkg-export-container"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -419,7 +419,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 pkg-export-tar"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -445,7 +445,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 sup lock_as_rwlock"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -469,7 +469,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 sup lock_as_mutex"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -493,7 +493,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 sup-client"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -519,7 +519,7 @@ steps:
 
   - label: "[unit] :linux: aarch64 sup-protocol"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -858,7 +858,7 @@ steps:
 
   - label: "[build] :linux: aarch64 test-probe"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -888,7 +888,7 @@ steps:
   # This build currently fails due to a circular dependency in 'LTS-2024' and needs investigation.
   - label: "[build] :linux: aarch64 backline"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -915,7 +915,7 @@ steps:
 
   - label: "[build] :linux: aarch64 hab"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -942,7 +942,7 @@ steps:
 
   - label: "[build] :linux: aarch64 launcher"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -972,7 +972,7 @@ steps:
   # This build currently fails due to a dependency on 'pkg-export-container'
   - label: "[build] :linux: aarch64 pkg-cfize"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -1000,7 +1000,7 @@ steps:
   # This build currently fails due to a dependency on 'core/buildah', which is not available in 'LTS-2024'.
   - label: "[build] :linux: aarch64 pkg-export-container"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -1027,7 +1027,7 @@ steps:
 
   - label: "[build] :linux: aarch64 pkg-export-tar"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -1054,7 +1054,7 @@ steps:
 
   - label: "[build] :linux: aarch64 pkg-mesosize"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -1081,7 +1081,7 @@ steps:
 
   - label: "[build] :linux: aarch64 plan-build"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -1108,7 +1108,7 @@ steps:
 
   - label: "[build] :linux: aarch64 studio"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
@@ -1135,7 +1135,7 @@ steps:
 
   - label: "[build] :linux: aarch64 sup"
     agents:
-      queue:default-privileged-aarch64
+      queue: default-privileged-aarch64
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
