@@ -13,7 +13,7 @@ Describe "Clean hab installation" {
         $LASTEXITCODE | Should -Be 0
     }
     It "can talk to builder" {
-        hab pkg install core/redis --channel stable
+        hab pkg install core/redis --channel LTS-2024
         $LASTEXITCODE | Should -Be 0
     }
 }

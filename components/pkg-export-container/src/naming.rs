@@ -349,9 +349,9 @@ mod tests {
             ("{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}",
              Some("core-foo-1.2.3-20200430153200")),
             ("{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}-{{channel}}",
-             Some("core-foo-1.2.3-20200430153200-stable")),
+             Some("core-foo-1.2.3-20200430153200-lts-2024")),
             ("super-{{pkg_origin}}-wacky-{{pkg_name}}-funtime-{{pkg_version}}-container-{{pkg_release}}-party-{{channel}}-ohemgee",
-             Some("super-core-wacky-foo-funtime-1.2.3-container-20200430153200-party-stable-ohemgee")),
+             Some("super-core-wacky-foo-funtime-1.2.3-container-20200430153200-party-lts-2024-ohemgee")),
 
             // Invalid inputs
             ("{{" , None),
@@ -407,9 +407,9 @@ mod tests {
             ("{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}",
              Some("core-foo-1.2.3-20200430153200")),
             ("{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}-{{channel}}",
-             Some("core-foo-1.2.3-20200430153200-stable")),
+             Some("core-foo-1.2.3-20200430153200-lts-2024")),
             ("super-{{pkg_origin}}-wacky-{{pkg_name}}-funtime-{{pkg_version}}-container-{{pkg_release}}-party-{{channel}}-ohemgee",
-             Some("super-core-wacky-foo-funtime-1.2.3-container-20200430153200-party-stable-ohemgee")),
+             Some("super-core-wacky-foo-funtime-1.2.3-container-20200430153200-party-lts-2024-ohemgee")),
 
             // Invalid inputs
             ("{{" , None),
