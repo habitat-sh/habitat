@@ -1094,9 +1094,17 @@ impl Server {
         for (service_group, old_term) in elections_to_restart {
             let term = old_term + 1;
             warn!("Starting a new election for {} {}", service_group, term);
+            let suitability = if Some(self.member_id())
+                                 == self.election_store.lock_rsr().get_member_id(&service_group)
+            {
+                Some(u64::MAX)
+            } else {
+                None
+            };
+
             self.election_store
                 .remove_rsw(&service_group, Election::const_id());
-            self.start_election_rsw_mlr_rhw_msr(&service_group, term, None);
+            self.start_election_rsw_mlr_rhw_msr(&service_group, term, suitability);
         }
 
         for (service_group, old_term) in update_elections_to_restart {
