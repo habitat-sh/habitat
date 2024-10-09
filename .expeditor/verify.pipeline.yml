@@ -499,12 +499,12 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
+     privileged: true
       - .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup-client
     timeout_in_minutes: 10
     retry:
       automatic:
-        limit: 1
-    privileged: true    
+        limit: 1    
 
   - label: "[unit] :linux: sup-protocol"
     command:
@@ -1142,6 +1142,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
+     privileged: true   
       - .expeditor/scripts/verify/build_package.sh components/sup
     retry:
       automatic:
