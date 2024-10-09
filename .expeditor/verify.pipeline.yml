@@ -504,6 +504,7 @@ steps:
     retry:
       automatic:
         limit: 1
+    privileged: true    
 
   - label: "[unit] :linux: sup-protocol"
     command:
@@ -1145,6 +1146,7 @@ steps:
     retry:
       automatic:
         limit: 1
+    privileged: true    
 
 #######################################################################
 # Things that have no tests but should be built to make sure they
