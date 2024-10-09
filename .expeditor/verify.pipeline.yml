@@ -493,13 +493,13 @@ steps:
 
   - label: "[unit] :linux: aarch64 sup-client"
     agents:
-      queue: default-aarch64
+      queue: default-privileged-aarch64
+      privileged: true
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-     privileged: true
       - .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup-client
     timeout_in_minutes: 10
     retry:
@@ -1137,12 +1137,12 @@ steps:
   - label: "[build] :linux: aarch64 sup"
     agents:
       queue: default-privileged-aarch64
+      privileged: true
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-     privileged: true   
+    command:   
       - .expeditor/scripts/verify/build_package.sh components/sup
     retry:
       automatic:
