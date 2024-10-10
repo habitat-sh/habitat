@@ -40,6 +40,8 @@ steps:
   - label: "[:linux: :two: build hab]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh hab
+    env:
+      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
     expeditor:
       executor:
         docker:
@@ -111,6 +113,8 @@ steps:
   - label: "[:linux: :two: build hab-plan-build]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh plan-build
+    env:
+      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
     expeditor:
       executor:
         docker:
@@ -144,6 +148,8 @@ steps:
   - label: "[:linux: :two: build hab-backline]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh backline
+    env:
+      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
     expeditor:
       executor:
         docker:
@@ -166,6 +172,8 @@ steps:
   - label: "[:linux: :two: build hab-studio]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh studio
+    env:
+      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
     expeditor:
       executor:
         docker:
@@ -202,6 +210,8 @@ steps:
   - label: "[:linux: :two: build launcher]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh launcher
+    env:
+      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
     expeditor:
       executor:
         docker:
@@ -233,6 +243,8 @@ steps:
   - label: "[:linux: :two: build hab-sup]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh sup
+    env:
+      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
     expeditor:
       executor:
         docker:
@@ -285,6 +297,8 @@ steps:
   - label: "[:linux: :two: build hab-pkg-export-tar]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh pkg-export-tar
+    env:
+      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
     expeditor:
       executor:
         docker:
@@ -363,6 +377,8 @@ steps:
     command:
       - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
     if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    env:
+      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
     expeditor:
       executor:
         docker:
