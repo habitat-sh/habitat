@@ -5,14 +5,15 @@ $pkg_license = @("Apache-2.0")
 $pkg_bin_dirs = @("bin")
 $pkg_deps=@(
     "core/powershell/$(Get-Content "$PLAN_CONTEXT/../../../POWERSHELL_VERSION")",
-    "core/visual-cpp-redist-2015",
+    "core/visual-cpp-redist-2022",
     "core/zeromq"
 )
 $pkg_build_deps = @(
-    "core/visual-cpp-build-tools-2015",
+    "core/visual-build-tools-2022",
     "core/rust/$((ConvertFrom-StringData (Get-Content "$PLAN_CONTEXT/../../../rust-toolchain")[1]).channel.Replace('"', ''))",
     "core/cacerts",
     "core/raml2html",
+    "core/windows-11-sdk",
     "core/protobuf"
 )
 
@@ -62,7 +63,7 @@ function Invoke-Install {
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab-sup.exe" "$pkg_prefix/bin/hab-sup.exe"
     Copy-Item "$PLAN_CONTEXT/../static/named_pipe_service.ps1" "$pkg_prefix/bin/named_pipe_service.ps1"
     Copy-Item "$(Get-HabPackagePath "zeromq")/bin/*.dll" "$pkg_prefix/bin"
-    Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*.dll" "$pkg_prefix/bin"
+    Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2022")/bin/*.dll" "$pkg_prefix/bin"
 }
 
 function Invoke-Clean {
