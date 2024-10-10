@@ -20,6 +20,7 @@ pkg_version() {
 }
 
 do_before() {
+  git config --global --add safe.directory /src
   update_pkg_version
 }
 
