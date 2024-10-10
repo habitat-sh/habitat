@@ -21,6 +21,7 @@ Write-Host "--- :key: Generating fake origin key"
 hab origin key generate
 Write-Host "--- :hab: Running hab pkg build for $PackagePath"
 hab pkg install core/hab-studio --channel=stable
+git config --global --add safe.directory C:/workdir
 
 hab studio build $PackagePath -R
 
