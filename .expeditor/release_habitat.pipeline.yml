@@ -13,9 +13,8 @@ expeditor:
         HAB_ORIGIN: "core"
         PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
         # Necessary to prevent old studios from poisoning builds after core plans refreshes
-        HAB_STUDIO_SECRET_HAB_PREFER_LOCAL_CHEF_DEPS: "true"
-        HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL: "LTS-2024"
         HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "LTS-2024"
+        HAB_STUDIO_SECRET_HAB_FEAT_IGNORE_LOCAL: "true"
 
 steps:
 #######################################################################
