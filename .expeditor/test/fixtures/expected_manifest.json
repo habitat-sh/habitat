@@ -3,6 +3,15 @@
   "version": "0.88.0",
   "sha": "badbeefcafe",
   "packages": {
+    "x86_64-linux-kernel2": [
+      "core/hab/0.88.0/20191009205023",
+      "core/hab-plan-build/0.88.0/20191009211744",
+      "core/hab-backline/0.88.0/20191009212112",
+      "core/hab-studio/0.88.0/20191009212401",
+      "core/hab-launcher/12300/20191009212832",
+      "core/hab-sup/0.88.0/20191009215327",
+      "core/hab-pkg-export-tar/0.88.0/20191009221529"
+    ],
     "x86_64-linux": [
       "core/hab/0.88.0/20191009204957",
       "core/hab-plan-build/0.88.0/20191009211736",

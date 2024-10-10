@@ -37,15 +37,15 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  # - label: "[:linux: :two: build hab]"
-  #   command:
-  #     - .expeditor/scripts/release_habitat/build_component.sh hab
-  #   expeditor:
-  #     executor:
-  #       docker:
-  #         privileged: true
-  #         environment:
-  #           - BUILD_PKG_TARGET=x86_64-linux-kernel2
+  - label: "[:linux: :two: build hab]"
+    command:
+      - .expeditor/scripts/release_habitat/build_component.sh hab
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
   - label: "[:windows: build hab]"
     command:
@@ -108,15 +108,15 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  # - label: "[:linux: :two: build hab-plan-build]"
-  #   command:
-  #     - .expeditor/scripts/release_habitat/build_component.sh plan-build
-  #   expeditor:
-  #     executor:
-  #       docker:
-  #         privileged: true
-  #         environment:
-  #           - BUILD_PKG_TARGET=x86_64-linux-kernel2
+  - label: "[:linux: :two: build hab-plan-build]"
+    command:
+      - .expeditor/scripts/release_habitat/build_component.sh plan-build
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
   - label: "[:windows: build plan-build-ps1]"
     command:
@@ -141,15 +141,15 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  # - label: "[:linux: :two: build hab-backline]"
-  #   command:
-  #     - .expeditor/scripts/release_habitat/build_component.sh backline
-  #   expeditor:
-  #     executor:
-  #       docker:
-  #         privileged: true
-  #         environment:
-  #           - BUILD_PKG_TARGET=x86_64-linux-kernel2
+  - label: "[:linux: :two: build hab-backline]"
+    command:
+      - .expeditor/scripts/release_habitat/build_component.sh backline
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
   - wait
 
@@ -163,15 +163,15 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  # - label: "[:linux: :two: build hab-studio]"
-  #   command:
-  #     - .expeditor/scripts/release_habitat/build_component.sh studio
-  #   expeditor:
-  #     executor:
-  #       docker:
-  #         privileged: true
-  #         environment:
-  #           - BUILD_PKG_TARGET=x86_64-linux-kernel2
+  - label: "[:linux: :two: build hab-studio]"
+    command:
+      - .expeditor/scripts/release_habitat/build_component.sh studio
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
   - label: "[:windows: build studio]"
     command:
@@ -199,15 +199,15 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  # - label: "[:linux: :two: build launcher]"
-  #   command:
-  #     - .expeditor/scripts/release_habitat/build_component.sh launcher
-  #   expeditor:
-  #     executor:
-  #       docker:
-  #         privileged: true
-  #         environment:
-  #           - BUILD_PKG_TARGET=x86_64-linux-kernel2
+  - label: "[:linux: :two: build launcher]"
+    command:
+      - .expeditor/scripts/release_habitat/build_component.sh launcher
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
   - label: "[:windows: build launcher]"
     command:
@@ -230,15 +230,15 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  # - label: "[:linux: :two: build hab-sup]"
-  #   command:
-  #     - .expeditor/scripts/release_habitat/build_component.sh sup
-  #   expeditor:
-  #     executor:
-  #       docker:
-  #         privileged: true
-  #         environment:
-  #           - BUILD_PKG_TARGET=x86_64-linux-kernel2
+  - label: "[:linux: :two: build hab-sup]"
+    command:
+      - .expeditor/scripts/release_habitat/build_component.sh sup
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
   - label: "[:windows: build hab-sup]"
     command:
@@ -282,15 +282,15 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  # - label: "[:linux: :two: build hab-pkg-export-tar]"
-  #   command:
-  #     - .expeditor/scripts/release_habitat/build_component.sh pkg-export-tar
-  #   expeditor:
-  #     executor:
-  #       docker:
-  #         privileged: true
-  #         environment:
-  #           - BUILD_PKG_TARGET=x86_64-linux-kernel2
+  - label: "[:linux: :two: build hab-pkg-export-tar]"
+    command:
+      - .expeditor/scripts/release_habitat/build_component.sh pkg-export-tar
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
   - label: "[:windows: build hab-pkg-export-tar]"
     command:
@@ -359,16 +359,16 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  # - label: "[:linux: :two: upload hab binary]"
-  #   command:
-  #     - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-  #   if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
-  #   expeditor:
-  #     executor:
-  #       docker:
-  #         privileged: true
-  #         environment:
-  #           - BUILD_PKG_TARGET=x86_64-linux-kernel2
+  - label: "[:linux: :two: upload hab binary]"
+    command:
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
   - label: "[:windows: upload hab binary]"
     command:
@@ -445,15 +445,15 @@ steps:
         linux:
           privileged: true
 
-  # - label: ":docker: :two: Upload containers to Docker Hub"
-  #   command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
-  #   if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
-  #   env:
-  #     BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-  #   expeditor:
-  #     executor:
-  #       linux:
-  #         privileged: true
+  - label: ":docker: :two: Upload containers to Docker Hub"
+    command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+    expeditor:
+      executor:
+        linux:
+          privileged: true
 
   - label: ":docker: :windows: Upload windows 2016 container to Docker Hub"
     if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'

@@ -54,7 +54,7 @@ mapfile -t packages_to_promote < <(echo "${channel_pkgs_json}" | \
 # Generate the input file
 manifest_input_file="manifest_input.txt"
 targets=("x86_64-linux"
-        #  "x86_64-linux-kernel2"
+         "x86_64-linux-kernel2"
          "x86_64-windows"
          "x86_64-darwin"
          "aarch64-darwin")
