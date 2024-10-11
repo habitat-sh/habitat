@@ -26,15 +26,15 @@ Invoke-NativeCommand hab pkg install core/hab-pkg-export-container `
     --channel "$Channel" `
     --url="$BuilderUrl"
 
-Write-Host "--- Installing latest core/powershell from $BuilderUrl, LTS-2024 channel"
+Write-Host "--- Installing latest core/powershell from $BuilderUrl, stable channel"
 Invoke-NativeCommand hab pkg install core/powershell `
     --binlink `
     --force `
-    --channel=LTS-2024 `
+    --channel=stable `
     --url="$BuilderUrl"
 Write-Host "--- Using core/powershell $(pwsh --version)"
 
-Write-Host "--- Installing latest core/pester from $BuilderUrl, LTS-2024 channel"
+Write-Host "--- Installing latest core/pester from $BuilderUrl, stable channel"
 Invoke-NativeCommand hab pkg install core/pester `
-    --channel=LTS-2024 `
+    --channel=stable `
     --url="$BuilderUrl"

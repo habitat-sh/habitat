@@ -36,14 +36,14 @@ sudo -E hab pkg install core/hab-pkg-export-container \
     --channel="${channel}" \
     --url="${HAB_BLDR_URL}"
 
-echo "--- Installing latest core/netcat from ${HAB_BLDR_URL}, LTS-2024 channel"
+echo "--- Installing latest core/netcat from ${HAB_BLDR_URL}, stable channel"
 sudo -E hab pkg install core/netcat \
     --binlink \
     --force \
-    --channel="LTS-2024" \
+    --channel="stable" \
     --url="${HAB_BLDR_URL}"
 
-echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, LTS-2024 channel"
+echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
 # Binlink to '/usr/local/bin' to ensure we do not run the system installed version. The system
 # version is installed in `/usr/bin` which occurs earlier in the PATH than '/bin' (the default)
 # binlink location).
@@ -51,13 +51,13 @@ sudo -E hab pkg install core/powershell \
     --binlink \
     --binlink-dir="/usr/local/bin" \
     --force \
-    --channel="LTS-2024" \
+    --channel="stable" \
     --url="${HAB_BLDR_URL}"
 echo "--- Using core/powershell version $(pwsh --version)"
 
-echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, LTS-2024 channel"
+echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, stable channel"
 sudo -E hab pkg install core/pester \
-    --channel="LTS-2024" \
+    --channel="stable" \
     --url="${HAB_BLDR_URL}"
 
 sudo useradd --system --no-create-home hab
