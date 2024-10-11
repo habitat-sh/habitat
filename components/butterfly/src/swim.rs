@@ -222,10 +222,51 @@ impl From<PingReq> for Swim {
 }
 
 #[derive(Debug, Clone, Serialize)]
+pub struct ProbePing {
+    pub from: Member,
+}
+
+impl FromProto<proto::Swim> for ProbePing {
+    fn from_proto(value: proto::Swim) -> Result<Self> {
+        let payload = match value.payload.ok_or(Error::ProtocolMismatch("payload"))? {
+            SwimPayload::Probeping(ping) => ping,
+            _ => panic!("try-from probeping"),
+        };
+        Ok(ProbePing { from: payload.from
+                                    .ok_or(Error::ProtocolMismatch("from"))
+                                    .and_then(Member::from_proto)?, })
+    }
+}
+
+impl protocol::Message<proto::Swim> for ProbePing {
+    const MESSAGE_ID: &'static str = "ProbePing";
+}
+
+impl From<ProbePing> for proto::ProbePing {
+    fn from(value: ProbePing) -> Self { proto::ProbePing { from: Some(value.from.into()), } }
+}
+
+impl From<ProbePing> for proto::Swim {
+    fn from(value: ProbePing) -> Self {
+        proto::Swim { r#type:     SwimType::Probeping as i32,
+                      membership: vec![],
+                      payload:    Some(SwimPayload::Probeping(value.into())), }
+    }
+}
+
+impl From<ProbePing> for Swim {
+    fn from(value: ProbePing) -> Self {
+        Swim { r#type:     SwimType::Probeping,
+               membership: vec![],
+               kind:       SwimKind::ProbePing(value), }
+    }
+}
+#[derive(Debug, Clone, Serialize)]
 pub enum SwimKind {
     Ping(Ping),
     Ack(Ack),
     PingReq(PingReq),
+    ProbePing(ProbePing),
 }
 
 impl From<SwimKind> for SwimPayload {
@@ -234,6 +275,7 @@ impl From<SwimKind> for SwimPayload {
             SwimKind::Ping(ping) => SwimPayload::Ping(ping.into()),
             SwimKind::Ack(ack) => SwimPayload::Ack(ack.into()),
             SwimKind::PingReq(pingreq) => SwimPayload::Pingreq(pingreq.into()),
+            SwimKind::ProbePing(probeping) => SwimPayload::Probeping(probeping.into()),
         }
     }
 }
@@ -251,6 +293,7 @@ impl SwimKind {
             SwimKind::Ping(_) => "ping",
             SwimKind::Ack(_) => "ack",
             SwimKind::PingReq(_) => "pingreq",
+            SwimKind::ProbePing(_) => "probeping",
         }
     }
 }
@@ -274,6 +317,7 @@ impl Swim {
             SwimType::Ack => SwimKind::Ack(Ack::from_proto(proto)?),
             SwimType::Ping => SwimKind::Ping(Ping::from_proto(proto)?),
             SwimType::Pingreq => SwimKind::PingReq(PingReq::from_proto(proto)?),
+            SwimType::Probeping => SwimKind::ProbePing(ProbePing::from_proto(proto)?),
         };
         Ok(Swim { r#type,
                   membership: memberships,

@@ -950,7 +950,7 @@ impl Manager {
                                                          .remove(&service.service_group));
         if service.topology() == Topology::Leader {
             self.butterfly
-                .start_election_rsw_mlr_rhw_msr(&service.service_group, 0);
+                .start_election_rsw_mlr_rhw_msr(&service.service_group, 0, None);
         }
 
         if let Err(e) = self.user_config_watcher.add(&service) {

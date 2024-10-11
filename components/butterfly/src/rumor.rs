@@ -254,6 +254,14 @@ mod storage {
         }
     }
 
+    impl<'a, E: ElectionRumor> IterableGuard<'a, RumorMap<E>> {
+        pub fn get_member_id(&self, service_group: &str) -> Option<&str> {
+            self.get(service_group)
+                .map(|sg| sg.get(E::const_id()).map(ElectionRumor::member_id))
+                .unwrap_or(None)
+        }
+    }
+
     /// Allows ergonomic use of the guard for accessing the guarded `RumorMap`:
     /// ```
     /// # use habitat_butterfly::rumor::{Departure,
