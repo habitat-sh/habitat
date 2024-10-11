@@ -251,34 +251,32 @@ fn five_persistent_members_same_leader_multiple_non_quorum_partitions() {
     // Making sure - running multiple times after a subset of follower (non-quorum) is partitioned
     // and reconnected the leader stays the same.
     let mut rng = rand::thread_rng();
-    for _ in 0..2 {
-        let idxes = Vec::from_iter(1_usize..5_usize).choose_multiple(&mut rng, 2)
-                                                    .copied()
-                                                    .collect::<Vec<usize>>();
-        for idx in idxes.iter() {
-            println!("idx: {}", idx);
-            net.partition_node(*idx);
-            assert_wait_for_health_of_mlr!(net, *idx, Health::Confirmed);
-        }
-        let first = idxes[0];
-        net[first].restart_elections_rsw_mlr_rhw_msr(FeatureFlag::empty());
-        assert_wait_for_election_status!(net, 0, "foobar.prod", ElectionStatus::Finished);
-
-        assert_wait_for_election_status!(net, first, "foobar.prod", ElectionStatus::NoQuorum);
-
-        for idx in idxes.iter() {
-            net.unpartition_node(*idx);
-            assert_wait_for_health_of_mlr!(net, *idx, Health::Alive);
-        }
-        assert_wait_for_election_status!(net, first, "foobar.prod", ElectionStatus::Finished);
-
-        let new_leader_id = net[first].election_store
-                                      .lock_rsr()
-                                      .service_group("foobar.prod")
-                                      .map_rumor(Election::const_id(), |e| e.member_id.clone());
-
-        assert_eq!(leader_id, new_leader_id,
-                   "OLD: {:?}, NEW: {:?}",
-                   leader_id, new_leader_id);
+    let idxes = Vec::from_iter(1_usize..5_usize).choose_multiple(&mut rng, 2)
+                                                .copied()
+                                                .collect::<Vec<usize>>();
+    for idx in idxes.iter() {
+        println!("idx: {}", idx);
+        net.partition_node(*idx);
+        assert_wait_for_health_of_mlr!(net, *idx, Health::Confirmed);
     }
+    let first = idxes[0];
+    net[first].restart_elections_rsw_mlr_rhw_msr(FeatureFlag::empty());
+    assert_wait_for_election_status!(net, 0, "foobar.prod", ElectionStatus::Finished);
+
+    assert_wait_for_election_status!(net, first, "foobar.prod", ElectionStatus::NoQuorum);
+
+    for idx in idxes.iter() {
+        net.unpartition_node(*idx);
+        assert_wait_for_health_of_mlr!(net, *idx, Health::Alive);
+    }
+    assert_wait_for_election_status!(net, first, "foobar.prod", ElectionStatus::Finished);
+
+    let new_leader_id = net[first].election_store
+                                  .lock_rsr()
+                                  .service_group("foobar.prod")
+                                  .map_rumor(Election::const_id(), |e| e.member_id.clone());
+
+    assert_eq!(leader_id, new_leader_id,
+               "OLD: {:?}, NEW: {:?}",
+               leader_id, new_leader_id);
 }

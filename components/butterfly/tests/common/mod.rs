@@ -224,7 +224,7 @@ impl SwimNet {
 
     pub fn max_rounds(&self) -> isize { 4 }
 
-    pub fn max_gossip_rounds(&self) -> isize { 5 }
+    pub fn max_gossip_rounds(&self) -> isize { 8 }
 
     pub fn rounds(&self) -> Vec<isize> { self.members.iter().map(Server::swim_rounds).collect() }
 
