@@ -368,6 +368,28 @@ impl SwimNet {
         }
     }
 
+    /// Partition a node from the rest of the network
+    pub fn partition_node(&self, idx: usize) {
+        println!("Partitioning {} from the network.", idx);
+        for i in 0..self.members.len() {
+            if i != idx {
+                self.block(idx, i);
+                self.block(i, idx);
+            }
+        }
+    }
+
+    /// UnPartition a node from the rest of the network
+    pub fn unpartition_node(&self, idx: usize) {
+        println!("UnPartitioning {} from the network.", idx);
+        for i in 0..self.members.len() {
+            if i != idx {
+                self.unblock(idx, i);
+                self.unblock(i, idx);
+            }
+        }
+    }
+
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
     pub fn wait_for_health_of_mlr(&self,
