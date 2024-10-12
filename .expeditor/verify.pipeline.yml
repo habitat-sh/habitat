@@ -4,7 +4,6 @@ expeditor:
       timeout_in_minutes: 60
       env: 
         HAB_BLDR_CHANNEL: "LTS-2024"
-        HAB_INTERNAL_BLDR_CHANNEL: "LTS-2024"
 steps:
 #######################################################################
 # Linting!
