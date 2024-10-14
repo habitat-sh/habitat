@@ -2,6 +2,7 @@
 
 set -euo pipefail
 
+sudo hab pkg install core/docker-compose/1.29.2 -bf
 docker-compose --version
 
 # TODO (CM): Pass the name of a single test case to run
