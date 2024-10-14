@@ -2,6 +2,7 @@
 
 set -euo pipefail
 
+export HAB_LICENSE="accept-no-persist"
 sudo hab pkg install core/docker-compose/1.29.2 -bf
 docker-compose --version
 
