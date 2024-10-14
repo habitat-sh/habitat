@@ -784,7 +784,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
       HAB_BLDR_CHANNEL: "stable"
-      HAB_INTERNAL_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:
@@ -797,7 +797,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
       HAB_BLDR_CHANNEL: "stable"
-      HAB_INTERNAL_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:
@@ -810,7 +810,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
       HAB_BLDR_CHANNEL: "stable"
-      HAB_INTERNAL_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:
@@ -823,7 +823,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
       HAB_BLDR_CHANNEL: "stable"
-      HAB_INTERNAL_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:
@@ -836,7 +836,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
       HAB_BLDR_CHANNEL: "stable"
-      HAB_INTERNAL_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:
@@ -849,7 +849,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
       HAB_BLDR_CHANNEL: "stable"
-      HAB_INTERNAL_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:
@@ -862,7 +862,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
       HAB_BLDR_CHANNEL: "stable"
-      HAB_INTERNAL_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:
