@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1176 -->
-## [1.6.1176](https://github.com/habitat-sh/habitat/tree/1.6.1176) (2024-10-07)
+<!-- latest_release 1.6.1177 -->
+## [1.6.1177](https://github.com/habitat-sh/habitat/tree/1.6.1177) (2024-10-14)
 
 #### Merged Pull Requests
-- Bump pin-project from 1.1.5 to 1.1.6 [#9421](https://github.com/habitat-sh/habitat/pull/9421) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.1.28 to 1.1.30 [#9426](https://github.com/habitat-sh/habitat/pull/9426) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump cc from 1.1.28 to 1.1.30 [#9426](https://github.com/habitat-sh/habitat/pull/9426) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1177 -->
 - Bump pin-project from 1.1.5 to 1.1.6 [#9421](https://github.com/habitat-sh/habitat/pull/9421) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1176 -->
 - Bump cc from 1.1.24 to 1.1.28 [#9422](https://github.com/habitat-sh/habitat/pull/9422) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1175 -->
 - Bump futures from 0.3.30 to 0.3.31 [#9423](https://github.com/habitat-sh/habitat/pull/9423) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1174 -->
