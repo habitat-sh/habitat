@@ -4,7 +4,7 @@ set -euo pipefail
 
 export HAB_LICENSE="accept-no-persist"
 sudo -E hab pkg install core/docker-compose/1.29.2 --channel stable
-hab pkg binlink core/docker-compose docker-compose --force --dest /usr/local/bin
+sudo hab pkg binlink core/docker-compose docker-compose --force --dest /usr/local/bin
 docker-compose --version
 
 # TODO (CM): Pass the name of a single test case to run
