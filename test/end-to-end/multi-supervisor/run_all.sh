@@ -5,7 +5,7 @@ set -euo pipefail
 export HAB_LICENSE="accept-no-persist"
 sudo -E hab pkg install core/docker-compose/1.29.2 --channel stable
 sudo rm -f /bin/docker-compose
-hab pkg binlink core/docker-compose docker-compose --force
+sudo -E hab pkg binlink core/docker-compose docker-compose --force
 
 docker-compose --version
 
