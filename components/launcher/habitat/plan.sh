@@ -29,7 +29,7 @@ do_prepare() {
   # Can be either `--release` or `--debug` to determine cargo build strategy
   build_line "Building artifacts with \`${cargo_build_mode#--}' mode"
 
-  export rustc_target="x86_64-unknown-linux-gnu"
+  export rustc_target="${pkg_target%%-*}-unknown-linux-gnu"
   build_line "Setting rustc_target=$rustc_target"
 
   # Used by Cargo to use a pristine, isolated directory for all compilation

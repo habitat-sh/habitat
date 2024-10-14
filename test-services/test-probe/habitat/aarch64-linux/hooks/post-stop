@@ -1,0 +1,14 @@
+#!{{pkgPathFor "core/bash"}}/bin/bash
+
+byebye(){
+    echo "Got a signal!"
+}
+trap byebye INT TERM
+
+
+echo "Deliberately long post-stop hook executing: {{pkg.ident}} (PID: $$, PPID: $PPID, PGID: $(ps h -o pgid -p $$))"
+for i in {1..15}; do
+      sleep 1
+      echo "Sleeping ($i)/15..."
+done
+echo "post-stop hook DONE"
