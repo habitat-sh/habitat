@@ -29,18 +29,25 @@ function Test-IdentDownloaded($FilePrefix) {
 }
 
 function Test-GzipIdent {
+    Test-IdentDownloaded "core-acl"
+    Test-IdentDownloaded "core-attr"
+    Test-IdentDownloaded "core-bzip2"
+    Test-IdentDownloaded "core-coreutils"
+    Test-IdentDownloaded "core-diffutils"
     Test-IdentDownloaded "core-gzip"
     Test-IdentDownloaded "core-glibc"
     Test-IdentDownloaded "core-gcc-libs"
     Test-IdentDownloaded "core-grep"
+    Test-IdentDownloaded "core-libcap"
+    Test-IdentDownloaded "core-libpcre2"
     Test-IdentDownloaded "core-linux-headers"
-    Test-IdentDownloaded "core-pcre"
+    Test-IdentDownloaded "core-pcre2"
     Test-IdentDownloaded "core-less"
     Test-IdentDownloaded "core-ncurses"
     Test-IdentDownloaded "core-zlib"
 
-    if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 9) {
-        Write-Error "did not find 9 gzip artifacts"
+    if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 16) {
+        Write-Error "did not find 16 gzip artifacts"
     }
 }
 
@@ -48,9 +55,10 @@ function Test-RustIdent {
     Test-IdentDownloaded "core-rust"
     Test-IdentDownloaded "core-visual-cpp-redist-2022"
     Test-IdentDownloaded "core-visual-build-tools-2022"
+    Test-IdentDownloaded "core-windows-11-sdk"
 
-    if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 3) {
-        Write-Error "did not find 3 gzip artifacts"
+    if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 4) {
+        Write-Error "did not find 4 rust artifacts"
     }
 }
 
@@ -64,27 +72,27 @@ Describe "hab pkg download" {
         }
     }
 
-    It "'hab pkg download --channel stable --download-directory $cacheDir core/gzip' succeeds" {
-        hab pkg download --channel stable --download-directory $cacheDir core/gzip
+    It "'hab pkg download --channel LTS-2024 --download-directory $cacheDir core/gzip' succeeds" {
+        hab pkg download --channel LTS-2024 --download-directory $cacheDir core/gzip
         Test-GzipIdent
     }
-    It "'hab pkg download --channel stable --download-directory $cacheDir --file $identFile' succeeds" {
+    It "'hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile' succeeds" {
         Set-Content $identFile -Value "core/gzip"
-        hab pkg download --channel stable --download-directory $cacheDir --file $identFile
+        hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile
         Test-GzipIdent
     }
-    It "'hab pkg download --channel stable --download-directory $cacheDir --file $identFile' succeeds with comments and empty lines" {
+    It "'hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile' succeeds with comments and empty lines" {
         Set-Content $identFile -Value @"
 # this is a series
 # of comments, followed by empty lines and whitespaces
 
  core/gzip
 "@
-        hab pkg download --channel stable --download-directory $cacheDir --file $identFile
+        hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile
         Test-GzipIdent
     }
-    It "'hab pkg download --channel stable --download-directory $cacheDir core/rust --target=x86_64-windows' succeeds" {
-        hab pkg download --channel stable --download-directory $cacheDir core/rust --target=x86_64-windows
+    It "'hab pkg download --channel LTS-2024 --download-directory $cacheDir core/rust --target=x86_64-windows' succeeds" {
+        hab pkg download --channel LTS-2024 --download-directory $cacheDir core/rust --target=x86_64-windows
         Test-RustIdent
     }
     It "fails when package is invalid" {
@@ -97,7 +105,7 @@ Describe "hab pkg download" {
     }
     It "fails when invalid package is provided in file" {
         Set-Content $identFile -Value "arglebargle"
-        hab pkg download --channel stable --download-directory $cacheDir --file $identFile
+        hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when package does not exist" {
