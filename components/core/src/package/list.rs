@@ -28,6 +28,8 @@ pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
         )
                              })?;
     fs::create_dir_all(base)?;
+    #[cfg(unix)]
+    crate::util::posix_perm::ensure_path_permissions(base, 0o755)?;
 
     // If this temp directory is being used for installs, we will be untarring archives
     // into the directory. Depending on the length of the paths included in the archives

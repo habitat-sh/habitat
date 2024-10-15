@@ -60,6 +60,25 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
     }
 }
 
+pub fn ensure_path_permissions(path: &Path, permissions: u32) -> Result<()> {
+    let euid = users::get_effective_uid();
+    let egid = users::get_effective_gid();
+    for ancestor in path.ancestors() {
+        if euid_egid_matches(&euid, &egid, ancestor) {
+            set_permissions(ancestor, permissions)?
+        }
+    }
+    Ok(())
+}
+
+fn euid_egid_matches(euid: &u32, egid: &u32, path: &Path) -> bool {
+    if let Ok(file_stat) = nix::sys::stat::stat(path) {
+        *euid == file_stat.st_uid && *egid == file_stat.st_gid
+    } else {
+        false
+    }
+}
+
 pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
