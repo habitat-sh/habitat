@@ -2,7 +2,8 @@ expeditor:
   defaults:
     buildkite:
       timeout_in_minutes: 60
-
+      env: 
+        HAB_BLDR_CHANNEL: "LTS-2024"
 steps:
 #######################################################################
 # Linting!
@@ -625,21 +626,22 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[build] :linux: backline"
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux"
-      HAB_BLDR_CHANNEL: "acceptance"
-      HAB_INTERNAL_BLDR_CHANNEL: "acceptance"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/backline
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-    retry:
-      automatic:
-        limit: 1
+# SHOULD BE UNCOMMENTED WHEN NEWER VERSION OF HAB IS RELEASED
+
+  # - label: "[build] :linux: backline"
+  #   env:
+  #     HAB_LICENSE: "accept-no-persist"
+  #     BUILD_PKG_TARGET: "x86_64-linux"
+
+  #   command:
+  #     - .expeditor/scripts/verify/build_package.sh components/backline
+  #   expeditor:
+  #     executor:
+  #       docker:
+  #         privileged: true
+  #   retry:
+  #     automatic:
+  #       limit: 1
 
   - label: "[build] :linux: hab"
     env:
@@ -669,21 +671,22 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[build] :linux: pkg-cfize"
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux"
-      HAB_BLDR_CHANNEL: "acceptance"
-      HAB_INTERNAL_BLDR_CHANNEL: "acceptance"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/pkg-cfize
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-    retry:
-      automatic:
-        limit: 1
+# SHOULD BE UNCOMMENTED WHEN NEWER VERSION OF HAB IS RELEASED
+
+  # - label: "[build] :linux: pkg-cfize"
+  #   env:
+  #     HAB_LICENSE: "accept-no-persist"
+  #     BUILD_PKG_TARGET: "x86_64-linux"
+ 
+  #   command:
+  #     - .expeditor/scripts/verify/build_package.sh components/pkg-cfize
+  #   expeditor:
+  #     executor:
+  #       docker:
+  #         privileged: true
+  #   retry:
+  #     automatic:
+  #       limit: 1
 
   - label: "[build] :linux: pkg-export-container"
     env:
@@ -780,6 +783,8 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+      HAB_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:
@@ -791,6 +796,8 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+      HAB_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:
@@ -802,8 +809,8 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "acceptance"
-      HAB_INTERNAL_BLDR_CHANNEL: "acceptance"
+      HAB_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:
@@ -815,6 +822,8 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+      HAB_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:
@@ -826,6 +835,8 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+      HAB_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:
@@ -837,6 +848,8 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+      HAB_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:
@@ -848,6 +861,8 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+      HAB_BLDR_CHANNEL: "stable"
+
     expeditor:
       executor:
         docker:

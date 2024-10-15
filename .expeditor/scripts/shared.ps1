@@ -42,7 +42,7 @@ function Install-Habitat {
     $env:path = New-PathString -StartingPath $env:path -Path "c:\hab\bin"
 
     if (Get-Command -Name hab -ErrorAction SilentlyContinue) {
-        hab pkg install core/hab --binlink --force
+        hab pkg install core/hab --binlink --force --channel=stable
     } else {
         ."$PSScriptRoot\..\..\components\hab\install.ps1"
         ."$env:ProgramData\habitat\hab.exe" pkg install core/hab --binlink --force

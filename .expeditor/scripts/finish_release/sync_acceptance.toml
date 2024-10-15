@@ -1,5 +1,5 @@
 format_version = 1
-file_descriptor = "Packages to sync acceptamce from production after release"
+file_descriptor = "Packages to sync acceptance from production after release"
 
 # These are all packages that we officially produce in a release.
 

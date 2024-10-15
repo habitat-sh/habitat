@@ -5,11 +5,12 @@ $pkg_license = @("Apache-2.0")
 $pkg_deps=@()
 $pkg_bin_dirs = @("bin")
 $pkg_build_deps = @(
-    "core/visual-cpp-redist-2015",
-    "core/visual-cpp-build-tools-2015",
+    "core/visual-cpp-redist-2022",
+    "core/visual-build-tools-2022",
     "core/rust/$((ConvertFrom-StringData (Get-Content "$PLAN_CONTEXT/../../../rust-toolchain")[1]).channel.Replace('"', ''))",
     "core/cacerts",
     "core/git",
+    "core/windows-11-sdk",
     "core/protobuf"
 )
 
@@ -30,6 +31,9 @@ function Invoke-Prepare {
 
 function pkg_version {
     git rev-list (git rev-parse HEAD) --count
+    if($LASTEXITCODE -ne 0) {
+        Write-Error "Unable to deterine version from git!"
+    }
 }
 
 function Invoke-Before {
@@ -51,7 +55,7 @@ function Invoke-Build {
 
 function Invoke-Install {
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab-launch.exe" "$pkg_prefix/bin/hab-launch.exe"
-    Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*" "$pkg_prefix/bin"
+    Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2022")/bin/*" "$pkg_prefix/bin"
 }
 
 function Invoke-Clean {
