@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1179 -->
-## [1.6.1179](https://github.com/habitat-sh/habitat/tree/1.6.1179) (2024-10-16)
+<!-- latest_release 1.6.1180 -->
+## [1.6.1180](https://github.com/habitat-sh/habitat/tree/1.6.1180) (2024-10-16)
 
 #### Merged Pull Requests
-- actually build LTS-2024 in release pieline [#9428](https://github.com/habitat-sh/habitat/pull/9428) ([mwrock](https://github.com/mwrock))
+- Bump hyper from 1.4.1 to 1.5.0 [#9427](https://github.com/habitat-sh/habitat/pull/9427) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump hyper from 1.4.1 to 1.5.0 [#9427](https://github.com/habitat-sh/habitat/pull/9427) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1180 -->
 - actually build LTS-2024 in release pieline [#9428](https://github.com/habitat-sh/habitat/pull/9428) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1179 -->
 - Updated Hab CI to point to LTS 2024 channel [#9406](https://github.com/habitat-sh/habitat/pull/9406) ([sougata-progress](https://github.com/sougata-progress)) <!-- 1.6.1178 -->
 - Bump cc from 1.1.28 to 1.1.30 [#9426](https://github.com/habitat-sh/habitat/pull/9426) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1177 -->
