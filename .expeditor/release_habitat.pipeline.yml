@@ -318,16 +318,6 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
-  - label: "[:linux: build hab-pkg-mesosize]"
-    command:
-      - .expeditor/scripts/release_habitat/build_component.sh pkg-mesosize
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-
   - wait
 
   # Windows Service must be built after the Windows Launcher
@@ -341,18 +331,6 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
-
-  # The cfize export currently has a dependency on
-  # hab-pkg-export-container, so it must be built after that.
-  - label: "[:linux: build hab-pkg-cfize]"
-    command:
-      - .expeditor/scripts/release_habitat/build_component.sh pkg-cfize
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
 
   - wait
 
