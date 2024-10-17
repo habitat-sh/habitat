@@ -178,7 +178,8 @@ mod test {
                              FS_ROOT_PATH},
                         package::PackageIdent},
                 templating::test_helpers::*};
-    #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
+    #[cfg(not(any(all(target_os = "linux",
+                          any(target_arch = "x86_64", target_arch = "aarch64")),
                       all(target_os = "windows", target_arch = "x86_64"),)))]
     use habitat_core::package::metadata::MetaFile;
     use std::{collections::BTreeMap,
