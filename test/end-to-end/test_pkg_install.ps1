@@ -25,7 +25,7 @@ Describe "pkg install" {
         $PkgId = "$Origin/$Name/$Version/$Release" # core/zsh/5.8/20240110100558
 
         if ($IsLinux) {
-            bash -c "umask 0000; hab pkg install --binlink --force $PkgId"
+            bash -c "umask 0077; hab pkg install --binlink --force $PkgId"
             $LASTEXITCODE | Should -Be 0
 
             "/hab/pkgs/$PkgId --version"
