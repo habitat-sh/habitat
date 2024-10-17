@@ -13,30 +13,6 @@ Describe "`hab` correctly executes external binaries" {
         $out | Should -BeLike "*Creates a container image from a set of Habitat packages (and optionally pushes to a remote${le}repository)*"
     }
 
-    It "cf exporter help" {
-        # The cf exporter is only available on linux
-        if ($IsLinux) {
-            $out = hab pkg export cf --help
-            $LastExitCode | Should -Be 0
-            "Habitat Package CFize - Create a Cloud Foundry ready Docker image from a given package." | Should -BeIn $out
-        } else {
-            hab pkg export cf --help
-            $LastExitCode | Should -Be 1
-        }
-    }
-
-    It "mesos exporter help" {
-        # The mesos exporter is only available on linux
-        if ($IsLinux) {
-            $out = hab pkg export mesos --help
-            $LastExitCode | Should -Be 0
-            "Habitat Package Mesosize - Create a Mesos application from a set of Habitat packages" | Should -BeIn $out
-        } else {
-            hab pkg export mesos --help
-            $LastExitCode | Should -Be 1
-        }
-    }
-
     It "tar exporter help" {
         $out = hab pkg export tar --help
         $LastExitCode | Should -Be 0
