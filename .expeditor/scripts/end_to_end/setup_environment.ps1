@@ -15,10 +15,10 @@ $env:PATH = New-PathString $env:PATH $binPath
 
 Write-Host "--- Installing latest core/hab from $BuilderUrl, $Channel channel"
 Invoke-NativeCommand hab pkg install core/hab `
-    --binlink `
     --force `
     --channel "$Channel" `
     --url="$BuilderUrl"
+Invoke-NativeCommand hab pkg binlink core/hab --force
 Write-Host "--- Using core/hab $(hab --version)"
 
 Write-Host "--- Installing latest core/hab-pkg-export-container from $BuilderUrl, $Channel channel"
