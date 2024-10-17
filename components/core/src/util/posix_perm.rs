@@ -60,7 +60,12 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
     }
 }
 
-pub fn ensure_path_permissions(path: &Path, permissions: u32) -> Result<()> {
+// This is required on machines where umask is set to a higher value like `0077`. (See CHEF-10987)
+// This has a side effect of potentially changing the *mode* of directories not created by us but this
+// is done in order to ensure the ability to execute in the face of the variety of scenarios that may
+// be encounter "in the wild". This is as such not a huge problem as we are only changing the *mode*
+// for `ancestors` we are owner of.
+pub(crate) fn ensure_path_permissions(path: &Path, permissions: u32) -> Result<()> {
     let euid = users::get_effective_uid();
     let egid = users::get_effective_gid();
     for ancestor in path.ancestors() {
