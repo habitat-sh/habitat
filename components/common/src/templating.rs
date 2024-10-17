@@ -420,7 +420,8 @@ mod test {
         let pkg_install =
             PackageInstall::new_from_parts(pg_id, root.clone(), root.clone(), root.clone());
         // Platforms without standard package support require all packages to be native packages
-        #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
+        #[cfg(not(any(all(target_os = "linux",
+                          any(target_arch = "x86_64", target_arch = "aarch64")),
                       all(target_os = "windows", target_arch = "x86_64"))))]
         {
             tokio::fs::create_dir_all(pkg_install.installed_path()).await
