@@ -47,7 +47,7 @@ rustls-webpki = "*"
 xz2 = "*"
 
 [target.'cfg(not(windows))'.dependencies]
-nix = { version = "*", features = ["signal", "user"] }
+nix = { version = "*", features = ["signal", "user", "fs"] }
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
 

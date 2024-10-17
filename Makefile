@@ -205,7 +205,7 @@ $(foreach component,$(ALL),$(eval $(call CLEAN,$(component))))
 RUSTFMT_TOOLCHAIN := $(shell cat RUSTFMT_VERSION)
 define FMT
 fmt-$1: image ## formats the $1 component
-	$(run) sh -c 'cd components/$1 && cargo +$(RUSTFMT_TOOLCHAIN) fmt'
+	$(run) sh -c 'cd components/$1 && cargo +$(RUSTFMT_TOOLCHAIN) fmt --all'
 .PHONY: fmt-$1
 
 endef
