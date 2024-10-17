@@ -6,7 +6,7 @@
 param ()
 
 Describe "filesystem with name >1024 characters" {
-    sudo --preserve-env hab pkg install core/e2fsprogs --channel stable
+    sudo --preserve-env hab pkg install core/e2fsprogs --channel LTS-2024
     # Maximum directory name length is 255 characters so we need to create
     # a nested set of directories to have a mount point with > 1024 characters.
     $tmpdir = New-TemporaryDirectory
