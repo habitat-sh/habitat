@@ -732,8 +732,9 @@ mod tests {
                          types::{GossipListenAddr,
                                  HttpListenAddr,
                                  ListenCtlAddr}};
-    #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
-                      all(target_os = "windows", target_arch = "x86_64"))))]
+    #[cfg(not(any(all(target_os = "linux",
+                          any(target_arch = "x86_64", target_arch = "aarch64")),
+                      all(target_os = "windows", target_arch = "x86_64"),)))]
     use habitat_core::package::metadata::MetaFile;
     use habitat_core::{crypto::keys::KeyCache,
                        fs::CACHE_KEY_PATH,
