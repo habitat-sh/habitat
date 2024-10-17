@@ -6,7 +6,7 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_deps=(core/busybox-static
           core/glibc
-          core/gcc-base
+          core/gcc-libs
           core/zeromq)
 pkg_build_deps=(core/coreutils
                 core/cacerts
