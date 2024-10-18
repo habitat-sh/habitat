@@ -366,8 +366,8 @@ async fn write_default_metafiles(hab_root: &HabRoot,
     // Write metafiles to convert the package to a native package on platforms without package
     // support
     #[cfg(not(any(all(target_os = "linux",
-                        any(target_arch = "x86_64", target_arch = "aarch64")),
-                    all(target_os = "windows", target_arch = "x86_64"))))]
+                      any(target_arch = "x86_64", target_arch = "aarch64")),
+                  all(target_os = "windows", target_arch = "x86_64"))))]
     {
         let pkg_type_metafile = hab_root.pkg_type_path(pkg_origin, pkg_name);
         write_metafile(pkg_type_metafile, "native").await?;
