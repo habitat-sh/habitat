@@ -18,7 +18,8 @@ Invoke-NativeCommand hab pkg install core/hab `
     --force `
     --channel "$Channel" `
     --url="$BuilderUrl"
-Invoke-NativeCommand hab pkg binlink core/hab --force
+$habPath = hab pkg path core/hab
+Invoke-NativeCommand "$habPath/bin/hab.exe" pkg binlink core/hab --force
 Write-Host "--- Using core/hab $(hab --version)"
 
 Write-Host "--- Installing latest core/hab-pkg-export-container from $BuilderUrl, $Channel channel"
