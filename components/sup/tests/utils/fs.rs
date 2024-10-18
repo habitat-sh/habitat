@@ -365,12 +365,9 @@ async fn write_default_metafiles(hab_root: &HabRoot,
 
     // Write metafiles to convert the package to a native package on platforms without package
     // support
-    // TODO: We intentionally use native packages on aarch64-linux platform as the interpreter
-    // packages core/busybox-static are not yet available publicly on builder. This will cause
-    // The package to fail when the supervisor attempts to load it. We should use standard
-    // packages on aarch64-linux once the interpreter package is made publicly available.
-    #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
-                  all(target_os = "windows", target_arch = "x86_64"))))]
+    #[cfg(not(any(all(target_os = "linux",
+                        any(target_arch = "x86_64", target_arch = "aarch64")),
+                    all(target_os = "windows", target_arch = "x86_64"))))]
     {
         let pkg_type_metafile = hab_root.pkg_type_path(pkg_origin, pkg_name);
         write_metafile(pkg_type_metafile, "native").await?;

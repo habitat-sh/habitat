@@ -67,6 +67,10 @@ if [[ -n ${component:-} ]]; then
   cd "components/$component"
 fi
 
+# We do not have any packages in the stable channel for aarch64 and probably never will. 
+# Set the HAB_INTERPRETER_IDENT to point to LTS-2024 to proceed with the tests.
+export HAB_INTERPRETER_IDENT="core/busybox-static/1.36.1/20240805133911"
+
 # Always add `--quiet` to avoid the noise of compilation in test output.
 # The invocation to this script can add `--format pretty` to the test runner
 # args (that is, after --, like --nocapture and --test-threads) if the names
