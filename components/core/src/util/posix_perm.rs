@@ -60,6 +60,30 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
     }
 }
 
+// This is required on machines where umask is set to a higher value like `0077`. (See CHEF-10987)
+// This has a side effect of potentially changing the *mode* of directories not created by us but
+// this is done in order to ensure the ability to execute in the face of the variety of scenarios
+// that may be encounter "in the wild". This is as such not a huge problem as we are only changing
+// the *mode* for `ancestors` we are owner of.
+pub(crate) fn ensure_path_permissions(path: &Path, permissions: u32) -> Result<()> {
+    let euid = users::get_effective_uid();
+    let egid = users::get_effective_gid();
+    for ancestor in path.ancestors() {
+        if euid_egid_matches(&euid, &egid, ancestor) {
+            set_permissions(ancestor, permissions)?
+        }
+    }
+    Ok(())
+}
+
+fn euid_egid_matches(euid: &u32, egid: &u32, path: &Path) -> bool {
+    if let Ok(file_stat) = nix::sys::stat::stat(path) {
+        *euid == file_stat.st_uid && *egid == file_stat.st_gid
+    } else {
+        false
+    }
+}
+
 pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,

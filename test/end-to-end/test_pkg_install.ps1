@@ -16,6 +16,29 @@ Describe "pkg install" {
         hab pkg uninstall $env:HAB_ORIGIN/dep-pkg-4
     }
 
+    It "ensures 755 permissions on umask 0077 systems" {
+
+        $Origin = "core"
+        $Name = "zsh"
+        $Version = "5.8"
+        $Release = "20240110100558"
+        $PkgId = "$Origin/$Name/$Version/$Release" # core/zsh/5.8/20240110100558
+
+        if ($IsLinux) {
+            bash -c "umask 0077; hab pkg install --binlink --force $PkgId"
+            $LASTEXITCODE | Should -Be 0
+
+            "/hab/pkgs/$PkgId --version"
+            $LASTEXITCODE | Should -Be 0
+
+            "/bin/$Name --version"
+            $LASTEXITCODE | Should -Be 0
+
+            "/usr/bin/$Name-$Version --version"
+            $LASTEXITCODE | Should -Be 0
+        }
+    }
+
     It "installs all dependencies and executes all install hooks" {
         $cached = Get-Item "/hab/cache/artifacts/$env:HAB_ORIGIN-dep-pkg-3*"
         hab pkg install $cached.FullName
