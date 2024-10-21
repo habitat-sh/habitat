@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1182 -->
-## [1.6.1182](https://github.com/habitat-sh/habitat/tree/1.6.1182) (2024-10-21)
+<!-- latest_release 1.6.1183 -->
+## [1.6.1183](https://github.com/habitat-sh/habitat/tree/1.6.1183) (2024-10-21)
 
 #### Merged Pull Requests
-- CHEF-10987: Habitat installs on hardened systems [#9401](https://github.com/habitat-sh/habitat/pull/9401) ([jasonheath](https://github.com/jasonheath))
+- Bump libc from 0.2.159 to 0.2.161 [#9430](https://github.com/habitat-sh/habitat/pull/9430) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.159 to 0.2.161 [#9430](https://github.com/habitat-sh/habitat/pull/9430) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1183 -->
+- fix windows e2e test failures and external binary test failure [#9435](https://github.com/habitat-sh/habitat/pull/9435) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1183 -->
 - CHEF-10987: Habitat installs on hardened systems [#9401](https://github.com/habitat-sh/habitat/pull/9401) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1182 -->
 - fix broken stdlib linking [#9429](https://github.com/habitat-sh/habitat/pull/9429) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1181 -->
 - Bump hyper from 1.4.1 to 1.5.0 [#9427](https://github.com/habitat-sh/habitat/pull/9427) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1180 -->
