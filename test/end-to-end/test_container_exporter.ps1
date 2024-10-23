@@ -167,7 +167,7 @@ if ($IsLinux) {
             mkdir -p /usr/libexec/podman
             Copy-Item /hab/pkgs/core/netavark/1.12.2/20241021145212/bin/netavark /usr/libexec/podman
             $tag = New-CustomTag
-            Invoke-NativeCommand hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --engine=buildah --tag-custom="$tag"
+            Write-Host (hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --engine=buildah --tag-custom="$tag" | Out-String)
             Invoke-NativeCommand hab pkg exec core/buildah buildah rmi "core/nginx:$tag"
         }
     }
