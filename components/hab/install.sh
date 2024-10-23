@@ -2,8 +2,6 @@
 
 set -eou pipefail
 
-umask 0022
-
 # If the variable `$DEBUG` is set, then print the shell commands as we execute.
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
