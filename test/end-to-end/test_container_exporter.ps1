@@ -163,6 +163,9 @@ if ($IsLinux) {
     # TODO: Try to run the container when we have a core/podman package
     Describe "hab pkg export container --engine=buildah" {
         It "Runs successfully" {
+            Invoke-NativeCommand hab pkg install core/netavark/1.12.2/20241021145212
+            mkdir -p /usr/libexec/podman
+            Copy-Item /hab/pkgs/core/netavark/1.12.2/20241021145212/bin/netavark /usr/libexec/podman
             $tag = New-CustomTag
             Invoke-NativeCommand hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --engine=buildah --tag-custom="$tag"
             Invoke-NativeCommand hab pkg exec core/buildah buildah rmi "core/nginx:$tag"
