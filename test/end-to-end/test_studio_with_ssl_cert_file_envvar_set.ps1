@@ -34,8 +34,11 @@ Context "SSL_CERT_FILE is passed into the studio" {
 
     Describe "SSL_CERT_FILE is a valid certificate" {
         $env:SSL_CERT_FILE = (Join-Path $tempdir $e2e_certname)
+        Write-Host "Set SSL_SERT_FILE to $env:SSL_CERT_FILE"
         It "Sets env:SSL_CERT_FILE in the studio"  {
+            Write-Host "SSL_SERT_FILE is $env:SSL_CERT_FILE"
             $expected = "/hab/cache/ssl/$e2e_certname"
+            $env:RUST_LOG="debug"
             $result = Invoke-StudioRun $sslCertFilePrint
             Write-Host $result
             $result[-1] | Should -BeLike "*$expected"
