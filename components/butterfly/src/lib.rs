@@ -35,6 +35,8 @@ pub mod rumor;
 pub mod server;
 pub mod swim;
 
+pub mod probe_list;
+
 pub use crate::server::Server;
 use lazy_static::lazy_static;
 use std::cell::UnsafeCell;
