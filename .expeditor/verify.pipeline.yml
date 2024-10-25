@@ -862,9 +862,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
+      HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh test-services/test-probe
+      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh test-services/test-probe
     retry:
       automatic:
         limit: 1
@@ -893,9 +895,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
+      HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/backline
+      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/backline
     retry:
       automatic:
         limit: 1
@@ -920,9 +924,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
+      HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/hab
+      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/hab
     retry:
       automatic:
         limit: 1
@@ -947,9 +953,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
+      HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/launcher
+      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/launcher
     retry:
       automatic:
         limit: 1
@@ -994,7 +1002,7 @@ steps:
       HAB_BLDR_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-export-container
+      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/pkg-export-container
     retry:
       automatic:
         limit: 1
@@ -1019,9 +1027,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
+      HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-export-tar
+      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/pkg-export-tar
     retry:
       automatic:
         limit: 1
@@ -1060,9 +1070,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
+      HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/plan-build
+      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/plan-build
     retry:
       automatic:
         limit: 1
@@ -1087,9 +1099,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
+      HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/studio
+      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/studio
     retry:
       automatic:
         limit: 1
@@ -1114,9 +1128,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
+      HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package.sh components/sup
+      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/sup
     retry:
       automatic:
         limit: 1

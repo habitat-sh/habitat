@@ -21,15 +21,7 @@ curlbash_hab() {
            rm -rf /hab/pkgs/core/hab/0.82.0
     fi
 
-    # Use the temporarily uploaded Habitat package from the 'aarch64-linux' channel for aarch64.
-    # Once hab is released in the LTS channel, we can use either HAB_BLDR_CHANNEL or HAB_REFRESH_CHANNEL to install hab.
-    install_args="-t $pkg_target"
-    if [ "$pkg_target" = "aarch64-linux" ]; then
-        install_args+=" -c aarch64-linux -v 1.6.706"
-    fi
-    echo "install_args: $install_args"
-    # shellcheck disable=SC2086
-    curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- ${install_args}
+    curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
     case "${pkg_target}" in
         x86_64-linux | aarch64-linux | x86_64-linux-kernel2)
             hab_binary="/bin/hab"
