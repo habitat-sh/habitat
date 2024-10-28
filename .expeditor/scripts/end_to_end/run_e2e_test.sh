@@ -5,8 +5,6 @@ set -euo pipefail
 channel=${1:?You must specify a channel value}
 test_name=${2:-}
 
-ls -la /tmp
-
 source .expeditor/scripts/end_to_end/setup_environment.sh "$channel"
 
 ls -la /tmp

@@ -323,4 +323,7 @@ if(Test-Path $TestName) {
 } else {
     $testPath = Join-Path -Path test end-to-end "$($TestName).ps1"
 }
+
+Write-Host "checking perms of /tmp"
+bash -c "ls -la /tmp"
 Invoke-Pester $testPath -EnableExit
