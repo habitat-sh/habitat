@@ -253,6 +253,15 @@ impl PackageInstall {
             env.insert(key, rooted_path);
         }
 
+        // Since some of the packages that depend upon OpenSSL set this environment in the
+        // `RUNTIME_ENVIRONMENT`. We need to work around that in case the user really *wants* to
+        // set `SSL_CERT_FILE` to  custom value (eg. in corporate firewall environments). Then our
+        // *default* set `SSL_CERT_FILE` (pointing to `core/cacerts`) package should be ignored.
+        let ssl_cert_file_from_env = std::env::var("SSL_CERT_FILE").ok();
+        if ssl_cert_file_from_env.is_some() {
+            env.remove("SSL_CERT_FILE");
+        }
+
         Ok(env)
     }
 
