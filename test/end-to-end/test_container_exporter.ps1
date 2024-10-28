@@ -58,11 +58,11 @@ Describe "Old 'hab pkg export docker' alias" {
     BeforeAll {
         $tag = New-CustomTag
         Write-Host "1-checking perms of /tmp"
-        bash -c "ls -la /tmp"
+        Write-Host "$(bash -c "ls -la /tmp" | Out-String)"
 
         Write-Host (hab pkg export docker --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --tag-custom=$tag | Out-String)
         Write-Host "2-checking perms of /tmp"
-        bash -c "ls -la /tmp"
+        Write-Host "$(bash -c "ls -la /tmp" | Out-String)"
 
         $script:image = "core/nginx:$tag"
     }
