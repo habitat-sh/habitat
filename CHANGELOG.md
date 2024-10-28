@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1191 -->
-## [1.6.1191](https://github.com/habitat-sh/habitat/tree/1.6.1191) (2024-10-28)
+<!-- latest_release 1.6.1192 -->
+## [1.6.1192](https://github.com/habitat-sh/habitat/tree/1.6.1192) (2024-10-28)
 
 #### Merged Pull Requests
-- extend timeout for darwin install verify tests [#9445](https://github.com/habitat-sh/habitat/pull/9445) ([mwrock](https://github.com/mwrock))
+- Bump notify from 6.1.1 to 7.0.0 [#9443](https://github.com/habitat-sh/habitat/pull/9443) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump notify from 6.1.1 to 7.0.0 [#9443](https://github.com/habitat-sh/habitat/pull/9443) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1192 -->
+- Bump pin-project from 1.1.6 to 1.1.7 [#9441](https://github.com/habitat-sh/habitat/pull/9441) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1192 -->
+- Bump regex from 1.11.0 to 1.11.1 [#9442](https://github.com/habitat-sh/habitat/pull/9442) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1192 -->
 - extend timeout for darwin install verify tests [#9445](https://github.com/habitat-sh/habitat/pull/9445) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1191 -->
 - Ignore `SSL_CERT_FILE` from runtime env if set [#9444](https://github.com/habitat-sh/habitat/pull/9444) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1190 -->
 - Bump thiserror from 1.0.64 to 1.0.65 [#9440](https://github.com/habitat-sh/habitat/pull/9440) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1189 -->
