@@ -338,7 +338,6 @@ steps:
         macos:
           os-version: "12"
           inherit-environment-vars: true
-    timeout_in_minutes: 10
     retry:
       automatic:
         limit: 10 # Addressing current Anka system timeouts due to oversubscription
