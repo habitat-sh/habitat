@@ -38,6 +38,15 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
+  - label: "[:linux: build aarch64 hab]"
+    agents:
+      queue: default-privileged-aarch64
+    env:
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/release_habitat/build_component.sh hab
+
   - label: "[:linux: :two: build hab]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh hab
@@ -111,6 +120,15 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
+  - label: "[:linux: build aarch64 hab-plan-build]"
+    agents:
+      queue: default-privileged-aarch64
+    env:
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/release_habitat/build_component.sh plan-build
+
   - label: "[:linux: :two: build hab-plan-build]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh plan-build
@@ -146,6 +164,15 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
+  - label: "[:linux: build aarch64 hab-backline]"
+    agents:
+      queue: default-privileged-aarch64
+    env:
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/release_habitat/build_component.sh backline
+
   - label: "[:linux: :two: build hab-backline]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh backline
@@ -169,6 +196,15 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: build aarch64 hab-studio]"
+    agents:
+      queue: default-privileged-aarch64
+    env:
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/release_habitat/build_component.sh studio
 
   - label: "[:linux: :two: build hab-studio]"
     command:
@@ -208,6 +244,15 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
+  - label: "[:linux: build aarch64 launcher]"
+    agents:
+      queue: default-privileged-aarch64
+    env:
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/release_habitat/build_component.sh launcher
+
   - label: "[:linux: :two: build launcher]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh launcher
@@ -240,6 +285,15 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: build aarch64 hab-sup]"
+    agents:
+      queue: default-privileged-aarch64
+    env:
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/release_habitat/build_component.sh sup
 
   - label: "[:linux: :two: build hab-sup]"
     command:
@@ -274,6 +328,15 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
+  - label: "[:linux: build aarch64 hab-pkg-export-container]"
+    agents:
+      queue: default-privileged-aarch64
+    env:
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/release_habitat/build_component.sh pkg-export-container
+
   - label: "[:windows: build hab-pkg-export-container]"
     command:
       - powershell .expeditor/scripts/release_habitat/build_component.ps1 pkg-export-container
@@ -294,6 +357,15 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: build aarch64 hab-pkg-export-tar]"
+    agents:
+      queue: default-privileged-aarch64
+    env:
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/release_habitat/build_component.sh pkg-export-tar
 
   - label: "[:linux: :two: build hab-pkg-export-tar]"
     command:
@@ -351,6 +423,16 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: upload hab aarch64 binary]"
+    agents:
+      queue: default-privileged-aarch64
+    env:
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
 
   - label: "[:linux: :two: upload hab binary]"
     command:
