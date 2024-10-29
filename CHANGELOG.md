@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1193 -->
-## [1.6.1193](https://github.com/habitat-sh/habitat/tree/1.6.1193) (2024-10-29)
+<!-- latest_release 1.6.1194 -->
+## [1.6.1194](https://github.com/habitat-sh/habitat/tree/1.6.1194) (2024-10-29)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.213 to 1.0.214 [#9446](https://github.com/habitat-sh/habitat/pull/9446) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- fix e2e ssl cert file tests when not set [#9447](https://github.com/habitat-sh/habitat/pull/9447) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- fix e2e ssl cert file tests when not set [#9447](https://github.com/habitat-sh/habitat/pull/9447) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1194 -->
 - Bump serde from 1.0.213 to 1.0.214 [#9446](https://github.com/habitat-sh/habitat/pull/9446) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1193 -->
 - Bump notify from 6.1.1 to 7.0.0 [#9443](https://github.com/habitat-sh/habitat/pull/9443) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1192 -->
 - Bump pin-project from 1.1.6 to 1.1.7 [#9441](https://github.com/habitat-sh/habitat/pull/9441) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1192 -->
