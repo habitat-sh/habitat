@@ -18,7 +18,7 @@ if($IsLinux) {
     $sslCertFileCheck = "test -f `$SSL_CERT_FILE"
     $sslCertFilePrint = "echo `$SSL_CERT_FILE"
     $sslCacheCertFileCheck = "test -f '/hab/cache/ssl/$e2e_certname'"
-    $sslCertFileNotSetCheck = "test ! -v SSL_CERT_FILE"
+    $sslCertFileNotSetCheck = "test `$SSL_CERT_FILE = `$(hab pkg path core/cacerts)/ssl/certs/cacert.pem"
 } else {
     $sslCertFileCheck = "exit (!(Test-Path `$env:SSL_CERT_FILE))"
     $sslCertFilePrint = "`$env:SSL_CERT_FILE.Replace('\','/')"
@@ -138,8 +138,6 @@ Context "SSL_CERT_FILE is passed into the studio" {
         }
     }
 }
-
-Write-Host "--- Testing SSL_CERT_FILE is not set"
 
 Context "SSL_CERT_FILE isn't set" {
     BeforeEach {
