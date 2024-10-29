@@ -17,6 +17,9 @@ JOB_TEMP_ROOT=$(mktemp -d /tmp/job-root-XXXXXX)
 export HAB_CACHE_KEY_PATH
 HAB_CACHE_KEY_PATH="$JOB_TEMP_ROOT/keys"
 
+export HAB_FALLBACK_CHANNEL
+export HAB_PREFER_LOCAL_CHEF_DEPS="true"
+
 echo "--- :key: Generating temporary origin key"
 hab origin key generate "$HAB_ORIGIN"
 echo "--- :hab: Running hab pkg build for $package_path"
