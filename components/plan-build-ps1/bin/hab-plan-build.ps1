@@ -1755,8 +1755,7 @@ try {
         $deps = $env:HAB_STUDIO_INSTALL_PKGS -split ";"
         foreach ($dep in $deps) {
             Write-BuildLine "Installing $dep"
-            $cmd = "$HAB_BIN pkg install $dep"
-            Invoke-Expression $cmd
+            & $HAB_BIN pkg install "$dep"
         }
     }
 
