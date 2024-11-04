@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1196 -->
-## [1.6.1196](https://github.com/habitat-sh/habitat/tree/1.6.1196) (2024-11-04)
+<!-- latest_release 1.6.1197 -->
+## [1.6.1197](https://github.com/habitat-sh/habitat/tree/1.6.1197) (2024-11-04)
 
 #### Merged Pull Requests
-- install additional pkgs from env [#9448](https://github.com/habitat-sh/habitat/pull/9448) ([sajjaphani](https://github.com/sajjaphani))
+- Bump tar from 0.4.42 to 0.4.43 [#9454](https://github.com/habitat-sh/habitat/pull/9454) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump tar from 0.4.42 to 0.4.43 [#9454](https://github.com/habitat-sh/habitat/pull/9454) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1197 -->
 - install additional pkgs from env [#9448](https://github.com/habitat-sh/habitat/pull/9448) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.1196 -->
 - Bump thiserror from 1.0.65 to 1.0.66 [#9450](https://github.com/habitat-sh/habitat/pull/9450) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1195 -->
 - fix e2e ssl cert file tests when not set [#9447](https://github.com/habitat-sh/habitat/pull/9447) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1194 -->
