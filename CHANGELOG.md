@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1197 -->
-## [1.6.1197](https://github.com/habitat-sh/habitat/tree/1.6.1197) (2024-11-04)
+<!-- latest_release 1.6.1198 -->
+## [1.6.1198](https://github.com/habitat-sh/habitat/tree/1.6.1198) (2024-11-04)
 
 #### Merged Pull Requests
-- Bump tar from 0.4.42 to 0.4.43 [#9454](https://github.com/habitat-sh/habitat/pull/9454) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump thiserror from 1.0.66 to 1.0.67 [#9452](https://github.com/habitat-sh/habitat/pull/9452) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump thiserror from 1.0.66 to 1.0.67 [#9452](https://github.com/habitat-sh/habitat/pull/9452) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1198 -->
+- Stops setting permissions in ensure_path_permissions when we reach pkgs directory [#9449](https://github.com/habitat-sh/habitat/pull/9449) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1198 -->
+- Bump anyhow from 1.0.91 to 1.0.92 [#9453](https://github.com/habitat-sh/habitat/pull/9453) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1198 -->
 - Bump tar from 0.4.42 to 0.4.43 [#9454](https://github.com/habitat-sh/habitat/pull/9454) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1197 -->
 - install additional pkgs from env [#9448](https://github.com/habitat-sh/habitat/pull/9448) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.1196 -->
 - Bump thiserror from 1.0.65 to 1.0.66 [#9450](https://github.com/habitat-sh/habitat/pull/9450) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1195 -->
