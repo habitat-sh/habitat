@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1199 -->
-## [1.6.1199](https://github.com/habitat-sh/habitat/tree/1.6.1199) (2024-11-04)
+<!-- latest_release 1.6.1200 -->
+## [1.6.1200](https://github.com/habitat-sh/habitat/tree/1.6.1200) (2024-11-05)
 
 #### Merged Pull Requests
-- Bump cc from 1.1.31 to 1.1.34 [#9451](https://github.com/habitat-sh/habitat/pull/9451) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump thiserror from 1.0.67 to 1.0.68 [#9456](https://github.com/habitat-sh/habitat/pull/9456) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump thiserror from 1.0.67 to 1.0.68 [#9456](https://github.com/habitat-sh/habitat/pull/9456) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1200 -->
 - Bump cc from 1.1.31 to 1.1.34 [#9451](https://github.com/habitat-sh/habitat/pull/9451) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1199 -->
 - Bump thiserror from 1.0.66 to 1.0.67 [#9452](https://github.com/habitat-sh/habitat/pull/9452) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1198 -->
 - Stops setting permissions in ensure_path_permissions when we reach pkgs directory [#9449](https://github.com/habitat-sh/habitat/pull/9449) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1198 -->
