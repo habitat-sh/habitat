@@ -513,12 +513,13 @@ impl MemberList {
                              incoming: Membership,
                              ignore_incarnation_and_health: bool)
                              -> bool {
+        let member_id = incoming.member.id.clone();
         // Is this clone necessary, or can a key be a reference to a field contained in the value?
         // Maybe the members we store should not contain the ID to reduce the duplication?
         trace!("insert_membership_mlw: Member: {}, Health: {}",
-               incoming.member.id,
+               member_id,
                incoming.health);
-        let modified = match self.write_entries().entry(incoming.member.id.clone()) {
+        let modified = match self.write_entries().entry(member_id.clone()) {
             hash_map::Entry::Occupied(mut entry) => {
                 let val = entry.get_mut();
                 if incoming.newer_or_less_healthy_than(val.member.incarnation, val.health)
@@ -551,6 +552,9 @@ impl MemberList {
         };
 
         if modified {
+            if incoming.health == Health::Confirmed {
+                trace!("inserting confirmed member: {}", member_id);
+            }
             self.increment_update_counter();
             self.calculate_peer_health_metrics_mlr();
         }
