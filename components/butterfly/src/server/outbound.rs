@@ -128,13 +128,14 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
                                      .members_write()
                                      .drain()
                                      .collect::<Vec<_>>();
-
+        let mut check_list = server.member_list.check_list_mlr(&server.member_id);
         if !members_to_probe.is_empty() {
             debug!("Probing {} members in the Probe List.",
                    members_to_probe.len());
 
             for member in members_to_probe {
                 trace!("Probing member: {}", member.id);
+                check_list.retain(|mem| mem.id != member.id);
                 let addr = member.swim_socket_address();
                 ping_mlr_smr_rhw(server,
                                  socket,
@@ -153,8 +154,6 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
         } else {
             debug!("Zero members in probe_list");
         }
-
-        let check_list = server.member_list.check_list_mlr(&server.member_id);
 
         let probe_iteration_start = Instant::now();
         for member in check_list {

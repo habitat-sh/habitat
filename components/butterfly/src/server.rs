@@ -698,7 +698,7 @@ impl Server {
     /// * `Server::member` (write)
     /// * `RumorHeat::inner` (write)
     fn insert_member_from_rumor_mlw_smw_rhw(&self, member: Member, mut health: Health) {
-        trace!("insert_member_from_rumor_mlw_smw_rhw");
+        trace!("insert_member_from_rumor_mlw_smw_rhw for {}", member.id);
         let rk: RumorKey = RumorKey::from(&member);
 
         if member.id != self.member_id() {
@@ -730,13 +730,16 @@ impl Server {
                     debug!("Member: {} Does not exist in the Member List.", member.id);
                 }
             }
-        } else if health != Health::Alive
-                  && member.incarnation >= self.myself.lock_smr().incarnation()
-        {
-            self.myself
-                .lock_smw()
-                .refute_incarnation(member.incarnation);
+        } else if health != Health::Alive {
+            trace!("member incarnation is {}. my incarnation is {}",
+                   member.incarnation,
+                   self.myself.lock_smr().incarnation());
             health = Health::Alive;
+            if member.incarnation >= self.myself.lock_smr().incarnation() {
+                self.myself
+                    .lock_smw()
+                    .refute_incarnation(member.incarnation);
+            }
         }
 
         let member_id = member.id.clone();
