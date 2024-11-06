@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1202 -->
-## [1.6.1202](https://github.com/habitat-sh/habitat/tree/1.6.1202) (2024-11-06)
+<!-- latest_release 1.6.1203 -->
+## [1.6.1203](https://github.com/habitat-sh/habitat/tree/1.6.1203) (2024-11-06)
 
 #### Merged Pull Requests
-- Bump cc from 1.1.34 to 1.1.36 [#9457](https://github.com/habitat-sh/habitat/pull/9457) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- fix windows studio test by pulling hab packages from stable [#9459](https://github.com/habitat-sh/habitat/pull/9459) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- fix windows studio test by pulling hab packages from stable [#9459](https://github.com/habitat-sh/habitat/pull/9459) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1203 -->
 - Bump cc from 1.1.34 to 1.1.36 [#9457](https://github.com/habitat-sh/habitat/pull/9457) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1202 -->
 - Bump url from 2.5.2 to 2.5.3 [#9455](https://github.com/habitat-sh/habitat/pull/9455) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1201 -->
 - Bump thiserror from 1.0.67 to 1.0.68 [#9456](https://github.com/habitat-sh/habitat/pull/9456) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1200 -->
