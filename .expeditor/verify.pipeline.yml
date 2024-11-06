@@ -573,7 +573,6 @@ steps:
           host_os: windows
           shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
-    soft_fail: true
     retry:
       automatic:
         limit: 1
