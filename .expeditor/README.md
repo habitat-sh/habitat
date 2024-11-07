@@ -153,8 +153,3 @@ We maintain a [Homebrew tap](https://www.github.com/habitat-sh/homebrew-habitat)
 This process ultimately results in a new PR being opened in the `habitat-sh/homebrew-habitat` repository that updates the release. Once this PR is merged, the new Habitat CLI will be available via Homebrew.
 
 [Buildkite Page for homebrew-habitat verify Pipeline](https://buildkite.com/chef/habitat-sh-homebrew-habitat-master-verify)
-
-## Builder
-Similarly, Builder also [subscribes](https://github.com/habitat-sh/builder/blob/bcb05a9efae721f9750be91a365f5c81cbaa56eb/.expeditor/config.yml#L18-L24) to the final Habitat release promotion event to perform some important actions in that repository (namely, building new [habitat/builder-worker](https://bldr.habitat.sh/#/pkgs/habitat/builder-worker/latest) packages).
-
-[Buildkite Page for builder post_habitat_release Pipeline](https://buildkite.com/chef/habitat-sh-builder-master-post-habitat-release)
