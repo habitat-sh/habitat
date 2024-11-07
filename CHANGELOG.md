@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1205 -->
-## [1.6.1205](https://github.com/habitat-sh/habitat/tree/1.6.1205) (2024-11-07)
+<!-- latest_release 1.6.1206 -->
+## [1.6.1206](https://github.com/habitat-sh/habitat/tree/1.6.1206) (2024-11-07)
 
 #### Merged Pull Requests
-- Bump anyhow from 1.0.92 to 1.0.93 [#9460](https://github.com/habitat-sh/habitat/pull/9460) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- removing some dead docs and code [#9461](https://github.com/habitat-sh/habitat/pull/9461) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- removing some dead docs and code [#9461](https://github.com/habitat-sh/habitat/pull/9461) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1206 -->
 - Bump anyhow from 1.0.92 to 1.0.93 [#9460](https://github.com/habitat-sh/habitat/pull/9460) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1205 -->
 - Agadgil/chef 15608 probe ping [#9420](https://github.com/habitat-sh/habitat/pull/9420) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1204 -->
 - fix windows studio test by pulling hab packages from stable [#9459](https://github.com/habitat-sh/habitat/pull/9459) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1203 -->
