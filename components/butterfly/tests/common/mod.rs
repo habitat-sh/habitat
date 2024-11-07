@@ -56,6 +56,7 @@ pub fn start_server_smw_rhw(name: &str, ring_key: Option<RingKey>, suitability: 
     let member = Member { swim_port,
                           gossip_port,
                           ..Default::default() };
+
     let mut server = Server::new(listen_swim,
                                  listen_gossip,
                                  member,
@@ -223,7 +224,7 @@ impl SwimNet {
 
     pub fn max_rounds(&self) -> isize { 4 }
 
-    pub fn max_gossip_rounds(&self) -> isize { 5 }
+    pub fn max_gossip_rounds(&self) -> isize { 8 }
 
     pub fn rounds(&self) -> Vec<isize> { self.members.iter().map(Server::swim_rounds).collect() }
 
@@ -367,6 +368,28 @@ impl SwimNet {
         }
     }
 
+    /// Partition a node from the rest of the network
+    pub fn partition_node(&self, idx: usize) {
+        println!("Partitioning {} from the network.", idx);
+        for i in 0..self.members.len() {
+            if i != idx {
+                self.block(idx, i);
+                self.block(i, idx);
+            }
+        }
+    }
+
+    /// UnPartition a node from the rest of the network
+    pub fn unpartition_node(&self, idx: usize) {
+        println!("UnPartitioning {} from the network.", idx);
+        for i in 0..self.members.len() {
+            if i != idx {
+                self.unblock(idx, i);
+                self.unblock(i, idx);
+            }
+        }
+    }
+
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
     pub fn wait_for_health_of_mlr(&self,
@@ -449,7 +472,7 @@ impl SwimNet {
     pub fn add_election(&mut self, member: usize, service: &str) {
         self[member].start_election_rsw_mlr_rhw_msr(&ServiceGroup::new(service, "prod",
                                                                        None).unwrap(),
-                                                    0);
+                                                    0, None);
     }
 }
 

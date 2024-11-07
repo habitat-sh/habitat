@@ -12,11 +12,13 @@ use crate::{member::{Health,
             swim::{Ack,
                    Ping,
                    PingReq,
+                   ProbePing,
                    Swim}};
 use habitat_common::liveliness_checker;
 use habitat_core::util::ToI64;
 use lazy_static::lazy_static;
-use log::{error,
+use log::{debug,
+          error,
           trace,
           warn};
 use prometheus::{register_histogram_vec,
@@ -26,7 +28,9 @@ use prometheus::{register_histogram_vec,
                  HistogramVec,
                  IntCounterVec,
                  IntGaugeVec};
-use std::{fmt,
+use std::{collections::HashSet,
+          fmt,
+          iter::FromIterator,
           net::{SocketAddr,
                 UdpSocket},
           sync::mpsc,
@@ -108,7 +112,8 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
                                                            socket,
                                                            member,
                                                            member.swim_socket_address(),
-                                                           None);
+                                                           None,
+                                                           false);
                                       });
                 }
             }
@@ -119,9 +124,36 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
             continue;
         }
 
-        server.update_swim_round();
+        let members_to_probe = server.probe_list
+                                     .members_write()
+                                     .drain()
+                                     .collect::<Vec<_>>();
+        let mut check_list = server.member_list.check_list_mlr(&server.member_id);
+        if !members_to_probe.is_empty() {
+            debug!("Probing {} members in the Probe List.",
+                   members_to_probe.len());
 
-        let check_list = server.member_list.check_list_mlr(&server.member_id);
+            for member in members_to_probe {
+                trace!("Probing member: {}", member.id);
+                check_list.retain(|mem| mem.id != member.id);
+                let addr = member.swim_socket_address();
+                ping_mlr_smr_rhw(server,
+                                 socket,
+                                 &member,
+                                 member.swim_socket_address(),
+                                 None,
+                                 true);
+                if recv_ack_mlw_rhw(server, rx_inbound, timing, &member, addr, AckFrom::Ping) {
+                    trace!("Probe Successful for Member: {}", member.id);
+                } else {
+                    warn!("Probe failed for Member: {}, Marking as Confirmed",
+                          member.id);
+                    server.insert_member_mlw_rhw(member, Health::Confirmed);
+                }
+            }
+        } else {
+            debug!("Zero members in probe_list");
+        }
 
         let probe_iteration_start = Instant::now();
         for member in check_list {
@@ -133,6 +165,8 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
                 timing.sleep_for_remaining_swim_protocol_interval(probe_start);
             }
         }
+
+        server.update_swim_round();
 
         // This will only come into play if:
         //
@@ -183,7 +217,7 @@ fn probe_mlw_smr_rhw(server: &Server,
 
     // Ping the member, and wait for the ack.
     SWIM_PROBES_SENT.with_label_values(&["ping"]).inc();
-    ping_mlr_smr_rhw(server, socket, &member, addr, None);
+    ping_mlr_smr_rhw(server, socket, &member, addr, None, false);
 
     if recv_ack_mlw_rhw(server, rx_inbound, timing, &member, addr, AckFrom::Ping) {
         SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
@@ -251,7 +285,7 @@ fn recv_ack_mlw_rhw(server: &Server,
                     if ack.from.departed {
                         server.insert_member_mlw_rhw(ack.from, Health::Departed);
                     } else {
-                        server.insert_member_mlw_rhw(ack.from, Health::Alive);
+                        server.mark_sender_alive_mlw_rhw(ack.from);
                     }
                     // Keep listening, we want the ack we expected
                     continue;
@@ -260,7 +294,7 @@ fn recv_ack_mlw_rhw(server: &Server,
                     if ack.from.departed {
                         server.insert_member_mlw_rhw(ack.from, Health::Departed);
                     } else {
-                        server.insert_member_mlw_rhw(ack.from, Health::Alive);
+                        server.mark_sender_alive_mlw_rhw(ack.from);
                     }
                     return true;
                 }
@@ -309,6 +343,9 @@ pub fn populate_membership_rumors_mlr_rhw(server: &Server,
         .filter(|r| r.kind == RumorType::Member)
         .take(5) // TODO (CM): magic number!
         .collect();
+
+    let rumors_set: HashSet<_> = HashSet::from_iter(rumors);
+    let rumors = Vec::from_iter(rumors_set);
 
     for rkey in rumors.iter() {
         if let Some(member) = server.member_list.membership_for_mlr(&rkey.to_string()) {
@@ -383,12 +420,22 @@ pub fn ping_mlr_smr_rhw(server: &Server,
                         socket: &UdpSocket,
                         target: &Member,
                         addr: SocketAddr,
-                        forward_to: Option<&Member>) {
-    let ping_msg = Ping { membership: vec![],
-                          from:       server.myself.lock_smr().to_member(),
-                          forward_to: forward_to.cloned(), /* TODO: see if we can eliminate this
-                                                            * clone */ };
-    let swim = populate_membership_rumors_mlr_rhw(server, target, ping_msg);
+                        forward_to: Option<&Member>,
+                        probe_ping: bool) {
+    let swim = if !probe_ping {
+        let ping_msg = Ping { membership: vec![],
+                              from:       server.myself.lock_smr().to_member(),
+                              forward_to: forward_to.cloned(), /* TODO: see if we can eliminate
+                                                                * this
+                                                                * clone */ };
+
+        populate_membership_rumors_mlr_rhw(server, target, ping_msg)
+    } else {
+        let mut from = server.myself.lock_smr().to_member();
+        from.probe_ping = true;
+        ProbePing { from }.into()
+    };
+
     let bytes = match swim.encode() {
         Ok(bytes) => bytes,
         Err(e) => {
@@ -492,7 +539,6 @@ pub fn ack_mlr_smr_rhw(server: &Server,
     let ack_msg = Ack { membership: vec![],
                         from:       server.myself.lock_smr().to_member(),
                         forward_to: forward_to.map(Member::from), };
-    let member_id = ack_msg.from.id.clone();
     let swim = populate_membership_rumors_mlr_rhw(server, target, ack_msg);
     let bytes = match swim.encode() {
         Ok(bytes) => bytes,
@@ -514,8 +560,8 @@ pub fn ack_mlr_smr_rhw(server: &Server,
             SWIM_MESSAGES_SENT.with_label_values(label_values).inc();
             SWIM_BYTES_SENT.with_label_values(label_values)
                            .set(payload.len().to_i64());
-            trace!("Sent ack to {}@{}", member_id, addr);
+            trace!("Sent ack to {}@{}", target.id, addr);
         }
-        Err(e) => error!("Failed ack to {}@{}: {}", member_id, addr, e),
+        Err(e) => error!("Failed ack to {}@{}: {}", target.id, addr, e),
     }
 }

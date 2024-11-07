@@ -7,6 +7,7 @@ use crate::{rumor::{RumorKey,
             server::{timing::Timing,
                      Server}};
 use habitat_common::liveliness_checker;
+use log::trace;
 use std::{thread,
           time::Duration};
 
@@ -26,6 +27,7 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                                             .members_expired_to_confirmed_mlw(timing.confirm());
 
         for id in newly_confirmed_members {
+            trace!("inserting confirmed member: {}", id);
             server.rumor_heat
                   .lock_rhw()
                   .start_hot_rumor(RumorKey::new(RumorType::Member, &id, ""));

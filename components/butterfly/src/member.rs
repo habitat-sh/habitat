@@ -59,7 +59,7 @@ lazy_static! {
 ///
 /// Note: we're intentionally deriving `Copy` to be able to treat this
 /// like a "normal" numeric type.
-#[derive(Clone, Debug, Ord, PartialEq, PartialOrd, Eq, Copy, Default)]
+#[derive(Clone, Debug, Ord, PartialEq, PartialOrd, Eq, Copy, Default, Hash)]
 pub struct Incarnation(u64);
 
 impl From<u64> for Incarnation {
@@ -128,7 +128,7 @@ pub type UuidSimple = String;
 
 /// A member in the swim group. Passes most of its functionality along to the internal protobuf
 /// representation.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Member {
     pub id:          String,
     pub incarnation: Incarnation,
@@ -137,6 +137,7 @@ pub struct Member {
     pub gossip_port: u16,
     pub persistent:  bool,
     pub departed:    bool,
+    pub probe_ping:  bool,
 }
 
 impl Member {
@@ -170,7 +171,8 @@ impl Default for Member {
                  swim_port:   0,
                  gossip_port: 0,
                  persistent:  false,
-                 departed:    false, }
+                 departed:    false,
+                 probe_ping:  false, }
     }
 }
 
@@ -194,7 +196,8 @@ impl From<Member> for proto::Member {
                         swim_port:   Some(value.swim_port.into()),
                         gossip_port: Some(value.gossip_port.into()),
                         persistent:  Some(value.persistent),
-                        departed:    Some(value.departed), }
+                        departed:    Some(value.departed),
+                        probe_ping:  Some(value.probe_ping), }
     }
 }
 
@@ -305,7 +308,8 @@ impl FromProto<proto::Member> for Member {
                                       .and_then(as_port)
                                       .ok_or(Error::ProtocolMismatch("gossip-port"))?,
                     persistent:  proto.persistent.unwrap_or(false),
-                    departed:    proto.departed.unwrap_or(false), })
+                    departed:    proto.departed.unwrap_or(false),
+                    probe_ping:  proto.probe_ping.unwrap_or(false), })
     }
 }
 
@@ -499,23 +503,42 @@ impl MemberList {
     // TODO (CM): why don't we just insert a membership record here?
     pub fn insert_mlw(&self, incoming_member: Member, incoming_health: Health) -> bool {
         self.insert_membership_mlw(Membership { member: incoming_member,
-                                                health: incoming_health, })
+                                                health: incoming_health, },
+                                   false)
     }
 
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (write)
-    fn insert_membership_mlw(&self, incoming: Membership) -> bool {
+    fn insert_membership_mlw(&self,
+                             incoming: Membership,
+                             ignore_incarnation_and_health: bool)
+                             -> bool {
+        let member_id = incoming.member.id.clone();
         // Is this clone necessary, or can a key be a reference to a field contained in the value?
         // Maybe the members we store should not contain the ID to reduce the duplication?
-        let modified = match self.write_entries().entry(incoming.member.id.clone()) {
+        trace!("insert_membership_mlw: Member: {}, Health: {}",
+               member_id,
+               incoming.health);
+        let modified = match self.write_entries().entry(member_id.clone()) {
             hash_map::Entry::Occupied(mut entry) => {
                 let val = entry.get_mut();
-                if incoming.newer_or_less_healthy_than(val.member.incarnation, val.health) {
+                if incoming.newer_or_less_healthy_than(val.member.incarnation, val.health)
+                   || (ignore_incarnation_and_health && val.health != incoming.health)
+                {
+                    trace!("++ current health: {}, incoming health: {}",
+                           val.health,
+                           incoming.health);
                     *val = member_list::Entry { member:            incoming.member,
                                                 health:            incoming.health,
                                                 health_updated_at: Instant::now(), };
+                    trace!("Occupied: Updated");
                     true
                 } else {
+                    trace!("-- current health: {}, incoming health: {}, incarnation: {}, ",
+                           val.health,
+                           incoming.health,
+                           val.member.incarnation);
+                    trace!("Occupied: Not Updated");
                     false
                 }
             }
@@ -523,16 +546,29 @@ impl MemberList {
                 entry.insert(member_list::Entry { member:            incoming.member,
                                                   health:            incoming.health,
                                                   health_updated_at: Instant::now(), });
+                trace!("Empty: Created!");
                 true
             }
         };
 
         if modified {
+            if incoming.health == Health::Confirmed {
+                trace!("inserting confirmed member: {}", member_id);
+            }
             self.increment_update_counter();
             self.calculate_peer_health_metrics_mlr();
         }
 
         modified
+    }
+
+    pub(crate) fn insert_member_ignore_incarnation_mlw(&self,
+                                                       incoming_member: Member,
+                                                       incoming_health: Health)
+                                                       -> bool {
+        self.insert_membership_mlw(Membership { member: incoming_member,
+                                                health: incoming_health, },
+                                   true)
     }
 
     /// # Locking (see locking.md)
@@ -670,6 +706,7 @@ impl MemberList {
                                       .cloned()
                                       .collect();
         members.shuffle(&mut thread_rng());
+
         members
     }
 
