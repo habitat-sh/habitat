@@ -269,20 +269,6 @@ The Buildkite release is fairly-well automated at this point, but once it is com
 
 The [Habitat Homebrew](https://github.com/habitat-sh/homebrew-habitat) repository will automatically generate a PR to update the Homebrew tap after a release is promoted to stable. This PR will be tested to ensure the updated version is able to install.  If the PR checks are green, it is safe to merge and this will update our `brew install`ed version to the current stable release.
 
-## The Builder Worker
-
-New `habitat/builder-worker` packages will automatically be built by
-Builder's `post_habitat_release` pipeline ([definition](https://github.com/habitat-sh/builder/blob/master/.expeditor/post_habitat_release.pipeline.yml),
-[Buildkite
-pipeline](https://buildkite.com/chef/habitat-sh-builder-master-post-habitat-release))
-when a Habitat release completes. The instructions below describe how to
-follow along in that pipeline to ensure that the new packages are validated and
-properly promoted to the stable channel.
-
-After the workers are built and promoted to acceptance by the pipeline, you will be prompted to "Evaluate habitat/builder-worker in Acceptance" by the pipeline. This can be done by building a package in acceptance to ensure that the workers are behaving properly. The key things you are looking for are that the builds succeed and that their build output indicates they are using the new stable versions of `hab`, `hab-plan-build` and `hab-studio`. You should follow these steps for both a Windows and a Linux worker.
-
-After validating the workers in acceptance, confirm the "Evaluate habitat/builder-worker in Acceptance" in the pipeline. The pipeline will now deploy the workers to live. Follow the same instructions to validate the live workers.
-
 ## Update the Changelog
 
 We currently use Expeditor (an internal tool) to _partially_ manage our changelog. It adds items to `CHANGELOG.md` for every PR that is merged, based on certain labels that are attached to the PR. This is all well and good.
