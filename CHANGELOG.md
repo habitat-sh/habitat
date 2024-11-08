@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1207 -->
-## [1.6.1207](https://github.com/habitat-sh/habitat/tree/1.6.1207) (2024-11-08)
+<!-- latest_release 1.6.1208 -->
+## [1.6.1208](https://github.com/habitat-sh/habitat/tree/1.6.1208) (2024-11-08)
 
 #### Merged Pull Requests
-- Bump tempfile from 3.13.0 to 3.14.0 [#9462](https://github.com/habitat-sh/habitat/pull/9462) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libc from 0.2.161 to 0.2.162 [#9464](https://github.com/habitat-sh/habitat/pull/9464) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.161 to 0.2.162 [#9464](https://github.com/habitat-sh/habitat/pull/9464) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1208 -->
+- Bump tokio from 1.41.0 to 1.41.1 [#9463](https://github.com/habitat-sh/habitat/pull/9463) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1208 -->
 - Bump tempfile from 3.13.0 to 3.14.0 [#9462](https://github.com/habitat-sh/habitat/pull/9462) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1207 -->
 - removing some dead docs and code [#9461](https://github.com/habitat-sh/habitat/pull/9461) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1206 -->
 - Bump anyhow from 1.0.92 to 1.0.93 [#9460](https://github.com/habitat-sh/habitat/pull/9460) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1205 -->
