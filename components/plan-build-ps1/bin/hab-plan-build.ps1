@@ -335,6 +335,8 @@ function Set-HabBin {
 
 function Install-Dependency($dependency, $install_args = $null) {
     if (!$env:NO_INSTALL_DEPS) {
+        $oldEncoding = [Console]::OutputEncoding
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
         $origin = $dependency.Split("/")[0]
         $channel = $env:HAB_BLDR_CHANNEL
         $ignoreLocal = ""
@@ -345,13 +347,43 @@ function Install-Dependency($dependency, $install_args = $null) {
             }
         }
         $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $channel $dependency $install_args $ignoreLocal"
-        Invoke-Expression $cmd
+        $res = Invoke-Expression $cmd | Out-String
         if ($LASTEXITCODE -ne 0 -and ($channel -ne $env:HAB_FALLBACK_CHANNEL)) {
             Write-BuildLine "Trying to install '$dependency' from '$env:HAB_FALLBACK_CHANNEL'"
             $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $env:HAB_FALLBACK_CHANNEL $dependency $install_args $ignoreLocal"
-            Invoke-Expression $cmd
+            $res = Invoke-Expression $cmd | Out-String
+        }
+        Write-Host $res
+        [Console]::OutputEncoding = $oldEncoding
+        if($res.Split("`n")[-2] -match "\S+/\S+") {
+           $Matches[0]
+        } else {
+            ""
+        }
+    } else {
+        $(__resolve_full_ident $dependency)
+    }
+}
+
+# **Internal** From hab-auto-build, we set the specific packages to be installed using 
+# the environment variable HAB_STUDIO_INSTALL_PKGS before building. This helper function resolves 
+# the given dependency to the identifier installed from HAB_STUDIO_INSTALL_PKGS.
+function __resolve_full_ident($dep) {
+    if (-not [string]::IsNullOrEmpty($env:HAB_STUDIO_INSTALL_PKGS)) {
+        $transformedDep = $dep -replace '/', '-'
+        $paths = $env:HAB_STUDIO_INSTALL_PKGS -split ";"
+        foreach ($path in $paths) {
+            if ($path -match "$transformedDep-(.*)-(.*)-$pkg_target.hart") {
+                $version = $matches[1]
+                $timestamp = $matches[2]
+
+                $ident = "$dep/$version/$timestamp"
+                return $ident
+            }
         }
     }
+
+    return ""
 }
 
 # **Internal** Returns (on stdout) the `DEPS` file contents of another locally
@@ -629,14 +661,7 @@ function Resolve-ScaffoldingDependencyList {
 
     if($pkg_scaffolding) {
         $pkg_scaffolding = @($pkg_scaffolding)[0]
-        $oldEncoding = [Console]::OutputEncoding
-        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-        $res = Install-Dependency $pkg_scaffolding | Out-String
-        Write-Host $res
-        [Console]::OutputEncoding = $oldEncoding
-        if($res.Split("`n")[-2] -match "\S+/\S+") {
-            $resolved = $Matches[0]
-        }
+        $resolved = Install-Dependency $pkg_scaffolding
         # Add scaffolding package to the list of scaffolding build deps
         $scaff_build_deps += $pkg_scaffolding
         if($resolved) {
@@ -720,14 +745,7 @@ function Resolve-BuildDependencyList {
     # Build `${pkg_build_deps_resolved[@]}` containing all resolved direct build
     # dependencies.
     foreach($dep in $pkg_build_deps) {
-        $oldEncoding = [Console]::OutputEncoding
-        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-        $res = Install-Dependency $dep | Out-String
-        Write-Host $res
-        [Console]::OutputEncoding = $oldEncoding
-        if($res.Split("`n")[-2] -match "\S+/\S+") {
-            $resolved = $Matches[0]
-        }
+        $resolved = Install-Dependency $dep
         if($resolved) {
             Write-BuildLine "Resolved build dependency '$dep' to $resolved"
             $script:pkg_build_deps_resolved+=(Resolve-Path "$HAB_PKG_PATH/$resolved").Path
@@ -743,14 +761,7 @@ function Resolve-RunDependencyList {
     # Build `${pkg_deps_resolved[@]}` containing all resolved direct run
     # dependencies.
     foreach($dep in $pkg_deps) {
-        $oldEncoding = [Console]::OutputEncoding
-        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-        $res = Install-Dependency $dep --ignore-install-hook | Out-String
-        Write-Host $res
-        [Console]::OutputEncoding = $oldEncoding
-        if($res.Split("`n")[-2] -match "\S+/\S+") {
-            $resolved = $Matches[0]
-        }
+        $resolved = Install-Dependency $dep --ignore-install-hook
         if ($resolved) {
             Write-BuildLine "Resolved dependency '$dep' to $resolved"
             $script:pkg_deps_resolved+=(Resolve-Path "$HAB_PKG_PATH/$resolved").Path
