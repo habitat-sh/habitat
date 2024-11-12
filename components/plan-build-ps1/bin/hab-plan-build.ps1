@@ -365,8 +365,8 @@ function Install-Dependency($dependency, $install_args = $null) {
     }
 }
 
-# **Internal** From hab-auto-build, we set the specific packages to be installed using 
-# the environment variable HAB_STUDIO_INSTALL_PKGS before building. This helper function resolves 
+# **Internal** From hab-auto-build, we set the specific packages to be installed using
+# the environment variable HAB_STUDIO_INSTALL_PKGS before building. This helper function resolves
 # the given dependency to the identifier installed from HAB_STUDIO_INSTALL_PKGS.
 function __resolve_full_ident($dep) {
     if (-not [string]::IsNullOrEmpty($env:HAB_STUDIO_INSTALL_PKGS)) {
