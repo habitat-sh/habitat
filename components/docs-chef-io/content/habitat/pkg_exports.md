@@ -8,7 +8,7 @@ gh_repo = "habitat"
     title = "Exporting Packages"
     identifier = "habitat/packages/pkg-exports Export Chef Habitat Packages"
     parent = "habitat/packages"
-    weight = 40
+    weight = 50
 +++
 
 Chef Habitat Artifacts--`.hart` files--can be exported in a number of different formats depending on what you need and where you need it. This is powerful because you can use the same immutable Chef Habitat artifact by exporting it into a format that you need for a specific job.
