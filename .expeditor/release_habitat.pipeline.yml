@@ -22,12 +22,6 @@ steps:
 # Release!
 #######################################################################
 
-  - label: "[:linux: build hab (ARM)]"
-    command:
-      - .expeditor/scripts/release_habitat/package_and_upload_arm_binary.sh
-    agents:
-      queue: docker-linux-arm64
-
   - label: "[:linux: build hab]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh hab
@@ -42,7 +36,7 @@ steps:
     agents:
       queue: default-privileged-aarch64
     env:
-      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      HAB_FALLBACK_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh hab
@@ -124,7 +118,7 @@ steps:
     agents:
       queue: default-privileged-aarch64
     env:
-      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      HAB_FALLBACK_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh plan-build
@@ -168,7 +162,7 @@ steps:
     agents:
       queue: default-privileged-aarch64
     env:
-      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      HAB_FALLBACK_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh backline
@@ -201,7 +195,7 @@ steps:
     agents:
       queue: default-privileged-aarch64
     env:
-      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      HAB_FALLBACK_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh studio
@@ -248,7 +242,7 @@ steps:
     agents:
       queue: default-privileged-aarch64
     env:
-      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      HAB_FALLBACK_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh launcher
@@ -290,7 +284,7 @@ steps:
     agents:
       queue: default-privileged-aarch64
     env:
-      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      HAB_FALLBACK_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh sup
@@ -332,7 +326,7 @@ steps:
     agents:
       queue: default-privileged-aarch64
     env:
-      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      HAB_FALLBACK_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh pkg-export-container
@@ -362,7 +356,7 @@ steps:
     agents:
       queue: default-privileged-aarch64
     env:
-      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      HAB_FALLBACK_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh pkg-export-tar
@@ -428,7 +422,7 @@ steps:
     agents:
       queue: default-privileged-aarch64
     env:
-      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
+      HAB_FALLBACK_CHANNEL: "LTS-2024"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/package_and_upload_binary.sh
