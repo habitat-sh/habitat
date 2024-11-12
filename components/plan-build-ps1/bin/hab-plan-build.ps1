@@ -356,7 +356,7 @@ function Install-Dependency($dependency, $install_args = $null) {
         Write-Host $res
         [Console]::OutputEncoding = $oldEncoding
         if($res.Split("`n")[-2] -match "\S+/\S+") {
-           $Matches[0]
+            $Matches[0]
         } else {
             ""
         }
