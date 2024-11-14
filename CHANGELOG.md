@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1210 -->
-## [1.6.1210](https://github.com/habitat-sh/habitat/tree/1.6.1210) (2024-11-12)
+<!-- latest_release 1.6.1211 -->
+## [1.6.1211](https://github.com/habitat-sh/habitat/tree/1.6.1211) (2024-11-14)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.214 to 1.0.215 [#9468](https://github.com/habitat-sh/habitat/pull/9468) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- fix dep resolution with HAB_STUDIO_INSTALL_PKGS [#9467](https://github.com/habitat-sh/habitat/pull/9467) ([sajjaphani](https://github.com/sajjaphani))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- fix dep resolution with HAB_STUDIO_INSTALL_PKGS [#9467](https://github.com/habitat-sh/habitat/pull/9467) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.1211 -->
 - Bump serde from 1.0.214 to 1.0.215 [#9468](https://github.com/habitat-sh/habitat/pull/9468) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1210 -->
 - Bump cc from 1.1.36 to 1.1.37 [#9466](https://github.com/habitat-sh/habitat/pull/9466) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1209 -->
 - Bump libc from 0.2.161 to 0.2.162 [#9464](https://github.com/habitat-sh/habitat/pull/9464) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1208 -->
