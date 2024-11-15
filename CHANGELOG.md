@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1213 -->
-## [1.6.1213](https://github.com/habitat-sh/habitat/tree/1.6.1213) (2024-11-14)
+<!-- latest_release 1.6.1214 -->
+## [1.6.1214](https://github.com/habitat-sh/habitat/tree/1.6.1214) (2024-11-15)
 
 #### Merged Pull Requests
-- ignore derivative and instant unmaintained crates in audits [#9472](https://github.com/habitat-sh/habitat/pull/9472) ([mwrock](https://github.com/mwrock))
+- Bump flate2 from 1.0.34 to 1.0.35 [#9474](https://github.com/habitat-sh/habitat/pull/9474) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump flate2 from 1.0.34 to 1.0.35 [#9474](https://github.com/habitat-sh/habitat/pull/9474) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1214 -->
 - ignore derivative and instant unmaintained crates in audits [#9472](https://github.com/habitat-sh/habitat/pull/9472) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1213 -->
 - Bump cc from 1.1.37 to 1.2.0 [#9471](https://github.com/habitat-sh/habitat/pull/9471) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1212 -->
 - fix dep resolution with HAB_STUDIO_INSTALL_PKGS [#9467](https://github.com/habitat-sh/habitat/pull/9467) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.1211 -->
