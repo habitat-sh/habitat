@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1214 -->
-## [1.6.1214](https://github.com/habitat-sh/habitat/tree/1.6.1214) (2024-11-15)
+<!-- latest_release 1.6.1215 -->
+## [1.6.1215](https://github.com/habitat-sh/habitat/tree/1.6.1215) (2024-11-15)
 
 #### Merged Pull Requests
-- Bump flate2 from 1.0.34 to 1.0.35 [#9474](https://github.com/habitat-sh/habitat/pull/9474) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.0 to 1.2.1 [#9473](https://github.com/habitat-sh/habitat/pull/9473) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.0 to 1.2.1 [#9473](https://github.com/habitat-sh/habitat/pull/9473) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1215 -->
 - Bump flate2 from 1.0.34 to 1.0.35 [#9474](https://github.com/habitat-sh/habitat/pull/9474) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1214 -->
 - ignore derivative and instant unmaintained crates in audits [#9472](https://github.com/habitat-sh/habitat/pull/9472) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1213 -->
 - Bump cc from 1.1.37 to 1.2.0 [#9471](https://github.com/habitat-sh/habitat/pull/9471) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1212 -->
