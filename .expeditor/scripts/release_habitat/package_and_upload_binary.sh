@@ -14,7 +14,7 @@ channel=$(get_release_channel)
 echo "--- Channel: $channel - bldr url: $HAB_BLDR_URL"
 
 declare -g hab_binary
-install_release_channel_hab_binary "x86_64-linux"
+install_release_channel_hab_binary "$BUILD_PKG_TARGET"
 
 import_gpg_keys
 
