@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1217 -->
-## [1.6.1217](https://github.com/habitat-sh/habitat/tree/1.6.1217) (2024-11-19)
+<!-- latest_release 1.6.1218 -->
+## [1.6.1218](https://github.com/habitat-sh/habitat/tree/1.6.1218) (2024-11-19)
 
 #### Merged Pull Requests
-- update environment variable doc to reflect HAB_REFRESH_CHANNEL [#9475](https://github.com/habitat-sh/habitat/pull/9475) ([mwrock](https://github.com/mwrock))
+- Pipeline setup for aarch64-linux [#9326](https://github.com/habitat-sh/habitat/pull/9326) ([sajjaphani](https://github.com/sajjaphani))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Pipeline setup for aarch64-linux [#9326](https://github.com/habitat-sh/habitat/pull/9326) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.1218 -->
 - update environment variable doc to reflect HAB_REFRESH_CHANNEL [#9475](https://github.com/habitat-sh/habitat/pull/9475) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1217 -->
 - update changelog for hab 1.6.1215 [#9479](https://github.com/habitat-sh/habitat/pull/9479) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1216 -->
 <!-- release_rollup -->
