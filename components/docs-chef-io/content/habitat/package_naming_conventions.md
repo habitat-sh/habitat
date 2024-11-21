@@ -27,7 +27,16 @@ When more than one major version of the package will be supported, the project u
   - The value of **name** should match the name of the project it represents, plus the major and minor version of the package being supported (as a suffix).
   - The plan file should be located within a directory of the same name (including the suffix) in this repository.
 
+  {{< note >}}
+  Romantic versions appear like a SemVer in format but may/can/will introduce breaking changes as part of a “minor” update. This results in Version X.Y having a breaking change versus X.Z.
+  {{< /note >}}
+
+  For example, core/foo3_0, core/ foo3_1, core/ foo3_2, and/or core/foo3_3.
+
+- If the project does not use SemVer:
+  For example, builder-api, perl.
+  The packages will be reviewed package to package and refresh to refresh.
+
 {{< note >}}
-Romantic versions appear like a SemVer in format but may/can/will introduce breaking changes as part of a “minor” update. Resulting in Version X.Y having a breaking change versus X.Z
-Example: core/foo3_0, core/ foo3_1, core/ foo3_2, and/or core/foo3_3
-{{< /note >}} 
+Even though a package name may be altered to include a major (and minor) version suffix, package versions are never altered from their project's source. For example, if the package uses a DateVer schema where it is YYYYMMDD, this will not be reformatted to YYYY.MM.DD. This is to ensure the CVE detection process and automated build and detection systems can refer to the exact publishers' versions.
+{{< /note >}}
