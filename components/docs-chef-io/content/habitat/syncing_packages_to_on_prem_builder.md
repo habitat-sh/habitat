@@ -16,4 +16,4 @@ A sync script will be provided that will:
 1. Perform a pre-flight check that returns a list of packages under core origin for that channel (for example, LTS-YYYY or Innovation-YYYY) that are not created/maintained by Progress Chef.
 1. If proceeding with the script:
    1. Those packages will be demoted to the unstable channel.
-   1. Points to the new channel (for example, LTS-YYYY or Innovation-YYYY) for downloading packages from the Public Builder and uploading them to their respective on-prem builders.
+   1. Packages are downloaded from the channel specified (for example, LTS-YYYY or Innovation-YYYY) from Public Builder and uploaded to their respective on-prem builders.
