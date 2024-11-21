@@ -7,7 +7,7 @@ gh_repo = "habitat"
   [menu.habitat]
     title = "Release channels"
     identifier = "habitat/packages/support/release_channels"
-    parent = "habitat/packages/package_support"
+    parent = "habitat/packages/support"
     weight = 11
 +++
 
