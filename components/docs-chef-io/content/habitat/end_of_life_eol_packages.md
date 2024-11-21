@@ -7,7 +7,7 @@ gh_repo = "habitat"
   [menu.habitat]
     title = "End-of-Life (EOL) Packages"
     identifier = "habitat/packages/support/package_support/end_of_life_eol_packages"
-    parent = "habitat/packages/package_support"
+    parent = "habitat/packages/support"
     weight = 12
 +++
 

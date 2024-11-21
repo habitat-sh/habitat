@@ -7,7 +7,7 @@ gh_repo = "habitat"
   [menu.habitat]
     title = "Syncing packages to the on-prem builder"
     identifier = "habitat/packages/support/package_support/syncing_packages_to_on_prem_builder"
-    parent = "habitat/packages/package_support"
+    parent = "habitat/packages/support"
     weight = 13
 +++
 

@@ -7,7 +7,7 @@ gh_repo = "habitat"
   [menu.habitat]
     title = "Package naming conventions"
     identifier = "habitat/packages/support/package_support/package_naming_conventions"
-    parent = "habitat/packages/package_support"
+    parent = "habitat/packages/support"
     weight = 14
 +++
 

@@ -7,7 +7,7 @@ gh_repo = "habitat"
   [menu.habitat]
     title = "Support and usage thresholds"
     identifier = "habitat/packages/support/package_support/support_and_usage_thresholds"
-    parent = "habitat/packages/package_support"
+    parent = "habitat/packages/support"
     weight = 15
 +++
 

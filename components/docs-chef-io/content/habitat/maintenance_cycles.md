@@ -7,7 +7,7 @@ gh_repo = "habitat"
   [menu.habitat]
     title = "Maintenance cycles"
     identifier = "habitat/packages/support/package_support/maintenance_cycles"
-    parent = "habitat/packages/package_support"
+    parent = "habitat/packages/support"
     weight = 14
 +++
 
