@@ -11,7 +11,7 @@ gh_repo = "habitat"
     weight = 10
 +++
 
-Refer to the following sections for details about the current approach its limitations and details about the multi-channel package refresh approach.
+Refer to the following sections for details about the current approach, its limitations, and details about the multi-channel package refresh approach.
 
 ## Current approach and limitations
 
@@ -29,13 +29,17 @@ The new multi-channel approach for Habitat packages introduces Long-Term Support
 - **Channel definitions:** There are two types of channels: LTS-YYYY (providing multi-year support) and Innovation-YYYY (which may include breaking changes and is supported for a shorter duration).
 - **LTS channel purpose:** LTS channels offer a stable environment with the latest refreshed packages that are supported for approximately three years, ensuring compatibility and updates.
 - **Unstable channels:** For each LTS and Innovation channel, a corresponding unstable channel (for example, LTS-YYYY-unstable) is created to retain older package versions.
--**Deprecation strategy:** The multi-channel approach allows deprecated packages to be excluded from new LTS releases, minimizing disruption for users.
+- **Deprecation strategy:** The multi-channel approach allows deprecated packages to be excluded from new LTS releases, minimizing disruption for users.
 - **Impact on existing channels:** The stable channel in the core origin will be eventually deprecated with the next major Habitat release (Habitat 2.x) due to the presence of legacy and unsupported packages.
 - **Changes to Habitat tools:** Updates to Habitat will allow users to specify different channels for different origins, providing more flexibility in package management.
 - **Sync scripts:** Sync scripts to sync packages from core, chef, and chef-platform origins from LTS-YYYY and Innovation-YYYY channels from Public Builder to On Prem Builder.
 - **Maintenance cycles:** Each core package will have an associated maintenance cycle during a package refresh to help identify whether or not multiple majors or minors for that project are available.
 - **Package naming conventions:** Packages will follow specific naming conventions based on their versioning schema, ensuring consistency and reliability in updates.
-- **Origins impacted:** core, chef and chef-platform. (Note: Chef 360 skills under chef-platform origin are currently in the stable channel. They will be moved to the LTS-2024 channel soon.)
+- **Origins impacted:** core, chef and chef-platform.
+
+    {{< note >}}
+    Chef 360 skills under chef-platform origin are currently in the stable channel. They will be moved to the LTS-2024 channel soon.
+    {{< /note >}}
 - **Build function on public builder:** The build function on the SaaS builder will be disabled because building from stable by default does not align with a multi-channel approach.
 - **Package intake process:** If a Habitat user wants to have a new package added to the core origin, the following points apply:
   - This must be requested in the form of an Aha Idea.

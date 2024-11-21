@@ -11,6 +11,8 @@ gh_repo = "habitat"
     weight = 11
 +++
 
+Refer to the following sections for details about the various release channels.
+
 ## Long Term Support (LTS) channel
 
 The LTS Channel (designated as LTS-YYYY where YYYY indicates the year of release) is designed to provide a stable environment with the latest refreshed packages that will be supported for three years. LTS releases aim to ensure compatibility and updates over a multi-year period.
