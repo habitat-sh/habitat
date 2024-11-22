@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1221 -->
-## [1.6.1221](https://github.com/habitat-sh/habitat/tree/1.6.1221) (2024-11-22)
+<!-- latest_release 1.6.1222 -->
+## [1.6.1222](https://github.com/habitat-sh/habitat/tree/1.6.1222) (2024-11-22)
 
 #### Merged Pull Requests
-- Bump hyper from 1.5.0 to 1.5.1 [#9480](https://github.com/habitat-sh/habitat/pull/9480) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Rustfmt and Nightly Rust Bump to nightly-2024-11-18 [#9478](https://github.com/habitat-sh/habitat/pull/9478) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Rustfmt and Nightly Rust Bump to nightly-2024-11-18 [#9478](https://github.com/habitat-sh/habitat/pull/9478) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.1222 -->
 - Bump hyper from 1.5.0 to 1.5.1 [#9480](https://github.com/habitat-sh/habitat/pull/9480) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1221 -->
 - Bump serde_json from 1.0.132 to 1.0.133 [#9477](https://github.com/habitat-sh/habitat/pull/9477) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1220 -->
 - Bump libc from 0.2.162 to 0.2.164 [#9476](https://github.com/habitat-sh/habitat/pull/9476) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1219 -->
