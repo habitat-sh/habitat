@@ -1,6 +1,6 @@
 +++
-title = "Release channels"
-description = ""
+title = "Habitat package release channels"
+
 gh_repo = "habitat"
 
 [menu]
@@ -13,7 +13,7 @@ gh_repo = "habitat"
 
 Refer to the following sections for details about the various release channels.
 
-## Long Term Support (LTS) channel
+## Long term support (LTS) channel
 
 The LTS Channel (designated as LTS-YYYY where YYYY indicates the year of release) is designed to provide a stable environment with the latest refreshed packages that will be supported for three years. LTS releases aim to ensure compatibility and updates over a multi-year period.
 
@@ -21,7 +21,7 @@ The initial LTS-YYYY release may involve breaking changes due to major upgrades 
 
 LTS versions of Chef tools (such as Chef Infra 19) will be available under chef origin in the LTS-YYYY channel. These tools will be built from packages in the core origin from the LTS-YYYY channel.
 
-To retain older versions of packages once they are updated in LTS-YYYY, a corresponding unstable channel (for example, LTS-YYYY-unstable) will be created. This approach ensures that deprecated packages are excluded from new LTS releases, minimizing disruption for users.
+To retain older versions of packages once they're updated in LTS-YYYY, a corresponding unstable channel (for example, LTS-YYYY-unstable) will be created. This approach ensures that deprecated packages are excluded from new LTS releases, minimizing disruption for users.
 
 The LTS-YYYY channel will contain packages for common dependencies and compilers maintained by Chef, in addition to packages for Chef Infra Client, Chef InSpec, and other related tools.
 
@@ -31,11 +31,11 @@ Overall, the LTS Channel provides a reliable and consistent environment for user
 
 The innovation release channel (designated as Innovation-YYYY where YYYY indicates the year of release) contains the latest refreshed packages between two LTS releases. This channel may introduce breaking changes to prepare for the next LTS release. The support duration for an innovation channel is shorter than that of an LTS channel and is determined at the discretion of Progress Chef.
 
-The innovation channel is designed to provide users with access to the most recent updates and features, allowing them to test and adopt new changes before they are included in the next LTS release. This approach ensures that users can stay up-to-date with the latest advancements while also preparing for future LTS releases.
+The innovation channel is designed to provide users with access to the most recent updates and features, allowing them to test and adopt new changes before they're included in the next LTS release. This approach ensures that users can stay up-to-date with the latest advancements while also preparing for future LTS releases.
 
 ## Unstable channels
 
-The unstable channels are created to retain older versions of packages once they are updated in the LTS-YYYY or Innovation-YYYY channels. For each LTS and innovation channel, a corresponding unstable channel (for example, LTS-YYYY-unstable or Innovation-YYYY-unstable) is created.
+The unstable channels are created to retain older versions of packages once they're updated in the LTS-YYYY or Innovation-YYYY channels. For each LTS and innovation channel, a corresponding unstable channel (for example, LTS-YYYY-unstable or Innovation-YYYY-unstable) is created.
 
 These unstable channels ensure that deprecated packages are excluded from new LTS releases, minimizing disruption for users. This approach allows users to access older versions of packages if needed, while still benefiting from the latest updates and improvements in the stable channels.
 

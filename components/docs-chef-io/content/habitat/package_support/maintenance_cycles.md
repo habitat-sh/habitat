@@ -1,12 +1,12 @@
 +++
 title = "Maintenance cycles"
-description = ""
+
 gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
     title = "Maintenance cycles"
-    identifier = "habitat/packages/support/package_support/maintenance_cycles"
+    identifier = "habitat/packages/support/maintenance_cycles"
     parent = "habitat/packages/support"
     weight = 14
 +++

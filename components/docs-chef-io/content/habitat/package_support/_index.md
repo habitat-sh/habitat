@@ -1,6 +1,8 @@
 +++
-title = "Overview"
-description = ""
+title = "Habitat package support policy"
+
+linkTitle = "Package support policy"
+
 gh_repo = "habitat"
 
 [menu]
@@ -15,7 +17,12 @@ Refer to the following sections for details about the current approach, its limi
 
 ## Current approach and limitations
 
-All Habitat packages in the core origin are regularly refreshed and released to the stable channel. Best practice is to use packages from the stable channel. Initially, the stable channel was designed for consistent stability across packages. However, this model is less effective for core libraries, which require specific lifecycle policies. No packages are removed - packages that cannot be refreshed due to incompatibility or build issues are simply skipped.
+In the past, all Habitat packages in the core origin were regularly refreshed and released to the stable channel
+and the best practice was to use packages from this channel.
+Initially, the stable channel was designed for consistent stability across packages.
+
+However, this model is less effective for core libraries which require specific lifecycle policies.
+Packages weren't removed and packages that can't be refreshed due to incompatibility or build issues were simply skipped.
 
 - Deprecation or relegation of packages and major version upgrades can cause potential disruption to existing applications or installations.
 - Only security fixes that have a minor impact can be included. The current model prevents the deprecation or removal of outdated packages and limits the inclusion of significant security fixes or major version updates. This could lead to risks when using pinned packages because they might not upgrade to more secure versions.
@@ -35,12 +42,15 @@ The new multi-channel approach for Habitat packages introduces Long-Term Support
 - **Sync scripts:** Sync scripts to sync packages from core, chef, and chef-platform origins from LTS-YYYY and Innovation-YYYY channels from Public Builder to On Prem Builder.
 - **Maintenance cycles:** Each core package will have an associated maintenance cycle during a package refresh to help identify whether or not multiple majors or minors for that project are available.
 - **Package naming conventions:** Packages will follow specific naming conventions based on their versioning schema, ensuring consistency and reliability in updates.
-- **Origins impacted:** core, chef and chef-platform.
+- **Origins impacted:** core, chef, and chef-platform.
 
     {{< note >}}
+
     Chef 360 skills under chef-platform origin are currently in the stable channel. They will be moved to the LTS-2024 channel soon.
+
     {{< /note >}}
-- **Build function on public builder:** The build function on the SaaS builder will be disabled because building from stable by default does not align with a multi-channel approach.
+
+- **Build function on public builder:** The build function on the SaaS builder will be disabled because building from stable by default doesn't align with a multi-channel approach.
 - **Package intake process:** If a Habitat user wants to have a new package added to the core origin, the following points apply:
   - This must be requested in the form of an Aha Idea.
-  - If the requested package meets the Support and Usage Threshold, these requests will be considered alongside other feature requests during planning periods.
+  - If the requested package meets the [support and usage threshold](thresholds), these requests will be considered alongside other feature requests during planning periods.
