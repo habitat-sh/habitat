@@ -12,7 +12,7 @@ gh_repo = "habitat"
 +++
 
 End-of-life (EOL) packages refer to packages that have reached the end of their support lifecycle.
-These packages are no longer maintained or updated, and they're excluded from long-term support (LTS) releases to minimize disruption for users.
+These packages are no longer maintained or updated, and they're excluded from long-term support (LTS) releases to minimize user disruption.
 
 For example, if a package like core/openssl11 reaches the end of its support lifecycle, it won't be included in the subsequent LTS release channel.
 This approach allows customers to transition to the latest LTS channel at their convenience while maintaining the previous LTS channel,
