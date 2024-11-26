@@ -11,37 +11,50 @@ gh_repo = "habitat"
     weight = 14
 +++
 
-Each package in the core origin is identified by a unique string---called a package ident---in the following format: origin/name/version/release
+This documents how Habitat packages are named in the core origin.
 
-When only one major version of a package is supported, use the following guidelines:
+Each package in the core origin is identified by a unique string---called a package identifier---in the following format: origin/name/version/release.
+The package name may be just the package name or the package name with a version suffix.
 
-- The value of **name** should exactly match the name of the project it represents.
-- The plan file should be located within a directory of the same name in this repository. For example, a single refresh will only maintain one major version of glibc and (as such) the package name will be core/glibc with no suffix.
+## Single major version
 
-When more than one major version of the package will be supported, the project uses semantic versioning (SemVer).
+If the organization developing a project supports only one major version, the package for that project has the following guidelines:
 
-- If the project honors SemVer (only breaking changes occur in major releases):
+- The value of _name_ exactly matches the name of the project.
 
-  - The value of **name** should match the name of the project it represents, plus the major version of the package being supported (as a suffix).
-  - The plan file should be located within a directory of the same name (including the suffix) in this repository. For example, core/postgresql16 and/or core/postgresql17.
+  For example, a single release will only maintain one major version of glibc and (as such) the package name is "glibc" with no version suffix.
 
-- If the project doesn't honor SemVer (referred to as Romantic Versioning or RomVer):
+- The Habitat package plan file is located in a directory of the same name in the [habitat-sh/core-plans](https://github.com/habitat-sh/core-plans/) repository. For example, [core/glibc](https://github.com/habitat-sh/core-plans/tree/main/glibc).
 
-  - The value of **name** should match the name of the project it represents, plus the major and minor version of the package being supported (as a suffix).
-  - The plan file should be located within a directory of the same name (including the suffix) in this repository.
+## Multiple major versions
+
+For projects that have more than one major version of a project supported at a time, the package name includes the version number. For example, postgresql16.
+
+Package names that include a major (and minor) version suffix, package versions are never altered from their project's source.
+For example, if the package uses a the YYYYMMDD DateVer schema, this isn't reformatted to YYYY.MM.DD.
+This is to ensure the CVE detection process and automated build and detection systems can refer to the exact publishers' versions.
+
+For projects that don't use SemVer or RomVer (for example builder-api or Perl) the package name is reviewed from refresh to refresh.
+
+### SemVer
+
+If the organization developing a project supports more than one major version and uses semantic versioning (SemVer):
+
+- The value of _name_ matches the name of the project it represents, plus the major version of the package being supported (as a suffix).
+- The plan file is located in a directory of the same name (including the suffix) in this repository. For example, core/postgresql16 and/or core/postgresql17.
+
+### RomVer
+
+If the organization developing a project supports more than one major version and uses romantic versioning (RomVer):
+
+- The value of _name_ matches the name of the project it represents, plus the major and minor supported version number as a suffix.
+  For example, core/foo3_0 or core/foo3_1.
+
+- The plan file is located within a directory of the same name (including the suffix) in this repository.
 
   {{< note >}}
 
-  Romantic versions appear like a SemVer in format but may/can/will introduce breaking changes as part of a “minor” update. This results in Version X.Y having a breaking change versus X.Z.
+  Romantic versions look like a SemVer in format, but can introduce breaking changes as part of a “minor” update.
+  This means you can have breaking changes if you upgrade from version X.Y to X.Z.
 
   {{< /note >}}
-
-  For example, core/foo3_0, core/ foo3_1, core/ foo3_2, and/or core/foo3_3.
-
-- If a project doesn't use SemVer, for example builder-api or perl, the package will be reviewed from package to package and refresh to refresh.
-
-{{< note >}}
-
-Even though a package name may be altered to include a major (and minor) version suffix, package versions are never altered from their project's source. For example, if the package uses a DateVer schema where it is YYYYMMDD, this won't be reformatted to YYYY.MM.DD. This is to ensure the CVE detection process and automated build and detection systems can refer to the exact publishers' versions.
-
-{{< /note >}}
