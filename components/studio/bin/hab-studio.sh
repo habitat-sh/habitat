@@ -1055,15 +1055,27 @@ umount_fs() {
         # Filesystem is confirmed umounted, return success
         return 0
       else
+        # TODO: The retry mechanism with an increasing delay has been added 
+        # to address potential race conditions: if the `umount` operation 
+        # is performed asynchronously, the filesystem might still be reported 
+        # as mounted during the retries while the unmounting is in progress. 
+        # By incrementally increasing the delay between retries (starting with 
+        # a 5-second delay and increasing with each attempt), we aim to account 
+        # for such races and give the system more time to process the unmount 
+        # operation. This approach provides a balance between responsiveness 
+        # and allowing sufficient time for the unmount process to complete. 
+        # If this still impacts user experience, further adjustments such as 
+        # dynamic retry intervals or enhanced detection mechanisms could be 
+        # explored.
+        RETRY_DELAY=5
+        MAX_RETRIES=5
+        for ((i = 1; i <= MAX_RETRIES; i++)); do
+            sleep $((RETRY_DELAY * i))  # Delay increases with each retry
+            if ! is_fs_mounted "$_mount_point"; then
+                return 0
+            fi
+        done
         # Despite a successful umount, filesystem is still mounted
-        #
-        # TODO fn: there may a race condition here: if the `umount` is
-        # performed asynchronously then it might still be reported as mounted
-        # when the umounting is still queued up. We're erring on the side of
-        # catching any possible races here to determine if there's a problem or
-        # not. If this unduly impacts user experience then an alternate
-        # approach is to wait/poll until the filesystem is unmounted (with a
-        # deadline to abort).
         >&2 echo "After unmounting filesystem '$_mount_point', the mount \
 persisted. Check that the filesystem is no longer in the mounted using \
 \`mount(8)'and retry the last command."
