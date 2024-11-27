@@ -1069,11 +1069,14 @@ umount_fs() {
         # explored.
         RETRY_DELAY=5
         MAX_RETRIES=5
-        for ((i = 1; i <= MAX_RETRIES; i++)); do
+        i=1
+        while [ "$i" -le "$MAX_RETRIES" ] 
+        do 
             sleep $((RETRY_DELAY * i))  # Delay increases with each retry
             if ! is_fs_mounted "$_mount_point"; then
                 return 0
             fi
+            i=$((i+1))
         done
         # Despite a successful umount, filesystem is still mounted
         >&2 echo "After unmounting filesystem '$_mount_point', the mount \
