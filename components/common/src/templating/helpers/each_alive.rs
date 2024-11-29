@@ -1,9 +1,12 @@
 use super::{super::RenderResult,
             to_json,
             JsonTruthy};
-use handlebars::{Handlebars,
+use handlebars::{Context,
+                 Handlebars,
                  Helper,
                  HelperDef,
+                 HelperResult,
+                 Output,
                  RenderContext,
                  RenderError,
                  Renderable};
@@ -14,13 +17,17 @@ use std::collections::BTreeMap;
 pub struct EachAliveHelper;
 
 impl HelperDef for EachAliveHelper {
-    fn call(&self, h: &Helper<'_>, r: &Handlebars, rc: &mut RenderContext<'_>) -> RenderResult<()> {
+    fn call<'reg: 'rc, 'rc>(&self,
+                            h: &Helper<'rc>,
+                            r: &'reg Handlebars<'reg>,
+                            rc: &'rc Context,
+                            rc: &mut RenderContext<'reg, 'rc>,
+                            _: &mut dyn Output)
+                            -> HelperResult {
         let value = h.param(0)
-                     .ok_or_else(|| RenderError::new("Param not found for helper \"eachAlive\""))?;
+                     .ok_or(|| RenderErrorReason::ParamNotFoundForIndex("eachAlive", 0))?;
+
         if let Some(template) = h.template() {
-            rc.promote_local_vars();
-            let local_path_root = value.path_root()
-                                       .map(|p| format!("{}/{}", rc.get_path(), p));
             let rendered = match (value.value().is_truthy(), value.value()) {
                 (true, Json::Array(list)) => {
                     let alive_members: Vec<Json> = list.iter()
@@ -36,7 +43,7 @@ impl HelperDef for EachAliveHelper {
                                                        .collect();
                     let len = alive_members.len();
                     for (i, alive_member) in alive_members.iter().enumerate() {
-                        let mut local_rc = rc.derive();
+                        let mut local_rc = rc.block_mut();
                         local_rc.set_local_var("@first".to_string(), to_json(&(i == 0usize)));
                         local_rc.set_local_var("@last".to_string(), to_json(&(i == len - 1)));
                         local_rc.set_local_var("@index".to_string(), to_json(&i));

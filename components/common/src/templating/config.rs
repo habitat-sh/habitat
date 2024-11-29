@@ -399,13 +399,14 @@ impl CfgRenderer {
     pub fn new<T>(templates_path: T) -> Result<Self>
         where T: AsRef<Path>
     {
-        if templates_path.as_ref().is_dir() {
-            load_templates(templates_path.as_ref(),
-                           &PathBuf::new(),
-                           TemplateRenderer::new()).map(CfgRenderer)
+        let renderer = if templates_path.as_ref().is_dir() {
+            let path = PathBuf::new();
+            let renderer = TemplateRenderer::new();
+            load_templates(templates_path.as_ref(), &path, renderer)?
         } else {
-            Ok(CfgRenderer(TemplateRenderer::new()))
-        }
+            TemplateRenderer::new()
+        };
+        Ok(CfgRenderer(renderer))
     }
 
     /// Compile and write all configuration files to the configuration directory.
@@ -562,7 +563,7 @@ fn load_templates(dir: &Path,
             Ok(file_type) if file_type.is_file() => {
                 // JW TODO: This error needs improvement. TemplateFileError is too generic.
                 template.register_template_file(&relative_path.to_string_lossy(), &entry.path())
-                        .map_err(|e| Error::TemplateFileError(Box::new(e)))?;
+                        .map_err(Error::TemplateError)?;
             }
             Ok(file_type) if file_type.is_dir() => {
                 template = load_templates(&entry.path(), &relative_path, template)?

@@ -16,7 +16,8 @@ use crate::{error::{Error,
             FeatureFlag};
 use handlebars::{Handlebars,
                  RenderError,
-                 TemplateFileError};
+                 TemplateError,
+                 TemplateErrorReason};
 use lazy_static::lazy_static;
 use log::debug;
 use regex::Regex;
@@ -69,12 +70,12 @@ pub async fn compile_for_package_install(package: &PackageInstall,
 
 pub type RenderResult<T> = result::Result<T, RenderError>;
 
-pub struct TemplateRenderer(Handlebars);
+pub struct TemplateRenderer(Handlebars<'static>);
 
 impl TemplateRenderer {
-    pub fn new() -> Self {
+    pub fn new() -> TemplateRenderer {
         let mut handlebars = Handlebars::new();
-        handlebars.register_helper("eachAlive", Box::new(helpers::EACH_ALIVE));
+        // handlebars.register_helper("eachAlive", Box::new(helpers::EACH_ALIVE));
         handlebars.register_helper("pkgPathFor", Box::new(helpers::PKG_PATH_FOR));
         handlebars.register_helper("strConcat", Box::new(helpers::STR_CONCAT));
         handlebars.register_helper("strJoin", Box::new(helpers::STR_JOIN));
@@ -96,7 +97,7 @@ impl TemplateRenderer {
         debug!("Rendering template with context, {}, {}", template, raw);
         self.0
             .render(template, &raw)
-            .map_err(|e| Error::TemplateRenderError(format!("{}", e)))
+            .map_err(Error::TemplateRenderError)
     }
 
     // This method is only implemented so we can intercept the call to Handlebars and display
@@ -106,14 +107,14 @@ impl TemplateRenderer {
     pub fn register_template_file<P>(&mut self,
                                      name: &str,
                                      path: P)
-                                     -> result::Result<(), TemplateFileError>
+                                     -> result::Result<(), TemplateError>
         where P: AsRef<std::path::Path>
     {
         let path = path.as_ref();
-        let template_string =
-            std::fs::read_to_string(path).map_err(|e| {
-                                             TemplateFileError::IOError(e, name.to_owned())
-                                         })?;
+        let template_string = std::fs::read_to_string(path).map_err(|e| {
+                                  TemplateError::of(TemplateErrorReason::IoError(e,
+                                                                                 name.to_owned()))
+                              })?;
 
         // If we detect deprecated object access syntax notify the user.
         if RE.is_match(&template_string) {
@@ -136,8 +137,7 @@ impl TemplateRenderer {
                 });
         }
 
-        self.0.register_template_string(name, template_string)?;
-        Ok(())
+        self.0.register_template_string(name, template_string)
     }
 }
 
@@ -148,13 +148,13 @@ impl fmt::Debug for TemplateRenderer {
 }
 
 impl Deref for TemplateRenderer {
-    type Target = Handlebars;
+    type Target = Handlebars<'static>;
 
-    fn deref(&self) -> &Handlebars { &self.0 }
+    fn deref(&self) -> &Handlebars<'static> { &self.0 }
 }
 
 impl DerefMut for TemplateRenderer {
-    fn deref_mut(&mut self) -> &mut Handlebars { &mut self.0 }
+    fn deref_mut(&mut self) -> &mut Handlebars<'static> { &mut self.0 }
 }
 
 /// Disables HTML escaping which is enabled by default in Handlebars.

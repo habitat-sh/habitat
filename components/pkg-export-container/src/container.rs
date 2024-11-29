@@ -82,7 +82,7 @@ impl ContainerImage {
             "name_tags": name_tags.join(","),
         });
         util::write_file(&report,
-                         &Handlebars::new().template_render(BUILD_REPORT, &json)
+                         &Handlebars::new().render_template(BUILD_REPORT, &json)
                                            .map_err(|err| anyhow!("{}", err))?)?;
 
         Self::create_old_report(ui, dst);
@@ -219,7 +219,7 @@ impl BuildContext {
         });
         let init = ctx.rootfs().join("init.sh");
         util::write_file(&init,
-                         &Handlebars::new().template_render(INIT_SH, &json)
+                         &Handlebars::new().render_template(INIT_SH, &json)
                                            .map_err(|err| anyhow!("{}", err))?)?;
         posix_perm::set_permissions(init.to_string_lossy().as_ref(), 0o0755)?;
         Ok(())
@@ -247,7 +247,7 @@ impl BuildContext {
             "packages": self.0.graph().reverse_topological_sort().iter().map(ToString::to_string).collect::<Vec<_>>(),
         });
         util::write_file(self.0.workdir().join("Dockerfile"),
-                         &Handlebars::new().template_render(DOCKERFILE, &json)
+                         &Handlebars::new().render_template(DOCKERFILE, &json)
                                            .map_err(|err| anyhow!("{}", err))?)?;
         Ok(())
     }
