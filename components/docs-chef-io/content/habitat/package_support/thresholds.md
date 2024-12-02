@@ -25,7 +25,7 @@ Progress Chef supports packages that aren't dependencies for Progress Chef tools
 
 ## Usage threshold
 
-A requested package will be added for backlog prioritization it if falls in one of the following categories:
+Requested packages are added to a support backlog and prioritized if they fall in one of the following categories:
 
-- It's a commonly-used development tool or programming language.
-- It's high-demand commercial off-the-shelf software.
+- It's for a commonly-used development tool or programming language.
+- It's for high-demand commercial off-the-shelf software.
