@@ -13,44 +13,74 @@ gh_repo = "habitat"
     weight = 10
 +++
 
-Refer to the following sections for details about the current approach, its limitations, and details about the multi-channel package refresh approach.
+This page documents our previous Habitat package support policy and the current multi-channel Habitat package refresh policy.
 
-## Current approach and limitations
+## Previous package support policy and limitations
 
-In the past, all Habitat packages in the core origin were regularly refreshed and released to the stable channel
-and the best practice was to use packages from this channel.
-Initially, the stable channel was designed for consistent stability across packages.
+Originally, all Habitat packages in the core origin were released and regularly refreshed using the stable channel,
+which was designed for consistent stability for all packages.
 
-However, this model is less effective for core libraries which require specific lifecycle policies.
-Packages weren't removed and packages that can't be refreshed due to incompatibility or build issues were simply skipped.
+Releasing packages through the stable channel led to the following issues:
 
-- Deprecation or relegation of packages and major version upgrades can cause potential disruption to existing applications or installations.
-- Only security fixes that have a minor impact can be included. The current model prevents the deprecation or removal of outdated packages and limits the inclusion of significant security fixes or major version updates. This could lead to risks when using pinned packages because they might not upgrade to more secure versions.
+- Projects with significant changes in a new release couldn't be updated in a package refresh because those changes could disrupt existing applications or installations.
+  This prevented updates to packages where the project had a major version upgrade or significant security fixes.
+- Packages couldn't be removed, deprecation, or relegated because that could disrupt existing applications or installations---even if the original project became outdated
+- Package refreshes were skipped due to incompatibility or build issues.
+- Only security fixes that have a minor impact were included in a package refresh.
 
-For example, PostgreSQL 9.3 is still rebuilt in the core channel despite being out of support because removing it could disrupt existing applications. A shift to a multi-channel approach is suggested to better manage foundational components.
+For example, PostgreSQL 9.3 is still rebuilt in the core origin despite being out of support because removing it could disrupt existing applications.
 
-## Multi-channel package refresh approach
+To address these issues, we've switched to a multi-channel approach to better manage packages.
 
-The new multi-channel approach for Habitat packages introduces Long-Term Support (LTS) and Innovation channels to manage package updates and lifecycles more effectively.
+## Multi-channel package refresh policy
 
-- **Channel definitions:** There are two types of channels: LTS-YYYY (providing multi-year support) and Innovation-YYYY (which may include breaking changes and is supported for a shorter duration).
-- **LTS channel purpose:** LTS channels offer a stable environment with the latest refreshed packages that are supported for approximately three years, ensuring compatibility and updates.
-- **Unstable channels:** For each LTS and Innovation channel, a corresponding unstable channel (for example, LTS-YYYY-unstable) is created to retain older package versions.
-- **Deprecation strategy:** The multi-channel approach allows deprecated packages to be excluded from new LTS releases, minimizing disruption for users.
-- **Impact on existing channels:** The stable channel in the core origin will be eventually deprecated with the next major Habitat release (Habitat 2.x) due to the presence of legacy and unsupported packages.
-- **Changes to Habitat tools:** Updates to Habitat will allow users to specify different channels for different origins, providing more flexibility in package management.
-- **Sync scripts:** Sync scripts to sync packages from core, chef, and chef-platform origins from LTS-YYYY and Innovation-YYYY channels from Public Builder to On Prem Builder.
-- **Maintenance cycles:** Each core package will have an associated maintenance cycle during a package refresh to help identify whether or not multiple majors or minors for that project are available.
-- **Package naming conventions:** Packages will follow specific naming conventions based on their versioning schema, ensuring consistency and reliability in updates.
-- **Origins impacted:** core, chef, and chef-platform.
+Chef Habitat packages hosted by the core, chef, and chef-platform origins are released through long-term support (LTS), innovation, and unstable channels.
+This multi-channel approach manages package updates and lifecycles more effectively.
+This approach allows deprecated packages to be excluded from new LTS releases, minimizing disruption for users.
 
-    {{< note >}}
+### Supported channels
 
-    Chef 360 skills under chef-platform origin are currently in the stable channel. They will be moved to the LTS-2024 channel soon.
+In the multi-channel package refresh policy, packages are released through three different types of support channels: long-term support, innovation, and unstable.
+These channel types have the year appended to them to indicate when support for the channel began. For example, LTS-2024 or Innovation-2024.
 
-    {{< /note >}}
+LTS channels offer a stable environment with the latest refreshed packages and are supported for approximately three years, ensuring compatibility and updates.
 
-- **Build function on public builder:** The build function on the SaaS builder will be disabled because building from stable by default doesn't align with a multi-channel approach.
-- **Package intake process:** If a Habitat user wants to have a new package added to the core origin, the following points apply:
-  - This must be requested in the form of an Aha Idea.
-  - If the requested package meets the [support and usage threshold](thresholds), these requests will be considered alongside other feature requests during planning periods.
+Innovation channels are supported for a shorter duration and may include breaking changes.
+
+An unstable channel is created for each LTS or innovation channel.
+These channels are created to retain older package versions and are named after the innovation or LTS channel that they're based on.
+For example, LTS-2024-unstable or Innovation-2024-unstable.
+
+For more information, see the [release channels](release_channels) documentation.
+
+### Support for stable channels
+
+The stable channel in the core origin is deprecated with the release of Chef Habitat 2.x because of the presence of legacy and unsupported packages.
+
+### Chef Habitat support
+
+Chef Habitat 2.x allows users to specify different channels for different origins, providing more flexibility in package management.
+
+### Habitat Builder support
+
+The build function in Habitat Builder is disabled because building from a stable channel by default doesn't align with a multi-channel approach.
+
+To sync packages hosted by the core, chef, and chef-platform origins with on-prem deployments of Habitat Builder,
+we've created scripts to sync packages from the public Habitat Builder.
+These scripts fetch packages released through the LTS and innovation channels.
+
+### Package maintenance
+
+Each package will have a maintenance cycle during a package refresh to help identify whether or not multiple major or minor versions for that project are available.
+For more information, see the [package maintenance cycle documentation](maintenance_cycles).
+
+### Package naming
+
+Packages follow specific naming conventions based on their versioning schema, ensuring consistency and reliability in updates. For more information, see the [package naming documentation](naming).
+
+### Requesting new packages
+
+If a Chef Habitat user wants to have a new package added to the core origin, the following points apply:
+
+- This must be requested in the form of an Aha! Idea.
+- If the requested package meets the [support and usage threshold](thresholds), these requests will be considered alongside other feature requests during planning periods.
