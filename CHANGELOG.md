@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1224 -->
-## [1.6.1224](https://github.com/habitat-sh/habitat/tree/1.6.1224) (2024-12-03)
+<!-- latest_release 1.6.1225 -->
+## [1.6.1225](https://github.com/habitat-sh/habitat/tree/1.6.1225) (2024-12-04)
 
 #### Merged Pull Requests
-- Bump bytes from 1.8.0 to 1.9.0 [#9487](https://github.com/habitat-sh/habitat/pull/9487) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.1 to 1.2.2 [#9491](https://github.com/habitat-sh/habitat/pull/9491) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.1 to 1.2.2 [#9491](https://github.com/habitat-sh/habitat/pull/9491) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1225 -->
+- Bump libc from 0.2.164 to 0.2.167 [#9488](https://github.com/habitat-sh/habitat/pull/9488) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1225 -->
+- Bump errno from 0.3.9 to 0.3.10 [#9486](https://github.com/habitat-sh/habitat/pull/9486) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1225 -->
+- Bump os_info from 3.8.2 to 3.9.0 [#9490](https://github.com/habitat-sh/habitat/pull/9490) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1225 -->
+- Bump tokio from 1.41.1 to 1.42.0 [#9489](https://github.com/habitat-sh/habitat/pull/9489) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1225 -->
 - Bump bytes from 1.8.0 to 1.9.0 [#9487](https://github.com/habitat-sh/habitat/pull/9487) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1224 -->
 - bump url from yanked 2.5.3 to 2.5.4 [#9483](https://github.com/habitat-sh/habitat/pull/9483) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1223 -->
 - Rustfmt and Nightly Rust Bump to nightly-2024-11-18 [#9478](https://github.com/habitat-sh/habitat/pull/9478) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.1222 -->
