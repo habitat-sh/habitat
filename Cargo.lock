@@ -1633,7 +1633,7 @@ dependencies = [
  "libc",
  "log 0.4.22",
  "log4rs",
- "mio 1.0.2",
+ "mio 1.0.3",
  "multimap",
  "nix",
  "notify",
@@ -2489,11 +2489,10 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80e04d1dcff3aae0704555fe5fee3bcfaf3d1fdf8a7e521d5b9d2b42acb52cec"
+checksum = "2886843bf800fba2e3377cff24abf6379b4c4d5c6681eaf9ea5b0d15090450bd"
 dependencies = [
- "hermit-abi 0.3.9",
  "libc",
  "log 0.4.22",
  "wasi",
@@ -2570,7 +2569,7 @@ dependencies = [
  "kqueue",
  "libc",
  "log 0.4.22",
- "mio 1.0.2",
+ "mio 1.0.3",
  "notify-types",
  "walkdir",
  "windows-sys 0.52.0",
@@ -4032,7 +4031,7 @@ dependencies = [
  "backtrace",
  "bytes",
  "libc",
- "mio 1.0.2",
+ "mio 1.0.3",
  "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
