@@ -115,7 +115,7 @@ impl ServiceSpec {
         Self { ident,
                group: DEFAULT_GROUP.to_string(),
                bldr_url: DEFAULT_BLDR_URL.to_string(),
-               channel: ChannelIdent::stable(),
+               channel: ChannelIdent::lts(),
                topology: Topology::default(),
                update_strategy: UpdateStrategy::default(),
                update_condition: UpdateCondition::default(),
@@ -762,7 +762,7 @@ mod test {
         assert_eq!(spec.binds,
                    vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),]);
-        assert_eq!(spec.channel, ChannelIdent::stable());
+        assert_eq!(spec.channel, ChannelIdent::lts());
         assert_eq!(spec.config_from,
                    Some(PathBuf::from("/only/for/development")));
 
