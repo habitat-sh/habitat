@@ -28,7 +28,7 @@ do_prepare() {
 }
 
 do_build() {
-  cp -v "$SRC_PATH"/bin/hab-studio.sh hab-studio
+  cp -v "$SRC_PATH"/bin/hab-studio.sh hab-studio-"${pkg_target#*-}".sh
   cp -v "$SRC_PATH"/libexec/hab-studio-profile.sh .
   cp -v "$SRC_PATH"/libexec/hab-studio-type-*.sh .
 
