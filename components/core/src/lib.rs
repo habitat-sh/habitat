@@ -31,9 +31,10 @@ pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 env_config_string!(#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, PartialEq)]
                    pub ChannelIdent,
                    HAB_BLDR_CHANNEL,
-                   ChannelIdent::STABLE);
+                   ChannelIdent::LTS);
 
 impl ChannelIdent {
+    const LTS: &'static str = "LTS-2024";
     const STABLE: &'static str = "stable";
     const UNSTABLE: &'static str = "unstable";
 
@@ -42,6 +43,8 @@ impl ChannelIdent {
     pub fn stable() -> Self { Self::from(Self::STABLE) }
 
     pub fn unstable() -> Self { Self::from(Self::UNSTABLE) }
+
+    pub fn lts() -> Self { Self::from(Self::LTS) }
 }
 
 impl fmt::Display for ChannelIdent {
