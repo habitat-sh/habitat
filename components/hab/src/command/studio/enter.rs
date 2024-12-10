@@ -138,7 +138,7 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     inner::start(ui, args).await
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 mod inner {
     use crate::{command::studio::{docker,
                                   native},
@@ -277,7 +277,7 @@ mod inner {
     }
 }
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(target_os = "windows")]
 mod inner {
     use crate::{command::studio::docker,
                 common::ui::UI,
