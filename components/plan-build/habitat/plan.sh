@@ -34,7 +34,7 @@ do_before() {
 }
 
 do_build() {
-  cp -v "$SRC_PATH"/bin/${program}.sh "$CACHE_PATH/$program"
+  cp -v "$SRC_PATH"/bin/${program}-"${pkg_target#*-}".sh "$CACHE_PATH/$program"
 
   # Use the bash from our dependency list as the shebang. Also, embed the
   # release version of the program.
