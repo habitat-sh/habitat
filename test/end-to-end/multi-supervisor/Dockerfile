@@ -1,7 +1,7 @@
 FROM ubuntu
 
 # Channel from which to install Habitat-related packages
-ARG CHANNEL=stable
+ARG CHANNEL=LTS-2024
 
 # Bootstrap the installation of Habitat
 RUN apt-get update && apt-get -y install curl
