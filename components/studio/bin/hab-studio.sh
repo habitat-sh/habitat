@@ -1070,9 +1070,9 @@ umount_fs() {
         RETRY_DELAY=5
         MAX_RETRIES=5
         i=1
-        while [ "$i" -le "$MAX_RETRIES" ] 
+        while [ "$i" -le "$MAX_RETRIES" ]
         do 
-            sleep $((RETRY_DELAY * i))  # Delay increases with each retry
+            hab pkg exec core/coreutils sleep $((RETRY_DELAY * i))  # Delay increases with each retry
             if ! is_fs_mounted "$_mount_point"; then
                 return 0
             fi
