@@ -1040,6 +1040,16 @@ chown_certs() {
   fi
 }
 
+# **Internal**
+# Mimic delay using busy loop
+busy_sleep() {
+    local duration=$1
+    local end_time=$(( $(date +%s) + duration ))
+    while [ "$(date +%s)" -lt "$end_time" ]; do
+        : # No-op, keeps the loop running
+    done
+}
+
 # **Internal** Unmount mount point if mounted and abort if an unmount is
 # unsuccessful.
 #
@@ -1072,7 +1082,7 @@ umount_fs() {
         i=1
         while [ "$i" -le "$MAX_RETRIES" ]
         do 
-            hab pkg exec core/coreutils sleep $((RETRY_DELAY * i))  # Delay increases with each retry
+            busy_sleep $((RETRY_DELAY * i))  # Delay increases with each retry
             if ! is_fs_mounted "$_mount_point"; then
                 return 0
             fi
