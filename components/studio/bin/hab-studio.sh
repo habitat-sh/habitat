@@ -1045,8 +1045,8 @@ chown_certs() {
 # encountering 'device busy' failures on AArch64 Linux. We need this because 
 # we unmounted the resource and want to allow some time for it to be freed.
 busy_sleep() {
-    local duration=$1
-    local end_time=$(( $(date +%s) + duration ))
+    duration="$1"
+    end_time=$(( $(date +%s) + duration ))
     while [ "$(date +%s)" -lt "$end_time" ]; do
         : # No-op, keeps the loop running
     done
