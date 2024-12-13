@@ -1040,8 +1040,10 @@ chown_certs() {
   fi
 }
 
-# **Internal**
-# Mimic delay using busy loop
+# **Internal** Mimic delay using busy loop
+# We cannot use the sleep command as we have already unmounted, but we are
+# encountering 'device busy' failures on AArch64 Linux. We need this because 
+# we unmounted the resource and want to allow some time for it to be freed.
 busy_sleep() {
     local duration=$1
     local end_time=$(( $(date +%s) + duration ))

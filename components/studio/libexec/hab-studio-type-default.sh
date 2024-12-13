@@ -101,9 +101,6 @@ finish_setup() {
   _hab pkg binlink core/bash bash
   _hab pkg binlink core/bash sh
 
-  # binlink sleep command
-  _hab pkg binlink core/coreutils sleep
-
   # Create a wrapper to `build` so that any calls to it have a super-stripped
   # `$PATH` and not whatever augmented version is currently in use. This should
   # mean that running `build` from inside a `studio enter` and running `studio
