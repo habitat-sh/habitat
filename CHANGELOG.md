@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1229 -->
-## [1.6.1229](https://github.com/habitat-sh/habitat/tree/1.6.1229) (2024-12-10)
+<!-- latest_release 1.6.1230 -->
+## [1.6.1230](https://github.com/habitat-sh/habitat/tree/1.6.1230) (2024-12-13)
 
 #### Merged Pull Requests
-- Bump chrono from 0.4.38 to 0.4.39 [#9501](https://github.com/habitat-sh/habitat/pull/9501) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump semver from 1.0.23 to 1.0.24 [#9503](https://github.com/habitat-sh/habitat/pull/9503) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump semver from 1.0.23 to 1.0.24 [#9503](https://github.com/habitat-sh/habitat/pull/9503) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1230 -->
 - Bump chrono from 0.4.38 to 0.4.39 [#9501](https://github.com/habitat-sh/habitat/pull/9501) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1229 -->
 - Bump libc from 0.2.167 to 0.2.168 [#9500](https://github.com/habitat-sh/habitat/pull/9500) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1228 -->
 - Bump prost-build from 0.13.3 to 0.13.4 [#9498](https://github.com/habitat-sh/habitat/pull/9498) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1227 -->
