@@ -27,7 +27,6 @@ new packages coming in and invalidating your efforts.
 For each platform
 ([darwin](https://packages.chef.io/files/staging/habitat/latest/hab-x86_64-darwin.zip),
 [linux](https://packages.chef.io/files/staging/habitat/latest/hab-x86_64-linux.tar.gz),
-[linux-kernel2](https://packages.chef.io/files/staging/habitat/latest/hab-x86_64-linux-kernel2.tar.gz),
 [windows](https://packages.chef.io/files/staging/habitat/latest/hab-x86_64-windows.zip)),
 download the latest release candidate CLI from `packages.chef.io`. You
 **must** have run the `/expeditor` Slack command above _before_
@@ -48,21 +47,6 @@ Run either of the following:
 curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh \
     | sudo bash -s -- -c staging
 ```
-
-```sh
-sudo hab pkg install core/hab --binlink --force --channel=staging
-```
-
-#### Linux, Kernel 2
-
-Run either of the following commands:
-
-``` sh
-curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh \
-    | sudo bash -s -- -c staging -t x86_64-linux-kernel2
-```
-(Note the addition of the target option on the "curlbash" command! Without this you will end up with
-the modern Linux version, and things won't work properly!)
 
 ```sh
 sudo hab pkg install core/hab --binlink --force --channel=staging
@@ -120,7 +104,9 @@ Here is how you can validate the version of the cli, supervisor and the supervis
 On Linux:
 ``` sh
 hab --version
-hab sup --version
+sudo -E hab sup --version
+
+hab studio rm
 hab studio enter
 hab --version
 sup-log
@@ -133,6 +119,7 @@ On Windows:
 ``` pwsh
 hab --version
 hab sup --version
+hab studio rm
 hab studio enter
 hab --version
 Get-Supervisorlog
@@ -158,81 +145,50 @@ hab studio enter
 ```
 Then, once inside the Studio, you could try these:
 
+On Linux:
+
 ``` sh
 # Does the version of the cli inside the studio match staging?
 hab --version
 # Does the version of the supervisor inside the studio match staging?
 sup-log
 ^C
-# build the apache plan
-build core-plans/httpd
+# build the redis plan
+build core-plans/redis
 source results/last_build.env
 hab svc load $pkg_ident
 sup-log
-# Is Apache running
+# Is redis running and accepting connections
 ^C
-# Is it responding?
-hab pkg exec core/busybox-static wget http://localhost -S
+# Is it connectable?
+hab pkg exec $pkg_ident redis-cli --stat
 ```
 
-On Linux, testing the Docker studio is identical, except you enter
+On Windows:
+``` sh
+# Does the version of the cli inside the studio match staging?
+hab --version
+# Does the version of the supervisor inside the studio match staging?
+# The supervisor log will come up in a different window in a non-docker
+# Windows Studio. Make sure to "accept" any windows firewall requests.
+Get-SupervisorLog
+# build the nginx plan
+build core-plans/nginx
+. results/last_build.ps1
+hab svc load $pkg_ident
+# Look at the log window to see if nginx running
+# Is it responding?
+Invoke-WebRequest http://localhost
+```
+
+Testing the Docker studio is identical, except you enter
 using the following command instead:
 
 ```sh
 hab studio enter -D
 ```
 
-Test both in the chroot and docker studios on x86 linux.
-
-### Validating x86_64-linux-kernel2
-
-For this PackageTarget it is important that you perform validation on a Linux system running a 2.6 series kernel. CentOS 6 is recommended because it ships with a kernel of the appropriate age,  but any distro with a Kernel between 2.6.32 and 3.0.0 can be used. Included in the `support/validation/x86_64-linux-kernel2` directory in this repository is a Vagrantfile that will create a CentOS-6 VM to perform the validation. You can also run a VM in EC2.
-
-The Vagrantfile is configured to grab the
-[core-plans](https://github.com/habitat-sh/core-plans) repository (to
-give you something to build), as well as grab the secret key for your
-`HAB_ORIGIN` (using the `HAB_ORIGIN` and `HAB_AUTH_TOKEN` variables in
-your environment). Additionally, it will automatically install the
-release candidate `hab` binary from the `staging` channel unless you
-explicitly override that with the `INSTALL_CHANNEL` variable (see below).
-
-
-```sh
-export HAB_ORIGIN=...
-export HAB_AUTH_TOKEN=...
-
-# Only if you *don't* want the staging artifact, for some reason
-export INSTALL_CHANNEL=...
-
-vagrant up
-vagrant ssh
-```
-Once inside the VM, set your override environment variables (as above)
-and experiment. For example:
-
-```sh
-export HAB_INTERNAL_BLDR_CHANNEL=staging
-export HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL=staging
-export HAB_ORIGIN=<my_origin>
-hab studio enter
-```
-
-Then, once inside the Studio, you could try these:
-
-``` sh
-# Does the version of the cli inside the studio match staging?
-hab --version
-# Does the version of the supervisor inside the studio match staging?
-sup-log
-^C
-# build the apache plan
-build core-plans/redis
-source results/last_build.env
-hab svc load $pkg_ident
-sup-log
-# Is Redis running and reporting "Ready to accept connections"
-^C
-```
+Test both in the native and docker studios on x86 linux and windows.
 
 ## Promote from Staging to Current
 
