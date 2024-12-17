@@ -8,6 +8,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.81.0
+        id: toolchain
+      - run: rustup override set ${{steps.toolchain.outputs.name}}
       - uses: ClementTsang/cargo-action@v0.0.6
         with:
           command: install
