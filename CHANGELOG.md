@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1232 -->
-## [1.6.1232](https://github.com/habitat-sh/habitat/tree/1.6.1232) (2024-12-16)
+<!-- latest_release 1.6.1233 -->
+## [1.6.1233](https://github.com/habitat-sh/habitat/tree/1.6.1233) (2024-12-17)
 
 #### Merged Pull Requests
-- updating release doc to remove linux kernel2 [#9482](https://github.com/habitat-sh/habitat/pull/9482) ([mwrock](https://github.com/mwrock))
+- fixes for release pipeline (aarch64) [#9481](https://github.com/habitat-sh/habitat/pull/9481) ([sajjaphani](https://github.com/sajjaphani))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- fixes for release pipeline (aarch64) [#9481](https://github.com/habitat-sh/habitat/pull/9481) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.1233 -->
 - updating release doc to remove linux kernel2 [#9482](https://github.com/habitat-sh/habitat/pull/9482) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1232 -->
 - Bump cc from 1.2.3 to 1.2.4 [#9505](https://github.com/habitat-sh/habitat/pull/9505) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1231 -->
 - Bump semver from 1.0.23 to 1.0.24 [#9503](https://github.com/habitat-sh/habitat/pull/9503) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1230 -->
