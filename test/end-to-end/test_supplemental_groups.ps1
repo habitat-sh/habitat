@@ -48,7 +48,7 @@ Describe "supplemental group behavior" {
     It "should be able to run a service that depends on supplemental groups being set" {
         # Install the package first so we don't have to wait during
         # the load.
-        hab pkg install "habitat-testing/supplemental-group-tester" --channel=stable
+        hab pkg install "habitat-testing/supplemental-group-tester" --channel=LTS-2024
         Load-SupervisorService "habitat-testing/supplemental-group-tester"
 
         # The service should not be able to come up if supplemental
