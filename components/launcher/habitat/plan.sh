@@ -4,7 +4,7 @@ pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_deps=(core/glibc
-          core/gcc-base)
+          core/gcc-libs)
 pkg_build_deps=(core/coreutils
                 core/rust/"$(tail -n 1 "$SRC_PATH/../../rust-toolchain"  | cut -d'"' -f 2)"
                 core/gcc
