@@ -57,6 +57,7 @@ Invoke-Expression "$baseHabExe pkg build components\$Component --keys core"
 
 Write-Host "--- Running hab pkg upload for $Component to channel $Channel"
 Invoke-Expression "$baseHabExe pkg upload results\$pkg_artifact --channel=$Channel --no-build"
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 Set-TargetMetadata $pkg_ident
 
 Invoke-Expression "buildkite-agent annotate --append --context 'release-manifest' '<br>* ${pkg_ident} (x86_64-windows)'"
