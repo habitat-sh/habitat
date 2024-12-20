@@ -46,7 +46,7 @@ $Env:HAB_ORIGIN = "core"
 
 # Run a build!
 Write-Host "--- Running hab pkg build for $Component"
-git config --global --add safe.directory C:/workdir
+
 # Note: HAB_BLDR_CHANNEL *must* be set for the following `hab pkg
 # build` command! There isn't currently a CLI option to set that, and
 # we must ensure that we're pulling dependencies from our build
@@ -57,8 +57,6 @@ Invoke-Expression "$baseHabExe pkg build components\$Component --keys core"
 
 Write-Host "--- Running hab pkg upload for $Component to channel $Channel"
 Invoke-Expression "$baseHabExe pkg upload results\$pkg_artifact --channel=$Channel --no-build"
-if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
-
 Set-TargetMetadata $pkg_ident
 
 Invoke-Expression "buildkite-agent annotate --append --context 'release-manifest' '<br>* ${pkg_ident} (x86_64-windows)'"

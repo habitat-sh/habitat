@@ -16,7 +16,6 @@ bin="hab-launch"
 # Use the number of commits from the start of this repository
 # to the current HEAD as the version for our pkg_version
 pkg_version() {
-  git config --global --add safe.directory /src
   git rev-list "$(git rev-parse HEAD)" --count
 }
 

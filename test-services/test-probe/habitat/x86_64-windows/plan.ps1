@@ -5,12 +5,11 @@ $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_bin_dirs = @("bin")
 $pkg_deps=@(
-    "core/visual-cpp-redist-2022"
+    "core/visual-cpp-redist-2015"
 )
 $pkg_build_deps = @(
     "core/rust",
-    "core/windows-11-sdk",
-    "core/visual-build-tools-2022"
+    "core/visual-cpp-build-tools-2015"
 )
 
 $pkg_binds_optional = @{
