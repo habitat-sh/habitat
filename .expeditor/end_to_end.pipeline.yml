@@ -45,7 +45,7 @@ steps:
   - label: "[:linux: hup-does-not-abandon-services]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - hab pkg install --binlink --channel=LTS-2024 core/expect
+      - hab pkg install --binlink --channel=stable core/expect
       - hab pkg install --channel=\$HAB_BLDR_CHANNEL core/hab-sup core/hab-launcher
       - test/end-to-end/hup-does-not-abandon-services.exp
     expeditor:
@@ -58,7 +58,7 @@ steps:
   - label: "[:linux: hab-svc-load]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - hab pkg install --binlink --channel=LTS-2024 core/expect
+      - hab pkg install --binlink --channel=stable core/expect
       - hab pkg install --channel=\$HAB_BLDR_CHANNEL core/hab-sup core/hab-launcher
       - test/end-to-end/hab-svc-load.exp
     expeditor:

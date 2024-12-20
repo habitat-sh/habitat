@@ -2,12 +2,20 @@ expeditor:
   defaults:
     buildkite:
       timeout_in_minutes: 60
-      env: 
-        HAB_BLDR_CHANNEL: "LTS-2024"
+
 steps:
 #######################################################################
 # Linting!
 #######################################################################
+
+  - label: "[unit] :linux: ARM Platform Support"
+    command:
+      - .expeditor/scripts/verify/run_native_cargo_test.sh
+    agents:
+      queue: docker-linux-arm64
+    plugins:
+      - docker#v3.13.0:
+          image: "rust:1.62.1-buster"
 
   - label: "[lint] :linux: :bash: Shellcheck"
     command:
@@ -102,20 +110,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :linux: aarch64 ignored"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh -- --ignored
-    timeout_in_minutes: 20
-    retry:
-      automatic:
-        limit: 1
-
   - label: "[unit] :linux: builder-api-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh builder-api-client
@@ -123,20 +117,6 @@ steps:
       executor:
         docker:
           privileged: true
-    timeout_in_minutes: 20
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[unit] :linux: aarch64 builder-api-client"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh builder-api-client
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -152,18 +132,6 @@ steps:
     timeout_in_minutes: 20
     soft_fail: true
 
-  - label: "[unit] :linux: aarch64 butterfly lock_as_mutex"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh butterfly --features "lock_as_mutex" -- --test-threads=1 --format=pretty
-    timeout_in_minutes: 20
-    soft_fail: true
-
   - label: "[unit] :linux: butterfly lock_as_rwlock"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh butterfly --features "lock_as_rwlock" -- --test-threads=1 --format=pretty
@@ -171,20 +139,6 @@ steps:
       executor:
         docker:
           privileged: true
-    timeout_in_minutes: 20
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[unit] :linux: aarch64 butterfly lock_as_rwlock"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh butterfly --features "lock_as_rwlock" -- --test-threads=1 --format=pretty
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -207,20 +161,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :linux: aarch64 common"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh common
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
   - label: "[unit] :linux: core"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh core
@@ -228,20 +168,6 @@ steps:
       executor:
         docker:
           privileged: true
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[unit] :linux: aarch64 core"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh core
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -256,17 +182,6 @@ steps:
           privileged: true
     timeout_in_minutes: 20
 
-  - label: "[unit] :linux: aarch64 core functional"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh core --features "functional" -- --format=pretty
-    timeout_in_minutes: 20
-
   - label: "[unit] :linux: http-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh http-client
@@ -274,20 +189,6 @@ steps:
       executor:
         docker:
           privileged: true
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[unit] :linux: aarch64 http-client"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh http-client
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -305,20 +206,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :linux: aarch64 hab"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh hab
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
   - label: "[unit] :linux: launcher-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh launcher-client
@@ -326,20 +213,6 @@ steps:
       executor:
         docker:
           privileged: true
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[unit] :linux: aarch64 launcher-client"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh launcher-client
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -357,20 +230,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :linux: aarch64 launcher-protocol"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh launcher-protocol
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
   - label: "[unit] :linux: pkg-export-container"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-container
@@ -378,20 +237,6 @@ steps:
       executor:
         docker:
           privileged: true
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[unit] :linux: aarch64 pkg-export-container"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh pkg-export-container
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -409,20 +254,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :linux: aarch64 pkg-export-tar"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh pkg-export-tar
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
   - label: "[unit] :linux: sup lock_as_rwlock"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh sup --features "lock_as_rwlock"
@@ -430,20 +261,6 @@ steps:
       executor:
         docker:
           privileged: true
-    timeout_in_minutes: 40
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[unit] :linux: aarch64 sup lock_as_rwlock"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup --features "lock_as_rwlock"
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -459,18 +276,6 @@ steps:
     timeout_in_minutes: 40
     soft_fail: true
 
-  - label: "[unit] :linux: aarch64 sup lock_as_mutex"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup --features "lock_as_mutex"
-    timeout_in_minutes: 40
-    soft_fail: true
-
   - label: "[unit] :linux: sup-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh sup-client
@@ -483,20 +288,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :linux: aarch64 sup-client"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup-client
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
   - label: "[unit] :linux: sup-protocol"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh sup-protocol
@@ -504,20 +295,6 @@ steps:
       executor:
         docker:
           privileged: true
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[unit] :linux: aarch64 sup-protocol"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test-aarch64.sh sup-protocol
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -846,48 +623,18 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[build] :linux: aarch64 test-probe"
-    agents:
-      queue: default-privileged-aarch64
+  - label: "[build] :linux: backline"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      HAB_REFRESH_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
+      BUILD_PKG_TARGET: "x86_64-linux"
+      HAB_BLDR_CHANNEL: "stable"
+      HAB_INTERNAL_BLDR_CHANNEL: "stable"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh test-services/test-probe
-    retry:
-      automatic:
-        limit: 1
-
-# SHOULD BE UNCOMMENTED WHEN NEWER VERSION OF HAB IS RELEASED
-
-  # - label: "[build] :linux: backline"
-  #   env:
-  #     HAB_LICENSE: "accept-no-persist"
-  #     BUILD_PKG_TARGET: "x86_64-linux"
-
-  #   command:
-  #     - .expeditor/scripts/verify/build_package.sh components/backline
-  #   expeditor:
-  #     executor:
-  #       docker:
-  #         privileged: true
-  #   retry:
-  #     automatic:
-  #       limit: 1
-
-  # This build currently fails due to a circular dependency in 'LTS-2024' and needs investigation.
-  - label: "[build] :linux: aarch64 backline"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      HAB_REFRESH_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/backline
+      - .expeditor/scripts/verify/build_package.sh components/backline
+    expeditor:
+      executor:
+        docker:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -906,20 +653,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[build] :linux: aarch64 hab"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      HAB_REFRESH_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/hab
-    retry:
-      automatic:
-        limit: 1
-
   - label: "[build] :linux: launcher"
     env:
       HAB_LICENSE: "accept-no-persist"
@@ -933,38 +666,6 @@ steps:
     retry:
       automatic:
         limit: 1
-
-  - label: "[build] :linux: aarch64 launcher"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      HAB_REFRESH_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/launcher
-    retry:
-      automatic:
-        limit: 1
-
-# SHOULD BE UNCOMMENTED WHEN NEWER VERSION OF HAB IS RELEASED
-
-  # - label: "[build] :linux: pkg-cfize"
-  #   env:
-  #     HAB_LICENSE: "accept-no-persist"
-  #     BUILD_PKG_TARGET: "x86_64-linux"
- 
-  #   command:
-  #     - .expeditor/scripts/verify/build_package.sh components/pkg-cfize
-  #   expeditor:
-  #     executor:
-  #       docker:
-  #         privileged: true
-  #   retry:
-  #     automatic:
-  #       limit: 1
-
 
   - label: "[build] :linux: pkg-export-container"
     env:
@@ -980,20 +681,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[build] :linux: aarch64 pkg-export-container"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      HAB_REFRESH_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/pkg-export-container
-    retry:
-      automatic:
-        limit: 1
-
   - label: "[build] :linux: pkg-export-tar"
     env:
       HAB_LICENSE: "accept-no-persist"
@@ -1004,20 +691,6 @@ steps:
       executor:
         docker:
           privileged: true
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[build] :linux: aarch64 pkg-export-tar"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      HAB_REFRESH_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/pkg-export-tar
     retry:
       automatic:
         limit: 1
@@ -1050,20 +723,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[build] :linux: aarch64 plan-build"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      HAB_REFRESH_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/plan-build
-    retry:
-      automatic:
-        limit: 1
-
   - label: "[build] :linux: studio"
     env:
       HAB_LICENSE: "accept-no-persist"
@@ -1074,20 +733,6 @@ steps:
       executor:
         docker:
           privileged: true
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[build] :linux: aarch64 studio"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      HAB_REFRESH_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/studio
     retry:
       automatic:
         limit: 1
@@ -1106,20 +751,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[build] :linux: aarch64 sup"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      HAB_BLDR_CHANNEL: "LTS-2024"
-      HAB_REFRESH_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
-    command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/sup
-    retry:
-      automatic:
-        limit: 1
-
 #######################################################################
 # Things that have no tests but should be built to make sure they
 # still build. - Linux Kernel 2
@@ -1131,8 +762,6 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-
     expeditor:
       executor:
         docker:
@@ -1144,8 +773,6 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-
     expeditor:
       executor:
         docker:
@@ -1158,7 +785,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
       HAB_BLDR_CHANNEL: "stable"
-
+      HAB_INTERNAL_BLDR_CHANNEL: "stable"
     expeditor:
       executor:
         docker:
@@ -1170,8 +797,6 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-
     expeditor:
       executor:
         docker:
@@ -1183,8 +808,6 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-
     expeditor:
       executor:
         docker:
@@ -1196,8 +819,6 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-
     expeditor:
       executor:
         docker:
@@ -1209,8 +830,6 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-
     expeditor:
       executor:
         docker:
