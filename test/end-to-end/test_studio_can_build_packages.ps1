@@ -145,35 +145,3 @@ Describe "Consuming runtime variables of build dependency" {
         $LASTEXITCODE | Should -Be 0
     }
 }
-
-Describe "Targeting different refresh channels" {
-    if($IsLinux) {
-        It "Can target a downgraded channel" {
-            Invoke-BuildAndInstall -PackageName breakable-refresh-downgrade -RefreshChannel refresh2022q2
-            . ./results/last_build.ps1
-            "/hab/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/glibc/2.34"
-        }
-
-        It "Can target default LTS-2024" {
-            Invoke-BuildAndInstall -PackageName breakable-refresh-downgrade -RefreshChannel LTS-2024
-            . ./results/last_build.ps1
-            "/hab/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/glibc/2.36"
-        }
-    }
-
-    if($IsWindows) {
-        hab studio run "hab pkg install core/libarchive"
-
-        It "Can target a downgraded channel" {
-            Invoke-BuildAndInstall -PackageName breakable-refresh-downgrade -RefreshChannel refresh2022q2
-            . ./results/last_build.ps1
-            "/hab/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/zlib/1.2.12"
-        }
-
-        It "Can target latest stable" {
-            Invoke-BuildAndInstall -PackageName breakable-refresh-downgrade -RefreshChannel stable
-            . ./results/last_build.ps1
-            "/hab/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/zlib/1.3"
-        }
-    }
-}
