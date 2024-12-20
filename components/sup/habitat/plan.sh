@@ -57,7 +57,7 @@ do_before() {
 do_prepare() {
   _common_prepare
 
-  export rustc_target="${pkg_target%%-*}-unknown-linux-gnu"
+  export rustc_target="x86_64-unknown-linux-gnu"
   build_line "Setting rustc_target=$rustc_target"
 
   export LIBZMQ_PREFIX=$(pkg_path_for zeromq)
@@ -91,13 +91,13 @@ do_build() {
   export LIBRARY_PATH=$LIBZMQ_PREFIX/lib
 
   pushd "$SRC_PATH" > /dev/null || exit
-  cargo build ${build_type#--debug} --target="$rustc_target" --verbose --no-default-features \
+  cargo build ${build_type#--debug} --target=$rustc_target --verbose --no-default-features \
     --features apidocs
   popd > /dev/null || exit
 }
 
 do_install() {
-  install -v -D "$CARGO_TARGET_DIR"/"$rustc_target"/${build_type#--}/$bin \
+  install -v -D "$CARGO_TARGET_DIR"/$rustc_target/${build_type#--}/$bin \
     "$pkg_prefix"/bin/$bin
 }
 
