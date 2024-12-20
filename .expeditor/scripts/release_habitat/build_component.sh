@@ -33,9 +33,6 @@ ${hab_binary} studio rm
 
 echo "--- :habicat: Building components/${component} using ${hab_binary}"
 
-# Set the refresh channel to the release channel.
-export HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL="${channel}"
-
 HAB_BLDR_CHANNEL="${channel}" ${hab_binary} pkg build "components/${component}"
 source results/last_build.env
 

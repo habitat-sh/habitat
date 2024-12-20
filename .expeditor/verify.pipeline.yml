@@ -853,6 +853,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh test-services/test-probe
@@ -885,6 +886,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/backline
@@ -913,6 +915,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/hab
@@ -941,6 +944,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/launcher
@@ -987,6 +991,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/pkg-export-container
@@ -1015,6 +1020,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/pkg-export-tar
@@ -1057,6 +1063,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/plan-build
@@ -1085,6 +1092,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/studio
@@ -1113,6 +1121,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       HAB_BLDR_CHANNEL: "LTS-2024"
       HAB_REFRESH_CHANNEL: "LTS-2024"
+      HAB_FALLBACK_CHANNEL: "lts24-aarch64-linux"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/sup
