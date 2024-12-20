@@ -30,6 +30,9 @@ function Invoke-Prepare {
 
 function pkg_version {
     git rev-list (git rev-parse HEAD) --count
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Unable to determine version from git!"
+    }
 }
 
 function Invoke-Before {
