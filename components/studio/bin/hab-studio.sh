@@ -1040,18 +1040,6 @@ chown_certs() {
   fi
 }
 
-# **Internal** Mimic delay using busy loop
-# We cannot use the sleep command as we have already unmounted, but we are
-# encountering 'device busy' failures on AArch64 Linux. We need this because 
-# we unmounted the resource and want to allow some time for it to be freed.
-busy_sleep() {
-    duration="$1"
-    end_time=$(( $(date +%s) + duration ))
-    while [ "$(date +%s)" -lt "$end_time" ]; do
-        : # No-op, keeps the loop running
-    done
-}
-
 # **Internal** Unmount mount point if mounted and abort if an unmount is
 # unsuccessful.
 #
@@ -1067,30 +1055,15 @@ umount_fs() {
         # Filesystem is confirmed umounted, return success
         return 0
       else
-        # TODO: The retry mechanism with an increasing delay has been added 
-        # to address potential race conditions: if the `umount` operation 
-        # is performed asynchronously, the filesystem might still be reported 
-        # as mounted during the retries while the unmounting is in progress. 
-        # By incrementally increasing the delay between retries (starting with 
-        # a 5-second delay and increasing with each attempt), we aim to account 
-        # for such races and give the system more time to process the unmount 
-        # operation. This approach provides a balance between responsiveness 
-        # and allowing sufficient time for the unmount process to complete. 
-        # If this still impacts user experience, further adjustments such as 
-        # dynamic retry intervals or enhanced detection mechanisms could be 
-        # explored.
-        RETRY_DELAY=5
-        MAX_RETRIES=5
-        i=1
-        while [ "$i" -le "$MAX_RETRIES" ]
-        do 
-            busy_sleep $((RETRY_DELAY * i))  # Delay increases with each retry
-            if ! is_fs_mounted "$_mount_point"; then
-                return 0
-            fi
-            i=$((i+1))
-        done
         # Despite a successful umount, filesystem is still mounted
+        #
+        # TODO fn: there may a race condition here: if the `umount` is
+        # performed asynchronously then it might still be reported as mounted
+        # when the umounting is still queued up. We're erring on the side of
+        # catching any possible races here to determine if there's a problem or
+        # not. If this unduly impacts user experience then an alternate
+        # approach is to wait/poll until the filesystem is unmounted (with a
+        # deadline to abort).
         >&2 echo "After unmounting filesystem '$_mount_point', the mount \
 persisted. Check that the filesystem is no longer in the mounted using \
 \`mount(8)'and retry the last command."

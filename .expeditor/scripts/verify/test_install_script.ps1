@@ -1,5 +1,5 @@
 Write-Host "--- Installing pester"
-hab pkg install core/pester --channel LTS-2024
+hab pkg install core/pester --channel stable
 Import-Module "$(hab pkg path core/pester)\module\pester.psd1"
 $env:HAB_NOCOLORING = "true"
 

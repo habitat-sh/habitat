@@ -6,7 +6,7 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=("Apache-2.0")
 pkg_bin_dirs=(bin)
 pkg_deps=(core/glibc
-          core/gcc-base
+          core/gcc-libs
           core/procps-ng
           core/bash)
 pkg_build_deps=(core/coreutils

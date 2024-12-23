@@ -1,3 +1,0 @@
-host = "0.0.0.0"
-port = 8000
-render_context_file = "/hab/svc/test-probe/config/render_context.json"
