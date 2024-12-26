@@ -85,7 +85,7 @@ if (!(Test-Path Env:\HAB_BLDR_CHANNEL)) {
 if (!(Test-Path Env:\HAB_FALLBACK_CHANNEL)) {
     $env:HAB_FALLBACK_CHANNEL = "stable"
 }
-# Use the refresh channel for dependencies in the core/chef/chef-platform origins
+# Use the refresh channel for dependencies in the core origin
 if (!(Test-Path Env:\HAB_REFRESH_CHANNEL)) {
     $env:HAB_REFRESH_CHANNEL = "stable"
 }
@@ -340,7 +340,7 @@ function Install-Dependency($dependency, $install_args = $null) {
         $origin = $dependency.Split("/")[0]
         $channel = $env:HAB_BLDR_CHANNEL
         $ignoreLocal = ""
-        if ($origin -eq "core" -or $origin -eq "chef" -or $origin -eq "chef-platform") {
+        if ($origin -eq "core") {
             $channel="$env:HAB_REFRESH_CHANNEL"
             if (!$env:HAB_PREFER_LOCAL_CHEF_DEPS) {
                 $ignoreLocal="--ignore-local"
