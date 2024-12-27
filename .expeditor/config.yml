@@ -1,7 +1,7 @@
 # Documentation available at https://expeditor.chef.io/
 
 project:
-  alias: "habitat-1.6"
+  alias: "habitat-1"
 
 github:
   # The file where the MAJOR.MINOR.PATCH version is kept. The version in this file
