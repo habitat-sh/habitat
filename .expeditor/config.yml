@@ -33,6 +33,12 @@ pipelines:
   - finish_release:
       description: Tasks to be performed after a release has been promoted to stable
 
+release_branches:
+  - main:
+      version_constraint: 2*
+  - v1.6:
+      version_constraint: 1*
+
 staging_areas:
   - release_staging:
       workload: pull_request_merged:{{github_repo}}:{{release_branch}}:*
