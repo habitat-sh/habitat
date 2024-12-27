@@ -1135,7 +1135,7 @@ steps:
   - label: "[:habicat: Promote to Acceptance]"
     command:
       - .expeditor/scripts/buildkite_promote.sh dev acceptance
-    if: build.creator.name == 'Chef Expeditor'
+    if: build.creator.name == 'Chef Expeditor' || build.env("PROMOTE") == 'true'
     expeditor:
       executor:
         docker:
