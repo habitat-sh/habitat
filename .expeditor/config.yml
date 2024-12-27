@@ -33,6 +33,7 @@ pipelines:
   - finish_release:
       description: Tasks to be performed after a release has been promoted to stable
 
+# branches under active maintenance
 release_branches:
   - main:
       version_constraint: 2*
