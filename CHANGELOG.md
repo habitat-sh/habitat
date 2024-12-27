@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.0 -->
-## [2.0.0](https://github.com/habitat-sh/habitat/tree/2.0.0) (2024-12-27)
+<!-- latest_release 2.0.1 -->
+## [2.0.1](https://github.com/habitat-sh/habitat/tree/2.0.1) (2024-12-27)
 
 #### Merged Pull Requests
-- start v2 and add release branches in expeditor config [#9521](https://github.com/habitat-sh/habitat/pull/9521) ([mwrock](https://github.com/mwrock))
+- Bump cc from 1.2.5 to 1.2.6 [#9523](https://github.com/habitat-sh/habitat/pull/9523) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.5 to 1.2.6 [#9523](https://github.com/habitat-sh/habitat/pull/9523) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.1 -->
 - start v2 and add release branches in expeditor config [#9521](https://github.com/habitat-sh/habitat/pull/9521) ([mwrock](https://github.com/mwrock)) <!-- 2.0.0 -->
 - refresh channel should only include core packages [#9510](https://github.com/habitat-sh/habitat/pull/9510) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1242 -->
 - Bump anyhow from 1.0.94 to 1.0.95 [#9519](https://github.com/habitat-sh/habitat/pull/9519) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1241 -->
