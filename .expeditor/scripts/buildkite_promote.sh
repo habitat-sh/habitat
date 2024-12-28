@@ -49,8 +49,8 @@ get_manifest_for_environment "${source_environment}"
 
 # Extract the targets from the manifest
 echo "--- Promoting Habitat packages into the ${destination_channel} channel on ${HAB_BLDR_URL}"
-maybe_run promote_packages_to_builder_channel manifest.json "${destination_channel}"
+promote_packages_to_builder_channel manifest.json "${destination_channel}"
 
 version="$(jq -r '.version' < manifest.json)"
 echo "--- Promoting binary packages and manifest to the ${destination_channel} channel in S3"
-maybe_run promote_version_in_s3 "${version}" "${destination_channel}"
+promote_version_in_s3 "${version}" "${destination_channel}"
