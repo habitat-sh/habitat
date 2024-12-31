@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.2 -->
-## [2.0.2](https://github.com/habitat-sh/habitat/tree/2.0.2) (2024-12-31)
+<!-- latest_release 2.0.3 -->
+## [2.0.3](https://github.com/habitat-sh/habitat/tree/2.0.3) (2024-12-31)
 
 #### Merged Pull Requests
-- Bump glob from 0.3.1 to 0.3.2 [#9527](https://github.com/habitat-sh/habitat/pull/9527) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump petgraph from 0.6.5 to 0.6.6 [#9529](https://github.com/habitat-sh/habitat/pull/9529) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump petgraph from 0.6.5 to 0.6.6 [#9529](https://github.com/habitat-sh/habitat/pull/9529) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.3 -->
+- Bump serde from 1.0.216 to 1.0.217 [#9528](https://github.com/habitat-sh/habitat/pull/9528) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.3 -->
 - Bump glob from 0.3.1 to 0.3.2 [#9527](https://github.com/habitat-sh/habitat/pull/9527) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.2 -->
 - Bump cc from 1.2.5 to 1.2.6 [#9523](https://github.com/habitat-sh/habitat/pull/9523) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.1 -->
 - start v2 and add release branches in expeditor config [#9521](https://github.com/habitat-sh/habitat/pull/9521) ([mwrock](https://github.com/mwrock)) <!-- 2.0.0 -->
