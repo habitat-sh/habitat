@@ -1,6 +1,6 @@
 ## PR Verification Testing
 
-All components of habitat are tested when PRs are created. That's right...I said created. The helper scripts are designed to run against a single component (such as `common`), in an environment that has habitat and rust preinstalled.
+All components of habitat are tested when PRs are created. The helper scripts are designed to run against a single component (such as `common`), in an environment that has habitat and rust preinstalled.
 
 #### Linux
 ```
