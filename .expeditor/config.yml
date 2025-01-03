@@ -1,5 +1,8 @@
 # Documentation available at https://expeditor.chef.io/
 
+project:
+  alias: "habitat"
+
 github:
   # The file where the MAJOR.MINOR.PATCH version is kept. The version in this file
   # is bumped automatically via the `built_in:bump_version` merge_action.
@@ -36,6 +39,10 @@ release_branches:
   - v1.6:
       version_constraint: 1.*
 
+staging_areas:
+  - release_staging:
+      workload: pull_request_merged:{{github_repo}}:{{release_branch}}:*
+
 subscriptions:
   - workload: pull_request_opened:{{github_repo}}:{{release_branch}}:*
     actions:
@@ -46,7 +53,7 @@ subscriptions:
           only_if_team_member:
             - habitat-sh/habitat-core-maintainers
 
-  - workload: pull_request_merged:{{github_repo}}:{{release_branch}}:*
+  - workload: staged_workload_released:{{agent_id}}:release_staging:*
     actions:
       - built_in:bump_version
       - built_in:update_changelog
@@ -59,6 +66,8 @@ subscriptions:
   - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
     actions:
       - trigger_pipeline:end_to_end
+      - unlock_staging_area:release_staging:
+          always_run: true
       - bash:.expeditor/scripts/release_habitat/expeditor_destroy_build_channel.sh:
           always_run: true
           post_commit: true
@@ -66,12 +75,16 @@ subscriptions:
   # Make sure we unlock to allow later builds if one fails.
   - workload: buildkite_build_failed:{{agent_id}}:release_habitat:*
     actions:
+      - unlock_staging_area:release_staging:
+          always_run: true
       - bash:.expeditor/scripts/release_habitat/expeditor_destroy_build_channel.sh:
           always_run: true
           post_commit: true
 
   - workload: buildkite_build_canceled:{{agent_id}}:release_habitat:*
     actions:
+      - unlock_staging_area:release_staging:
+          always_run: true
       - bash:.expeditor/scripts/release_habitat/expeditor_destroy_build_channel.sh:
           always_run: true
           post_commit: true
