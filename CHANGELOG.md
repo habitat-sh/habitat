@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.7 -->
-## [2.0.7](https://github.com/habitat-sh/habitat/tree/2.0.7) (2025-01-03)
+<!-- latest_release 2.0.8 -->
+## [2.0.8](https://github.com/habitat-sh/habitat/tree/2.0.8) (2025-01-03)
 
 #### Merged Pull Requests
-- remove expeditor staging area [#9537](https://github.com/habitat-sh/habitat/pull/9537) ([mwrock](https://github.com/mwrock))
+- Bump cc from 1.2.6 to 1.2.7 [#9539](https://github.com/habitat-sh/habitat/pull/9539) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.6 to 1.2.7 [#9539](https://github.com/habitat-sh/habitat/pull/9539) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.8 -->
 - remove expeditor staging area [#9537](https://github.com/habitat-sh/habitat/pull/9537) ([mwrock](https://github.com/mwrock)) <!-- 2.0.7 -->
 - testing some expeditor stuff [#9535](https://github.com/habitat-sh/habitat/pull/9535) ([mwrock](https://github.com/mwrock)) <!-- 2.0.6 -->
 - turn off cpp codeql [#9526](https://github.com/habitat-sh/habitat/pull/9526) ([mwrock](https://github.com/mwrock)) <!-- 2.0.5 -->
