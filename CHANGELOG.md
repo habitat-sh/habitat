@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.8 -->
-## [2.0.8](https://github.com/habitat-sh/habitat/tree/2.0.8) (2025-01-03)
+<!-- latest_release 2.0.9 -->
+## [2.0.9](https://github.com/habitat-sh/habitat/tree/2.0.9) (2025-01-03)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.6 to 1.2.7 [#9539](https://github.com/habitat-sh/habitat/pull/9539) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tempfile from 3.14.0 to 3.15.0 [#9540](https://github.com/habitat-sh/habitat/pull/9540) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump tempfile from 3.14.0 to 3.15.0 [#9540](https://github.com/habitat-sh/habitat/pull/9540) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.9 -->
 - Bump cc from 1.2.6 to 1.2.7 [#9539](https://github.com/habitat-sh/habitat/pull/9539) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.8 -->
 - remove expeditor staging area [#9537](https://github.com/habitat-sh/habitat/pull/9537) ([mwrock](https://github.com/mwrock)) <!-- 2.0.7 -->
 - testing some expeditor stuff [#9535](https://github.com/habitat-sh/habitat/pull/9535) ([mwrock](https://github.com/mwrock)) <!-- 2.0.6 -->
