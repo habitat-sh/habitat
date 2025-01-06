@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.10 -->
-## [2.0.10](https://github.com/habitat-sh/habitat/tree/2.0.10) (2025-01-03)
+<!-- latest_release 2.0.11 -->
+## [2.0.11](https://github.com/habitat-sh/habitat/tree/2.0.11) (2025-01-06)
 
 #### Merged Pull Requests
-- bump powershell to 7.5.0 [#9542](https://github.com/habitat-sh/habitat/pull/9542) ([mwrock](https://github.com/mwrock))
+- release uploads aarch64 from x64 docker [#9546](https://github.com/habitat-sh/habitat/pull/9546) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- release uploads aarch64 from x64 docker [#9546](https://github.com/habitat-sh/habitat/pull/9546) ([mwrock](https://github.com/mwrock)) <!-- 2.0.11 -->
 - bump powershell to 7.5.0 [#9542](https://github.com/habitat-sh/habitat/pull/9542) ([mwrock](https://github.com/mwrock)) <!-- 2.0.10 -->
 - Bump tempfile from 3.14.0 to 3.15.0 [#9540](https://github.com/habitat-sh/habitat/pull/9540) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.9 -->
 - Bump cc from 1.2.6 to 1.2.7 [#9539](https://github.com/habitat-sh/habitat/pull/9539) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.8 -->
