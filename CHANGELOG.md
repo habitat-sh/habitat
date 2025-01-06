@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.11 -->
-## [2.0.11](https://github.com/habitat-sh/habitat/tree/2.0.11) (2025-01-06)
+<!-- latest_release 2.0.12 -->
+## [2.0.12](https://github.com/habitat-sh/habitat/tree/2.0.12) (2025-01-06)
 
 #### Merged Pull Requests
-- release uploads aarch64 from x64 docker [#9546](https://github.com/habitat-sh/habitat/pull/9546) ([mwrock](https://github.com/mwrock))
+- Bump async-trait from 0.1.83 to 0.1.84 [#9543](https://github.com/habitat-sh/habitat/pull/9543) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.83 to 0.1.84 [#9543](https://github.com/habitat-sh/habitat/pull/9543) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.12 -->
+- Bump tabwriter from 1.4.0 to 1.4.1 [#9545](https://github.com/habitat-sh/habitat/pull/9545) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.12 -->
+- Bump os_info from 3.9.1 to 3.9.2 [#9544](https://github.com/habitat-sh/habitat/pull/9544) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.12 -->
 - release uploads aarch64 from x64 docker [#9546](https://github.com/habitat-sh/habitat/pull/9546) ([mwrock](https://github.com/mwrock)) <!-- 2.0.11 -->
 - bump powershell to 7.5.0 [#9542](https://github.com/habitat-sh/habitat/pull/9542) ([mwrock](https://github.com/mwrock)) <!-- 2.0.10 -->
 - Bump tempfile from 3.14.0 to 3.15.0 [#9540](https://github.com/habitat-sh/habitat/pull/9540) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.9 -->
