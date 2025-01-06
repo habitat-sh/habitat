@@ -419,14 +419,15 @@ steps:
             - BUILD_PKG_TARGET=x86_64-linux
 
   - label: "[:linux: upload hab aarch64 binary]"
-    agents:
-      queue: default-privileged-aarch64
-    env:
-      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "LTS-2024"
-      BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
     if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=aarch64-linux
 
   - label: "[:linux: :two: upload hab binary]"
     command:
