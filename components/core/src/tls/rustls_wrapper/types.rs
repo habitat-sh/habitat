@@ -9,8 +9,8 @@
 use crate::{error::Error,
             tls::{ctl_gateway,
                   rustls_wrapper}};
-use rustls::{Certificate,
-             PrivateKey as RustlsPrivateKey,
+use rustls::{pki_types::{CertificateDer,
+                         PrivatePkcs8KeyDer},
              RootCertStore};
 use serde::{Deserialize,
             Serialize};
@@ -21,11 +21,11 @@ use std::{path::PathBuf,
 #[serde(try_from = "String", into = "String")]
 pub struct CertificateChainCli {
     path:         PathBuf,
-    certificates: Vec<Certificate>,
+    certificates: Vec<CertificateDer<'static>>,
 }
 
 impl CertificateChainCli {
-    pub fn into_inner(self) -> Vec<Certificate> { self.certificates }
+    pub fn into_inner(self) -> Vec<CertificateDer<'static>> { self.certificates }
 }
 
 impl FromStr for CertificateChainCli {
@@ -48,15 +48,22 @@ impl std::fmt::Display for CertificateChainCli {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(try_from = "String", into = "String")]
 pub struct PrivateKeyCli {
     path:        PathBuf,
-    private_key: RustlsPrivateKey,
+    private_key: PrivatePkcs8KeyDer<'static>,
 }
 
 impl PrivateKeyCli {
-    pub fn into_inner(self) -> RustlsPrivateKey { self.private_key }
+    pub fn into_inner(self) -> PrivatePkcs8KeyDer<'static> { self.private_key }
+}
+
+impl Clone for PrivateKeyCli {
+    fn clone(&self) -> Self {
+        Self { path:        self.path.clone(),
+               private_key: self.private_key.clone_key(), }
+    }
 }
 
 impl FromStr for PrivateKeyCli {

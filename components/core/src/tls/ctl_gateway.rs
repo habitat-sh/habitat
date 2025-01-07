@@ -10,8 +10,9 @@ use rcgen::{CertificateParams,
             Error as RcgenError,
             KeyPair,
             PKCS_ECDSA_P256_SHA256};
-use rustls::{Certificate,
-             PrivateKey,
+
+use rustls::{pki_types::{CertificateDer,
+                         PrivatePkcs8KeyDer},
              RootCertStore};
 use std::{fs::{self,
                File},
@@ -41,9 +42,10 @@ pub enum Error {
 pub fn generate_self_signed_certificate_and_key(subject_alternate_name: &DnsName,
                                                 path: impl AsRef<Path>)
                                                 -> Result<(), Error> {
-    let mut params =
-        CertificateParams::new(vec![Into::<&str>::into(subject_alternate_name.as_ref()).to_string(),
-                                    "localhost".to_string(),])?;
+    let mut params = CertificateParams::new(vec![
+        Into::<&str>::into(subject_alternate_name.as_ref()).to_string(),
+        "localhost".to_string(),
+    ])?;
     let mut distinguished_name = DistinguishedName::new();
     distinguished_name.push(DnType::OrganizationName,
                             "Habitat Supervisor Control Gateway");
@@ -81,12 +83,12 @@ fn get_last_path(search_directory: impl AsRef<Path>, file_pattern: &str) -> Resu
                         .ok_or_else(|| Error::FailedToMatchPattern(pattern.to_string()))
 }
 
-pub fn latest_certificates(path: impl AsRef<Path>) -> Result<Vec<Certificate>, Error> {
+pub fn latest_certificates(path: impl AsRef<Path>) -> Result<Vec<CertificateDer<'static>>, Error> {
     let path = get_last_path(path, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION))?;
     Ok(rustls_wrapper::certificates_from_file(path)?)
 }
 
-pub fn latest_private_key(path: impl AsRef<Path>) -> Result<PrivateKey, Error> {
+pub fn latest_private_key(path: impl AsRef<Path>) -> Result<PrivatePkcs8KeyDer<'static>, Error> {
     let path = get_last_path(path, &format!("{}-*.{}", NAME_PREFIX, KEY_EXTENSION))?;
     Ok(rustls_wrapper::private_key_from_file(path)?)
 }

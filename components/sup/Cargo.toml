@@ -17,8 +17,9 @@ doc = false
 [dependencies]
 bytes = "*"
 actix-web = { version = "*", default-features = false, features = [
-  "rustls-0_21",
+  "rustls-0_23",
 ] }
+actix-http = { version = "3", features = [ "rustls-0_23" ]}
 actix-rt = "*"
 byteorder = "*"
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [
