@@ -77,6 +77,8 @@ use habitat_core::{crypto::keys::{KeyCache,
                              PackageIdent,
                              PackageInstall},
                    service::ServiceGroup,
+                   tls::rustls_wrapper::{certificates_from_file,
+                                         private_key_from_file},
                    util::ToI64,
                    ChannelIdent};
 use habitat_launcher_client::{LauncherCli,
@@ -94,10 +96,10 @@ use prometheus::{register_histogram_vec,
                  register_int_gauge,
                  HistogramVec,
                  IntGauge};
-use rustls::{server::{AllowAnyAuthenticatedClient,
-                      NoClientAuth},
-             Certificate,
-             PrivateKey,
+use rustls::{pki_types::{CertificateDer,
+                         PrivateKeyDer,
+                         PrivatePkcs8KeyDer},
+             server::WebPkiClientVerifier,
              RootCertStore,
              ServerConfig};
 use serde::{Deserialize,
@@ -107,8 +109,7 @@ use std::{collections::{HashMap,
           ffi::OsStr,
           fs::{self,
                File},
-          io::{BufReader,
-               Read,
+          io::{Read,
                Write},
           iter::{FromIterator,
                  IntoIterator},
@@ -292,6 +293,17 @@ impl Default for ServiceRestartConfig {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub struct CloneablePkcs8PrivKey(PrivatePkcs8KeyDer<'static>);
+
+impl From<PrivatePkcs8KeyDer<'static>> for CloneablePkcs8PrivKey {
+    fn from(k: PrivatePkcs8KeyDer<'static>) -> Self { Self(k) }
+}
+
+impl Clone for CloneablePkcs8PrivKey {
+    fn clone(&self) -> Self { Self(self.0.clone_key()) }
+}
+
 #[derive(Clone, Debug, Derivative)]
 #[derivative(PartialEq)]
 pub struct ManagerConfig {
@@ -305,8 +317,8 @@ pub struct ManagerConfig {
     pub update_channel:             ChannelIdent,
     pub gossip_listen:              GossipListenAddr,
     pub ctl_listen:                 ListenCtlAddr,
-    pub ctl_server_certificates:    Option<Vec<Certificate>>,
-    pub ctl_server_key:             Option<PrivateKey>,
+    pub ctl_server_certificates:    Option<Vec<CertificateDer<'static>>>,
+    pub ctl_server_key:             Option<CloneablePkcs8PrivKey>,
     #[derivative(PartialEq = "ignore")]
     pub ctl_client_ca_certificates: Option<RootCertStore>,
     pub http_listen:                HttpListenAddr,
@@ -1060,7 +1072,11 @@ impl Manager {
                                                         .cfg
                                                         .ctl_server_certificates
                                                         .clone(),
-                               server_key: self.state.cfg.ctl_server_key.clone(),
+                               server_key: self.state
+                                               .cfg
+                                               .ctl_server_key
+                                               .as_ref()
+                                               .map(|key| key.0.clone_key()),
                                client_certificates: self.state
                                                         .cfg
                                                         .ctl_client_ca_certificates
@@ -1310,7 +1326,12 @@ impl Manager {
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
                 if service_state.tick(&self.census_ring.read(), &self.launcher) {
-                    self.gossip_latest_service_rumor_rsw_mlw_rhw(service_state.service().expect("Service missing in PersistentServiceWrapper"), None);
+                    self.gossip_latest_service_rumor_rsw_mlw_rhw(
+                        service_state
+                            .service()
+                            .expect("Service missing in PersistentServiceWrapper"),
+                        None,
+                    );
                 }
                 if service_state.is_ready_for_restart() {
                     debug!("Service ready to restart, setting reconciliation flag");
@@ -1436,8 +1457,8 @@ impl Manager {
                         // The supervisor always runs the latest package on disk. When we have an
                         // update ensure that the lastest package on disk is
                         // the package we updated to.
-                        idents_to_restart_and_latest_desired_on_restart.push((ident.clone(),
-                                                                            Some(new_ident.ident)));
+                        idents_to_restart_and_latest_desired_on_restart
+                            .push((ident.clone(), Some(new_ident.ident)));
                     }
                 } else if service_state.should_shutdown_for_restart() {
                     idents_to_restart_and_latest_desired_on_restart.push((ident.clone(), None));
@@ -2012,56 +2033,38 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
     let client_auth = match &config.ca_cert_path {
         Some(path) => {
             let mut root_store = RootCertStore::empty();
-            let mut ca_file = &mut BufReader::new(File::open(path)?);
-            let certs = &rustls_pemfile::certs(&mut ca_file).map(|c| {
-                             c.map_err(|_| Error::InvalidCertFile(path.clone()))
-                              .map(|c| c.as_ref().to_vec())
-                         })
-                         .collect::<Result<Vec<_>>>()?;
-            let (added, _) = root_store.add_parsable_certificates(certs);
-            if added < 1 {
+            let certs =
+                certificates_from_file(path).map_err(|_| Error::InvalidCertFile(path.clone()))?;
+
+            if certs.is_empty() {
                 return Err(Error::InvalidCertFile(path.clone()));
-            } else {
-                AllowAnyAuthenticatedClient::new(root_store).boxed()
             }
+
+            for cert in certs {
+                root_store.add(cert).unwrap();
+            }
+            WebPkiClientVerifier::builder(root_store.into()).build()
+                                                            .unwrap()
         }
-        None => NoClientAuth::boxed(),
+        None => WebPkiClientVerifier::no_client_auth(),
     };
 
-    let tls_config = ServerConfig::builder().with_safe_defaults()
-                                            .with_client_cert_verifier(client_auth);
-
-    let key_file = &mut BufReader::new(File::open(&config.key_path)?);
-    let cert_file = &mut BufReader::new(File::open(&config.cert_path)?);
+    let tls_config = ServerConfig::builder().with_client_cert_verifier(client_auth);
 
     // Note that we must explicitly map these errors because rustls returns () as the error from
     // both pemfile::certs() as well as pemfile::rsa_private_keys() and we want to return
     // different errors for each.
-    let certs = rustls_pemfile::certs(cert_file).map(|c| {
-                                                    c.and_then(|cr| {
-                         if cr.is_empty() {
-                             Err(std::io::Error::new(std::io::ErrorKind::Other,
-                                                     "error getting file contents"))
-                         } else {
-                             Ok(cr)
-                         }
-        }).map_err(|_| Error::InvalidCertFile(config.cert_path.clone()))
-        .map(|c| Certificate(c.as_ref().to_vec()))
-                                                })
-                                                .collect::<Result<Vec<Certificate>>>()?;
-
-    let mut keys = rustls_pemfile::rsa_private_keys(key_file).map(|k| {
-                       k.map_err(|_| Error::InvalidKeyFile(config.key_path.clone()))
-                        .map(|k| PrivateKey(k.secret_pkcs1_der().to_vec()))
-                   })
-                   .collect::<Result<Vec<PrivateKey>>>()?;
-    let key = keys.pop()
-                  .ok_or_else(|| {
-                      std::io::Error::new(std::io::ErrorKind::Other, "error getting file contents")
-                  })
-                  .map_err(|_| Error::InvalidKeyFile(config.key_path.clone()))?;
-    let mut server_config = tls_config.with_single_cert(certs, key)?;
+    let certs = certificates_from_file(&config.cert_path).map_err(|_| {
+                                                             Error::InvalidCertFile(config.cert_path
+                                                                                  .clone())
+                                                         })?;
+    let key = private_key_from_file(&config.key_path).map_err(|_| {
+                                                         Error::InvalidKeyFile(config.key_path
+                                                                                     .clone())
+                                                     })?;
+    let mut server_config = tls_config.with_single_cert(certs, PrivateKeyDer::Pkcs8(key))?;
     server_config.ignore_client_order = true;
+
     Ok(server_config)
 }
 
