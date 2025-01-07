@@ -302,7 +302,7 @@ impl Server {
             debug!("http_gateway server configured");
 
             let bind = match tls_config {
-                Some(c) => server.bind_rustls_021(listen_addr.to_string(), c),
+                Some(c) => server.bind_rustls_0_23(listen_addr.to_string(), c),
                 None => server.bind(listen_addr.to_string()),
             };
             debug!("http_gateway server port bound");

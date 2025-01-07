@@ -1,7 +1,7 @@
 use pin_project::pin_project;
-use rustls::{ClientConfig as TlsClientConfig,
-             ServerConfig as TlsServerConfig,
-             ServerName};
+use rustls::{pki_types::ServerName,
+             ClientConfig as TlsClientConfig,
+             ServerConfig as TlsServerConfig};
 use std::{convert::TryFrom,
           pin::Pin,
           sync::Arc,
@@ -69,7 +69,7 @@ impl TcpOrTlsStream {
         let tls_client_stream = match self {
             Self::TcpStream(stream) => {
                 let tls_connector = TlsConnector::from(tls_config);
-                let server_name = match ServerName::try_from(domain) {
+                let server_name = match ServerName::try_from(domain.to_string()) {
                     Ok(name) => name,
                     Err(_) => {
                         let error = io::Error::new(io::ErrorKind::InvalidInput,
