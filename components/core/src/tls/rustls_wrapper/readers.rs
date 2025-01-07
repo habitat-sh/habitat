@@ -41,7 +41,7 @@ pub fn certificates_from_file(path: impl AsRef<Path>)
     let mut buf = buf_from_file(path.as_ref())?;
     rustls_pemfile::certs(&mut buf).map(|c| {
                                        c.map_err(|_| Error::FailedToReadCerts(path.as_ref().into()))
-                                        .map(|x| x.into_owned())
+                                        .map(CertificateDer::into_owned)
                                    })
                                    .collect()
 }

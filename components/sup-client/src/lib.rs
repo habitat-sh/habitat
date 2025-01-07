@@ -160,10 +160,9 @@ impl SrvClient {
         let server_name_indication = config.ctl_server_name_indication.clone();
         let tcp_stream = if let Some(tls_config) = config.maybe_tls_client_config()?.map(Arc::new) {
             let domain = server_name_indication.unwrap_or_else(|| addr.domain().to_string());
-            let domain: &str = &*domain;
             debug!("Upgrading ctl-gateway to TLS with domain '{}'", domain);
-            TcpOrTlsStream::new_tls_client(tcp_stream, tls_config, domain).await
-                                                                          .map_err(|e| e.0)?
+            TcpOrTlsStream::new_tls_client(tcp_stream, tls_config, &domain).await
+                                                                           .map_err(|e| e.0)?
         } else {
             TcpOrTlsStream::new(tcp_stream)
         };
