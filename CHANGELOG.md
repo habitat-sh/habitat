@@ -1,16 +1,55 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1235 -->
-## [1.6.1235](https://github.com/habitat-sh/habitat/tree/1.6.1235) (2024-12-17)
+<!-- latest_release 1.6.1243 -->
 
-#### Merged Pull Requests
-- Bump hyper from 1.5.1 to 1.5.2 [#9506](https://github.com/habitat-sh/habitat/pull/9506) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.1215-->
-### Changes since 1.6.1215 release
+<!-- release_rollup since=1.6.1243-->
+### Changes since 1.6.1243 release
+<!-- release_rollup -->
 
-#### Merged Pull Requests
+<!-- latest_stable_release 1.6.1243 -->
+
+## [1.6.1243](https://github.com/habitat-sh/habitat/tree/1.6.1243) (2025-01-09)
+
+### Merged Pull Requests
+
+- trying again to auto bump version [#9533](https://github.com/habitat-sh/habitat/pull/9533) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- testing release branches [#9532](https://github.com/habitat-sh/habitat/pull/9532) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- test release branches [#9530](https://github.com/habitat-sh/habitat/pull/9530) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- correct expeditor alias for v1.6 branch again [#9525](https://github.com/habitat-sh/habitat/pull/9525) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- correct expeditor alias for v1.6 branch [#9524](https://github.com/habitat-sh/habitat/pull/9524) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- testing expeditor release branches [#9522](https://github.com/habitat-sh/habitat/pull/9522) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- change expeditor config release branch to v1.6 [#9520](https://github.com/habitat-sh/habitat/pull/9520) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump hyper from 1.5.1 to 1.5.2 [#9506](https://github.com/habitat-sh/habitat/pull/9506) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- remove commented code from audit action [#9508](https://github.com/habitat-sh/habitat/pull/9508) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- use rust 1.81 in cargo audit [#9507](https://github.com/habitat-sh/habitat/pull/9507) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- fixes for release pipeline (aarch64) [#9481](https://github.com/habitat-sh/habitat/pull/9481) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- updating release doc to remove linux kernel2 [#9482](https://github.com/habitat-sh/habitat/pull/9482) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump cc from 1.2.3 to 1.2.4 [#9505](https://github.com/habitat-sh/habitat/pull/9505) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump semver from 1.0.23 to 1.0.24 [#9503](https://github.com/habitat-sh/habitat/pull/9503) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump serde from 1.0.215 to 1.0.216 [#9502](https://github.com/habitat-sh/habitat/pull/9502) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump chrono from 0.4.38 to 0.4.39 [#9501](https://github.com/habitat-sh/habitat/pull/9501) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump libc from 0.2.167 to 0.2.168 [#9500](https://github.com/habitat-sh/habitat/pull/9500) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump prost-build from 0.13.3 to 0.13.4 [#9498](https://github.com/habitat-sh/habitat/pull/9498) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump cc from 1.2.2 to 1.2.3 [#9497](https://github.com/habitat-sh/habitat/pull/9497) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump mio from 1.0.2 to 1.0.3 [#9495](https://github.com/habitat-sh/habitat/pull/9495) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump tokio-util from 0.7.12 to 0.7.13 [#9494](https://github.com/habitat-sh/habitat/pull/9494) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump anyhow from 1.0.93 to 1.0.94 [#9493](https://github.com/habitat-sh/habitat/pull/9493) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump cc from 1.2.1 to 1.2.2 [#9491](https://github.com/habitat-sh/habitat/pull/9491) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump tokio from 1.41.1 to 1.42.0 [#9489](https://github.com/habitat-sh/habitat/pull/9489) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump os_info from 3.8.2 to 3.9.0 [#9490](https://github.com/habitat-sh/habitat/pull/9490) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump errno from 0.3.9 to 0.3.10 [#9486](https://github.com/habitat-sh/habitat/pull/9486) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump libc from 0.2.164 to 0.2.167 [#9488](https://github.com/habitat-sh/habitat/pull/9488) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump bytes from 1.8.0 to 1.9.0 [#9487](https://github.com/habitat-sh/habitat/pull/9487) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- bump url from yanked 2.5.3 to 2.5.4 [#9483](https://github.com/habitat-sh/habitat/pull/9483) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Rustfmt and Nightly Rust Bump to nightly-2024-11-18 [#9478](https://github.com/habitat-sh/habitat/pull/9478) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump hyper from 1.5.0 to 1.5.1 [#9480](https://github.com/habitat-sh/habitat/pull/9480) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump serde_json from 1.0.132 to 1.0.133 [#9477](https://github.com/habitat-sh/habitat/pull/9477) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Bump libc from 0.2.162 to 0.2.164 [#9476](https://github.com/habitat-sh/habitat/pull/9476) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- Pipeline setup for aarch64-linux [#9326](https://github.com/habitat-sh/habitat/pull/9326) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- update environment variable doc to reflect HAB_REFRESH_CHANNEL [#9475](https://github.com/habitat-sh/habitat/pull/9475) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
+- update changelog for hab 1.6.1215 [#9479](https://github.com/habitat-sh/habitat/pull/9479) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1243 -->
 - Bump hyper from 1.5.1 to 1.5.2 [#9506](https://github.com/habitat-sh/habitat/pull/9506) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1235 -->
 - remove commented code from audit action [#9508](https://github.com/habitat-sh/habitat/pull/9508) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1235 -->
 - use rust 1.81 in cargo audit [#9507](https://github.com/habitat-sh/habitat/pull/9507) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1234 -->
@@ -36,9 +75,34 @@
 - Pipeline setup for aarch64-linux [#9326](https://github.com/habitat-sh/habitat/pull/9326) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.1218 -->
 - update environment variable doc to reflect HAB_REFRESH_CHANNEL [#9475](https://github.com/habitat-sh/habitat/pull/9475) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1217 -->
 - update changelog for hab 1.6.1215 [#9479](https://github.com/habitat-sh/habitat/pull/9479) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1216 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release 1.6.1215 -->
+### Reverted Pull Requests
+
+- Reverts PR #9481: fixes for release pipeline (aarch64) [731376d5b](https://github.com/habitat-sh/habitat/commit/731376d5b) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
+- Reverts PR #9326: Pipeline setup for aarch64-linux [1fb6a00e1](https://github.com/habitat-sh/habitat/commit/1fb6a00e1) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
+- Reverts PR #9428: fix release pipeline pulling from LTS [748f8a030](https://github.com/habitat-sh/habitat/commit/748f8a030) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
+- Reverts PR #9406: Updated Hab CI to point to LTS 2024 channel [cf9a60eec](https://github.com/habitat-sh/habitat/commit/cf9a60eec) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
+- Reverts PR #9447: fix e2e ssl cert file tests when not set [51ab6cc7c](https://github.com/habitat-sh/habitat/commit/51ab6cc7c) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
+- Reverts PR #9429: fix broken stdlib linking [07a59d6d8](https://github.com/habitat-sh/habitat/commit/07a59d6d8) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->t
+
+<!-- These two cancel each other out 
+- Partially Reverts PR #9282: Studio can build against downgraded channels
+- Revert "Partially Reverts PR #9282: Studio can build against downgraded channels" [e40282dc0](https://github.com/habitat-sh/habitat/commit/e40282dc0) ([jasonheath](https://github.com/jasonheath)) 
+-->
+
+### Merged Commits
+
+- remove maybe_run guard in buildkite_promote [1c3e4b13f](https://github.com/habitat-sh/habitat/commit/1c3e4b13f) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1243 -->
+- permit manual runs of e2e pipeline to promote with env var set [ea32bdda0](https://github.com/habitat-sh/habitat/commit/ea32bdda0) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1243 -->
+- Update VERSION [de19b906a](https://github.com/habitat-sh/habitat/commit/de19b906a) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
+- refresh channel should only include core packages [16488e9b5](https://github.com/habitat-sh/habitat/commit/16488e9b5) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1243 -->
+- Restores use of core/docker-compose/1.29.2/20220312064236 [968d4f34b](https://github.com/habitat-sh/habitat/commit/968d4f34b) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
+- Removes "[build] :linux: pkg-cfize" from the verify pipeline [34788699b](https://github.com/habitat-sh/habitat/commit/34788699b) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
+- Restores 'if ( -ne 0)' check in components/launcher/habitat/plan.ps1 [e3fdf22a0](https://github.com/habitat-sh/habitat/commit/e3fdf22a0) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
+- Restores "export HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL="${channel}"" in .expeditor/scripts/release_habitat/build_component.sh [04a983209](https://github.com/habitat-sh/habitat/commit/04a983209) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
+- restores 'if ( -ne 0) { exit  }' in build_component.ps1 [edecdfa75](https://github.com/habitat-sh/habitat/commit/edecdfa75) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
+- Corrects acceptamce misspelling [279e35651](https://github.com/habitat-sh/habitat/commit/279e35651) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
+- Sets HAB_BLDR_CHANNEL and HAB_INTERNAL_BLDR_CHANNEL in verify.pipeline.yml to stable instead of acceptance [1e31edfa8](https://github.com/habitat-sh/habitat/commit/1e31edfa8) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
 
 ## [1.6.1215](https://github.com/habitat-sh/habitat/tree/1.6.1215) (2024-11-15)
 
@@ -1136,7 +1200,6 @@
 - Rustfmt and Nightly Rust Bump to nightly-2021-05-12 [#8199](https://github.com/habitat-sh/habitat/pull/8199) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.321 -->
 - update changelog for 1.6.319 [#8200](https://github.com/habitat-sh/habitat/pull/8200) ([mwrock](https://github.com/mwrock)) <!-- 1.6.320 -->
 
-<!-- latest_stable_release 1.6.319 -->
 ## [1.6.319](https://github.com/habitat-sh/habitat/tree/1.6.319) (2021-05-12)
 
 #### Merged Pull Requests
@@ -1395,7 +1458,6 @@
 - Fix update documentation pipeline [#7895](https://github.com/habitat-sh/habitat/pull/7895) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.141 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-08-24 [#7889](https://github.com/habitat-sh/habitat/pull/7889) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.140 -->
 
-<!-- latest_stable_release 1.6.139 -->
 ## [1.6.139](https://github.com/habitat-sh/habitat/tree/1.6.139) (2020-08-24)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.115..1.6.139)
 
@@ -1427,7 +1489,6 @@
 - Update Changelog for 1.6.115 [#7864](https://github.com/habitat-sh/habitat/pull/7864) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.119 -->
 - make bind timeout configurable and add debug output around startup [#7858](https://github.com/habitat-sh/habitat/pull/7858) ([mwrock](https://github.com/mwrock)) <!-- 1.6.117 -->
 - Cleanup `hab pkg export` subcommand [#7857](https://github.com/habitat-sh/habitat/pull/7857) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.116 -->
-<!-- latest_stable_release -->
 
 ## [1.6.115](https://github.com/habitat-sh/habitat/tree/1.6.115) (2020-08-10)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.56..1.6.115)
