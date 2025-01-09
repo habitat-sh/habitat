@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.16 -->
-## [2.0.16](https://github.com/habitat-sh/habitat/tree/2.0.16) (2025-01-08)
+<!-- latest_release 2.0.17 -->
+## [2.0.17](https://github.com/habitat-sh/habitat/tree/2.0.17) (2025-01-09)
 
 #### Merged Pull Requests
-- Bump petgraph from 0.7.0 to 0.7.1 [#9553](https://github.com/habitat-sh/habitat/pull/9553) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- set refresh-channel to LTS-2024 in verify [#9556](https://github.com/habitat-sh/habitat/pull/9556) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- set refresh-channel to LTS-2024 in verify [#9556](https://github.com/habitat-sh/habitat/pull/9556) ([mwrock](https://github.com/mwrock)) <!-- 2.0.17 -->
 - Bump petgraph from 0.7.0 to 0.7.1 [#9553](https://github.com/habitat-sh/habitat/pull/9553) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.16 -->
 - Bump winreg from 0.52.0 to 0.53.0 [#9554](https://github.com/habitat-sh/habitat/pull/9554) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.15 -->
 - Bump serde_json from 1.0.134 to 1.0.135 [#9550](https://github.com/habitat-sh/habitat/pull/9550) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.14 -->
