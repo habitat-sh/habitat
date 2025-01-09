@@ -14,8 +14,6 @@ packages = [
   "core/hab-backline",
   "core/hab-pkg-export-container",
   "core/hab-pkg-export-tar",
-  "core/hab-pkg-mesosize",
-  "core/hab-pkg-cfize"
 ]
 
 [[x86_64-linux-kernel2]]

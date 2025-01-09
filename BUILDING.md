@@ -192,29 +192,6 @@ hab-pkg-export-cf 0.55.0/20180321215151
 …
 ```
 
-### Testing Cloud Foundry exporter
-
-See also [Exporting Docker Images for Cloud Foundry with Habitat](https://www.habitat.sh/blog/2018/03/habitat-cloudfoundry/).
-
-In order to test the Cloud Foundry exporter, you'll need a Cloud Foundry environment which supports
-Docker images. If you have one already, you can skip to step 4.
-
-*Note:* Make sure to install PCF Dev on your base operating system. It uses VirtualBox as its virtualizer
-so you can't install that within a VM. Fortunately, PCF Dev is has support for Linux, Windows and Mac OS.
-
-1. Install [the `cf` CLI](http://docs.pivotal.io/pivotalcf/2-1/cf-cli/install-go-cli.html).
-2. Install [VirtualBox 5.0+](https://www.virtualbox.org/).
-3. Install [PCF Dev](https://docs.pivotal.io/pcf-dev/index.html). *Note:* running `cf dev start`
-for the first time requires a very large download (>7 GB as of this writing).
-4. Build a `.hart` file and create a CF mapping `.toml`. See Stark and Wayne's
-[Running Habitat Apps on Cloud Foundry](https://starkandwayne.com/blog/habitat-to-cloud-foundry/) and
-[Exporting to Cloud Foundry documentation](https://www.habitat.sh/docs/developing-packages/#exporting-to-cloud-foundry)
-for more details.
-5. Run the exporter to add the `cf-` tagged image to Docker.
-6. `docker push …` the image to Docker Hub.
-7. `cf push …` the image from Docker Hub to add to the CF instance. *Note:* with PCF Dev this command
-must be run from the source directory of the project to correctly identify the necessary buildpack.
-
 ## HAB_STUDIO_BINARY
 
 This one is a bit special. Technically [hab-studio.sh](https://github.com/habitat-sh/habitat/blob/master/components/studio/bin/hab-studio.sh) is a shell script file and not binary. This also means that there is no need to build anything; set `HAB_STUDIO_BINARY` to the path to a version of `hab-studio.sh` within a `habitat` checkout and it will be used. This override will also affect which versions of the files in [studio/libexec](https://github.com/habitat-sh/habitat/tree/master/components/studio/libexec) are used. So if you want to test out changes to [hab-studio-profile.sh](https://github.com/habitat-sh/habitat/blob/master/components/studio/libexec/hab-studio-profile.sh) or [hab-studio-type-default.sh](https://github.com/habitat-sh/habitat/blob/master/components/studio/libexec/hab-studio-type-default.sh), make those changes in a checkout of the `habitat` repo located at `/path/to/habitat/repo` and set `HAB_STUDIO_BINARY` to `/path/to/habitat/repo/components/studio/bin/hab-studio.sh`. For example:

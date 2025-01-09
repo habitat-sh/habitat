@@ -1,6 +1,6 @@
 +++
 title = "Exporting Packages"
-description = "Export Chef Habitat packages to Docker, Kubernetes, Helm, Mesos, DC/OS, Cloud Foundry, or as a tarball "
+description = "Export Chef Habitat packages to Docker, Kubernetes, Helm, or as a tarball "
 gh_repo = "habitat"
 
 [menu]
@@ -13,7 +13,7 @@ gh_repo = "habitat"
 
 Chef Habitat Artifacts--`.hart` files--can be exported in a number of different formats depending on what you need and where you need it. This is powerful because you can use the same immutable Chef Habitat artifact by exporting it into a format that you need for a specific job.
 
-You can export packages into several different external, immutable runtime formats. Currently there are exports for: docker, mesos, tar, and cloudfoundry.
+You can export packages into several different external, immutable runtime formats. Currently there are exports for: docker and tar.
 
 The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. See the [Chef Habitat CLI Reference Guide]({{< relref "habitat_cli#hab-pkg-export" >}}) for more CLI information.
 
@@ -99,115 +99,3 @@ You can create a Docker container image for any package by performing the follow
     sudo /hab/bin/hab sup run
     sudo /hab/bin/hab svc load <ORIGIN>/<NAME>
     ```
-
-### Exporting to Apache Mesos and DC/OS
-
-1. Create an interactive studio in any directory with the `hab studio enter` command.
-
-2. Install or [build]({{< relref "pkg_build" >}}) the Chef Habitat package from which you want to create a Marathon application, for example:
-
-    ```bash
-    hab pkg install <ORIGIN>/<NAME>
-    ```
-
-3. Run the Mesos exporter on the package.
-
-    ```bash
-    hab pkg export mesos <ORIGIN>/<NAME>
-    ```
-
-4. This will create a Mesos container-format tarball in the results directory, and also print the JSON needed to load the application into Marathon. Note that the tarball needs to be uploaded to a download location and the "uris" in the JSON need to be updated manually. This is an example of the output:
-
-    ```json
-    { "id": "yourorigin/yourpackage", "cmd": "/bin/id -u hab &>/dev/null || /sbin/useradd hab; /bin/chown -R hab:hab *;
-    mount -t proc proc proc/; mount -t sysfs sys sys/;mount -o bind /dev dev/; /usr/sbin/chroot . ./init.sh start
-    yourorigin/yourpackage", "cpus": 0.5, "disk": 0, "mem": 256, "instances": 1, "uris":
-    ["https://storage.googleapis.com/mesos-habitat/yourorigin/yourpackage-0.0.1-20160611121519.tgz" ] }
-    ```
-
-5. Note that the default resource allocation for the application is very small: 0.5 units of CPU, no disk, one instance, and 256MB of memory. To change these resource allocations, pass different values to the Mesos exporter as command line options (defaults are documented with `--help`).
-
-6. See the [Apaches Mesos and DC/OS documentation]({{< relref "mesos_dcos" >}}) for more information on getting your application running on Mesos.
-
-### Exporting to Cloud Foundry
-
-Packages can be exported to run in a [Cloud Foundry platform](https://www.cloudfoundry.org/certified-platforms/) through the use of a Docker image that contains additional layers meant to handle mapping from the Cloud Foundry environment to a Chef Habitat default.toml file.
-
-#### Setting up Docker Support in Cloud Foundry
-
-If you have not done so already, you must enable Docker support for Cloud Foundry before you can upload your Cloud Foundry-specific Docker image.
-
-To do so, make sure you have done the following:
-
-1. Log in as an Admin user.
-2. Enable Docker support on your Cloud Foundry deployment by enabling the `diego_docker` feature flag.
-
-```bash
-cf enable-feature-flag diego_docker
-```
-
-#### Creating a Mapping File
-
-The mapping file is a TOML file that can add Bash-interpolated variables and scripts. The Bash code will have access to:
-
-* all environment variables
-* the jq binary
-* the helper methods listed below
-
-Here's an example of a mapping TOML file named `cf-mapping.toml`:
-
-```toml cf-mapping.toml
-secret_key_base = "$SECRET_KEY_BASE"
-rails_env = "$RAILS_ENV"
-port = ${PORT}
-
-[db]
-user = "$(service "elephantsql" '.credentials.username')"
-password = "$(service "elephantsql" '.credentials.password')"
-host = "$(service "elephantsql" '.credentials.host')"
-name = "$(service "elephantsql" '.credentials.database')"
-```
-
-#### Helpers
-
-The helper methods are designed to extract information from the standard Cloud Foundry environment variables [VCAP_SERVICES](https://docs.cloudfoundry.org/devguide/deploy-apps/environment-variable.html#VCAP-SERVICES) and [VCAP_APPLICATION](https://docs.cloudfoundry.org/devguide/deploy-apps/environment-variable.html#VCAP-APPLICATION).
-
-* `service <service-name> <jq-expression>` will extract the JSON associated with the given service-name from the `VCAP_SERVICES` environment variable and apply the jq-expression to it.
-* `application <jq-expression>` will apply the jq-expression to the `VCAP_APPLICATION` environment variable
-
-### Exporting and Pushing to a Cloud Foundry Endpoint
-
-1. Create a mapping.toml file using the format specified above and place that file in your local project repo.
-
-2. Enter the Studio through `hab studio enter`.
-
-3. Install or [build]({{< relref "pkg_build" >}}) the package that you want to export.
-
-    ```bash
-    hab pkg install <ORIGIN>/<NAME>
-    ```
-
-4. Run the Cloud Foundry exporter on the package.
-
-    ```bash
-    hab pkg export cf <ORIGIN>/<NAME> /path/to/mapping.toml
-    ```
-
-   > **Note** To generate this image, a base Docker image is also created. The Cloud Foundry version of the docker image will have `cf-` as a prefix in the image tag.
-
-5. (Optional) If you are creating a web app that binds to another Cloud Foundry service, such as ElephantSQL, you must have this service enabled in your deployment before running your app.
-
-6. [Upload your Docker image to a supported registry](https://docs.cloudfoundry.org/devguide/deploy-apps/push-docker.html). Your Docker repository should be match the `origin/package` identifier of your package.
-
-    ```bash
-    docker push origin/package:cf-version-release
-    ```
-
-7. After your Cloud Foundry Docker image is built, you can deploy it to a Cloud Foundry platform.
-
-    ```bash
-    cf push APP-NAME --docker-image docker_org/repository
-    ```
-
-   Your application will start after it has been successfully uploaded and deployed.
-

@@ -299,10 +299,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                                   all(target_os = "windows", target_arch = "x86_64"),))]
                         Pkg::Export(export) => {
                             match export {
-                                #[cfg(target_os = "linux")]
-                                PkgExportCommand::Cf(args) => {
-                                    return command::pkg::export::cf::start(ui, &args.args).await;
-                                }
                                 #[cfg(any(target_os = "linux", target_os = "windows"))]
                                 PkgExportCommand::Container(args) => {
                                     return command::pkg::export::container::start(ui, &args.args).await;
@@ -313,10 +309,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                                              for 'hab pkg export container'. Please update your \
                                              automation and processes accordingly.")?;
                                     return command::pkg::export::container::start(ui, &args.args).await;
-                                }
-                                #[cfg(target_os = "linux")]
-                                PkgExportCommand::Mesos(args) => {
-                                    return command::pkg::export::mesos::start(ui, &args.args).await;
                                 }
                                 #[cfg(any(target_os = "linux", target_os = "windows"))]
                                 PkgExportCommand::Tar(args) => {
