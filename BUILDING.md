@@ -171,24 +171,30 @@ These binary overrides can be great for rapid iteration, but will hide errors li
 
 ## Testing exporters
 
-Changes to the exporters can be tested once the exporter package has been built locally. For example, to test changes to the Cloud Foundry exporter (`core/hab-pkg-cfize`), first enter the studio and build a new package:
-```
+Changes to the exporters can be tested once the exporter package has been built locally. For example, to test changes to the container exporter (`core/hab-pkg-export-container`), first enter the studio and build a new package:
+
+```shell
 ➤ hab studio enter
 …
-[1][default:/src:0]# build components/pkg-cfize
+[1][default:/src:0]# build components/pkg-export-container
 …
-   hab-pkg-cfize: Installed Path: /hab/pkgs/jbauman/hab-pkg-cfize/0.56.0-dev/20180410205025
-```
-Now your modifications are installed locally, under `<HAB_ORIGIN>/hab-pkg-cfize`. You can run your new exporter with
-```
-[6][default:/src:0]# hab pkg exec $HAB_ORIGIN/hab-pkg-cfize hab-pkg-cfize --help
-hab-pkg-export-cf 0.56.0-dev/20180410205025
+   hab-pkg-export-container: Installed Path: /hab/pkgs/jasonheath/hab-pkg-export-container/2.0.17/20250110145427
 …
 ```
+
+Now your modifications are installed locally, under `<HAB_ORIGIN>/hab-pkg-export-container`. You can run your new exporter with
+
+```shell
+[6][default:/src:0]# hab pkg exec $HAB_ORIGIN/hab-pkg-export-container hab-pkg-export-container --help
+hab-pkg-exec 1.6.1243/20241227194506
+…
+```
+
 Note that the version is updated, confirming you're running the new code. The old version is still accessible by running
-```
-[10][default:/src:1]# hab pkg export cf --help
-hab-pkg-export-cf 0.55.0/20180321215151
+
+``` shell
+[10][default:/src:1]# hab pkg export container --help
+hab-pkg-export-container 1.6.1243/20241227202254
 …
 ```
 
