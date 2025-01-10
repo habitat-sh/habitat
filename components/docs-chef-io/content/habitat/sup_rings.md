@@ -17,15 +17,13 @@ A "Bastion Ring" is a pattern for preventing rumor loss and a split brain in a n
 
 ## Using a Scheduler
 
-**Note:** If you are using a container scheduler such as the Kubernetes `kube-scheduler`, Docker Swarm mode, Mesos DC/OS's Marathon or Chronos, or a PaaS such as Cloud Foundry, you should not follow the bastion ring pattern, because the scheduler handles persistence and orchestration on your behalf.
+**Note:** If you are using a container scheduler such as the Kubernetes `kube-scheduler` or Docker Swarm mode, you should not follow the bastion ring pattern, because the scheduler handles persistence and orchestration on your behalf.
 
 More resources on schedulers:
 
 - [Chef Habitat Container Orchestration]({{< relref "container_orchestration" >}})
 - Kubernetes `kube-scheduler`: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler
 - Docker Swarm mode: https://docs.docker.com/engine/swarm
-- Mesos DC/OS Marathon or Chronos: https://mesosphere.github.io/marathon/
-- Cloud Foundry: https://www.habitat.sh/get-started/cloudfoundry
 
 ## Initial Peer(s)
 
