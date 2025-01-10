@@ -1,6 +1,6 @@
 +++
 title = "Exporting Packages"
-description = "Export Chef Habitat packages to Docker, Kubernetes, Helm, or as a tarball "
+description = "Export Chef Habitat packages to Docker, Kubernetes, Helm, or as a tar file"
 gh_repo = "habitat"
 
 [menu]
@@ -13,7 +13,7 @@ gh_repo = "habitat"
 
 Chef Habitat Artifacts--`.hart` files--can be exported in a number of different formats depending on what you need and where you need it. This is powerful because you can use the same immutable Chef Habitat artifact by exporting it into a format that you need for a specific job.
 
-You can export packages into several different external, immutable runtime formats. Currently there are exports for: docker and tar.
+You can export packages to a Docker container image or a tar file.
 
 The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. See the [Chef Habitat CLI Reference Guide]({{< relref "habitat_cli#hab-pkg-export" >}}) for more CLI information.
 

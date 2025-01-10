@@ -39,4 +39,4 @@ If you're staunchly in the anti-curl-bash camp, you can get the latest packages 
 
 **Q: How do I install `hab` across my server fleet?**
 
-A: For the most part, we leave that up to you. You could just use the aforementioned curl-bash with your provisioner of choice. If your app was dockerize with Chef Habitat then you won't even need to ask this question, because you'll have everything you need inside your container. 
+A: For the most part, we leave that up to you. You could use the aforementioned curl-bash with your provisioner of choice. If your app was dockerized with Chef Habitat, then you won't even need to ask this question because you'll have everything you need inside your container. 
