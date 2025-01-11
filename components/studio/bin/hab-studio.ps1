@@ -521,7 +521,7 @@ function Remove-Studio {
     } else {
         if(Test-Path $HAB_STUDIO_ROOT) {
             Write-HabInfo "Destroying Studio at $HAB_STUDIO_ROOT"
-            Get-ChildItem $HAB_STUDIO_ROOT -Recurse | Remove-Item -force -Recurse
+            Get-ChildItem $HAB_STUDIO_ROOT -Recurse | Remove-Item -Force -Recurse
             Remove-Item $HAB_STUDIO_ROOT
         }
     }
