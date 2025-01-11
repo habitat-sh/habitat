@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.21 -->
-## [2.0.21](https://github.com/habitat-sh/habitat/tree/2.0.21) (2025-01-10)
+<!-- latest_release 2.0.22 -->
+## [2.0.22](https://github.com/habitat-sh/habitat/tree/2.0.22) (2025-01-11)
 
 #### Merged Pull Requests
-- Removes mesosize and cfize [#9557](https://github.com/habitat-sh/habitat/pull/9557) ([jasonheath](https://github.com/jasonheath))
+- powershell workaround for hab studio rm with powershell 7.5 and older windows os [#9561](https://github.com/habitat-sh/habitat/pull/9561) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- powershell workaround for hab studio rm with powershell 7.5 and older windows os [#9561](https://github.com/habitat-sh/habitat/pull/9561) ([mwrock](https://github.com/mwrock)) <!-- 2.0.22 -->
 - Removes mesosize and cfize [#9557](https://github.com/habitat-sh/habitat/pull/9557) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.21 -->
 - Bump bitflags from 2.6.0 to 2.7.0 [#9560](https://github.com/habitat-sh/habitat/pull/9560) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.20 -->
 - Bump tokio from 1.42.0 to 1.43.0 [#9559](https://github.com/habitat-sh/habitat/pull/9559) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.19 -->
