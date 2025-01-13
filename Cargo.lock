@@ -527,7 +527,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "190baaad529bcfbde9e1a19022c42781bdb6ff9de25721abdb8fd98c0807730b"
 dependencies = [
  "libc",
- "thiserror",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -1298,7 +1298,7 @@ dependencies = [
  "tar",
  "tempfile",
  "termcolor",
- "thiserror",
+ "thiserror 2.0.11",
  "tokio",
  "toml 0.8.19",
  "url",
@@ -1324,7 +1324,7 @@ dependencies = [
  "nix",
  "prost",
  "semver",
- "thiserror",
+ "thiserror 2.0.11",
  "winapi",
 ]
 
@@ -1342,7 +1342,7 @@ dependencies = [
  "log 0.4.22",
  "prost",
  "serde",
- "thiserror",
+ "thiserror 2.0.11",
 ]
 
 [[package]]
@@ -1484,7 +1484,7 @@ dependencies = [
  "serde_yaml",
  "tempfile",
  "termcolor",
- "thiserror",
+ "thiserror 2.0.11",
  "tokio",
  "toml 0.8.19",
  "url",
@@ -1533,7 +1533,7 @@ dependencies = [
  "tabwriter",
  "tar",
  "tempfile",
- "thiserror",
+ "thiserror 2.0.11",
  "tokio",
  "tokio-rustls",
  "toml 0.8.19",
@@ -1585,7 +1585,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "termcolor",
- "thiserror",
+ "thiserror 2.0.11",
  "tokio",
  "url",
 ]
@@ -1665,7 +1665,7 @@ dependencies = [
  "structopt",
  "tempfile",
  "termcolor",
- "thiserror",
+ "thiserror 2.0.11",
  "tokio",
  "tokio-rustls",
  "tokio-util",
@@ -2373,7 +2373,7 @@ dependencies = [
  "serde-value",
  "serde_json",
  "serde_yaml",
- "thiserror",
+ "thiserror 1.0.69",
  "thread-id",
  "typemap-ors",
  "winapi",
@@ -2971,7 +2971,7 @@ dependencies = [
  "memchr",
  "parking_lot",
  "protobuf",
- "thiserror",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -3153,7 +3153,7 @@ checksum = "bd283d9651eeda4b2a83a43c1c91b266c40fd76ecd39a50a8c630ae69dc72891"
 dependencies = [
  "getrandom",
  "libredox",
- "thiserror",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -3941,18 +3941,38 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.68"
+version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02dd99dc800bbb97186339685293e1cc5d9df1f8fae2d0aecd9ff1c77efea892"
+checksum = "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
 dependencies = [
- "thiserror-impl",
+ "thiserror-impl 1.0.69",
+]
+
+[[package]]
+name = "thiserror"
+version = "2.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d452f284b73e6d76dd36758a0c8684b1d5be31f92b89d07fd5822175732206fc"
+dependencies = [
+ "thiserror-impl 2.0.11",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.68"
+version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7c61ec9a6f64d2793d8a45faba21efbe3ced62a886d44c36a009b2b519b4c7e"
+checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "2.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26afc1baea8a989337eeb52b6e72a039780ce45c3edfcc9c5b9d112feeb173c2"
 dependencies = [
  "proc-macro2",
  "quote",
