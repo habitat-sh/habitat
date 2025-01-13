@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.23 -->
-## [2.0.23](https://github.com/habitat-sh/habitat/tree/2.0.23) (2025-01-13)
+<!-- latest_release 2.0.24 -->
+## [2.0.24](https://github.com/habitat-sh/habitat/tree/2.0.24) (2025-01-13)
 
 #### Merged Pull Requests
-- Bump notify from 7.0.0 to 8.0.0 [#9564](https://github.com/habitat-sh/habitat/pull/9564) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.7 to 1.2.9 [#9563](https://github.com/habitat-sh/habitat/pull/9563) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.7 to 1.2.9 [#9563](https://github.com/habitat-sh/habitat/pull/9563) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.24 -->
 - Bump notify from 7.0.0 to 8.0.0 [#9564](https://github.com/habitat-sh/habitat/pull/9564) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.23 -->
 - powershell workaround for hab studio rm with powershell 7.5 and older windows os [#9561](https://github.com/habitat-sh/habitat/pull/9561) ([mwrock](https://github.com/mwrock)) <!-- 2.0.22 -->
 - Removes mesosize and cfize [#9557](https://github.com/habitat-sh/habitat/pull/9557) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.21 -->
