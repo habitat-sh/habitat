@@ -3,7 +3,6 @@ mod uninstall_impl;
 use super::{ExecutionStrategy,
             Scope};
 use crate::error::Result;
-use clap::ArgMatches;
 use habitat_common::ui::UI;
 use habitat_core::package::PackageIdent;
 use std::path::Path;
@@ -19,6 +18,20 @@ pub enum UninstallMode {
     KeepLatest(usize),
 }
 
+impl From<Option<usize>> for UninstallMode {
+    fn from(keep_latest: Option<usize>) -> Self {
+        match keep_latest {
+            Some(keep_latest) => Self::KeepLatest(keep_latest),
+            None => Self::Single,
+        }
+    }
+}
+
+// TODO: Remove after feature `v2` is removed
+#[cfg(feature = "v2")]
+use clap::ArgMatches;
+
+#[cfg(feature = "v2")]
 impl<'a> From<&'a ArgMatches<'a>> for UninstallMode {
     fn from(m: &ArgMatches) -> Self {
         m.value_of("KEEP_LATEST")

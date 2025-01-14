@@ -224,6 +224,12 @@ impl FromStr for PackageIdent {
     }
 }
 
+impl From<String> for PackageIdent {
+    fn from(ident: String) -> Self {
+        Self::from_str(ident.as_str()).expect("Invalid Package Identifier")
+    }
+}
+
 impl PartialOrd for PackageIdent {
     /// Packages can be compared according to the following:
     ///
