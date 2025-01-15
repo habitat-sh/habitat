@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.26 -->
-## [2.0.26](https://github.com/habitat-sh/habitat/tree/2.0.26) (2025-01-14)
+<!-- latest_release 2.0.27 -->
+## [2.0.27](https://github.com/habitat-sh/habitat/tree/2.0.27) (2025-01-15)
 
 #### Merged Pull Requests
-- clap-v4 support for `hab` cli [#9330](https://github.com/habitat-sh/habitat/pull/9330) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump winreg from 0.53.0 to 0.55.0 [#9562](https://github.com/habitat-sh/habitat/pull/9562) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump winreg from 0.53.0 to 0.55.0 [#9562](https://github.com/habitat-sh/habitat/pull/9562) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.27 -->
 - clap-v4 support for `hab` cli [#9330](https://github.com/habitat-sh/habitat/pull/9330) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.26 -->
 - pass release channel to HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL in windows release pipeline [#9566](https://github.com/habitat-sh/habitat/pull/9566) ([mwrock](https://github.com/mwrock)) <!-- 2.0.25 -->
 - Bump cc from 1.2.7 to 1.2.9 [#9563](https://github.com/habitat-sh/habitat/pull/9563) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.24 -->
