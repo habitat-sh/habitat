@@ -365,10 +365,10 @@ export HAB_BLDR_CHANNEL
 # Also note that this only really comes into play if HAB_BLDR_CHANNEL
 # has been set to something different.
 : "${HAB_FALLBACK_CHANNEL=stable}"
-# Use the refresh channel for dependencies in the core/chef/chef-platform origins
+# Use the refresh channel for dependencies in the core origin
 : "${HAB_REFRESH_CHANNEL:=stable}"
-# If we prefer to use local core/chef/chef-platform deps then a locally installed
-# package in one of these origins will be used in preference to what is in the refresh
+# If we prefer to use local core deps then a locally installed
+# package in this origin will be used in preference to what is in the refresh
 : "${HAB_PREFER_LOCAL_CHEF_DEPS:=false}"
 # The value of `$PATH` on initial start of this program
 INITIAL_PATH="$PATH"
@@ -692,7 +692,7 @@ _install_dependency() {
     local channel="$HAB_BLDR_CHANNEL"
     if [[ -z "${NO_INSTALL_DEPS:-}" ]]; then
     origin="$(echo "$dep" | cut -d "/" -f 1)"
-    if [[ $origin == "core" || $origin == "chef" || $origin == "chef-platform" ]]; then
+    if [[ $origin == "core" ]]; then
       channel="$HAB_REFRESH_CHANNEL"
       if [[ $HAB_PREFER_LOCAL_CHEF_DEPS == "false" ]]; then
         IGNORE_LOCAL="--ignore-local"

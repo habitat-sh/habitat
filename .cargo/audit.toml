@@ -20,6 +20,8 @@ ignore = [
     "RUSTSEC-2022-0071", # Unmaintained: rusoto
     "RUSTSEC-2024-0370", # Unmaintained: proc-macro-error (used by structopt)
     "RUSTSEC-2024-0375", # Unmaintained: atty (used by clap v2)
+    "RUSTSEC-2024-0384", # Unmaintained: instant (used by notify)
+    "RUSTSEC-2024-0388", # Unmaintained: derivative (used by log4rs)
 ]
 informational_warnings = [
     "notice",

@@ -1,0 +1,15 @@
+#!{{pkgPathFor "core/bash"}}/bin/bash
+
+echo "Initializing package {{pkg.ident}} (PID: $$, PPID: $PPID, PGID: $(ps h -o pgid -p $$))"
+sleep 1
+echo "... reticulating splines ..."
+echo "... integrating curves ..."
+echo "... relaxing splines ..."
+echo "... calculating inverse probability matrices ..."
+sleep 1
+echo "Deliberately taking a long time in the init hook"
+for i in {1..10}; do
+      sleep 1
+      echo "Sleeping ($i)/10..."
+done
+echo "init hook DONE"

@@ -63,7 +63,7 @@ pub struct PkgPath {
 
 /// Displays the binds for a service
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name = "binds", no_version)]
+#[structopt(name = "binds", no_version, settings = &[AppSettings::ArgRequiredElseHelp])]
 pub struct PkgBinds {
     #[structopt(flatten)]
     pkg_ident: PkgIdent,
@@ -541,18 +541,12 @@ pub struct PkgInstall {
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "export", aliases = &["e", "ex", "exp", "expo", "expor"], no_version)]
 pub enum ExportCommand {
-    #[cfg(target_os = "linux")]
-    /// Cloud Foundry exporter
-    Cf(ExternalCommandArgs),
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     /// Container exporter
     Container(ExternalCommandArgs),
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     #[structopt(settings = &[AppSettings::Hidden])]
     Docker(ExternalCommandArgs),
-    /// Mesos exporter
-    #[cfg(target_os = "linux")]
-    Mesos(ExternalCommandArgs),
     /// Tar exporter
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     Tar(ExternalCommandArgs),

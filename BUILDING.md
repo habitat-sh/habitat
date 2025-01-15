@@ -171,49 +171,32 @@ These binary overrides can be great for rapid iteration, but will hide errors li
 
 ## Testing exporters
 
-Changes to the exporters can be tested once the exporter package has been built locally. For example, to test changes to the Cloud Foundry exporter (`core/hab-pkg-cfize`), first enter the studio and build a new package:
-```
+Changes to the exporters can be tested once the exporter package has been built locally. For example, to test changes to the container exporter (`core/hab-pkg-export-container`), first enter the studio and build a new package:
+
+```shell
 ➤ hab studio enter
 …
-[1][default:/src:0]# build components/pkg-cfize
+[1][default:/src:0]# build components/pkg-export-container
 …
-   hab-pkg-cfize: Installed Path: /hab/pkgs/jbauman/hab-pkg-cfize/0.56.0-dev/20180410205025
-```
-Now your modifications are installed locally, under `<HAB_ORIGIN>/hab-pkg-cfize`. You can run your new exporter with
-```
-[6][default:/src:0]# hab pkg exec $HAB_ORIGIN/hab-pkg-cfize hab-pkg-cfize --help
-hab-pkg-export-cf 0.56.0-dev/20180410205025
+   hab-pkg-export-container: Installed Path: /hab/pkgs/jasonheath/hab-pkg-export-container/2.0.17/20250110145427
 …
 ```
+
+Now your modifications are installed locally, under `<HAB_ORIGIN>/hab-pkg-export-container`. You can run your new exporter with
+
+```shell
+[6][default:/src:0]# hab pkg exec $HAB_ORIGIN/hab-pkg-export-container hab-pkg-export-container --help
+hab-pkg-exec 1.6.1243/20241227194506
+…
+```
+
 Note that the version is updated, confirming you're running the new code. The old version is still accessible by running
-```
-[10][default:/src:1]# hab pkg export cf --help
-hab-pkg-export-cf 0.55.0/20180321215151
+
+``` shell
+[10][default:/src:1]# hab pkg export container --help
+hab-pkg-export-container 1.6.1243/20241227202254
 …
 ```
-
-### Testing Cloud Foundry exporter
-
-See also [Exporting Docker Images for Cloud Foundry with Habitat](https://www.habitat.sh/blog/2018/03/habitat-cloudfoundry/).
-
-In order to test the Cloud Foundry exporter, you'll need a Cloud Foundry environment which supports
-Docker images. If you have one already, you can skip to step 4.
-
-*Note:* Make sure to install PCF Dev on your base operating system. It uses VirtualBox as its virtualizer
-so you can't install that within a VM. Fortunately, PCF Dev is has support for Linux, Windows and Mac OS.
-
-1. Install [the `cf` CLI](http://docs.pivotal.io/pivotalcf/2-1/cf-cli/install-go-cli.html).
-2. Install [VirtualBox 5.0+](https://www.virtualbox.org/).
-3. Install [PCF Dev](https://docs.pivotal.io/pcf-dev/index.html). *Note:* running `cf dev start`
-for the first time requires a very large download (>7 GB as of this writing).
-4. Build a `.hart` file and create a CF mapping `.toml`. See Stark and Wayne's
-[Running Habitat Apps on Cloud Foundry](https://starkandwayne.com/blog/habitat-to-cloud-foundry/) and
-[Exporting to Cloud Foundry documentation](https://www.habitat.sh/docs/developing-packages/#exporting-to-cloud-foundry)
-for more details.
-5. Run the exporter to add the `cf-` tagged image to Docker.
-6. `docker push …` the image to Docker Hub.
-7. `cf push …` the image from Docker Hub to add to the CF instance. *Note:* with PCF Dev this command
-must be run from the source directory of the project to correctly identify the necessary buildpack.
 
 ## HAB_STUDIO_BINARY
 

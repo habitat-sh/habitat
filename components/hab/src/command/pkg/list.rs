@@ -3,7 +3,10 @@ use crate::{error::Result,
                          FS_ROOT_PATH},
                     package::{list,
                               PackageIdent}}};
+
+#[cfg(feature = "v2")]
 use clap::ArgMatches;
+
 use std::str::FromStr;
 
 /// There are three options for what we can list:
@@ -18,6 +21,7 @@ pub enum ListingType {
     Ident(PackageIdent),
 }
 
+#[cfg(feature = "v2")]
 /// Convert a set of command line options into a ListingType
 impl<'a> From<&'a ArgMatches<'a>> for ListingType {
     /// Convert clap options into a listing type.

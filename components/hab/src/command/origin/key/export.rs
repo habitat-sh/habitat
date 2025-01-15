@@ -1,5 +1,5 @@
-use crate::{cli::KeyType,
-            error::Result};
+use crate::{error::Result,
+            key_type::KeyType};
 use habitat_core::{crypto::keys::{KeyCache,
                                   KeyFile},
                    origin::Origin};

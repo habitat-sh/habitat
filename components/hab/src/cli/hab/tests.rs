@@ -439,12 +439,14 @@ fn test_hab_svc_load_flag_ordering() {
     assert!(!load.force);
     assert_eq!(load.pkg_ident.pkg_ident(), pkg_ident);
 
-    let hab = Hab::try_from_iter_with_configopt(&["hab", "svc", "load", "--force", "core/redis"]).unwrap();
+    let hab = Hab::try_from_iter_with_configopt(&["hab", "svc", "load", "--force", "core/redis"])
+        .unwrap();
     let load = extract_hab_svc_load(hab);
     assert!(load.force);
     assert_eq!(load.pkg_ident.pkg_ident(), pkg_ident);
 
-    let hab = Hab::try_from_iter_with_configopt(&["hab", "svc", "load", "core/redis", "--force"]).unwrap();
+    let hab = Hab::try_from_iter_with_configopt(&["hab", "svc", "load", "core/redis", "--force"])
+        .unwrap();
     let load = extract_hab_svc_load(hab);
     assert!(load.force);
     assert_eq!(load.pkg_ident.pkg_ident(), pkg_ident);
@@ -452,7 +454,8 @@ fn test_hab_svc_load_flag_ordering() {
 
 #[test]
 fn test_hab_svc_update_empty_binds() {
-    let hab = Hab::try_from_iter_with_configopt(&["hab", "svc", "update", "core/redis", "--bind"]).unwrap();
+    let hab = Hab::try_from_iter_with_configopt(&["hab", "svc", "update", "core/redis", "--bind"])
+        .unwrap();
     let update = extract_hab_svc_update(hab);
     assert_eq!(update.bind, Some(vec![]));
 

@@ -59,15 +59,6 @@ paths = [
   "components/hab/*",
 ]
 
-[hab-pkg-cfize]
-plan_path = "components/pkg-cfize"
-paths = [
-  "components/pkg-export-container/*"
-]
-
-[hab-pkg-mesosize]
-plan_path = "components/pkg-mesosize"
-
 [simple-hooks]
 plan_path = "test/fixtures/plans/simple-hooks"
 
