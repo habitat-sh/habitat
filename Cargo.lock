@@ -1367,7 +1367,7 @@ dependencies = [
  "pbr",
  "rants",
  "reqwest",
- "retry",
+ "retry 1.0.0 (git+https://github.com/habitat-sh/retry)",
  "rustls 0.23.20",
  "rustls-webpki 0.102.8",
  "same-file",
@@ -1556,7 +1556,7 @@ dependencies = [
  "petgraph",
  "regex 1.11.1",
  "reqwest",
- "retry",
+ "retry 1.0.0 (git+https://github.com/habitat-sh/retry?branch=agadgil/rustls-023)",
  "rustls 0.23.20",
  "safer_owning_ref",
  "serde",
@@ -3385,6 +3385,15 @@ dependencies = [
  "wasm-streams",
  "web-sys",
  "windows-registry",
+]
+
+[[package]]
+name = "retry"
+version = "1.0.0"
+source = "git+https://github.com/habitat-sh/retry?branch=agadgil/rustls-023#ea8631d96da99863bdf5cb0780832e0b620953bf"
+dependencies = [
+ "rand",
+ "tokio",
 ]
 
 [[package]]

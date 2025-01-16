@@ -51,7 +51,7 @@ tempfile = "*"
 thiserror = "*"
 retry = { git = "https://github.com/habitat-sh/retry", features = [
   "asynchronous",
-] }
+] , branch="agadgil/rustls-023" }
 rustls = "*"
 termcolor = "*"
 tokio = { version = "*", features = ["full"] }
