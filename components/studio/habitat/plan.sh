@@ -28,8 +28,7 @@ do_prepare() {
 }
 
 do_build() {
-  # shellcheck disable=SC2154
-  cp -v "$SRC_PATH"/bin/hab-studio-"${pkg_target#*-}".sh hab-studio
+  cp -v "$SRC_PATH"/bin/hab-studio-linux.sh hab-studio
   cp -v "$SRC_PATH"/libexec/hab-studio-profile.sh .
   cp -v "$SRC_PATH"/libexec/hab-studio-type-*.sh .
 
