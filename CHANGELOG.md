@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.28 -->
-## [2.0.28](https://github.com/habitat-sh/habitat/tree/2.0.28) (2025-01-15)
+<!-- latest_release 2.0.29 -->
+## [2.0.29](https://github.com/habitat-sh/habitat/tree/2.0.29) (2025-01-16)
 
 #### Merged Pull Requests
-- Bump dirs from 5.0.1 to 6.0.0 [#9567](https://github.com/habitat-sh/habitat/pull/9567) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump bitflags from 2.7.0 to 2.8.0 [#9568](https://github.com/habitat-sh/habitat/pull/9568) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump bitflags from 2.7.0 to 2.8.0 [#9568](https://github.com/habitat-sh/habitat/pull/9568) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.29 -->
 - Bump dirs from 5.0.1 to 6.0.0 [#9567](https://github.com/habitat-sh/habitat/pull/9567) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.28 -->
 - Bump winreg from 0.53.0 to 0.55.0 [#9562](https://github.com/habitat-sh/habitat/pull/9562) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.27 -->
 - clap-v4 support for `hab` cli [#9330](https://github.com/habitat-sh/habitat/pull/9330) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.26 -->
