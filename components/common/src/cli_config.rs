@@ -91,8 +91,7 @@ impl CliConfig {
         let server_ca_certificates = self.ctl_server_ca_certificate
                                          .map(RootCertificateStoreCli::into_inner);
         if let Some(server_certificates) = server_ca_certificates {
-            let tls_config = TlsClientConfig::builder() //.with_safe_default_protocol_versions()
-                .with_root_certificates(server_certificates);
+            let tls_config = TlsClientConfig::builder().with_root_certificates(server_certificates);
             if let Some(client_key) = self.ctl_client_key {
                 debug!("Configuring ctl-gateway TLS with client certificate");
                 let certs = if let Some(certs) = self.ctl_client_certificate.clone() {

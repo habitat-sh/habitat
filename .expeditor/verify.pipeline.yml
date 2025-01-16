@@ -2,7 +2,7 @@ expeditor:
   defaults:
     buildkite:
       timeout_in_minutes: 60
-      env: 
+      env:
         HAB_BLDR_CHANNEL: "LTS-2024"
         HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL: "LTS-2024"
         HAB_REFRESH_CHANNEL: "LTS-2024"
@@ -1147,31 +1147,33 @@ steps:
         docker:
           privileged: true
 
-  - label: "[build] :linux: :two: build launcher"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/launcher
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-
-  - label: "[build] :linux: :two: build hab-sup"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/sup
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+# Ignoring the following actions - they will eventually be deleted when Linux 2 support
+# is removed for now this causes a build failure that can totally be ignored.
+#  - label: "[build] :linux: :two: build launcher"
+#    command:
+#      - .expeditor/scripts/verify/build_package.sh components/launcher
+#    env:
+#      HAB_LICENSE: "accept-no-persist"
+#      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+#      HAB_BLDR_CHANNEL: "stable"
+#
+#    expeditor:
+#      executor:
+#        docker:
+#          privileged: true
+#
+#  - label: "[build] :linux: :two: build hab-sup"
+#    command:
+#      - .expeditor/scripts/verify/build_package.sh components/sup
+#    env:
+#      HAB_LICENSE: "accept-no-persist"
+#      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+#      HAB_BLDR_CHANNEL: "stable"
+#
+#    expeditor:
+#      executor:
+#        docker:
+#          privileged: true
 
   - label: "[build] :linux: :two: build hab-pkg-export-tar"
     command:
