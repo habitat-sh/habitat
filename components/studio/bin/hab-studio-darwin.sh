@@ -362,6 +362,7 @@ new_studio() {
 
   # Load the appropriate type strategy to complete the setup
   if [ -n "${HAB_STUDIO_BINARY:-}" ]; then
+    # shellcheck disable=SC2154
     studio_type_dir="$studio_binary_libexec_path"
   else
     studio_type_dir="$libexec_path"
@@ -419,6 +420,7 @@ enter_studio() {
     set -x
   fi
 
+  # shellcheck disable=2086
   $studio_env_command -i \
     $sandbox_env \
     "$sandbox_exec_cmd" -f "$sandbox_profile_path" \

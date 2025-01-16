@@ -34,6 +34,7 @@ do_before() {
 }
 
 do_build() {
+  # shellcheck disable=SC2154
   cp -v "$SRC_PATH"/bin/${program}-"${pkg_target#*-}".sh "$CACHE_PATH/$program"
 
   # Use the bash from our dependency list as the shebang. Also, embed the

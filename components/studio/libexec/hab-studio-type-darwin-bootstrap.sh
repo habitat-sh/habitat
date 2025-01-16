@@ -8,6 +8,7 @@
 studio_type="bootstrap"
 studio_env_command="/usr/bin/env"
 studio_enter_environment="STUDIO_ENTER=true"
+# shellcheck disable=SC2154
 studio_enter_command="$libexec_path/hab pkg exec core/build-tools-hab-backline bash --rcfile $HAB_STUDIO_ROOT/etc/profile"
 studio_build_environment=
 studio_build_command="${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}/bin/build"
@@ -17,6 +18,7 @@ studio_run_command="$libexec_path/hab pkg exec core/build-tools-hab-backline bas
 run_user="hab"
 run_group="$run_user"
 
+# shellcheck disable=SC2154
 finish_setup() {
     src_dir="$($pwd_cmd)"
     $mkdir_cmd -p "$HAB_STUDIO_ROOT"/etc
