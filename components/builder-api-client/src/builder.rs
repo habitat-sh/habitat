@@ -1127,7 +1127,7 @@ impl BuilderAPIClient {
     ///
     /// * Authorization token was not set on client
     pub async fn put_package<'a>(&'a self,
-                                 pa: &'a mut PackageArchive,
+                                 pa: &'a PackageArchive,
                                  token: &'a str,
                                  force_upload: bool,
                                  auto_build: BuildOnUpload,
