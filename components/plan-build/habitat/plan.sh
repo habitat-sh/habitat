@@ -37,7 +37,7 @@ do_build() {
   # shellcheck disable=SC2154
   kernel="${pkg_target#*-}"
   kernel="${kernel%%-*}"  # Remove 'kernel2' part if exists
-  cp -v "$SRC_PATH"/bin/${program}-${kernel}.sh "$CACHE_PATH/$program"
+  cp -v "$SRC_PATH"/bin/${program}-"${kernel}".sh "$CACHE_PATH/$program"
 
   # Use the bash from our dependency list as the shebang. Also, embed the
   # release version of the program.
