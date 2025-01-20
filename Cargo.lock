@@ -532,9 +532,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.9"
+version = "1.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8293772165d9345bdaaa39b45b2109591e63fe5e6fbc23c6ff930a048aa310b"
+checksum = "13208fcbb66eaeffe09b99fffbe1af420f00a7b35aa99ad683dfc1aa76145229"
 dependencies = [
  "shlex",
 ]
@@ -1299,7 +1299,7 @@ dependencies = [
  "tar",
  "tempfile",
  "termcolor",
- "thiserror 1.0.68",
+ "thiserror 2.0.11",
  "tokio",
  "toml 0.8.19",
  "url",
@@ -1325,7 +1325,7 @@ dependencies = [
  "nix",
  "prost",
  "semver",
- "thiserror 1.0.68",
+ "thiserror 2.0.11",
  "winapi",
 ]
 
@@ -1343,7 +1343,7 @@ dependencies = [
  "log 0.4.22",
  "prost",
  "serde",
- "thiserror 1.0.68",
+ "thiserror 2.0.11",
 ]
 
 [[package]]
@@ -1485,7 +1485,7 @@ dependencies = [
  "serde_yaml",
  "tempfile",
  "termcolor",
- "thiserror 1.0.68",
+ "thiserror 2.0.11",
  "tokio",
  "toml 0.8.19",
  "url",
@@ -1534,7 +1534,7 @@ dependencies = [
  "tabwriter",
  "tar",
  "tempfile",
- "thiserror 1.0.68",
+ "thiserror 2.0.11",
  "tokio",
  "tokio-rustls",
  "toml 0.8.19",
@@ -1586,7 +1586,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "termcolor",
- "thiserror 1.0.68",
+ "thiserror 2.0.11",
  "tokio",
  "url",
 ]
@@ -1666,7 +1666,7 @@ dependencies = [
  "structopt",
  "tempfile",
  "termcolor",
- "thiserror 1.0.68",
+ "thiserror 2.0.11",
  "tokio",
  "tokio-rustls",
  "tokio-util",
