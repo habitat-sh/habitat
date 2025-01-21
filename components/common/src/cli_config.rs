@@ -36,11 +36,11 @@ static ref CACHED_CLI_CONFIG: CliConfig = CliConfig::load().unwrap_or_default();
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("'{}' io failure, err: {0}", CLI_CONFIG_PATH.display())]
+    #[error("'{cfgpath}' io failure, err: {0}", cfgpath=CLI_CONFIG_PATH.display())]
     Io(#[from] io::Error),
-    #[error("deserializing '{}' failed, err: {0}", CLI_CONFIG_PATH.display())]
+    #[error("deserializing '{cfgpath}' failed, err: {0}", cfgpath=CLI_CONFIG_PATH.display())]
     Deserialize(#[from] toml::de::Error),
-    #[error("serializing '{}' failed, err: {0}", CLI_CONFIG_PATH.display())]
+    #[error("serializing '{cfgpath}' failed, err: {0}", cfgpath=CLI_CONFIG_PATH.display())]
     Serialize(#[from] toml::ser::Error),
 }
 
