@@ -1,11 +1,23 @@
-# shellcheck disable=2154
-source ../plan.sh
-
 pkg_name=hab
+_pkg_distname=$pkg_name
+pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-# There is no true equivalent here (yet), so dependency arrays will be empty.
+pkg_license=('Apache-2.0')
+# The result is a portable, static binary in a zero-dependency package.
 pkg_deps=()
 pkg_build_deps=()
+pkg_bin_dirs=(bin)
+
+bin=$_pkg_distname
+
+pkg_version() {
+  cat "$SRC_PATH/../../VERSION"
+}
+
+do_before() {
+  do_default_before
+  update_pkg_version
+}
 
 # shellcheck disable=2155
 do_prepare() {
@@ -33,6 +45,17 @@ do_prepare() {
   la_ldflags="$la_ldflags -L/opt/mac-bootstrapper/embedded/lib -lexpat"
 
   export SODIUM_LIB_DIR=/opt/mac-bootstrapper/embedded/lib
+}
+
+do_build() {
+  pushd "$SRC_PATH" > /dev/null || exit
+  cargo build ${build_type#--debug} --target="$rustc_target" --verbose
+  popd > /dev/null || exit
+}
+
+do_install() {
+  install -v -D "$CARGO_TARGET_DIR"/"$rustc_target"/${build_type#--}/$bin \
+    "$pkg_prefix"/bin/$bin
 }
 
 # Override the do_strip implementation that the x86_64-linux plan.sh includes
