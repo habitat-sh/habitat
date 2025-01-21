@@ -437,6 +437,6 @@ macos_build() {
     local component="$1"
     echo "--- :habicat: Building $component"
     sudo -E bash \
-         components/plan-build/bin/hab-plan-build-darwin.sh \
+         components/plan-build/bin/hab-plan-build-linux.sh \
          "$component"
 }
