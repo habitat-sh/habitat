@@ -1,5 +1,5 @@
 # shellcheck disable=2154
-source ../../plan.sh
+source ../plan.sh
 
 pkg_name=hab
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
