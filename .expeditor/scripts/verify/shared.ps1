@@ -42,7 +42,9 @@ function Initialize-Environment {
     $env:INCLUDE = "$(Get-Content "$vsDir\INCLUDE_DIRS");$(Get-Content "$winSdkDir\INCLUDE_DIRS")"
     $env:PATH = New-PathString -StartingPath $env:PATH -Path (Get-Content "$vsDir\PATH")
     $env:PATH = New-PathString -StartingPath $env:PATH -Path (Get-Content "$winSdkDir\PATH")
-    $env:VCINSTALLDIR = "$vsDir"
+    $oldPath = $env:PATH
+    Invoke-Expression "$(hab pkg env core/visual-build-tools-2022 | Out-String)"
+    $env:PATH = $oldPath
 }
 
 function Get-NightlyToolchain {
