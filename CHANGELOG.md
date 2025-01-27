@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.32 -->
-## [2.0.32](https://github.com/habitat-sh/habitat/tree/2.0.32) (2025-01-21)
+<!-- latest_release 2.0.33 -->
+## [2.0.33](https://github.com/habitat-sh/habitat/tree/2.0.33) (2025-01-27)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.9 to 1.2.10 [#9572](https://github.com/habitat-sh/habitat/pull/9572) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Using rustls-0.23 and related dependencies [#9552](https://github.com/habitat-sh/habitat/pull/9552) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Using rustls-0.23 and related dependencies [#9552](https://github.com/habitat-sh/habitat/pull/9552) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.33 -->
 - Bump cc from 1.2.9 to 1.2.10 [#9572](https://github.com/habitat-sh/habitat/pull/9572) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.32 -->
 - Bump serde_json from 1.0.135 to 1.0.137 [#9571](https://github.com/habitat-sh/habitat/pull/9571) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.32 -->
 - Bump semver from 1.0.24 to 1.0.25 [#9570](https://github.com/habitat-sh/habitat/pull/9570) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.31 -->
