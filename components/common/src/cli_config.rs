@@ -9,7 +9,8 @@ use habitat_core::{fs::{am_i_root,
                                          PrivateKeyCli,
                                          RootCertificateStoreCli}};
 use log::debug;
-use rustls::{ClientConfig as TlsClientConfig,
+use rustls::{pki_types::PrivateKeyDer,
+             ClientConfig as TlsClientConfig,
              Error as TLSError};
 use serde::{Deserialize,
             Serialize};
@@ -36,11 +37,11 @@ static ref CACHED_CLI_CONFIG: CliConfig = CliConfig::load().unwrap_or_default();
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("'{cfgpath}' io failure, err: {0}", cfgpath=CLI_CONFIG_PATH.display())]
+    #[error("'{cfg_path}' io failure, err: {0}", cfg_path = CLI_CONFIG_PATH.display())]
     Io(#[from] io::Error),
-    #[error("deserializing '{cfgpath}' failed, err: {0}", cfgpath=CLI_CONFIG_PATH.display())]
+    #[error("deserializing '{cfg_path}' failed, err: {0}", cfg_path = CLI_CONFIG_PATH.display())]
     Deserialize(#[from] toml::de::Error),
-    #[error("serializing '{cfgpath}' failed, err: {0}", cfgpath=CLI_CONFIG_PATH.display())]
+    #[error("serializing '{cfg_path}' failed, err: {0}", cfg_path = CLI_CONFIG_PATH.display())]
     Serialize(#[from] toml::ser::Error),
 }
 
@@ -87,19 +88,21 @@ impl CliConfig {
     }
 
     pub fn maybe_tls_client_config(self) -> Result<Option<TlsClientConfig>, TLSError> {
-        let client_certificates = self.ctl_client_certificate
-                                      .map(CertificateChainCli::into_inner);
-        let client_key = self.ctl_client_key.map(PrivateKeyCli::into_inner);
         let server_ca_certificates = self.ctl_server_ca_certificate
                                          .map(RootCertificateStoreCli::into_inner);
         if let Some(server_certificates) = server_ca_certificates {
-            let tls_config = TlsClientConfig::builder().with_safe_defaults()
-                                                       .with_root_certificates(server_certificates);
-            if let Some(client_key) = client_key {
+            let tls_config = TlsClientConfig::builder().with_root_certificates(server_certificates);
+            if let Some(client_key) = self.ctl_client_key {
                 debug!("Configuring ctl-gateway TLS with client certificate");
-                let config =
-                    tls_config.with_client_auth_cert(client_certificates.unwrap_or_default(),
-                                                     client_key)?;
+                let certs = if let Some(certs) = self.ctl_client_certificate.clone() {
+                    certs.into_inner()
+                } else {
+                    vec![]
+                };
+                let config = tls_config.with_client_auth_cert(
+                    certs,
+                    PrivateKeyDer::Pkcs8(client_key.into_inner().clone_key()),
+                )?;
                 Ok(Some(config))
             } else {
                 Ok(Some(tls_config.with_no_client_auth()))
