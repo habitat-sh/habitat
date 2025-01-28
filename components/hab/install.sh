@@ -10,6 +10,24 @@ if [ -n "${DEBUG:-}" ]; then set -x; fi
 readonly pcio_root="https://packages.chef.io/files"
 export HAB_LICENSE="accept-no-persist"
 
+# This is the main function that sets up the Habitat environment on macOS.
+# It creates, mounts, and configures a designated volume (Habitat Store) with the necessary settings,
+# including file system options and encryption (if needed).
+#
+# High-level steps performed:
+#
+# 1. **Volume Creation**:
+#    - Creates a new APFS volume for Habitat on the identified disk.
+#    - Encrypts the volume (if needed) with a randomly generated password.
+#
+# 2. **Volume Configuration**:
+#    - Verifies that the Habitat root (`/hab`) is properly configured.
+#    - Updates `/etc/synthetic.conf` to ensure the mount point is set correctly.
+#    - Configures `/etc/fstab` with the appropriate volume mount options.
+#
+# 3. **Volume Mounting and Daemon Configuration**:
+#    - Generates and installs a LaunchDaemon plist to mount the volume at system boot.
+#    - Ensures the volume is mounted automatically on startup.
 setup_hab_root() {
     readonly SCRATCH=$(mktemp -d)
 
