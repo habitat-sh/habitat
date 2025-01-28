@@ -248,12 +248,28 @@ extract_archive() {
 install_hab() {
   case "${sys}" in
     darwin)
-      need_cmd mkdir
-      need_cmd install
+        case "${arch}" in
+            x86_64)
+                # No core packages are available yet for x86_64; proceed with the old approach.
+                need_cmd mkdir
+                need_cmd install
 
-      info "Installing hab into /usr/local/bin"
-      mkdir -pv /usr/local/bin
-      install -v "${archive_dir}"/hab /usr/local/bin/hab
+                info "Installing hab into /usr/local/bin"
+                mkdir -pv /usr/local/bin
+                install -v "${archive_dir}"/hab /usr/local/bin/hab
+                ;;
+            aarch64)
+                local _ident="core/hab"
+
+                if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
+                    _ident+="/$version";
+                fi
+                "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
+                ;;
+            *)
+                exit_with "Unrecognized sys when installing: ${sys}" 5
+                ;;
+        esac
       ;;
     linux)
       local _ident="core/hab"
