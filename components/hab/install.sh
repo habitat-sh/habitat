@@ -249,8 +249,8 @@ $(generate_mount_daemon "$cmd_type" "$volume_uuid")
 .
 :x
 EOF
-            /usr/bin/launchctl bootstrap system "$HAB_VOLUME_MOUNTD_DEST" || true
-            /usr/bin/launchctl kickstart -k system/"$HAB_SERVICE_TARGET"
+            launchctl bootstrap system "$HAB_VOLUME_MOUNTD_DEST" || true
+            launchctl kickstart -k system/"$HAB_SERVICE_TARGET"
         fi
     }
 
