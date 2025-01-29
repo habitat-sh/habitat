@@ -202,9 +202,10 @@ EOF
 
     await_volume() {
         local timeout=30 # sufficiently long enough to mount the volume
-        while (( timeout > 0 )); do
+        local remaining_time=$timeout
+        while (( remaining_time > 0 )); do
             /usr/sbin/diskutil info "$HAB_ROOT" &>/dev/null && return 0  # If the volume is found, return successfully
-            ((timeout--))
+            ((remaining_time--))
             sleep 1
         done
         exit_with "Error: Volume did not appear within $timeout seconds."
