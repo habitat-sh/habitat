@@ -29,7 +29,8 @@ export HAB_LICENSE="accept-no-persist"
 #    - Generates and installs a LaunchDaemon plist to mount the volume at system boot.
 #    - Ensures the volume is mounted automatically on startup.
 setup_hab_root() {
-    readonly SCRATCH=$(mktemp -d)
+    SCRATCH=$(mktemp -d)
+    readonly SCRATCH
 
     finish_cleanup() {
         rm -rf "$SCRATCH"
@@ -43,7 +44,8 @@ setup_hab_root() {
     root_disk() {
         /usr/sbin/diskutil info -plist / | xmllint --xpath "/plist/dict/key[text()='ParentWholeDisk']/following-sibling::string[1]/text()" -
     }
-    readonly HAB_VOLUME_USE_DISK="$(root_disk)"
+    HAB_VOLUME_USE_DISK="$(root_disk)"
+    readonly HAB_VOLUME_USE_DISK
 
     if /usr/bin/fdesetup isactive >/dev/null; then
         test_filevault_in_use() { return 0; }
@@ -129,7 +131,7 @@ EOF
 
     add_hab_vol_fstab_line() {
         local uuid="$1"
-        local escaped_mountpoint="${HAB_ROOT/ /'\\\'040}"
+        local mountpoint="${HAB_ROOT}"
         shift
 
         cat > "$SCRATCH/ex_cleanroom_wrapper" <<EOF
@@ -140,7 +142,7 @@ EOF
 
         EDITOR="$SCRATCH/ex_cleanroom_wrapper" "$@" <<EOF
 :a
-UUID=$uuid $escaped_mountpoint apfs rw,noauto,nobrowse,suid,owners
+UUID=$uuid $mountpoint apfs rw,noauto,nobrowse,suid,owners
 .
 :x
 EOF
@@ -219,7 +221,8 @@ EOF
 
         /usr/sbin/diskutil unmount force "$use_special" || true # might not be mounted
 
-        readonly use_uuid="$(volume_uuid_from_special "$use_special")"
+        use_uuid="$(volume_uuid_from_special "$use_special")"
+        readonly use_uuid
 
         setup_fstab "$use_uuid"
 
