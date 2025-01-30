@@ -275,7 +275,7 @@ main() {
   version=""
 
   # Parse command line flags and options.
-  while getopts "c:hv:t:u:" opt; do
+  while getopts "c:hv:t:u:b:" opt; do
     case "${opt}" in
     c)
       channel="${OPTARG}"
@@ -291,7 +291,10 @@ main() {
       target="${OPTARG}"
       ;;
     u)
-      bldrUrl="${OPTARG}"  # Store the URL provided with -u
+      bldrUrl="${OPTARG}"
+      ;;
+    b)
+      bldlChannel="${OPTARG}" # for temporary use
       ;;
     \?)
       echo "" >&2
@@ -526,7 +529,10 @@ install_hab() {
       if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
           _ident+="/$version"
       fi
-      "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
+      # The Habitat packages for macOS (aarch64) are not currently available in the SaaS Builder.
+      # This is a temporary fix until they become available.
+      _channel="${bldlChannel:-$channel}"
+      "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
       ;;
     *)
       exit_with "Unrecognized sys when installing: ${sys}" 5
