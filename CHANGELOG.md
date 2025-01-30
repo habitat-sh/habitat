@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.35 -->
-## [2.0.35](https://github.com/habitat-sh/habitat/tree/2.0.35) (2025-01-29)
+<!-- latest_release 2.0.36 -->
+## [2.0.36](https://github.com/habitat-sh/habitat/tree/2.0.36) (2025-01-30)
 
 #### Merged Pull Requests
-- Fixes USAGE here doc parsing issue in install.sh [#9575](https://github.com/habitat-sh/habitat/pull/9575) ([jasonheath](https://github.com/jasonheath))
+- Bump httparse from 1.9.5 to 1.10.0 [#9576](https://github.com/habitat-sh/habitat/pull/9576) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump httparse from 1.9.5 to 1.10.0 [#9576](https://github.com/habitat-sh/habitat/pull/9576) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.36 -->
 - Fixes USAGE here doc parsing issue in install.sh [#9575](https://github.com/habitat-sh/habitat/pull/9575) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.35 -->
 - Bump tempfile from 3.15.0 to 3.16.0 [#9578](https://github.com/habitat-sh/habitat/pull/9578) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.35 -->
 - Bump serde_json from 1.0.137 to 1.0.138 [#9577](https://github.com/habitat-sh/habitat/pull/9577) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.34 -->
