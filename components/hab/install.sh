@@ -275,7 +275,7 @@ main() {
   version=""
 
   # Parse command line flags and options.
-  while getopts "c:hv:t:" opt; do
+  while getopts "c:hv:t:u:" opt; do
     case "${opt}" in
     c)
       channel="${OPTARG}"
@@ -289,6 +289,9 @@ main() {
       ;;
     t)
       target="${OPTARG}"
+      ;;
+    u)
+      bldrUrl="${OPTARG}"  # Store the URL provided with -u
       ;;
     \?)
       echo "" >&2
@@ -523,7 +526,7 @@ install_hab() {
       if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
           _ident+="/$version"
       fi
-      "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
+      "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
       ;;
     *)
       exit_with "Unrecognized sys when installing: ${sys}" 5
@@ -548,7 +551,7 @@ install_hab() {
     # /bin means now you have multiple copies of hab on your system and pathing
     # shenanigans might ensue. Rather than deal with that mess, we do it this
     # way.
-    "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
+    "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
     ;;
   *)
     exit_with "Unrecognized sys when installing: ${sys}" 5
