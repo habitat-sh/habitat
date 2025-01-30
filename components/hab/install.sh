@@ -277,24 +277,24 @@ main() {
   # Parse command line flags and options.
   while getopts "c:hv:t:" opt; do
     case "${opt}" in
-      c)
-        channel="${OPTARG}"
-        ;;
-      h)
-        print_help
-        exit 0
-        ;;
-      v)
-        version="${OPTARG}"
-        ;;
-      t)
-        target="${OPTARG}"
-        ;;
-      \?)
-        echo "" >&2
-        print_help >&2
-        exit_with "Invalid option" 1
-        ;;
+    c)
+      channel="${OPTARG}"
+      ;;
+    h)
+      print_help
+      exit 0
+      ;;
+    v)
+      version="${OPTARG}"
+      ;;
+    t)
+      target="${OPTARG}"
+      ;;
+    \?)
+      echo "" >&2
+      print_help >&2
+      exit_with "Invalid option" 1
+      ;;
     esac
   done
 
@@ -316,29 +316,29 @@ print_help() {
 
   local _cmd
   _cmd="$(basename "${0}")"
-  cat <<USAGE
-${_cmd}
-
-Authors: The Habitat Maintainers <humans@habitat.sh>
-
-Installs the Habitat 'hab' program.
-
-USAGE:
-    ${_cmd} [FLAGS]
-
-FLAGS:
-    -c    Specifies a channel [values: stable, unstable] [default: stable]
-    -h    Prints help information
-    -v    Specifies a version (ex: 0.15.0, 0.15.0/20161222215311)
-    -t    Specifies the ActiveTarget of the 'hab' program to download.
-            [values: x86_64-linux, x86_64-linux-kernel2] [default: x86_64-linux]
-            This option is only valid on Linux platforms
-
-ENVIRONMENT VARIABLES:
-     SSL_CERT_FILE   allows you to verify against a custom cert such as one
-                     generated from a corporate firewall
-
-USAGE
+  cat <<-HEREDOC
+		${_cmd}
+		
+		Authors: The Habitat Maintainers <humans@habitat.sh>
+		
+		Installs the Habitat 'hab' program.
+		
+		USAGE:
+		    ${_cmd} [FLAGS]
+		
+		FLAGS:
+		    -c    Specifies a channel [values: stable, unstable] [default: stable]
+		    -h    Prints help information
+		    -v    Specifies a version (ex: 0.15.0, 0.15.0/20161222215311)
+		    -t    Specifies the ActiveTarget of the 'hab' program to download.
+		            [values: x86_64-linux, x86_64-linux-kernel2] [default: x86_64-linux]
+		            This option is only valid on Linux platforms
+		
+		ENVIRONMENT VARIABLES:
+		     SSL_CERT_FILE   allows you to verify against a custom cert such as one
+		                     generated from a corporate firewall
+		
+	HEREDOC
 }
 
 create_workdir() {
@@ -354,7 +354,7 @@ create_workdir() {
     local _tmp=/tmp
   fi
 
-  workdir="$(mktemp -d -p "$_tmp" 2> /dev/null || mktemp -d "${_tmp}/hab.XXXX")"
+  workdir="$(mktemp -d -p "$_tmp" 2>/dev/null || mktemp -d "${_tmp}/hab.XXXX")"
   # Add a trap to clean up any interrupted file downloads
   # shellcheck disable=SC2154
   trap 'code=$?; rm -rf $workdir; exit $code' INT TERM EXIT
@@ -369,32 +369,32 @@ get_platform() {
   _ostype="$(uname -s)"
 
   case "${_ostype}" in
-    Darwin|Linux)
-      sys="$(uname -s | tr '[:upper:]' '[:lower:]')"
-      arch="$(uname -m | tr '[:upper:]' '[:lower:]')"
-      arch=${arch/arm64/aarch64}
-      ;;
-    *)
-      exit_with "Unrecognized OS type when determining platform: ${_ostype}" 2
-      ;;
+  Darwin | Linux)
+    sys="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    arch="$(uname -m | tr '[:upper:]' '[:lower:]')"
+    arch=${arch/arm64/aarch64}
+    ;;
+  *)
+    exit_with "Unrecognized OS type when determining platform: ${_ostype}" 2
+    ;;
   esac
 
   case "${sys}" in
-    darwin)
-      need_cmd shasum
+  darwin)
+    need_cmd shasum
 
-      ext=zip
-      shasum_cmd="shasum -a 256"
-      ;;
-    linux)
-      need_cmd sha256sum
+    ext=zip
+    shasum_cmd="shasum -a 256"
+    ;;
+  linux)
+    need_cmd sha256sum
 
-      ext=tar.gz
-      shasum_cmd="sha256sum"
-      ;;
-    *)
-      exit_with "Unrecognized sys type when determining platform: ${sys}" 3
-      ;;
+    ext=tar.gz
+    shasum_cmd="sha256sum"
+    ;;
+  *)
+    exit_with "Unrecognized sys type when determining platform: ${sys}" 3
+    ;;
   esac
 
   if [ -z "${target:-}" ]; then
@@ -411,12 +411,12 @@ get_platform() {
 validate_target() {
   local valid_targets=("${arch}-${sys}")
   case "${sys}" in
-   linux)
+  linux)
     valid_targets+=("x86_64-linux-kernel2")
     ;;
   esac
 
-  if ! (_array_contains "${target}" "${valid_targets[@]}") ; then
+  if ! (_array_contains "${target}" "${valid_targets[@]}"); then
     local _vts
     printf -v _vts "%s, " "${valid_targets[@]}"
     _e="${target} is not a valid target for this system. Please specify one of: [${_vts%, }]"
@@ -426,7 +426,7 @@ validate_target() {
 
 download_archive() {
   need_cmd mv
-  
+
   local _version="${1:-latest}"
   local -r _channel="${2:?}"
   local -r _target="${3:?}"
@@ -434,15 +434,15 @@ download_archive() {
 
   if [ "$_version" == "latest" ]; then
     url="${pcio_root}/${_channel}/habitat/latest/hab-${_target}.${ext}"
-  else 
-    local -r _release="$(echo "${_version}" |cut -d'/' -f2)"
+  else
+    local -r _release="$(echo "${_version}" | cut -d'/' -f2)"
     if [ "${_release:+release}" == "release" ]; then
-      _version="$(echo "${_version}" |cut -d'/' -f1)"
+      _version="$(echo "${_version}" | cut -d'/' -f1)"
       info "packages.chef.io does not support 'version/release' format. Using $_version for the version"
     fi
     url="${pcio_root}/habitat/${_version}/hab-${_target}.${ext}"
   fi
-  
+
   dl_file "${url}" "${workdir}/hab-${_version}.${ext}"
   dl_file "${url}.sha256sum" "${workdir}/hab-${_version}.${ext}.sha256sum"
 
@@ -451,7 +451,7 @@ download_archive() {
 
   mv -v "${workdir}/hab-${_version}.${ext}" "${archive}"
   mv -v "${workdir}/hab-${_version}.${ext}.sha256sum" "${sha_file}"
-  
+
   if command -v gpg >/dev/null; then
     info "GnuPG tooling found, downloading signatures"
     sha_sig_file="${archive}.sha256sum.asc"
@@ -459,7 +459,7 @@ download_archive() {
     local _key_url="https://packages.chef.io/chef.asc"
 
     dl_file "${url}.sha256sum.asc" "${sha_sig_file}"
-    dl_file "${_key_url}" "${key_file}" 
+    dl_file "${_key_url}" "${key_file}"
   fi
 }
 
@@ -481,78 +481,78 @@ extract_archive() {
 
   info "Extracting ${archive}"
   case "${ext}" in
-    tar.gz)
-      need_cmd zcat
-      need_cmd tar
+  tar.gz)
+    need_cmd zcat
+    need_cmd tar
 
-      archive_dir="${archive%.tar.gz}"
-      mkdir "${archive_dir}"
-      zcat "${archive}" | tar --extract --directory "${archive_dir}" --strip-components=1
+    archive_dir="${archive%.tar.gz}"
+    mkdir "${archive_dir}"
+    zcat "${archive}" | tar --extract --directory "${archive_dir}" --strip-components=1
 
-      ;;
-    zip)
-      need_cmd unzip
+    ;;
+  zip)
+    need_cmd unzip
 
-      archive_dir="${archive%.zip}"
-      # -j "junk paths" Strips leading paths from files,
-      unzip -j "${archive}" -d "${archive_dir}"
-      ;;
-    *)
-      exit_with "Unrecognized file extension when extracting: ${ext}" 4
-      ;;
+    archive_dir="${archive%.zip}"
+    # -j "junk paths" Strips leading paths from files,
+    unzip -j "${archive}" -d "${archive_dir}"
+    ;;
+  *)
+    exit_with "Unrecognized file extension when extracting: ${ext}" 4
+    ;;
   esac
 }
 
 install_hab() {
   case "${sys}" in
-    darwin)
-        case "${arch}" in
-            x86_64)
-                # No core packages are available yet for x86_64; proceed with the old approach.
-                need_cmd mkdir
-                need_cmd install
+  darwin)
+    case "${arch}" in
+    x86_64)
+      # No core packages are available yet for x86_64; proceed with the old approach.
+      need_cmd mkdir
+      need_cmd install
 
-                info "Installing hab into /usr/local/bin"
-                mkdir -pv /usr/local/bin
-                install -v "${archive_dir}"/hab /usr/local/bin/hab
-                ;;
-            aarch64)
-                setup_hab_root
-                local _ident="core/hab"
-
-                if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
-                    _ident+="/$version";
-                fi
-                "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
-                ;;
-            *)
-                exit_with "Unrecognized sys when installing: ${sys}" 5
-                ;;
-        esac
+      info "Installing hab into /usr/local/bin"
+      mkdir -pv /usr/local/bin
+      install -v "${archive_dir}"/hab /usr/local/bin/hab
       ;;
-    linux)
+    aarch64)
+      setup_hab_root
       local _ident="core/hab"
 
       if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
-        _ident+="/$version";
+          _ident+="/$version"
       fi
-
-      info "Installing Habitat package using temporarily downloaded hab"
-      # NOTE: For people (rightly) wondering why we download hab only to use it
-      # to install hab from Builder, the main reason is because it allows /bin/hab
-      # to be a binlink, meaning that future upgrades can be easily done via
-      # hab pkg install core/hab -bf and everything will Just Work. If we put
-      # the hab we downloaded into /bin, then future hab upgrades done via hab
-      # itself won't work - you'd need to run this script every time you wanted
-      # to upgrade hab, which is not intuitive. Putting it into a place other than
-      # /bin means now you have multiple copies of hab on your system and pathing
-      # shenanigans might ensue. Rather than deal with that mess, we do it this
-      # way.
       "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
       ;;
     *)
       exit_with "Unrecognized sys when installing: ${sys}" 5
       ;;
+    esac
+    ;;
+  linux)
+    local _ident="core/hab"
+
+    if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
+      _ident+="/$version"
+    fi
+
+    info "Installing Habitat package using temporarily downloaded hab"
+    # NOTE: For people (rightly) wondering why we download hab only to use it
+    # to install hab from Builder, the main reason is because it allows /bin/hab
+    # to be a binlink, meaning that future upgrades can be easily done via
+    # hab pkg install core/hab -bf and everything will Just Work. If we put
+    # the hab we downloaded into /bin, then future hab upgrades done via hab
+    # itself won't work - you'd need to run this script every time you wanted
+    # to upgrade hab, which is not intuitive. Putting it into a place other than
+    # /bin means now you have multiple copies of hab on your system and pathing
+    # shenanigans might ensue. Rather than deal with that mess, we do it this
+    # way.
+    "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
+    ;;
+  *)
+    exit_with "Unrecognized sys when installing: ${sys}" 5
+    ;;
   esac
 }
 
@@ -564,7 +564,7 @@ print_hab_version() {
 }
 
 need_cmd() {
-  if ! command -v "$1" > /dev/null 2>&1; then
+  if ! command -v "$1" >/dev/null 2>&1; then
     exit_with "Required command '$1' not found on PATH" 127
   fi
 }
@@ -600,7 +600,7 @@ dl_file() {
   local _curl_extra_args=""
 
   # Attempt to download with wget, if found. If successful, quick return
-  if command -v wget > /dev/null; then
+  if command -v wget >/dev/null; then
     info "Downloading via wget: ${_url}"
 
     if [ -n "${SSL_CERT_FILE:-}" ]; then
@@ -621,7 +621,7 @@ dl_file() {
   fi
 
   # Attempt to download with curl, if found. If successful, quick return
-  if command -v curl > /dev/null; then
+  if command -v curl >/dev/null; then
     info "Downloading via curl: ${_url}"
 
     if [ -n "${SSL_CERT_FILE:-}" ]; then

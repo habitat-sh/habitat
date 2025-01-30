@@ -41,11 +41,12 @@ use prometheus::{register_histogram_vec,
                  HistogramTimer,
                  HistogramVec,
                  IntCounterVec};
+
 use rustls::{self,
-             server::{AllowAnyAuthenticatedClient,
-                      NoClientAuth},
-             Certificate,
-             PrivateKey,
+             pki_types::{CertificateDer,
+                         PrivateKeyDer,
+                         PrivatePkcs8KeyDer},
+             server::WebPkiClientVerifier,
              RootCertStore,
              ServerConfig as TlsServerConfig};
 use std::{error,
@@ -203,7 +204,9 @@ impl Client {
                 }
                 Err(err) => {
                     warn!("Handshake error, {:?}", err);
-                    return Err(HandlerError::from(io::Error::from(io::ErrorKind::ConnectionAborted)));
+                    return Err(HandlerError::from(io::Error::from(
+                        io::ErrorKind::ConnectionAborted,
+                    )));
                 }
             }
         };
@@ -478,8 +481,8 @@ pub(crate) struct CtlGatewayServer {
     pub(crate) listen_addr:         SocketAddr,
     pub(crate) secret_key:          String,
     pub(crate) mgr_sender:          MgrSender,
-    pub(crate) server_certificates: Option<Vec<Certificate>>,
-    pub(crate) server_key:          Option<PrivateKey>,
+    pub(crate) server_certificates: Option<Vec<CertificateDer<'static>>>,
+    pub(crate) server_key:          Option<PrivatePkcs8KeyDer<'static>>,
     pub(crate) client_certificates: Option<RootCertStore>,
 }
 
@@ -520,26 +523,36 @@ impl CtlGatewayServer {
 
                     // Upgrade to a TLS connection if necessary
                     let tcp_stream = if let Some(tls_config) = &maybe_tls_config {
-                        match TcpOrTlsStream::new_tls_server(tcp_stream, Arc::clone(tls_config)).await
-                    {
-                        Ok(tcp_stream) => tcp_stream,
-                        Err((e, tcp_stream)) => {
-                            error!("Failed to accept TLS client connection, err {}", e);
-                            // If the client sent a corrupt TLS message it is a good indicator that
-                            // they did not upgrade to TLS. In this case send back an error response.
-                            // We do not always send back an error response because it can lead to
-                            // confusing error messages on the client.
-                            #[allow(clippy::redundant_closure_for_method_calls)]
-                            if let Some(&rustls::Error::InvalidMessage(_)) = e.get_ref().and_then(|e| e.downcast_ref()) {
-                                let mut srv_codec = SrvCodec::new().framed(tcp_stream);
-                                let net_err = net::err(ErrCode::TlsHandshakeFailed, format!("TLS handshake failed, err: {}", e));
-                                if let Err(e) = srv_codec.send(SrvMessage::from(net_err)).await {
-                                    error!("Failed to send TLS failure message to client, err {}", e);
+                        match TcpOrTlsStream::new_tls_server(tcp_stream, Arc::clone(tls_config))
+                            .await
+                        {
+                            Ok(tcp_stream) => tcp_stream,
+                            Err((e, tcp_stream)) => {
+                                error!("Failed to accept TLS client connection, err {}", e);
+                                // If the client sent a corrupt TLS message it is a good indicator that
+                                // they did not upgrade to TLS. In this case send back an error response.
+                                // We do not always send back an error response because it can lead to
+                                // confusing error messages on the client.
+                                #[allow(clippy::redundant_closure_for_method_calls)]
+                                if let Some(&rustls::Error::InvalidMessage(_)) =
+                                    e.get_ref().and_then(|e| e.downcast_ref())
+                                {
+                                    let mut srv_codec = SrvCodec::new().framed(tcp_stream);
+                                    let net_err = net::err(
+                                        ErrCode::TlsHandshakeFailed,
+                                        format!("TLS handshake failed, err: {}", e),
+                                    );
+                                    if let Err(e) = srv_codec.send(SrvMessage::from(net_err)).await
+                                    {
+                                        error!(
+                                            "Failed to send TLS failure message to client, err {}",
+                                            e
+                                        );
+                                    }
                                 }
+                                continue;
                             }
-                            continue;
                         }
-                    }
                     } else {
                         TcpOrTlsStream::new(tcp_stream)
                     };
@@ -556,23 +569,23 @@ impl CtlGatewayServer {
         }
     }
 
-    fn maybe_tls_config(server_certificates: Option<Vec<Certificate>>,
-                        server_key: Option<PrivateKey>,
+    fn maybe_tls_config(server_certificates: Option<Vec<CertificateDer<'static>>>,
+                        server_key: Option<PrivatePkcs8KeyDer<'static>>,
                         client_certificates: Option<RootCertStore>)
                         -> Option<TlsServerConfig> {
         if let Some(server_key) = server_key {
             let client_auth = if let Some(client_certificates) = client_certificates {
                 debug!("Upgrading ctl-gateway to TLS with client authentication");
-                AllowAnyAuthenticatedClient::new(client_certificates).boxed()
+                WebPkiClientVerifier::builder(client_certificates.into()).build()
+                                                                         .unwrap()
             } else {
                 debug!("Upgrading ctl-gateway to TLS");
-                NoClientAuth::boxed()
+                WebPkiClientVerifier::no_client_auth()
             };
             let tls_config =
-                TlsServerConfig::builder().with_safe_defaults()
-                                          .with_client_cert_verifier(client_auth)
+                TlsServerConfig::builder().with_client_cert_verifier(client_auth)
                                           .with_single_cert(server_certificates.unwrap_or_default(),
-                                                            server_key)
+                                                            PrivateKeyDer::Pkcs8(server_key))
                                           .expect("Could not set certificate for ctl gateway!");
 
             Some(tls_config)

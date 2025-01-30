@@ -178,9 +178,9 @@ impl PackageArchive {
     // TODO (CM): Convert this to Blake2bHash once Builder can use it
     pub fn checksum(&self) -> Result<String> { Ok(Blake2bHash::from_file(&self.path)?.to_string()) }
 
-    pub fn cflags(&mut self) -> Option<&str> { self.read_metadata(MetaFile::CFlags) }
+    pub fn cflags(&self) -> Option<&str> { self.read_metadata(MetaFile::CFlags) }
 
-    pub fn config(&mut self) -> Option<&str> { self.read_metadata(MetaFile::Config) }
+    pub fn config(&self) -> Option<&str> { self.read_metadata(MetaFile::Config) }
 
     // hab-plan-build.sh only generates SVC_USER and SVC_GROUP files if it thinks a package is
     // a service. It determines that by checking for the presence of a run hook file or a
@@ -194,7 +194,7 @@ impl PackageArchive {
     //
     // See https://rust-lang.github.io/rust-clippy/master/index.html#wrong_self_convention
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_a_service(&mut self) -> bool { self.svc_user().is_some() }
+    pub fn is_a_service(&self) -> bool { self.svc_user().is_some() }
 
     /// Returns a list of package identifiers representing the runtime package dependencies for
     /// this archive.
@@ -203,7 +203,7 @@ impl PackageArchive {
     ///
     /// * If the archive cannot be read
     /// * If the archive cannot be verified
-    pub fn deps(&mut self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::Deps) }
+    pub fn deps(&self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::Deps) }
 
     /// Returns a list of package identifiers representing the transitive runtime package
     /// dependencies for this archive.
@@ -212,7 +212,7 @@ impl PackageArchive {
     ///
     /// * If the archive cannot be read
     /// * If the archive cannot be verified
-    pub fn tdeps(&mut self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::TDeps) }
+    pub fn tdeps(&self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::TDeps) }
 
     /// Returns a list of package identifiers representing the buildtime package dependencies for
     /// this archive.
@@ -221,9 +221,7 @@ impl PackageArchive {
     ///
     /// * If the archive cannot be read
     /// * If the archive cannot be verified
-    pub fn build_deps(&mut self) -> Result<Vec<PackageIdent>> {
-        self.read_deps(MetaFile::BuildDeps)
-    }
+    pub fn build_deps(&self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::BuildDeps) }
 
     /// Returns a list of package identifiers representing the transitive buildtime package
     /// dependencies for this archive.
@@ -232,11 +230,9 @@ impl PackageArchive {
     ///
     /// * If the archive cannot be read
     /// * If the archive cannot be verified
-    pub fn build_tdeps(&mut self) -> Result<Vec<PackageIdent>> {
-        self.read_deps(MetaFile::BuildTDeps)
-    }
+    pub fn build_tdeps(&self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::BuildTDeps) }
 
-    pub fn exposes(&mut self) -> Result<Vec<u16>> {
+    pub fn exposes(&self) -> Result<Vec<u16>> {
         if let Some(data) = self.read_metadata(MetaFile::Exposes) {
             data.split_whitespace()
                 .map(|port| port.parse().map_err(Error::InvalidPort))
@@ -246,7 +242,7 @@ impl PackageArchive {
         }
     }
 
-    pub fn ident(&mut self) -> Result<PackageIdent> {
+    pub fn ident(&self) -> Result<PackageIdent> {
         if let Some(data) = self.read_metadata(MetaFile::Ident) {
             PackageIdent::from_str(data)
         } else {
@@ -254,15 +250,15 @@ impl PackageArchive {
         }
     }
 
-    pub fn ld_run_path(&mut self) -> Option<&str> { self.read_metadata(MetaFile::LdRunPath) }
+    pub fn ld_run_path(&self) -> Option<&str> { self.read_metadata(MetaFile::LdRunPath) }
 
-    pub fn ldflags(&mut self) -> Option<&str> { self.read_metadata(MetaFile::LdFlags) }
+    pub fn ldflags(&self) -> Option<&str> { self.read_metadata(MetaFile::LdFlags) }
 
-    pub fn svc_user(&mut self) -> Option<&str> { self.read_metadata(MetaFile::SvcUser) }
+    pub fn svc_user(&self) -> Option<&str> { self.read_metadata(MetaFile::SvcUser) }
 
-    pub fn svc_group(&mut self) -> Option<&str> { self.read_metadata(MetaFile::SvcGroup) }
+    pub fn svc_group(&self) -> Option<&str> { self.read_metadata(MetaFile::SvcGroup) }
 
-    pub fn manifest(&mut self) -> Result<&str> {
+    pub fn manifest(&self) -> Result<&str> {
         if let Some(data) = self.read_metadata(MetaFile::Manifest) {
             Ok(data)
         } else {
@@ -270,7 +266,7 @@ impl PackageArchive {
         }
     }
 
-    pub fn package_type(&mut self) -> Result<PackageType> {
+    pub fn package_type(&self) -> Result<PackageType> {
         if let Some(data) = self.read_metadata(MetaFile::PackageType) {
             PackageType::from_str(data)
         } else {
@@ -278,9 +274,9 @@ impl PackageArchive {
         }
     }
 
-    pub fn path(&mut self) -> Option<&str> { self.read_metadata(MetaFile::Path) }
+    pub fn path(&self) -> Option<&str> { self.read_metadata(MetaFile::Path) }
 
-    pub fn target(&mut self) -> Result<PackageTarget> {
+    pub fn target(&self) -> Result<PackageTarget> {
         if let Some(data) = self.read_metadata(MetaFile::Target) {
             PackageTarget::from_str(data)
         } else {
@@ -314,7 +310,7 @@ impl PackageArchive {
         Ok(())
     }
 
-    fn read_deps(&mut self, file: MetaFile) -> Result<Vec<PackageIdent>> {
+    fn read_deps(&self, file: MetaFile) -> Result<Vec<PackageIdent>> {
         let mut deps = vec![];
 
         if let Some(body) = self.read_metadata(file) {
@@ -330,7 +326,7 @@ impl PackageArchive {
         Ok(deps)
     }
 
-    fn read_metadata(&mut self, file: MetaFile) -> Option<&str> {
+    fn read_metadata(&self, file: MetaFile) -> Option<&str> {
         self.metadata.get(&file).map(String::as_str)
     }
 
@@ -415,7 +411,7 @@ pub struct PackageArchiveInfo {
 impl TryFrom<PackageArchive> for PackageArchiveInfo {
     type Error = Error;
 
-    fn try_from(mut archive: PackageArchive) -> Result<Self> {
+    fn try_from(archive: PackageArchive) -> Result<Self> {
         let header = artifact::get_artifact_header(&archive.path)?;
         let ident: FullyQualifiedPackageIdent = archive.ident()?.try_into()?;
         Ok(PackageArchiveInfo { format_version: header.format().clone(),
@@ -474,7 +470,7 @@ mod test {
 
     #[test]
     fn reading_artifact_metadata() {
-        let mut hart =
+        let hart =
             PackageArchive::new(fixtures().join("happyhumans-possums-8.1.\
                                                  4-20160427165340-x86_64-linux.hart")).unwrap();
         let ident = hart.ident().unwrap();
@@ -542,7 +538,7 @@ mod test {
 
     #[test]
     fn reading_artifact_deps() {
-        let mut hart =
+        let hart =
             PackageArchive::new(fixtures().join("happyhumans-possums-8.1.\
                                                  4-20160427165340-x86_64-linux.hart")).unwrap();
         let _ = hart.deps().unwrap();
@@ -551,7 +547,7 @@ mod test {
 
     #[test]
     fn reading_artifact_large_tdeps() {
-        let mut hart =
+        let hart =
             PackageArchive::new(fixtures().join("unhappyhumans-possums-8.1.\
                                                  4-20160427165340-x86_64-linux.hart")).unwrap();
         let tdeps = hart.tdeps().unwrap();
@@ -561,7 +557,7 @@ mod test {
     #[test]
     #[cfg(feature = "x86_64-linux")]
     fn reading_artifact_target() {
-        let mut hart =
+        let hart =
             PackageArchive::new(fixtures().join("unhappyhumans-possums-8.1.\
                                                  4-20160427165340-x86_64-linux.hart")).unwrap();
         let target = hart.target().unwrap();

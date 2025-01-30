@@ -132,7 +132,7 @@ impl FromStr for InstallSource {
         if path.is_file() {
             // Is it really an archive? If it can produce an
             // identifer, we'll say "yes".
-            let mut archive = PackageArchive::new(path)?;
+            let archive = PackageArchive::new(path)?;
             let target = archive.target()?;
             match archive.ident() {
                 Ok(ident) => {
@@ -592,7 +592,7 @@ impl<'a> InstallTask<'a> {
             }
             None => {
                 // Get the artifact if it's not already installed
-                let mut artifact = self.get_cached_artifact(ui, (ident, target), token).await?;
+                let artifact = self.get_cached_artifact(ui, (ident, target), token).await?;
 
                 // Get the transitive deps of the artifact
                 let tdeps = artifact.tdeps()?;
@@ -764,7 +764,7 @@ impl<'a> InstallTask<'a> {
         for file in glob::glob(&glob_path).expect("glob pattern should compile")
                                           .filter_map(StdResult::ok)
         {
-            let mut artifact = PackageArchive::new(&file)?;
+            let artifact = PackageArchive::new(&file)?;
             let artifact_ident = artifact.ident().ok();
             if artifact_ident.is_none() {
                 continue;
