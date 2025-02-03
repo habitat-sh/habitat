@@ -126,6 +126,10 @@ fn certs_from_pem_file(buf: &[u8]) -> Result<Vec<Certificate>> {
     if buf.is_empty() {
         return Ok(Vec::new());
     }
+    // Try to decode the first certificate as a pem file. This is necessary because
+    // `pem::parse_many` does not return an error. It simply parses what it can and ignores the
+    // rest.
+    Certificate::from_pem(buf)?;
     pem::parse_many(buf)?.iter()
                          .map(|cert| Ok(Certificate::from_der(cert.contents())?))
                          .collect()
@@ -141,7 +145,7 @@ fn certs_from_file(file_path: &Path) -> Result<Vec<Certificate>> {
 mod tests {
     use super::certs_from_file;
     use native_tls::Certificate;
-    use std::io::Write;
+    use std::io::{Read, Write};
     use tempfile::NamedTempFile;
 
     #[test]
@@ -167,8 +171,14 @@ flc9nF9Ca/UHLbXwgpP5WW+uZPpY5Yse42O+tYHNbwKMeQ==
         // From der
         let mut file = NamedTempFile::new().unwrap();
         let cert = Certificate::from_pem(PEM_CERT.as_bytes()).unwrap();
+        println!("{:?}", cert.to_der());
         file.write_all(&cert.to_der().unwrap()).unwrap();
-        assert_eq!(certs_from_file(file.path()).unwrap().len(), 1);
+        let mut contents = String::new();
+        file.read_to_string(&mut contents).unwrap();
+        println!("Contents: {}", contents);
+        let r = certs_from_file(file.path());
+        let c = r.unwrap().len();
+        assert_eq!(c, 1);
 
         // From single pem
         let mut file = NamedTempFile::new().unwrap();
