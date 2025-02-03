@@ -145,7 +145,7 @@ fn certs_from_file(file_path: &Path) -> Result<Vec<Certificate>> {
 mod tests {
     use super::certs_from_file;
     use native_tls::Certificate;
-    use std::io::{Read, Write};
+    use std::io::Write;
     use tempfile::NamedTempFile;
 
     #[test]
@@ -171,14 +171,8 @@ flc9nF9Ca/UHLbXwgpP5WW+uZPpY5Yse42O+tYHNbwKMeQ==
         // From der
         let mut file = NamedTempFile::new().unwrap();
         let cert = Certificate::from_pem(PEM_CERT.as_bytes()).unwrap();
-        println!("{:?}", cert.to_der());
         file.write_all(&cert.to_der().unwrap()).unwrap();
-        let mut contents = String::new();
-        file.read_to_string(&mut contents).unwrap();
-        println!("Contents: {}", contents);
-        let r = certs_from_file(file.path());
-        let c = r.unwrap().len();
-        assert_eq!(c, 1);
+        assert_eq!(certs_from_file(file.path()).unwrap().len(), 1);
 
         // From single pem
         let mut file = NamedTempFile::new().unwrap();
