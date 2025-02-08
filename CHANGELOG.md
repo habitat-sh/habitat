@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.37 -->
-## [2.0.37](https://github.com/habitat-sh/habitat/tree/2.0.37) (2025-01-31)
+<!-- latest_release 2.0.38 -->
+## [2.0.38](https://github.com/habitat-sh/habitat/tree/2.0.38) (2025-02-08)
 
 #### Merged Pull Requests
-- Bump rustls from 0.23.21 to 0.23.22 [#9580](https://github.com/habitat-sh/habitat/pull/9580) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump openssl from 0.10.69 to 0.10.70 [#9583](https://github.com/habitat-sh/habitat/pull/9583) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump openssl from 0.10.69 to 0.10.70 [#9583](https://github.com/habitat-sh/habitat/pull/9583) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.38 -->
 - Bump rustls from 0.23.21 to 0.23.22 [#9580](https://github.com/habitat-sh/habitat/pull/9580) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.37 -->
 - Bump httparse from 1.9.5 to 1.10.0 [#9576](https://github.com/habitat-sh/habitat/pull/9576) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.36 -->
 - Fixes USAGE here doc parsing issue in install.sh [#9575](https://github.com/habitat-sh/habitat/pull/9575) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.35 -->
