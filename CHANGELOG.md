@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.40 -->
-## [2.0.40](https://github.com/habitat-sh/habitat/tree/2.0.40) (2025-02-09)
+<!-- latest_release 2.0.41 -->
+## [2.0.41](https://github.com/habitat-sh/habitat/tree/2.0.41) (2025-02-09)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.10 to 1.2.13 [#9586](https://github.com/habitat-sh/habitat/pull/9586) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump async-trait from 0.1.85 to 0.1.86 [#9582](https://github.com/habitat-sh/habitat/pull/9582) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.85 to 0.1.86 [#9582](https://github.com/habitat-sh/habitat/pull/9582) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.41 -->
 - Bump cc from 1.2.10 to 1.2.13 [#9586](https://github.com/habitat-sh/habitat/pull/9586) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.40 -->
 - Bump hyper from 1.5.2 to 1.6.0 [#9579](https://github.com/habitat-sh/habitat/pull/9579) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.39 -->
 - Bump openssl from 0.10.69 to 0.10.70 [#9583](https://github.com/habitat-sh/habitat/pull/9583) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.38 -->
