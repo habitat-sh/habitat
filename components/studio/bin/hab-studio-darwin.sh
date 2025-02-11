@@ -54,6 +54,8 @@ COMMON FLAGS:
 COMMON OPTIONS:
     -a <ARTIFACT_PATH>    Sets the source artifact cache path (default: /hab/cache/artifacts)
     -c <CERT_PATH>        Sets the SSL certs cache path (default: /hab/cache/ssl)
+    -f <REFRESH_CHANNEL>  Sets the channel used to retrieve plan dpendencies for Chef
+                          supported origins (default: stable)
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
     -r <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
     -s <SRC_PATH>         Sets the source path (default: \$PWD)
@@ -616,6 +618,11 @@ build_sandbox_env() {
   if [ -n "${HAB_BLDR_CHANNEL:-}" ]; then
     sandbox_env="$sandbox_env HAB_BLDR_CHANNEL=$HAB_BLDR_CHANNEL"
   fi
+  # If a Habitat refresh Channel is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_REFRESH_CHANNEL:-}" ]; then
+    sandbox_env="$sandbox_env HAB_REFRESH_CHANNEL=$HAB_REFRESH_CHANNEL"
+  fi
   # If a no coloring environment variable is set, then propagate it into the Studio's
   # sandbox environment.
   if [ -n "${HAB_NOCOLORING:-}" ]; then
@@ -699,7 +706,9 @@ report_env_vars() {
   if [ -n "${no_proxy:-}" ]; then
     info "Exported: no_proxy=$no_proxy"
   fi
-
+  if [ -n "${HAB_REFRESH_CHANNEL:-}" ]; then
+    info "Exported: HAB_REFRESH_CHANNEL=$HAB_REFRESH_CHANNEL"
+  fi
   for secret_name in $(load_secrets | $cut_cmd -d = -f 1); do
     info "Exported: $secret_name=[redacted]"
   done
@@ -825,13 +834,16 @@ ensure_root
 ## CLI Argument Parsing
 
 # Parse command line flags and options.
-while getopts ":a:c:k:r:s:t:vqVh" opt; do
+while getopts ":a:c:f:k:r:s:t:vqVh" opt; do
   case $opt in
   a)
     ARTIFACT_PATH=$OPTARG
     ;;
   c)
     CERT_PATH=$OPTARG
+    ;;
+  f)
+    export HAB_REFRESH_CHANNEL="$OPTARG"
     ;;
   k)
     HAB_ORIGIN_KEYS=$OPTARG
