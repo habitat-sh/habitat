@@ -156,7 +156,7 @@ impl PackageUpdateWorker {
     pub async fn update(&self) -> IncarnatedPackageIdent {
         let ident = self.ident.clone();
         let period = PackageUpdateWorkerPeriod::get().unwrap_or(self.period);
-        let splay = Duration::from_secs(rand::thread_rng().gen_range(0..period.as_secs()));
+        let splay = Duration::from_secs(rand::rng().random_range(0..period.as_secs()));
         debug!("Starting package update worker for {} in {}s",
                ident,
                splay.as_secs());
