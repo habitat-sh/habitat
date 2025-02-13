@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.45 -->
-## [2.0.45](https://github.com/habitat-sh/habitat/tree/2.0.45) (2025-02-13)
+<!-- latest_release 2.0.46 -->
+## [2.0.46](https://github.com/habitat-sh/habitat/tree/2.0.46) (2025-02-13)
 
 #### Merged Pull Requests
-- Bump toml from 0.8.19 to 0.8.20 [#9591](https://github.com/habitat-sh/habitat/pull/9591) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump prost-types from 0.13.4 to 0.13.5 [#9592](https://github.com/habitat-sh/habitat/pull/9592) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump prost-types from 0.13.4 to 0.13.5 [#9592](https://github.com/habitat-sh/habitat/pull/9592) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.46 -->
+- Bump rustls from 0.23.22 to 0.23.23 [#9593](https://github.com/habitat-sh/habitat/pull/9593) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.46 -->
 - Bump toml from 0.8.19 to 0.8.20 [#9591](https://github.com/habitat-sh/habitat/pull/9591) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.45 -->
 - Bump blake2b_simd from 1.0.2 to 1.0.3 [#9587](https://github.com/habitat-sh/habitat/pull/9587) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.44 -->
 - Bump os_info from 3.9.2 to 3.10.0 [#9588](https://github.com/habitat-sh/habitat/pull/9588) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.43 -->
