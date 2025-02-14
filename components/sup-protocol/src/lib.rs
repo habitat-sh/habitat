@@ -38,12 +38,15 @@ pub mod types;
 use crate::{core::env as henv,
             net::{ErrCode,
                   NetResult}};
-use rand::RngCore;
+
 use std::{fs::File,
           io::Read,
           net::SocketAddr,
           path::{Path,
                  PathBuf}};
+
+use rand::{rngs::OsRng,
+           TryRngCore};
 
 // Name of file containing the CtlGateway secret key.
 const CTL_SECRET_FILENAME: &str = "CTL_SECRET";
@@ -63,9 +66,9 @@ lazy_static! {
 
 /// Generate a new secret key used for authenticating clients to the `CtlGateway`.
 pub fn generate_secret_key(out: &mut String) {
-    let mut rng = rand::rngs::OsRng;
+    let mut rng = OsRng;
     let mut result = vec![0u8; CTL_SECRET_LEN];
-    rng.fill_bytes(&mut result);
+    let _ = rng.try_fill_bytes(&mut result);
     *out = core::base64::encode(&result);
 }
 

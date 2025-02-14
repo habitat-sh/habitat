@@ -1,6 +1,6 @@
 use std::iter::FromIterator;
 
-use rand::prelude::SliceRandom;
+use rand::prelude::IndexedRandom;
 
 use crate::btest;
 use habitat_butterfly::{member::Health,
@@ -250,7 +250,7 @@ fn five_persistent_members_same_leader_multiple_non_quorum_partitions() {
 
     // Making sure - running multiple times after a subset of follower (non-quorum) is partitioned
     // and reconnected the leader stays the same.
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let idxes = Vec::from_iter(1_usize..5_usize).choose_multiple(&mut rng, 2)
                                                 .copied()
                                                 .collect::<Vec<usize>>();

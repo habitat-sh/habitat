@@ -101,7 +101,7 @@ impl SelfUpdater {
                      update_channel,
                      period, } = runner;
         let period = SelfUpdatePeriod::get().unwrap_or(period);
-        let splay = Duration::from_secs(rand::thread_rng().gen_range(0..period.as_secs()));
+        let splay = Duration::from_secs(rand::rng().random_range(0..period.as_secs()));
         debug!("Starting self updater with current package {} in {}s",
                current,
                splay.as_secs());

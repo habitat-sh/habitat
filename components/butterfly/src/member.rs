@@ -19,9 +19,9 @@ use log::{debug,
           trace};
 use prometheus::{register_int_gauge_vec,
                  IntGaugeVec};
-use rand::{seq::{IteratorRandom,
-                 SliceRandom},
-           thread_rng};
+use rand::{rng,
+           seq::{IteratorRandom,
+                 SliceRandom}};
 use serde::{de,
             ser::{SerializeMap,
                   SerializeStruct},
@@ -705,7 +705,7 @@ impl MemberList {
                                       .filter(|member| member.id != exclude_id)
                                       .cloned()
                                       .collect();
-        members.shuffle(&mut thread_rng());
+        members.shuffle(&mut rng());
 
         members
     }
@@ -728,7 +728,7 @@ impl MemberList {
                     && member.id != target_member_id
                     && *health == Health::Alive
                 })
-                .choose_multiple(&mut thread_rng(), PINGREQ_TARGETS)
+                .choose_multiple(&mut rng(), PINGREQ_TARGETS)
         {
             with_closure(member);
         }

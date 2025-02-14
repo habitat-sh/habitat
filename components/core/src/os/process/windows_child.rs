@@ -424,7 +424,7 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
         let mut reject_remote_clients_flag = PIPE_REJECT_REMOTE_CLIENTS;
         loop {
             tries += 1;
-            let key: u64 = rand::thread_rng().gen();
+            let key: u64 = rand::rng().random();
             name = format!(r"\\.\pipe\__rust_anonymous_pipe1__.{}.{}",
                            processthreadsapi::GetCurrentProcessId(),
                            key);

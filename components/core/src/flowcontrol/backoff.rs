@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use rand::{thread_rng,
+use rand::{rng,
            Rng};
 use tokio::time::Instant;
 
@@ -48,12 +48,13 @@ impl Backoff {
     pub fn record_attempt_start(&mut self) -> Option<Duration> {
         match &self.last_attempt {
             Some(RetryAttempt { sleep_duration, .. }) => {
-                let mut rng = thread_rng();
+                let mut rng = rng();
                 // We use the decorrelated jitter algorithm mentioned here:
                 // https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
                 let new_sleep_duration =
-                    self.max_backoff.min(rng.gen_range(self.base_backoff
-                                                       ..=sleep_duration.mul_f64(self.multiplier)));
+                    self.max_backoff
+                        .min(rng.random_range(self.base_backoff
+                                              ..=sleep_duration.mul_f64(self.multiplier)));
                 self.last_attempt = Some(RetryAttempt { attempt_started_at: Instant::now(),
                                                         attempt_ended_at:   None,
                                                         sleep_duration:     new_sleep_duration, });
