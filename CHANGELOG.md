@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.46 -->
-## [2.0.46](https://github.com/habitat-sh/habitat/tree/2.0.46) (2025-02-13)
+<!-- latest_release 2.0.47 -->
+## [2.0.47](https://github.com/habitat-sh/habitat/tree/2.0.47) (2025-02-14)
 
 #### Merged Pull Requests
-- Bump prost-types from 0.13.4 to 0.13.5 [#9592](https://github.com/habitat-sh/habitat/pull/9592) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Fixes for using rand crate with version 0.9 [#9594](https://github.com/habitat-sh/habitat/pull/9594) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Fixes for using rand crate with version 0.9 [#9594](https://github.com/habitat-sh/habitat/pull/9594) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.47 -->
 - Bump prost-types from 0.13.4 to 0.13.5 [#9592](https://github.com/habitat-sh/habitat/pull/9592) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.46 -->
 - Bump rustls from 0.23.22 to 0.23.23 [#9593](https://github.com/habitat-sh/habitat/pull/9593) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.46 -->
 - Bump toml from 0.8.19 to 0.8.20 [#9591](https://github.com/habitat-sh/habitat/pull/9591) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.45 -->
