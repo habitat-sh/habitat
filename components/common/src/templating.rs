@@ -75,7 +75,7 @@ pub struct TemplateRenderer(Handlebars<'static>);
 impl TemplateRenderer {
     pub fn new() -> TemplateRenderer {
         let mut handlebars = Handlebars::new();
-        // handlebars.register_helper("eachAlive", Box::new(helpers::EACH_ALIVE));
+        handlebars.register_helper("eachAlive", Box::new(helpers::EACH_ALIVE));
         handlebars.register_helper("pkgPathFor", Box::new(helpers::PKG_PATH_FOR));
         handlebars.register_helper("strConcat", Box::new(helpers::STR_CONCAT));
         handlebars.register_helper("strJoin", Box::new(helpers::STR_JOIN));
@@ -332,7 +332,7 @@ mod test {
 
     #[test]
     fn bind_variable() {
-        let content = "{{bind.foo.members[0].sys.ip}}";
+        let content = "{{bind.foo.members.[0].sys.ip}}";
         let mut renderer = TemplateRenderer::new();
         let data = service_config_json_from_toml_file("complex_config.toml");
 

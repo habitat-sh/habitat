@@ -1,4 +1,5 @@
-// mod each_alive;
+mod block_helpers;
+mod each_alive;
 mod pkg_path_for;
 mod str_concat;
 mod str_join;
@@ -9,7 +10,7 @@ mod to_toml;
 mod to_uppercase;
 mod to_yaml;
 
-pub use self::{// each_alive::EACH_ALIVE,
+pub use self::{each_alive::EACH_ALIVE,
                pkg_path_for::PKG_PATH_FOR,
                str_concat::STR_CONCAT,
                str_join::STR_JOIN,
