@@ -8,7 +8,7 @@ gh_repo = "habitat"
     title = "Building Packages"
     identifier = "habitat/packages/pkg-build Build your Package"
     parent = "habitat/packages"
-    weight = 10
+    weight = 20
 +++
 
 When you have finished creating your plan and call `build` in Chef Habitat Studio, the build script does following steps:
