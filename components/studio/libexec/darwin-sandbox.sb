@@ -172,3 +172,25 @@
        (literal "/private/var/run/resolv.conf")
        (literal "/private/etc/hosts"))
 (allow network-outbound (remote unix-socket (path-literal "/private/var/run/mDNSResponder")))
+
+;; Allow lookup of specific macOS services.
+;; - com.apple.SecurityServer: Handles authentication, authorization, and cryptographic services.
+;; - com.apple.analyticsd: System analytics and diagnostics service.
+;; - com.apple.trustd: Manages certificate trust policies and ensures secure communication by verifying the validity of certificates.
+(allow mach-lookup
+    (global-name "com.apple.SecurityServer")
+    (global-name "com.apple.analyticsd")
+    (global-name "com.apple.trustd"))
+
+;; Allow read to required system stuff
+(allow file-read*
+    (regex #"^/usr/share/icu/*")
+    (regex #"^/private/var/db/mds/system/*")
+    (regex #"^/System/Library/*")
+    (regex #"^/System/Library/Frameworks/*"))
+
+;; Allow write access to specific macOS metadata system files.
+;; - /private/var/db/mds/system/: Directory used by the Metadata Server (mds) to store and manage the system’s indexing data.
+;; This rule is necessary for Spotlight search and metadata indexing to function correctly.
+(allow file-write*
+    (regex #"^/private/var/db/mds/system/*"))
