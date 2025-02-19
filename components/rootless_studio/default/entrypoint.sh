@@ -20,5 +20,5 @@ case "$1" in
     shift
     hab pkg exec core/hab-backline env "${secrets[@]}" bash --login -c "$@";;
   *)
-    echo "Unknown Studio Command" && exit 1;;
+    echo "Unknown Studio Command: ${1}" && exit 1;;
 esac
