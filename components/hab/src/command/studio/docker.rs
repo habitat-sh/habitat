@@ -353,8 +353,6 @@ fn studio_target(windows: bool, target: target::PackageTarget) -> target::Packag
         #[cfg(feature = "supported_targets")]
         target::X86_64_LINUX => target::X86_64_LINUX,
         #[cfg(feature = "supported_targets")]
-        target::X86_64_LINUX_KERNEL2 => target::X86_64_LINUX_KERNEL2,
-        #[cfg(feature = "supported_targets")]
         target::X86_64_WINDOWS => target::X86_64_LINUX,
         #[cfg(feature = "supported_targets")]
         target::AARCH64_DARWIN => target::X86_64_LINUX,
@@ -388,8 +386,6 @@ mod tests {
                    format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION));
         assert_eq!(image_identifier(None, target::X86_64_LINUX),
                    format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION));
-        assert_eq!(image_identifier(None, target::X86_64_LINUX_KERNEL2),
-                   format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux-kernel2", VERSION));
         assert_eq!(image_identifier(None, target::X86_64_WINDOWS),
                    format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION));
         assert_eq!(image_identifier(Some("ltsc2016"), target::X86_64_WINDOWS),

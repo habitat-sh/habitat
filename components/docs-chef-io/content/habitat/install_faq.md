@@ -20,7 +20,7 @@ A: While we do cut releases in GitHub as part of our release process those archi
 
 **Q: Compile for my platform? Does that mean there aren't any OS native packages of `hab`?**
 
-A: We publish compiled packages for OSX, Linux, and Windows. `hab` has a requirement of either a Linux kernel >= 2.6.32, OSX >= 10.9, or 64-bit Windows 10 Pro, Enterprise, or Education editions (1511 November update, build 10586 or later) with Hyper-V enabled.
+A: We publish compiled packages for OSX, Linux, and Windows. `hab` has a requirement of either a Linux kernel >= 2.6.32, OSX >= 10.9, or 64-bit Windows 8.
 
 **Q: What if I need an old version of `hab`?**
 
