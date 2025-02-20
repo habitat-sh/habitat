@@ -151,7 +151,12 @@ get_platform() {
 # Target is present in the array.
 validate_target() {
   local valid_targets=("${arch}-${sys}")
-
+  case "${sys}" in
+  linux)
+    valid_targets+=("x86_64-linux-kernel2")
+    ;;
+  esac
+  
   if ! (_array_contains "${target}" "${valid_targets[@]}"); then
     local _vts
     printf -v _vts "%s, " "${valid_targets[@]}"
