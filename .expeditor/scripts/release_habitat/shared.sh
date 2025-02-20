@@ -198,7 +198,7 @@ create_archive_from_hart() {
     pkg_name="hab-${target}"
 
     case "$target" in
-        *-linux | *-linux-kernel2)
+        *-linux)
             pkg_artifact="${pkg_name}.tar.gz"
             make_tarball "${pkg_name}" "${archive_dir}"
             ;;

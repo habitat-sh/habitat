@@ -99,15 +99,11 @@ When writing a plan, it's important to understand that you are defining both how
 
 You may want to create a plan for an application that can run on multiple platform targets. You can create target specific folders beneath either the root of your project or a top level `habitat` folder. Then save the plan, hooks, and configuration templates specific to a single platform all inside of that target specific folder.
 
-For example, an application targeting linux, Linux kernel 2, and Windows may have the following structure:
+For example, an application targeting linux and Windows may have the following structure:
 
 ```
 app_root/
 ├── x86_64-linux/
-|   |   plan.sh
-|   └── hooks/
-|           run
-├── x86_64-linux-kernel2/
 |   |   plan.sh
 |   └── hooks/
 |           run

@@ -41,18 +41,6 @@ steps:
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh hab
 
-  - label: "[:linux: :two: build hab]"
-    command:
-      - .expeditor/scripts/release_habitat/build_component.sh hab
-    env:
-      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux-kernel2
-
   - label: "[:windows: build hab]"
     command:
       - powershell .expeditor/scripts/release_habitat/build_component.ps1 hab
@@ -123,18 +111,6 @@ steps:
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh plan-build
 
-  - label: "[:linux: :two: build hab-plan-build]"
-    command:
-      - .expeditor/scripts/release_habitat/build_component.sh plan-build
-    env:
-      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux-kernel2
-
   - label: "[:windows: build plan-build-ps1]"
     command:
       - powershell .expeditor/scripts/release_habitat/build_component.ps1 plan-build-ps1
@@ -167,18 +143,6 @@ steps:
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh backline
 
-  - label: "[:linux: :two: build hab-backline]"
-    command:
-      - .expeditor/scripts/release_habitat/build_component.sh backline
-    env:
-      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux-kernel2
-
   - wait
 
   - label: "[:linux: build hab-studio]"
@@ -199,18 +163,6 @@ steps:
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh studio
-
-  - label: "[:linux: :two: build hab-studio]"
-    command:
-      - .expeditor/scripts/release_habitat/build_component.sh studio
-    env:
-      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
   - label: "[:windows: build studio]"
     command:
@@ -247,18 +199,6 @@ steps:
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh launcher
 
-  - label: "[:linux: :two: build launcher]"
-    command:
-      - .expeditor/scripts/release_habitat/build_component.sh launcher
-    env:
-      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux-kernel2
-
   - label: "[:windows: build launcher]"
     command:
       - powershell .expeditor/scripts/release_habitat/build_component.ps1 launcher
@@ -288,18 +228,6 @@ steps:
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh sup
-
-  - label: "[:linux: :two: build hab-sup]"
-    command:
-      - .expeditor/scripts/release_habitat/build_component.sh sup
-    env:
-      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
   - label: "[:windows: build hab-sup]"
     command:
@@ -361,18 +289,6 @@ steps:
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh pkg-export-tar
 
-  - label: "[:linux: :two: build hab-pkg-export-tar]"
-    command:
-      - .expeditor/scripts/release_habitat/build_component.sh pkg-export-tar
-    env:
-      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux-kernel2
-
   - label: "[:windows: build hab-pkg-export-tar]"
     command:
       - powershell .expeditor/scripts/release_habitat/build_component.ps1 pkg-export-tar
@@ -428,19 +344,6 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=aarch64-linux
-
-  - label: "[:linux: :two: upload hab binary]"
-    command:
-      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
-    env:
-      HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
   - label: "[:windows: upload hab binary]"
     command:
@@ -512,16 +415,6 @@ steps:
     if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
-    expeditor:
-      executor:
-        linux:
-          privileged: true
-
-  - label: ":docker: :two: Upload containers to Docker Hub"
-    command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
-    env:
-      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
     expeditor:
       executor:
         linux:

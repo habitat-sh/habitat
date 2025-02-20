@@ -255,17 +255,6 @@ packages = [
   "habitat/builder-memcached",
 ]
 
-[[x86_64-linux-kernel2]]
-channel = "stable"
-packages = [
-  # Supervisor and prerequisites
-  "core/hab-launcher",
-  "core/hab",
-  "core/hab-sup",
-
-  "habitat/builder-worker"
-]
-
 [[x86_64-windows]]
 channel = "stable"
 packages = [

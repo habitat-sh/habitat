@@ -51,37 +51,11 @@ installed_target() {
 
 @test "Install legacy package for x86_84-linux" {
   linux || skip "Did not detect a Linux system"
-  run components/hab/install.sh -v 0.79.1 
+  run components/hab/install.sh -v 0.79.1
 
   [ "$status" -eq 0 ]
   [ "$(installed_version)" == "hab 0.79.1" ]
   [ "$(installed_target)" == "x86_64-linux" ]
-}
-
-@test "Install latest for x86_64-linux-kernel2" {
-  linux || skip "Did not detect a Linux system"
-  run components/hab/install.sh -t "x86_64-linux-kernel2"
-
-  [ "$status" -eq 0 ]
-  [ "$(installed_target)" == "x86_64-linux-kernel2" ]
-}
-
-@test "Install specific version for x86_64-linux-kernel2" {
-  linux || skip "Did not detect a Linux system"
-  run components/hab/install.sh -v 0.90.6 -t "x86_64-linux-kernel2"
-
-  [ "$status" -eq 0 ]
-  [ "$(installed_version)" == "hab 0.90.6" ]
-  [ "$(installed_target)" == "x86_64-linux-kernel2" ]
-}
-
-@test "Install legacy package for x86_84-linux-kernel2" {
-  linux || skip "Did not detect a Linux system"
-  run components/hab/install.sh -v 0.79.1 -t "x86_64-linux-kernel2"
-
-  [ "$status" -eq 0 ]
-  [ "$(installed_version)" == "hab 0.79.1" ]
-  [ "$(installed_target)" == "x86_64-linux-kernel2" ]
 }
 
 @test "Install latest for x86_86-darwin" {

@@ -277,23 +277,6 @@ package_targets! {
     /// [x86_64]: https://en.wikipedia.org/wiki/X86-64
     ("x86_64-linux", X86_64_Linux, X86_64_LINUX, "x86_64", "linux");
 
-    /// Represents an **older** [Linux kernel]-based system from the 2.6.x family running on a
-    /// [64-bit] version of the [x86][x] [instruction set architecture][isa], commonly known as
-    /// [x86_64].
-    ///
-    /// This Habitat package target is intended for software with older buildtime or runtime
-    /// requirements than those supported by the current `x86_64-linux` package target.
-    /// Specifically, software with this package target should run on systems from around the year
-    /// 2016, when the Habitat project was publicly launched. This Habitat package target will run
-    /// on Linux systems equipped with kernel versions as low as 2.6.32.
-    ///
-    /// [Linux kernel]: https://en.wikipedia.org/wiki/Linux_kernel
-    /// [64-bit]: https://en.wikipedia.org/wiki/64-bit_computing
-    /// [x]: https://en.wikipedia.org/wiki/X86
-    /// [isa]: https://en.wikipedia.org/wiki/Instruction_set_architecture
-    /// [x86_64]: https://en.wikipedia.org/wiki/X86-64
-    ("x86_64-linux-kernel2", X86_64_Linux_Kernel2, X86_64_LINUX_KERNEL2, "x86_64", "linux");
-
     /// Represents a [Windows kernel]-based system running on a [64-bit] version of the [x86][x]
     /// [instruction set architecture][isa], commonly known as [x86_64].
     ///
@@ -615,12 +598,6 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "x86_64-linux-kernel2")]
-    fn type_variant() {
-        assert_eq!(Some("kernel2"), Type::X86_64_Linux_Kernel2.variant());
-    }
-
-    #[test]
     #[cfg(feature = "x86_64-windows")]
     fn type_no_variant() {
         assert_eq!(None, Type::X86_64_Windows.variant());
@@ -634,18 +611,6 @@ mod test {
 
         assert_eq!(Some("x86_64"), iter.next());
         assert_eq!(Some("windows"), iter.next());
-        assert_eq!(None, iter.next());
-    }
-
-    #[test]
-    #[cfg(feature = "x86_64-kernel2")]
-    fn package_target_iter_with_variant() {
-        let target = PackageTarget(Type::X86_64_Linux_Kernel2);
-        let mut iter = target.iter();
-
-        assert_eq!(Some("x86_64"), iter.next());
-        assert_eq!(Some("linux"), iter.next());
-        assert_eq!(Some("kernel2"), iter.next());
         assert_eq!(None, iter.next());
     }
 }

@@ -33,14 +33,6 @@ Alternatively, you can install Chef Habitat via the command line by downloading 
 curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash
 ```
 
-### Install Chef Habitat for Linux Kernel 2.x from the Command Line
-
-Please note that support for Linux Kernel 2.x is limited. Not all core plans are available for Kernel 2.x, nor are there plans to backport all of the existing core plans to Kernel 2.x.  Kernel 2.x is legacy technology by definition, and its use should be viewed as a stop-gap to provide interim solutions for old systems, as they are upgraded to more recent versions of the Linux kernel.
-
-```bash
-curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- -t x86_64-linux-kernel2
-```
-
 ## Chef Habitat for Mac
 
 Requires 64-bit processor running 10.9 or later

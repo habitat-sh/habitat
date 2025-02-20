@@ -19,7 +19,7 @@ A PR should only be merged if its corresponding verify pipeline has run successf
 
 # Release Pipeline
 
-Defined in [release_habitat.pipeline.yml](release_habitat.pipeline.yml), this pipeline runs after a PR has been merged to the `master` branch of the repository. Here, we build all the Habitat packages in the repository, for all the platforms we support (currently, `x86_64-linux`, `x86_64-linux-kernel2`, and `x86_64-windows`). In particular, we build the packages in dependency order. Everything up to and including the Habitat Studio are built with the currently-released stable Habitat toolchain. Then, once we've built a Studio, we switch to building the rest of the packages with the new toolchain. (This also serves as a kind of implicit acceptance test for the build system itself.)
+Defined in [release_habitat.pipeline.yml](release_habitat.pipeline.yml), this pipeline runs after a PR has been merged to the `master` branch of the repository. Here, we build all the Habitat packages in the repository, for all the platforms we support (currently, `x86_64-linux`, `aarch64-linux`, and `x86_64-windows`). In particular, we build the packages in dependency order. Everything up to and including the Habitat Studio are built with the currently-released stable Habitat toolchain. Then, once we've built a Studio, we switch to building the rest of the packages with the new toolchain. (This also serves as a kind of implicit acceptance test for the build system itself.)
 
 We also create the various Studio containers for this release and upload them to Docker Hub. This is a safe operation currently because the specific container image being used depends on the version of Habitat that is requesting it (i.e., when a Habitat Studio starts up in Docker-mode, it doesn't just pull the `latest` version of the image).
 
@@ -70,7 +70,7 @@ In addition to uploading the various tarballs to S3, we also create a "manifest"
       "core/hab-studio/1.6.181/20201030180823",
       "core/hab-sup/1.6.181/20201030181202"
     ],
-    "x86_64-linux-kernel2": [
+    "aarch64-linux": [
       "core/hab/1.6.181/20201030172917",
       "core/hab-backline/1.6.181/20201030180714",
       "core/hab-launcher/14772/20201030181209",
