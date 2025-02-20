@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.51 -->
-## [2.0.51](https://github.com/habitat-sh/habitat/tree/2.0.51) (2025-02-19)
+<!-- latest_release 2.0.52 -->
+## [2.0.52](https://github.com/habitat-sh/habitat/tree/2.0.52) (2025-02-20)
 
 #### Merged Pull Requests
-- Bump tempfile from 3.17.0 to 3.17.1 [#9597](https://github.com/habitat-sh/habitat/pull/9597) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- removes kernel2 support [#9590](https://github.com/habitat-sh/habitat/pull/9590) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- removes kernel2 support [#9590](https://github.com/habitat-sh/habitat/pull/9590) ([mwrock](https://github.com/mwrock)) <!-- 2.0.52 -->
 - Bump tempfile from 3.17.0 to 3.17.1 [#9597](https://github.com/habitat-sh/habitat/pull/9597) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.51 -->
 - fixes unknown studio command in hab pkg build -D [#9598](https://github.com/habitat-sh/habitat/pull/9598) ([mwrock](https://github.com/mwrock)) <!-- 2.0.50 -->
 - Bump cc from 1.2.13 to 1.2.14 [#9596](https://github.com/habitat-sh/habitat/pull/9596) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.49 -->
