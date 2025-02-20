@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.54 -->
-## [2.0.54](https://github.com/habitat-sh/habitat/tree/2.0.54) (2025-02-20)
+<!-- latest_release 2.0.55 -->
+## [2.0.55](https://github.com/habitat-sh/habitat/tree/2.0.55) (2025-02-20)
 
 #### Merged Pull Requests
-- add kernel2 back to installer.sh [#9602](https://github.com/habitat-sh/habitat/pull/9602) ([mwrock](https://github.com/mwrock))
+- Bump serde_json from 1.0.138 to 1.0.139 [#9599](https://github.com/habitat-sh/habitat/pull/9599) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.138 to 1.0.139 [#9599](https://github.com/habitat-sh/habitat/pull/9599) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.55 -->
 - add kernel2 back to installer.sh [#9602](https://github.com/habitat-sh/habitat/pull/9602) ([mwrock](https://github.com/mwrock)) <!-- 2.0.54 -->
 - Bump anyhow from 1.0.95 to 1.0.96 [#9601](https://github.com/habitat-sh/habitat/pull/9601) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.53 -->
 - removes kernel2 support [#9590](https://github.com/habitat-sh/habitat/pull/9590) ([mwrock](https://github.com/mwrock)) <!-- 2.0.52 -->
