@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.55 -->
-## [2.0.55](https://github.com/habitat-sh/habitat/tree/2.0.55) (2025-02-20)
+<!-- latest_release 2.0.56 -->
+## [2.0.56](https://github.com/habitat-sh/habitat/tree/2.0.56) (2025-02-21)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.138 to 1.0.139 [#9599](https://github.com/habitat-sh/habitat/pull/9599) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Using handlebars 6 [#9585](https://github.com/habitat-sh/habitat/pull/9585) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Using handlebars 6 [#9585](https://github.com/habitat-sh/habitat/pull/9585) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.56 -->
 - Bump serde_json from 1.0.138 to 1.0.139 [#9599](https://github.com/habitat-sh/habitat/pull/9599) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.55 -->
 - add kernel2 back to installer.sh [#9602](https://github.com/habitat-sh/habitat/pull/9602) ([mwrock](https://github.com/mwrock)) <!-- 2.0.54 -->
 - Bump anyhow from 1.0.95 to 1.0.96 [#9601](https://github.com/habitat-sh/habitat/pull/9601) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.53 -->
