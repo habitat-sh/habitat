@@ -53,7 +53,7 @@ pub enum Error {
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
     // Boxed due to clippy::large_enum_variant
-    HandlebarsRenderError(Box<handlebars::TemplateRenderError>),
+    HandlebarsRenderError(Box<handlebars::RenderError>),
     InvalidDnsName(String),
     IO(io::Error),
     JobGroupPromoteOrDemote(api_client::Error, bool /* promote */),
@@ -258,10 +258,8 @@ impl From<HashMap<PackageIdent, Error>> for Error {
     fn from(errors: HashMap<PackageIdent, Error>) -> Self { Error::ErrorPerIdent(errors) }
 }
 
-impl From<handlebars::TemplateRenderError> for Error {
-    fn from(err: handlebars::TemplateRenderError) -> Error {
-        Error::HandlebarsRenderError(Box::new(err))
-    }
+impl From<handlebars::RenderError> for Error {
+    fn from(err: handlebars::RenderError) -> Error { Error::HandlebarsRenderError(Box::new(err)) }
 }
 
 impl From<io::Error> for Error {

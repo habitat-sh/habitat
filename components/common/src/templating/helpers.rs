@@ -1,3 +1,4 @@
+mod block_helpers;
 mod each_alive;
 mod pkg_path_for;
 mod str_concat;
@@ -42,6 +43,7 @@ impl JsonTruthy for Json {
     }
 }
 
+#[allow(dead_code)]
 /// Helper which will serialize to Json the given reference or return `Json::Null`
 fn to_json<T>(src: &T) -> Json
     where T: Serialize

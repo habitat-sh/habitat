@@ -137,7 +137,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
     fn compile<T>(&self, service_group: &str, ctx: &T) -> Result<bool>
         where T: Serialize
     {
-        let content = self.renderer().render(Self::FILE_NAME, ctx)?;
+        let content = self.renderer().0.render(Self::FILE_NAME, ctx)?;
         // We make sure we don't use a deprecated file name
         let path = self.path().with_file_name(Self::FILE_NAME);
         if write_hook(&content, &path)? {
@@ -509,7 +509,7 @@ pub struct RenderPair {
 }
 
 impl RenderPair {
-    pub fn new<C, T>(concrete_path: C, template_path: T, name: &'static str) -> Result<Self>
+    pub fn new<C, T>(concrete_path: C, template_path: T, name: &'static str) -> Result<RenderPair>
         where C: Into<PathBuf>,
               T: AsRef<Path>
     {

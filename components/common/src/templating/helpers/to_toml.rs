@@ -1,42 +1,50 @@
-use super::super::RenderResult;
-use handlebars::{Handlebars,
+use handlebars::{Context,
+                 Handlebars,
                  Helper,
                  HelperDef,
+                 HelperResult,
+                 Output,
                  RenderContext,
-                 RenderError};
+                 RenderErrorReason};
 
 #[derive(Clone, Copy)]
 pub struct ToTomlHelper;
 
 impl HelperDef for ToTomlHelper {
-    fn call(&self, h: &Helper<'_>, _: &Handlebars, rc: &mut RenderContext<'_>) -> RenderResult<()> {
+    fn call<'reg: 'rc, 'rc>(&self,
+                            h: &Helper<'rc>,
+                            _: &'reg Handlebars<'reg>,
+                            _: &'rc Context,
+                            _rc: &mut RenderContext<'reg, 'rc>,
+                            out: &mut dyn Output)
+                            -> HelperResult {
         let param = h.param(0)
-                     .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toToml\""))?
+                     .ok_or_else(|| {
+                         RenderErrorReason::Other("Expected 1 parameter for \"toToml\"".to_string())
+                     })?
                      .value();
         // Since `param` is a JSON object, this only works reliably if
         // `serde_json` has been compiled with the `preserve_order`
         // feature, since order *is* important for TOML (values must
         // be emitted before tables).
         if param.is_object() {
-            let toml = toml::ser::to_string(&param).map_err(|e| {
-                                                       RenderError::new(format!("Can't serialize \
-                                                                                 parameter to \
-                                                                                 TOML: {}",
-                                                                                e))
-                                                   })?;
-            rc.writer.write_all(toml.into_bytes().as_ref())?;
+            let toml =
+                toml::ser::to_string(&param).map_err(|e| {
+                    RenderErrorReason::Other(format!("Can't serialize parameter to TOML: {}", e))
+                })?;
+            out.write(toml.as_ref())?;
         } else {
             let mut value = String::new();
             serde::Serialize::serialize(
                 &param,
                 toml::ser::ValueSerializer::new(&mut value)
             ).map_err(|e| {
-                                RenderError::new(format!("Can't serialize \
+                                RenderErrorReason::Other(format!("Can't serialize \
                                                          parameter to TOML: \
                                                          {}",
                                                         e))
                             })?;
-            rc.writer.write_all(value.into_bytes().as_ref())?;
+            out.write(value.as_ref())?;
         }
         Ok(())
     }
