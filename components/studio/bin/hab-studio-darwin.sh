@@ -788,6 +788,7 @@ set_libexec_path() {
   script_path=$($readlink_cmd -f "$script_path")
   script_dir="${script_path%/*}"
   libexec_path="$($readlink_cmd -f "$script_dir/../libexec")"
+  studio_binary_libexec_path=$libexec_path
   return 0
 }
 
