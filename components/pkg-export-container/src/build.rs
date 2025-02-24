@@ -146,14 +146,14 @@ impl TryFrom<&ArgMatches> for BuildSpec {
                        hab_sup: m.get_one::<String>("HAB_SUP_PKG").unwrap().to_string(),
                        url: m.get_one::<String>("BLDR_URL").unwrap().to_string(),
                        channel: m.get_one::<String>("CHANNEL")
-                                 .unwrap_or(&"stable".to_string())
+                                 .unwrap_or(&"LTS-2024".to_string())
                                  .to_string()
                                  .into(),
                        base_pkgs_url: m.get_one::<String>("BASE_PKGS_BLDR_URL")
                                        .unwrap()
                                        .to_string(),
                        base_pkgs_channel: m.get_one::<String>("BASE_PKGS_CHANNEL")
-                                           .unwrap_or(&"stable".to_string())
+                                           .unwrap_or(&"LTS-2024".to_string())
                                            .to_string()
                                            .into(),
                        auth: m.get_one::<String>("BLDR_AUTH_TOKEN")
@@ -301,11 +301,11 @@ impl BuildSpec {
         // and cacerts isn't really something that's going to need to
         // be done
         let busybox = if cfg!(target_os = "linux") {
-            Some(self.install_stable_pkg(ui, BUSYBOX_IDENT, rootfs).await?)
+            Some(self.install_lts_pkg(ui, BUSYBOX_IDENT, rootfs).await?)
         } else {
             None
         };
-        let cacerts = self.install_stable_pkg(ui, CACERTS_IDENT, rootfs).await?;
+        let cacerts = self.install_lts_pkg(ui, CACERTS_IDENT, rootfs).await?;
 
         Ok(BasePkgIdents { hab,
                            sup,
@@ -353,15 +353,15 @@ impl BuildSpec {
             .await
     }
 
-    async fn install_stable_pkg(&self,
-                                ui: &mut UI,
-                                ident_or_archive: &str,
-                                fs_root_path: &Path)
-                                -> Result<FullyQualifiedPackageIdent> {
+    async fn install_lts_pkg(&self,
+                             ui: &mut UI,
+                             ident_or_archive: &str,
+                             fs_root_path: &Path)
+                             -> Result<FullyQualifiedPackageIdent> {
         self.install(ui,
                      ident_or_archive,
                      &self.base_pkgs_url,
-                     &ChannelIdent::stable(),
+                     &ChannelIdent::lts(),
                      fs_root_path,
                      None)
             .await
