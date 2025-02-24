@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.57 -->
-## [2.0.57](https://github.com/habitat-sh/habitat/tree/2.0.57) (2025-02-21)
+<!-- latest_release 2.0.58 -->
+## [2.0.58](https://github.com/habitat-sh/habitat/tree/2.0.58) (2025-02-24)
 
 #### Merged Pull Requests
-- Bump handlebars from 6.2.0 to 6.3.1 [#9603](https://github.com/habitat-sh/habitat/pull/9603) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump pem from 3.0.4 to 3.0.5 [#9605](https://github.com/habitat-sh/habitat/pull/9605) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump pem from 3.0.4 to 3.0.5 [#9605](https://github.com/habitat-sh/habitat/pull/9605) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.58 -->
 - Bump handlebars from 6.2.0 to 6.3.1 [#9603](https://github.com/habitat-sh/habitat/pull/9603) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.57 -->
 - Using handlebars 6 [#9585](https://github.com/habitat-sh/habitat/pull/9585) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.56 -->
 - Bump serde_json from 1.0.138 to 1.0.139 [#9599](https://github.com/habitat-sh/habitat/pull/9599) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.55 -->
