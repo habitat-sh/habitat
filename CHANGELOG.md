@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.60 -->
-## [2.0.60](https://github.com/habitat-sh/habitat/tree/2.0.60) (2025-02-25)
+<!-- latest_release 2.0.61 -->
+## [2.0.61](https://github.com/habitat-sh/habitat/tree/2.0.61) (2025-03-10)
 
 #### Merged Pull Requests
-- Bump log from 0.4.25 to 0.4.26 [#9607](https://github.com/habitat-sh/habitat/pull/9607) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- downgrade native-tls [#9611](https://github.com/habitat-sh/habitat/pull/9611) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- downgrade native-tls [#9611](https://github.com/habitat-sh/habitat/pull/9611) ([mwrock](https://github.com/mwrock)) <!-- 2.0.61 -->
 - Bump log from 0.4.25 to 0.4.26 [#9607](https://github.com/habitat-sh/habitat/pull/9607) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.60 -->
 - Bump serde from 1.0.217 to 1.0.218 [#9604](https://github.com/habitat-sh/habitat/pull/9604) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.59 -->
 - Bump pem from 3.0.4 to 3.0.5 [#9605](https://github.com/habitat-sh/habitat/pull/9605) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.58 -->
