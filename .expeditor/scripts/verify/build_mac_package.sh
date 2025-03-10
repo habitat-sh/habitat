@@ -31,11 +31,12 @@ macos_sync_cache_signing_keys
 # set the rust toolchain
 install_rustup
 
+rust_toolchain="$(tail -n 1 rust-toolchain  | cut -d'"' -f 2)"
 if [ "$BUILD_PKG_TARGET" == "aarch64-darwin" ]; then
     rustup target add aarch64-apple-darwin
 fi
 
-rust_toolchain="$(tail -n 1 rust-toolchain  | cut -d'"' -f 2)"
+install_rust_toolchain "$rust_toolchain"
 echo "--- :rust: Using Rust toolchain ${rust_toolchain}"
 rustc --version # just 'cause I'm paranoid and I want to double check
 

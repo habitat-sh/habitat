@@ -48,6 +48,17 @@ install_rustup() {
   fi
 }
 
+install_rust_toolchain() {
+  local toolchain="${1?toolchain argument required}"
+
+  if rustup component list --toolchain "$toolchain" &>/dev/null; then
+    echo "--- :rust: Rust $toolchain is already installed."
+  else
+    echo "--- :rust: Installing rust $toolchain."
+    rustup toolchain install "$toolchain"
+  fi
+}
+
 get_toolchain() {
     dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
     tail -n 1 "$dir/../../rust-toolchain" | cut -d'"' -f 2
