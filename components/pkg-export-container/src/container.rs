@@ -10,7 +10,8 @@ use habitat_common::ui::{Status,
                          UI};
 use habitat_core::package::PackageIdent;
 use handlebars::Handlebars;
-use log::error;
+use log::{debug,
+          error};
 use serde_json::json;
 use std::{fs,
           path::{Path,
@@ -246,9 +247,10 @@ impl BuildContext {
             "environment": ctx.environment,
             "packages": self.0.graph().reverse_topological_sort().iter().map(ToString::to_string).collect::<Vec<_>>(),
         });
-        util::write_file(self.0.workdir().join("Dockerfile"),
-                         &Handlebars::new().render_template(DOCKERFILE, &json)
-                                           .map_err(|err| anyhow!("{}", err))?)?;
+        let dockerfile = &Handlebars::new().render_template(DOCKERFILE, &json)
+                                           .map_err(|err| anyhow!("{}", err))?;
+        debug!("DOCKERFILE: {}", dockerfile);
+        util::write_file(self.0.workdir().join("Dockerfile"), dockerfile)?;
         Ok(())
     }
 
