@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.62 -->
-## [2.0.62](https://github.com/habitat-sh/habitat/tree/2.0.62) (2025-03-11)
+<!-- latest_release 2.0.63 -->
+## [2.0.63](https://github.com/habitat-sh/habitat/tree/2.0.63) (2025-03-12)
 
 #### Merged Pull Requests
-- remove leating tilde in container exporter dockerfile templates [#9614](https://github.com/habitat-sh/habitat/pull/9614) ([mwrock](https://github.com/mwrock))
+- Bump ring from 0.17.8 to 0.17.13 [#9613](https://github.com/habitat-sh/habitat/pull/9613) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump ring from 0.17.8 to 0.17.13 [#9613](https://github.com/habitat-sh/habitat/pull/9613) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.63 -->
 - remove leating tilde in container exporter dockerfile templates [#9614](https://github.com/habitat-sh/habitat/pull/9614) ([mwrock](https://github.com/mwrock)) <!-- 2.0.62 -->
 - downgrade native-tls [#9611](https://github.com/habitat-sh/habitat/pull/9611) ([mwrock](https://github.com/mwrock)) <!-- 2.0.61 -->
 - Bump log from 0.4.25 to 0.4.26 [#9607](https://github.com/habitat-sh/habitat/pull/9607) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.60 -->
