@@ -115,9 +115,20 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
 
     // We need to strip out the -D if it exists to avoid
     // it getting passed to the sup on entering the studio
-    let to_cull = OsString::from("-D");
+    let mut to_cull = OsString::from("-D");
     if let Some(index) = args.iter().position(|x| *x == to_cull) {
         args.remove(index);
+    }
+
+    // the linux docker studio expects no leading args before the studio
+    // command (build, run, enter) so we trim any refresh channel and
+    // put it into the environment
+    to_cull = OsString::from("-f");
+    if let Some(index) = args.iter().position(|x| *x == to_cull) {
+        args.remove(index);
+        let refresh_channel_key = format!("{}{}", HAB_STUDIO_SECRET, "HAB_REFRESH_CHANNEL");
+        env_vars.push(refresh_channel_key.clone());
+        env::set_var(refresh_channel_key, args.remove(index));
     }
 
     // When a user sets SSL_CERT_FILE, we need to modify the absolute
