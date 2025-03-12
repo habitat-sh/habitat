@@ -50,7 +50,7 @@ notify = "*"
 num_cpus = "*"
 parking_lot = "*"
 pin-project = "*"
-prometheus = "*"
+prometheus = { version = "*", default-features = false }
 prost = { version = "*", features = ["prost-derive"] }
 prost-types = "*"
 rand = "*"
