@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.65 -->
-## [2.0.65](https://github.com/habitat-sh/habitat/tree/2.0.65) (2025-03-12)
+<!-- latest_release 2.0.66 -->
+## [2.0.66](https://github.com/habitat-sh/habitat/tree/2.0.66) (2025-03-12)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.169 to 0.2.171 [#9616](https://github.com/habitat-sh/habitat/pull/9616) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- fixes cargo audit errors [#9615](https://github.com/habitat-sh/habitat/pull/9615) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- fixes cargo audit errors [#9615](https://github.com/habitat-sh/habitat/pull/9615) ([mwrock](https://github.com/mwrock)) <!-- 2.0.66 -->
 - Bump libc from 0.2.169 to 0.2.171 [#9616](https://github.com/habitat-sh/habitat/pull/9616) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.65 -->
 - Bump cc from 1.2.14 to 1.2.16 [#9610](https://github.com/habitat-sh/habitat/pull/9610) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.64 -->
 - Bump ring from 0.17.8 to 0.17.13 [#9613](https://github.com/habitat-sh/habitat/pull/9613) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.63 -->
