@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.68 -->
-## [2.0.68](https://github.com/habitat-sh/habitat/tree/2.0.68) (2025-03-13)
+<!-- latest_release 2.0.69 -->
+## [2.0.69](https://github.com/habitat-sh/habitat/tree/2.0.69) (2025-03-13)
 
 #### Merged Pull Requests
-- Bump bytes from 1.10.0 to 1.10.1 [#9619](https://github.com/habitat-sh/habitat/pull/9619) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump pin-project from 1.1.9 to 1.1.10 [#9618](https://github.com/habitat-sh/habitat/pull/9618) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump pin-project from 1.1.9 to 1.1.10 [#9618](https://github.com/habitat-sh/habitat/pull/9618) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.69 -->
 - Bump bytes from 1.10.0 to 1.10.1 [#9619](https://github.com/habitat-sh/habitat/pull/9619) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.68 -->
 - Fixed dependencies for `hab-auto-build` [#9612](https://github.com/habitat-sh/habitat/pull/9612) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.67 -->
 - fixes cargo audit errors [#9615](https://github.com/habitat-sh/habitat/pull/9615) ([mwrock](https://github.com/mwrock)) <!-- 2.0.66 -->
