@@ -12,6 +12,7 @@ use rcgen::{CertificateParams,
             PKCS_ECDSA_P256_SHA256};
 
 use rustls::{pki_types::{CertificateDer,
+                         DnsName,
                          PrivatePkcs8KeyDer},
              RootCertStore};
 use std::{fs::{self,
@@ -21,7 +22,6 @@ use std::{fs::{self,
           path::{Path,
                  PathBuf}};
 use thiserror::Error;
-use webpki::types::DnsName;
 
 const NAME_PREFIX: &str = "ctl-gateway";
 const CRT_EXTENSION: &str = "crt.pem";
@@ -101,11 +101,11 @@ pub fn latest_root_certificate_store(path: impl AsRef<Path>) -> Result<RootCertS
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rustls::pki_types::DnsName;
     use std::{convert::TryFrom,
               fs,
               time::Duration};
     use tempfile::TempDir;
-    use webpki::types::DnsName;
 
     #[test]
     fn ctl_gateway_generate_and_read_tls_files() {

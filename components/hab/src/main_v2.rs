@@ -102,7 +102,7 @@ use hab::cli::hab::sup::{HabSup,
 #[cfg(not(target_os = "macos"))]
 use habitat_core::tls::ctl_gateway as ctl_gateway_tls;
 #[cfg(not(target_os = "macos"))]
-use webpki::types::DnsName;
+use rustls::pki_types::DnsName;
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";

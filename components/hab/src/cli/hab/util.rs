@@ -18,6 +18,7 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    AUTH_TOKEN_ENVVAR};
 use lazy_static::lazy_static;
 use log::error;
+use rustls::pki_types::DnsName;
 use serde::{Deserialize,
             Serialize};
 use std::{convert::TryFrom,
@@ -33,7 +34,6 @@ use structopt::{clap::AppSettings,
                 StructOpt};
 use url::{ParseError,
           Url};
-use webpki::types::DnsName;
 
 #[derive(ConfigOpt, StructOpt)]
 #[configopt(derive(Serialize))]

@@ -27,7 +27,7 @@ os_info = "*"
 paste = "*"
 pem = "*"
 pin-project = "*"
-rand = "*"
+rand = { version = "*", features = ["thread_rng"] }
 regex = "*"
 rcgen = "*"
 rustls = "*"
