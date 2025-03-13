@@ -1,0 +1,5 @@
+{{~#each svc.members as |member|}}
+{{~#if member.alive}}
+ Member ID: {{member.member_id}} {{@first}} {{@last}}
+{{~/if}}
+{{~/each}}

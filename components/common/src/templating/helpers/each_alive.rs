@@ -38,14 +38,12 @@ impl HelperDef for EachAliveHelper {
                             m.contains_key("alive") && m["alive"].as_bool().unwrap()
                         }
                                                      });
-                    let last_alive_idx = list.iter().rev().rposition(|m| {
-                                                              m.as_object().is_some() && {
+                    let last_alive_idx = list.iter().rposition(|m| {
+                                                        m.as_object().is_some() && {
                             let m = m.as_object().unwrap();
                             m.contains_key("alive") && m["alive"].as_bool().unwrap()
                         }
-                                                          });
-                    eprintln!("first: {:#?}, last: {:#?}", first_alive_idx, last_alive_idx);
-
+                                                    });
                     let array_path = value.context_path();
 
                     let block_context = create_block(value);
@@ -61,9 +59,9 @@ impl HelperDef for EachAliveHelper {
                                     let is_last = last_alive_idx == Some(i);
                                     let index = to_json(alive_idx);
 
-                                    block.set_local_var("@first", to_json(is_first));
-                                    block.set_local_var("@last", to_json(is_last));
-                                    block.set_local_var("@index", to_json(index.clone()));
+                                    block.set_local_var("first", to_json(is_first));
+                                    block.set_local_var("last", to_json(is_last));
+                                    block.set_local_var("index", to_json(index.clone()));
 
                                     update_block_context(block,
                                                          array_path,
@@ -99,8 +97,8 @@ impl HelperDef for EachAliveHelper {
 
                             let key = to_json(k);
 
-                            block.set_local_var("@first", to_json(is_first));
-                            block.set_local_var("@key", to_json(k));
+                            block.set_local_var("first", to_json(is_first));
+                            block.set_local_var("key", to_json(k));
 
                             update_block_context(block, obj_path, k.to_string(), is_first, v);
                             set_block_param(block, h, obj_path, &key, v)?;
