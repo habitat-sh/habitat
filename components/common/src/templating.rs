@@ -393,6 +393,25 @@ mod test {
     }
 
     #[test]
+    fn each_alive_helper_with_idx() {
+        let mut renderer = TemplateRenderer::new();
+        // template using the new `eachAlive` helper
+        renderer.register_template_file("each_alive_idx", templates().join("each_alive_idx.txt"))
+                .unwrap();
+
+        // template using an each block with a nested if block filtering on `alive`
+        renderer.register_template_file("all_members_idx", templates().join("all_members_idx.txt"))
+                .unwrap();
+
+        let data = service_config_json_from_toml_file("multiple_supervisors_config.toml");
+
+        let each_alive_render = renderer.render("each_alive_idx", &data).unwrap();
+        let each_if_render = renderer.render("all_members_idx", &data).unwrap();
+
+        assert_eq!(each_alive_render, each_if_render);
+    }
+
+    #[test]
     fn each_alive_helper_with_identifier_alias() {
         let mut renderer = TemplateRenderer::new();
         // template using the new `eachAlive` helper
