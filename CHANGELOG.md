@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.70 -->
-## [2.0.70](https://github.com/habitat-sh/habitat/tree/2.0.70) (2025-03-14)
+<!-- latest_release 2.0.71 -->
+## [2.0.71](https://github.com/habitat-sh/habitat/tree/2.0.71) (2025-03-14)
 
 #### Merged Pull Requests
-- Fixed issues with indices in `eachAlive` helper [#9620](https://github.com/habitat-sh/habitat/pull/9620) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump reqwest from 0.12.12 to 0.12.14 [#9621](https://github.com/habitat-sh/habitat/pull/9621) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump reqwest from 0.12.12 to 0.12.14 [#9621](https://github.com/habitat-sh/habitat/pull/9621) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.71 -->
 - Fixed issues with indices in `eachAlive` helper [#9620](https://github.com/habitat-sh/habitat/pull/9620) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.70 -->
 - Bump pin-project from 1.1.9 to 1.1.10 [#9618](https://github.com/habitat-sh/habitat/pull/9618) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.69 -->
 - Bump bytes from 1.10.0 to 1.10.1 [#9619](https://github.com/habitat-sh/habitat/pull/9619) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.68 -->
