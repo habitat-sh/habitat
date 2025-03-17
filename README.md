@@ -134,7 +134,7 @@ See [README.md](https://github.com/habitat-sh/habitat/blob/main/components/hab/s
 ## Further reference material
 
 * [The Rust Programming Language](http://doc.rust-lang.org/book/)
-* [Rust by Example](http://rustbyexample.com/)
+* [Rust by Example](https://rustbyexample.io)
 * [Introduction to Bash programming](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html)
 * [Advanced Bash-Scripting Guide](http://www.tldp.org/LDP/abs/html/)
 * [Bash Cheat Sheet](http://tldp.org/LDP/abs/html/refcards.html)
