@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.72 -->
-## [2.0.72](https://github.com/habitat-sh/habitat/tree/2.0.72) (2025-03-18)
+<!-- latest_release 2.0.73 -->
+## [2.0.73](https://github.com/habitat-sh/habitat/tree/2.0.73) (2025-03-18)
 
 #### Merged Pull Requests
-- bump rust to 1.85.0 [#9626](https://github.com/habitat-sh/habitat/pull/9626) ([mwrock](https://github.com/mwrock))
+- Bump actix-http from 3.9.0 to 3.10.0 [#9623](https://github.com/habitat-sh/habitat/pull/9623) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump actix-http from 3.9.0 to 3.10.0 [#9623](https://github.com/habitat-sh/habitat/pull/9623) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.73 -->
 - bump rust to 1.85.0 [#9626](https://github.com/habitat-sh/habitat/pull/9626) ([mwrock](https://github.com/mwrock)) <!-- 2.0.72 -->
 - Bump reqwest from 0.12.12 to 0.12.14 [#9621](https://github.com/habitat-sh/habitat/pull/9621) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.71 -->
 - Fixed issues with indices in `eachAlive` helper [#9620](https://github.com/habitat-sh/habitat/pull/9620) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.70 -->
