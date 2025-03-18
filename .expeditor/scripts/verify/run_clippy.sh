@@ -16,7 +16,7 @@ rustup component add --toolchain "$toolchain" clippy
 
 # TODO: these should be in a shared script?
 install_hab_pkg core/zeromq core/protobuf core/patchelf
-sudo hab pkg install core/rust/"$toolchain"
+sudo -E hab pkg install core/rust/"$toolchain"
 
 # Yes, this is terrible but we need the clippy binary to run under our glibc.
 # This became an issue with the latest refresh and can likely be dropped in
@@ -31,8 +31,10 @@ export LIBZMQ_PREFIX
 LIBZMQ_PREFIX=$(hab pkg path core/zeromq)
 # now include zeromq so it exists in the runtime library path when cargo test is run
 export LD_LIBRARY_PATH
-LD_LIBRARY_PATH="$(hab pkg path core/gcc)/lib:$(hab pkg path core/zeromq)/lib"
-eval "$(hab pkg env core/rust/"$toolchain"):$PATH"
+LD_LIBRARY_PATH="$(hab pkg path core/gcc-base)/lib64:$(hab pkg path core/zeromq)/lib"
+old_path=$PATH
+eval "$(hab pkg env core/rust/"$toolchain")"
+export PATH=$PATH:$old_path
 
 export PROTOC_NO_VENDOR=1
 export PROTOC

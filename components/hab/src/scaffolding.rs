@@ -25,31 +25,31 @@ pub fn scaffold_check(ui: &mut UI, maybe_scaffold: Option<&str>) -> Result<Optio
             match scaffold.to_lowercase().as_str() {
                 SCAFFOLDING_GO_IDENT | "go" => {
                     let ident = PackageIdent::from_str(SCAFFOLDING_GO_IDENT)?;
-                    ui.status(Status::Using, &format!("Go Scaffolding '{}'", ident))?;
+                    ui.status(Status::Using, format!("Go Scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
                 SCAFFOLDING_GRADLE_IDENT | "gradle" => {
                     let ident = PackageIdent::from_str(SCAFFOLDING_GRADLE_IDENT)?;
-                    ui.status(Status::Using, &format!("Gradle Scaffolding '{}'", ident))?;
+                    ui.status(Status::Using, format!("Gradle Scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
                 SCAFFOLDING_NODE_IDENT | "node" => {
                     let ident = PackageIdent::from_str(SCAFFOLDING_NODE_IDENT)?;
-                    ui.status(Status::Using, &format!("Node Scaffolding '{}'", ident))?;
+                    ui.status(Status::Using, format!("Node Scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
                 SCAFFOLDING_RUBY_IDENT | "ruby" => {
                     let ident = PackageIdent::from_str(SCAFFOLDING_RUBY_IDENT)?;
-                    ui.status(Status::Using, &format!("Ruby Scaffolding '{}'", ident))?;
+                    ui.status(Status::Using, format!("Ruby Scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
                 _ => {
                     let ident = PackageIdent::from_str(scaffold)?;
-                    ui.status(Status::Using, &format!("custom Scaffolding: '{}'", ident))?;
+                    ui.status(Status::Using, format!("custom Scaffolding: '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
@@ -71,25 +71,25 @@ fn autodiscover_scaffolding(ui: &mut UI) -> Result<Option<PackageIdent>> {
     if is_project_go(current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_GO_IDENT).unwrap();
         ui.begin("We've detected a Go codebase")?;
-        ui.status(Status::Using, &format!("Scaffolding package: '{}'", ident))?;
+        ui.status(Status::Using, format!("Scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
     } else if is_project_gradle(current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_GRADLE_IDENT).unwrap();
         ui.begin("We've detected a Gradle codebase")?;
-        ui.status(Status::Using, &format!("Scaffolding package: '{}'", ident))?;
+        ui.status(Status::Using, format!("Scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
     } else if is_project_node(current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_NODE_IDENT).unwrap();
         ui.begin("We've detected a Node.js codebase")?;
-        ui.status(Status::Using, &format!("Scaffolding package: '{}'", ident))?;
+        ui.status(Status::Using, format!("Scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
     } else if is_project_ruby(current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_RUBY_IDENT).unwrap();
         ui.begin("We've detected a Ruby codebase")?;
-        ui.status(Status::Using, &format!("Scaffolding package: '{}'", ident))?;
+        ui.status(Status::Using, format!("Scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
     } else {

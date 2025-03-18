@@ -117,8 +117,7 @@ impl FeatureFlag {
             if let Some(val) = env::var_os(env_var) {
                 if !val.is_empty() {
                     flags.insert(*feature);
-                    ui.warn(&format!("Enabling feature: {:?}", feature))
-                      .unwrap();
+                    ui.warn(format!("Enabling feature: {:?}", feature)).unwrap();
                 }
             }
         }
@@ -135,10 +134,10 @@ impl FeatureFlag {
             ui.warn("Listing feature flags environment variables:")
               .unwrap();
             for (feature, env_var) in ENV_VARS.iter() {
-                ui.warn(&format!("  * {:?}: {}={:?}",
-                                 feature,
-                                 env_var,
-                                 env::var_os(env_var).unwrap_or_default()))
+                ui.warn(format!("  * {:?}: {}={:?}",
+                                feature,
+                                env_var,
+                                env::var_os(env_var).unwrap_or_default()))
                   .unwrap();
             }
         }

@@ -164,7 +164,7 @@ impl TemplateUpdate {
     ///
     /// A restart is needed under the following conditions:
     /// 1. the `init`, `run` or `post-run` hooks have changed. A restart is limited to these hooks
-    /// because they are the only hooks that can impact the execution of the service.
+    ///    because they are the only hooks that can impact the execution of the service.
     /// 2. `/config` changed and there is no `reconfigure` hook
     fn needs_restart(&self) -> Option<ProcessTerminationReason> {
         if self.hooks.init_changed() {

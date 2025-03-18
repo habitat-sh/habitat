@@ -194,7 +194,7 @@ steps:
 
   - label: "[unit] :linux: common"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh common
+      - HAB_BLDR_CHANNEL=LTS-2024 .expeditor/scripts/verify/run_cargo_test.sh common
     agents:
       queue: 'default-privileged'
     plugins:

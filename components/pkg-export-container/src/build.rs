@@ -137,6 +137,7 @@ impl TryFrom<&ArgMatches> for BuildSpec {
             }
             Err(_) => default_base_image().expect("No base image supported"),
         };
+        let stable = &String::from("stable");
 
         // TODO (CM): incorporate this into our CLAP definition better
         Ok(BuildSpec { hab: m.get_one::<String>("HAB_PKG").unwrap().to_string(),
@@ -146,14 +147,14 @@ impl TryFrom<&ArgMatches> for BuildSpec {
                        hab_sup: m.get_one::<String>("HAB_SUP_PKG").unwrap().to_string(),
                        url: m.get_one::<String>("BLDR_URL").unwrap().to_string(),
                        channel: m.get_one::<String>("CHANNEL")
-                                 .unwrap_or(&"stable".to_string())
+                                 .unwrap_or(stable)
                                  .to_string()
                                  .into(),
                        base_pkgs_url: m.get_one::<String>("BASE_PKGS_BLDR_URL")
                                        .unwrap()
                                        .to_string(),
                        base_pkgs_channel: m.get_one::<String>("BASE_PKGS_CHANNEL")
-                                           .unwrap_or(&"stable".to_string())
+                                           .unwrap_or(stable)
                                            .to_string()
                                            .into(),
                        auth: m.get_one::<String>("BLDR_AUTH_TOKEN")
@@ -776,7 +777,7 @@ impl BuildRootContext {
     fn validate(&self) -> Result<()> {
         // A valid context for a build root will contain at least one service package, called the
         // primary service package.
-        if self.svc_idents().first().is_none() {
+        if self.svc_idents().is_empty() {
             return Err(Error::PrimaryServicePackageNotFound(self.idents
                                                                 .iter()
                                                                 .map(|e| e.ident().to_string())

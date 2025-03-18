@@ -10,7 +10,7 @@ use std::ops::{Deref,
 // A wrapper around `MutexGuard` needed to implement the `StableAddress` trait to use `OwningRef`
 pub struct StableMutexGuard<'a, T: ?Sized>(MutexGuard<'a, T>);
 
-unsafe impl<'a, T: ?Sized> StableAddress for StableMutexGuard<'a, T> {}
+unsafe impl<T: ?Sized> StableAddress for StableMutexGuard<'_, T> {}
 
 impl<T: ?Sized> Deref for StableMutexGuard<'_, T> {
     type Target = T;
@@ -30,7 +30,7 @@ impl<'a, T> From<MutexGuard<'a, T>> for StableMutexGuard<'a, T> {
 // `OwningRef`
 pub struct StableRwLockReadGuard<'a, T: ?Sized>(RwLockReadGuard<'a, T>);
 
-unsafe impl<'a, T: ?Sized> StableAddress for StableRwLockReadGuard<'a, T> {}
+unsafe impl<T: ?Sized> StableAddress for StableRwLockReadGuard<'_, T> {}
 
 impl<T: ?Sized> Deref for StableRwLockReadGuard<'_, T> {
     type Target = T;
@@ -46,7 +46,7 @@ impl<'a, T> From<RwLockReadGuard<'a, T>> for StableRwLockReadGuard<'a, T> {
 // `OwningRef`
 pub struct StableRwLockWriteGuard<'a, T: ?Sized>(RwLockWriteGuard<'a, T>);
 
-unsafe impl<'a, T: ?Sized> StableAddress for StableRwLockWriteGuard<'a, T> {}
+unsafe impl<T: ?Sized> StableAddress for StableRwLockWriteGuard<'_, T> {}
 
 impl<T: ?Sized> Deref for StableRwLockWriteGuard<'_, T> {
     type Target = T;

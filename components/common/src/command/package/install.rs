@@ -288,7 +288,6 @@ impl Default for LocalPackageUsage {
 ///
 /// At the end of this function, the specified package and all its
 /// dependencies will be installed on the system.
-
 // TODO (CM): Consider passing in a configured depot client instead of
 // product / version... That might make it easier to share with the
 // `sup` crate
@@ -426,7 +425,7 @@ struct InstallTask<'a> {
     install_hook_mode:   InstallHookMode,
 }
 
-impl<'a> InstallTask<'a> {
+impl InstallTask<'_> {
     /// Install a package from the Depot, based on a given identifier.
     ///
     /// If the identifier is fully-qualified, that specific package

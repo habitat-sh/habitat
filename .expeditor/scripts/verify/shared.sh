@@ -51,7 +51,7 @@ install_hab_pkg() {
     installed_pkgs=$(hab pkg list "$ident")
 
     if [[ -z $installed_pkgs ]]; then
-      sudo hab pkg install "$ident"
+      sudo -E hab pkg install "$ident"
     else
       echo "$ident already installed"
     fi

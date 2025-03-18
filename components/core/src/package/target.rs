@@ -32,10 +32,10 @@
 //! After a package has been built, there are a few ways to check the [`PackageTarget`]:
 //!
 //! * Checking an artifact can be done by calling the [`target`][archive_target] method on
-//! [`PackageArchive`].
+//!   [`PackageArchive`].
 //! * Checking that an installed package's target matches the active target is done automatically
-//! when calling the [`load`][install_load] or [`load_at_least`][install_load_at_least] functions
-//! on [`PackageInstall`].
+//!   when calling the [`load`][install_load] or [`load_at_least`][install_load_at_least] functions
+//!   on [`PackageInstall`].
 //!
 //! # A Special Note Concerning Variants
 //!

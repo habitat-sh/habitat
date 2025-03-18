@@ -423,11 +423,8 @@ impl SwimNet {
                 return true;
             } else if self.check_rounds(&rounds_in) {
                 for (i, some_health) in network_health.iter().enumerate() {
-                    match some_health {
-                        Some(ref health) => {
-                            println!("{}: {:?}", i, health);
-                        }
-                        None => {}
+                    if let Some(ref health) = some_health {
+                        println!("{}: {:?}", i, health);
                     }
                 }
                 return false;

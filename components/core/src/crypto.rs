@@ -8,8 +8,8 @@
 //! - All public keys, certificates, and signatures are to be referred to as **public**.
 //! - All secret or private keys are to be referred to as **secret**.
 //! - All symmetric encryption keys are to be referred to as **secret**.
-//! - In general, the word `key` by itself does not indicate something as
-//! **public** or **secret**. The exceptions to this rule are as follows:
+//! - In general, the word `key` by itself does not indicate something as **public** or **secret**.
+//!   The exceptions to this rule are as follows:
 //!     - if the word key appears in a URL, then we are referring to a public key to conform to
 //!       other APIs that offer similar public key downloading functionality.
 //!     - the word `key` appears as part of a file suffix, where it is then considered as a **secret
@@ -20,29 +20,30 @@
 //!     - A key name with rev: `habitat-201603312016`
 //!     - A key file: `habitat-201603312016.pub`
 //!     - A key path or fully qualified key path: `/foo/bar/habitat-201603312016.pub`
-//! - An **Origin** refers to build-time operations, including signing and verification of a
-//! Habitat artifact.
+//! - An **Origin** refers to build-time operations, including signing and verification of a Habitat
+//!   artifact.
 //! - An **Organization** or **Org** refers to run-time operations such as deploying a package
-//! signed in a different origin into your own organization. This is abbreviated as "org" in
-//! user-facing command line parameters and internal variable names.
-//! - To distinguish between **Org** and **Origin**, the following might help: Habitat packages
-//! come from an **Origin** and run in an **Organization**.
+//!   signed in a different origin into your own organization. This is abbreviated as "org" in
+//!   user-facing command line parameters and internal variable names.
+//! - To distinguish between **Org** and **Origin**, the following might help: Habitat packages come
+//!   from an **Origin** and run in an **Organization**.
 //! - A **Ring** is the full set of Supervisors that communicate with each other.
 //! - A **Signing key**, also known as a **sig** key, is used to sign and verify Habitat artifacts.
-//! The file contains a `sig.key` file suffix. Note that sig keys are not compatible with box keys.
+//!   The file contains a `sig.key` file suffix. Note that sig keys are not compatible with box
+//!   keys.
 //! - A **Box key** is used for encryption and decryption of arbitrary data. The file contains a
-//! `.box.key` file suffix. Note that box keys are not compatible with sig keys.
+//!   `.box.key` file suffix. Note that box keys are not compatible with sig keys.
 //! - A **Sym key** is used for symmetric encryption, meaning that a shared secret is used to
-//! encrypt a message into a ciphertext and that same secret is used later to decrypt the ciphertext
-//! into the original message.
+//!   encrypt a message into a ciphertext and that same secret is used later to decrypt the
+//!   ciphertext into the original message.
 //! - A **Ring key** is a **sym** key used when sending messages between the Supervisors to prevent
-//! a third party from intercepting the traffic.
+//!   a third party from intercepting the traffic.
 //! - **Key revisions** - There can exist several keys for any given user, service, ring, or origin
-//! via different revision numbers. Revision numbers appear following the key name and are in the
-//! format `{year}{month}{day}{hour24}{minute}{second}`. For all user-facing cryptographic
-//! operations (such as sign, verify, encrypt, decrypt, etc.), the latest key is tried first, and
-//! upon failure, the keys will be tried in reverse chronological order until success or there are
-//! no more keys.
+//!   via different revision numbers. Revision numbers appear following the key name and are in the
+//!   format `{year}{month}{day}{hour24}{minute}{second}`. For all user-facing cryptographic
+//!   operations (such as sign, verify, encrypt, decrypt, etc.), the latest key is tried first, and
+//!   upon failure, the keys will be tried in reverse chronological order until success or there are
+//!   no more keys.
 //!
 //! ***TODO: key revisions are generated as part of a filename, but only the most recent key is
 //! used during crypto operations.***
