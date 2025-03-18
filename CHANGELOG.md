@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.73 -->
-## [2.0.73](https://github.com/habitat-sh/habitat/tree/2.0.73) (2025-03-18)
+<!-- latest_release 2.0.74 -->
+## [2.0.74](https://github.com/habitat-sh/habitat/tree/2.0.74) (2025-03-18)
 
 #### Merged Pull Requests
-- Bump actix-http from 3.9.0 to 3.10.0 [#9623](https://github.com/habitat-sh/habitat/pull/9623) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump bincode from 1.3.3 to 2.0.1 [#9622](https://github.com/habitat-sh/habitat/pull/9622) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump bincode from 1.3.3 to 2.0.1 [#9622](https://github.com/habitat-sh/habitat/pull/9622) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.74 -->
+- Bump rustls-webpki from 0.102.8 to 0.103.0 [#9608](https://github.com/habitat-sh/habitat/pull/9608) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.74 -->
 - Bump actix-http from 3.9.0 to 3.10.0 [#9623](https://github.com/habitat-sh/habitat/pull/9623) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.73 -->
 - bump rust to 1.85.0 [#9626](https://github.com/habitat-sh/habitat/pull/9626) ([mwrock](https://github.com/mwrock)) <!-- 2.0.72 -->
 - Bump reqwest from 0.12.12 to 0.12.14 [#9621](https://github.com/habitat-sh/habitat/pull/9621) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.71 -->
