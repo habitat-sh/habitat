@@ -133,7 +133,7 @@ impl<'a> Package<'a> {
     }
 }
 
-impl<'a> Serialize for Package<'a> {
+impl Serialize for Package<'_> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {

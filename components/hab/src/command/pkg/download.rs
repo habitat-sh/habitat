@@ -142,7 +142,6 @@ pub struct PackageSet {
 /// dependencies will be downloaded on the system in the
 /// <download_path>/artifacts directory. Any signing keys will also be
 /// downloaded and put in the <download_path/keys> directory.
-
 /// Also, in the future we may want to accept an alternate builder to 'filter' what we pull down by
 /// That would greatly optimize the 'sync' to on prem builder case, as we could point to that
 /// and only fetch what we don't already have.
@@ -217,7 +216,7 @@ struct DownloadTask<'a> {
     ignore_missing_seeds: bool,
 }
 
-impl<'a> DownloadTask<'a> {
+impl DownloadTask<'_> {
     async fn execute<T>(&self, ui: &mut T) -> Result<usize>
         where T: UIWriter
     {

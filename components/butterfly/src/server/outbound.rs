@@ -537,8 +537,8 @@ pub fn ack_mlr_smr_rhw(server: &Server,
                        addr: SocketAddr,
                        forward_to: Option<Member>) {
     let ack_msg = Ack { membership: vec![],
-                        from:       server.myself.lock_smr().to_member(),
-                        forward_to: forward_to.map(Member::from), };
+                        from: server.myself.lock_smr().to_member(),
+                        forward_to };
     let swim = populate_membership_rumors_mlr_rhw(server, target, ack_msg);
     let bytes = match swim.encode() {
         Ok(bytes) => bytes,

@@ -223,16 +223,16 @@ impl LockFile {
         // See
         // [LockFileEx](https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex)
         // for more.
-        file.try_lock_shared().map_err(|e| {
-                                   if cfg!(windows) {
-                                       Error::CannotAcquireSharedLock(e)
-                                   } else {
-                                       // Unix, Linux, et al.
-                                       Error::LockDowngrade(e)
-                                   }
-                               })?;
+        fs2::FileExt::try_lock_shared(&file).map_err(|e| {
+                                                if cfg!(windows) {
+                                                    Error::CannotAcquireSharedLock(e)
+                                                } else {
+                                                    // Unix, Linux, et al.
+                                                    Error::LockDowngrade(e)
+                                                }
+                                            })?;
         if cfg!(windows) {
-            file.unlock().map_err(Error::CannotReleaseExclusiveLock)?;
+            fs2::FileExt::unlock(&file).map_err(Error::CannotReleaseExclusiveLock)?;
         }
 
         // Now, anyone should be able to read the file, but another Supervisor
@@ -267,7 +267,7 @@ impl Drop for LockFile {
     /// https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-unlockfile#remarks
     /// [2]: http://www.guido-flohr.net/never-delete-your-pid-file/
     fn drop(&mut self) {
-        if let Err(e) = self.file.unlock() {
+        if let Err(e) = fs2::FileExt::unlock(&self.file) {
             error!("Error unlocking '{}'; proceeding anyway: {:?}",
                    lock_file_path().display(),
                    e);
@@ -456,7 +456,7 @@ mod tests {
         let file = write_to_file(&lock_path, "LOLWUT");
 
         // Lock the file so we can get past that check.
-        file.lock_shared().unwrap();
+        fs2::FileExt::lock_shared(&file).unwrap();
 
         // Trying to get the PID out will fail now.
         read_lock_file_impl(lock_path).unwrap();

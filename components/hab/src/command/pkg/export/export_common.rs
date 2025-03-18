@@ -21,7 +21,7 @@ use std::{ffi::OsString,
 /// 1. `export_cmd_envvar` is checked for the raw command.
 /// 2. `export_pkg_ident_envvar` is checked for an explicit habitat package.
 /// 3. The habitat package is implicitly determined using the `export_cmd` name and the current
-/// version. The package is assumed to be found in core. (eg /core/<export_cmd>/<VERSION>)
+///    version. The package is assumed to be found in core. (eg /core/<export_cmd>/<VERSION>)
 pub async fn start(ui: &mut UI,
                    args: &[OsString],
                    export_cmd_envvar: &str,

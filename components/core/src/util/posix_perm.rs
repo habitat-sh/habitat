@@ -121,10 +121,7 @@ fn validate_raw_path(path: &str) -> Result<*mut c_char> {
 }
 
 fn chown(path: &str, uid: u32, gid: u32) -> Result<c_int> {
-    let r_path = match validate_raw_path(path) {
-        Ok(r) => r,
-        Err(e) => return Err(e),
-    };
+    let r_path = validate_raw_path(path)?;
 
     unsafe {
         let res = libc::chown(r_path, uid, gid);

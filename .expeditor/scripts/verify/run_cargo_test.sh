@@ -21,15 +21,17 @@ if ${BUILDKITE:-false}; then
 fi
 
 # TODO: these should be in a shared script?
-sudo hab pkg install core/zeromq
-sudo hab pkg install core/protobuf
-sudo hab pkg install core/rust/"$toolchain"
+sudo -E hab pkg install core/zeromq
+sudo -E hab pkg install core/protobuf
+sudo -E hab pkg install core/rust/"$toolchain"
 export LIBZMQ_PREFIX
 LIBZMQ_PREFIX=$(hab pkg path core/zeromq)
 # now include zeromq and gcc so they exist in the runtime library path when cargo test is run
 export LD_LIBRARY_PATH
-LD_LIBRARY_PATH="$(hab pkg path core/gcc)/lib:$(hab pkg path core/zeromq)/lib"
-eval "$(hab pkg env core/rust/"$toolchain"):$PATH"
+LD_LIBRARY_PATH="$(hab pkg path core/gcc-base)/lib64:$(hab pkg path core/zeromq)/lib"
+old_path=$PATH
+eval "$(hab pkg env core/rust/"$toolchain")"
+export PATH=$PATH:$old_path
 
 export PROTOC_NO_VENDOR=1
 export PROTOC

@@ -790,7 +790,7 @@ impl Server {
         let inserting_new_group_member =
             service_store.lock_rsr()
                          .get(service_group)
-                         .map_or(false, |rumors| !rumors.contains_key(member_id));
+                         .is_some_and(|rumors| !rumors.contains_key(member_id));
 
         if service_store.insert_rsw(service) {
             if inserting_new_group_member && !check_quorum(service_group) {
@@ -1437,7 +1437,7 @@ impl<'a> ServerProxy<'a> {
     pub fn new(s: &'a Server) -> Self { ServerProxy(s) }
 }
 
-impl<'a> Serialize for ServerProxy<'a> {
+impl Serialize for ServerProxy<'_> {
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
     /// * `RumorStore::list` (read)

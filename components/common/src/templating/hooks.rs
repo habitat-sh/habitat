@@ -90,7 +90,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
                                                       .map(|n| template_path.as_ref().join(n));
 
         let has_template = template.exists();
-        let has_deprecated_template = deprecated_template.as_ref().map_or(false, |t| t.exists());
+        let has_deprecated_template = deprecated_template.as_ref().is_some_and(|t| t.exists());
 
         if has_template && file_name == "reload" {
             outputln!(preamble package_name, "The '{}' hook has been deprecated. You should use the 'reconfigure' hook instead.",
@@ -311,8 +311,8 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
         let feature_flags = FeatureFlag::from_env(ui);
         let package_name = &package.ident.name;
         if let Some(ref hook) = Self::load(package_name,
-                                           &svc_hooks_path(package_name),
-                                           &package.installed_path.join("hooks"),
+                                           svc_hooks_path(package_name),
+                                           package.installed_path.join("hooks"),
                                            feature_flags)
         {
             let hook_name = Self::FILE_NAME;

@@ -557,12 +557,12 @@ impl<'a> SvcDir<'a> {
         if process::can_run_services_as_svc_user() {
             posix_perm::set_owner(path.as_ref(), &self.svc_user, &self.svc_group)?;
         }
-        posix_perm::set_permissions(path.as_ref(), SVC_DIR_PERMISSIONS).map_err(From::from)
+        posix_perm::set_permissions(path.as_ref(), SVC_DIR_PERMISSIONS)
     }
 
     #[cfg(windows)]
     fn set_permissions_and_ownership<T: AsRef<Path>>(&self, path: T) -> Result<()> {
-        win_perm::harden_path(path.as_ref()).map_err(From::from)
+        win_perm::harden_path(path.as_ref())
     }
 }
 

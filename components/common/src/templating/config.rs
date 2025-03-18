@@ -558,11 +558,11 @@ fn load_templates(dir: &Path,
     for entry in std::fs::read_dir(dir)?.filter_map(result::Result::ok) {
         // We're storing the pathname relative to the input config directory
         // as the identifier for the template
-        let relative_path = context.join(&entry.file_name());
+        let relative_path = context.join(entry.file_name());
         match entry.file_type() {
             Ok(file_type) if file_type.is_file() => {
                 // JW TODO: This error needs improvement. TemplateFileError is too generic.
-                template.register_template_file(&relative_path.to_string_lossy(), &entry.path())
+                template.register_template_file(&relative_path.to_string_lossy(), entry.path())
                         .map_err(Error::TemplateError)?;
             }
             Ok(file_type) if file_type.is_dir() => {

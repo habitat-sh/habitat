@@ -61,7 +61,7 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
 
         while valid_url(&url).is_err() {
             ui.br()?;
-            ui.fatal(&format!("{}: is invalid, please provide a valid url", url))?;
+            ui.fatal(format!("{}: is invalid, please provide a valid url", url))?;
             ui.br()?;
 
             url = prompt_url(ui)?;
@@ -93,7 +93,7 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
         let mut origin = prompt_origin(ui);
         while origin.is_err() {
             ui.br()?;
-            ui.fatal(&format!("{}", origin.err().unwrap()))?;
+            ui.fatal(format!("{}", origin.err().unwrap()))?;
             ui.br()?;
 
             origin = prompt_origin(ui);
