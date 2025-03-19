@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.75 -->
-## [2.0.75](https://github.com/habitat-sh/habitat/tree/2.0.75) (2025-03-18)
+<!-- latest_release 2.0.76 -->
+## [2.0.76](https://github.com/habitat-sh/habitat/tree/2.0.76) (2025-03-19)
 
 #### Merged Pull Requests
-- Bump native-tls from 0.2.13 to 0.2.14 [#9600](https://github.com/habitat-sh/habitat/pull/9600) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump handlebars from 6.3.1 to 6.3.2 [#9627](https://github.com/habitat-sh/habitat/pull/9627) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump handlebars from 6.3.1 to 6.3.2 [#9627](https://github.com/habitat-sh/habitat/pull/9627) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.76 -->
 - Bump native-tls from 0.2.13 to 0.2.14 [#9600](https://github.com/habitat-sh/habitat/pull/9600) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.75 -->
 - Bump bincode from 1.3.3 to 2.0.1 [#9622](https://github.com/habitat-sh/habitat/pull/9622) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.74 -->
 - Bump rustls-webpki from 0.102.8 to 0.103.0 [#9608](https://github.com/habitat-sh/habitat/pull/9608) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.74 -->
