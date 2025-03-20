@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.77 -->
-## [2.0.77](https://github.com/habitat-sh/habitat/tree/2.0.77) (2025-03-19)
+<!-- latest_release 2.0.78 -->
+## [2.0.78](https://github.com/habitat-sh/habitat/tree/2.0.78) (2025-03-20)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.139 to 1.0.140 [#9628](https://github.com/habitat-sh/habitat/pull/9628) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rustls from 0.23.23 to 0.23.25 [#9629](https://github.com/habitat-sh/habitat/pull/9629) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump rustls from 0.23.23 to 0.23.25 [#9629](https://github.com/habitat-sh/habitat/pull/9629) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.78 -->
 - Bump serde_json from 1.0.139 to 1.0.140 [#9628](https://github.com/habitat-sh/habitat/pull/9628) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.77 -->
 - Bump tokio-rustls from 0.26.1 to 0.26.2 [#9630](https://github.com/habitat-sh/habitat/pull/9630) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.77 -->
 - Bump handlebars from 6.3.1 to 6.3.2 [#9627](https://github.com/habitat-sh/habitat/pull/9627) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.76 -->
