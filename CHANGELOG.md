@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.82 -->
-## [2.0.82](https://github.com/habitat-sh/habitat/tree/2.0.82) (2025-03-25)
+<!-- latest_release 2.0.83 -->
+## [2.0.83](https://github.com/habitat-sh/habitat/tree/2.0.83) (2025-03-25)
 
 #### Merged Pull Requests
-- Bump widestring from 1.1.0 to 1.2.0 [#9636](https://github.com/habitat-sh/habitat/pull/9636) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tempfile from 3.17.1 to 3.19.1 [#9639](https://github.com/habitat-sh/habitat/pull/9639) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump tempfile from 3.17.1 to 3.19.1 [#9639](https://github.com/habitat-sh/habitat/pull/9639) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.83 -->
+- Bump serde from 1.0.218 to 1.0.219 [#9637](https://github.com/habitat-sh/habitat/pull/9637) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.83 -->
+- Bump tokio-util from 0.7.13 to 0.7.14 [#9638](https://github.com/habitat-sh/habitat/pull/9638) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.83 -->
 - Bump widestring from 1.1.0 to 1.2.0 [#9636](https://github.com/habitat-sh/habitat/pull/9636) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.82 -->
 - Bump async-trait from 0.1.86 to 0.1.88 [#9631](https://github.com/habitat-sh/habitat/pull/9631) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.81 -->
 - Bump thiserror from 2.0.11 to 2.0.12 [#9635](https://github.com/habitat-sh/habitat/pull/9635) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.81 -->
