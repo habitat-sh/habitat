@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.81 -->
-## [2.0.81](https://github.com/habitat-sh/habitat/tree/2.0.81) (2025-03-21)
+<!-- latest_release 2.0.82 -->
+## [2.0.82](https://github.com/habitat-sh/habitat/tree/2.0.82) (2025-03-25)
 
 #### Merged Pull Requests
-- Bump async-trait from 0.1.86 to 0.1.88 [#9631](https://github.com/habitat-sh/habitat/pull/9631) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump widestring from 1.1.0 to 1.2.0 [#9636](https://github.com/habitat-sh/habitat/pull/9636) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump widestring from 1.1.0 to 1.2.0 [#9636](https://github.com/habitat-sh/habitat/pull/9636) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.82 -->
 - Bump async-trait from 0.1.86 to 0.1.88 [#9631](https://github.com/habitat-sh/habitat/pull/9631) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.81 -->
 - Bump thiserror from 2.0.11 to 2.0.12 [#9635](https://github.com/habitat-sh/habitat/pull/9635) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.81 -->
 - Bump chrono from 0.4.39 to 0.4.40 [#9632](https://github.com/habitat-sh/habitat/pull/9632) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.81 -->
