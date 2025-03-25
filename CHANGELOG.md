@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.84 -->
-## [2.0.84](https://github.com/habitat-sh/habitat/tree/2.0.84) (2025-03-25)
+<!-- latest_release 2.0.85 -->
+## [2.0.85](https://github.com/habitat-sh/habitat/tree/2.0.85) (2025-03-25)
 
 #### Merged Pull Requests
-- Bump tar from 0.4.43 to 0.4.44 [#9643](https://github.com/habitat-sh/habitat/pull/9643) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump httparse from 1.10.0 to 1.10.1 [#9642](https://github.com/habitat-sh/habitat/pull/9642) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump httparse from 1.10.0 to 1.10.1 [#9642](https://github.com/habitat-sh/habitat/pull/9642) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.85 -->
 - Bump tar from 0.4.43 to 0.4.44 [#9643](https://github.com/habitat-sh/habitat/pull/9643) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.84 -->
 - Bump tempfile from 3.17.1 to 3.19.1 [#9639](https://github.com/habitat-sh/habitat/pull/9639) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.83 -->
 - Bump serde from 1.0.218 to 1.0.219 [#9637](https://github.com/habitat-sh/habitat/pull/9637) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.83 -->
