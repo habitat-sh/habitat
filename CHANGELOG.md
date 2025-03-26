@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.85 -->
-## [2.0.85](https://github.com/habitat-sh/habitat/tree/2.0.85) (2025-03-25)
+<!-- latest_release 2.0.86 -->
+## [2.0.86](https://github.com/habitat-sh/habitat/tree/2.0.86) (2025-03-26)
 
 #### Merged Pull Requests
-- Bump httparse from 1.10.0 to 1.10.1 [#9642](https://github.com/habitat-sh/habitat/pull/9642) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump flate2 from 1.0.35 to 1.1.0 [#9648](https://github.com/habitat-sh/habitat/pull/9648) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump flate2 from 1.0.35 to 1.1.0 [#9648](https://github.com/habitat-sh/habitat/pull/9648) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.86 -->
+- Bump reqwest from 0.12.14 to 0.12.15 [#9640](https://github.com/habitat-sh/habitat/pull/9640) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.86 -->
+- Bump tokio from 1.43.0 to 1.44.1 [#9641](https://github.com/habitat-sh/habitat/pull/9641) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.86 -->
+- Fixes failure when `NO_INSTALL_DEPS` is set [#9644](https://github.com/habitat-sh/habitat/pull/9644) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.86 -->
+- Bump cc from 1.2.16 to 1.2.17 [#9649](https://github.com/habitat-sh/habitat/pull/9649) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.86 -->
 - Bump httparse from 1.10.0 to 1.10.1 [#9642](https://github.com/habitat-sh/habitat/pull/9642) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.85 -->
 - Bump tar from 0.4.43 to 0.4.44 [#9643](https://github.com/habitat-sh/habitat/pull/9643) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.84 -->
 - Bump tempfile from 3.17.1 to 3.19.1 [#9639](https://github.com/habitat-sh/habitat/pull/9639) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.83 -->
