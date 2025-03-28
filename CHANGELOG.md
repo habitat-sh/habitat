@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.87 -->
-## [2.0.87](https://github.com/habitat-sh/habitat/tree/2.0.87) (2025-03-28)
+<!-- latest_release 2.0.88 -->
+## [2.0.88](https://github.com/habitat-sh/habitat/tree/2.0.88) (2025-03-28)
 
 #### Merged Pull Requests
-- Bump semver from 1.0.25 to 1.0.26 [#9647](https://github.com/habitat-sh/habitat/pull/9647) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump log from 0.4.26 to 0.4.27 [#9652](https://github.com/habitat-sh/habitat/pull/9652) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump log from 0.4.26 to 0.4.27 [#9652](https://github.com/habitat-sh/habitat/pull/9652) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.88 -->
 - Bump semver from 1.0.25 to 1.0.26 [#9647](https://github.com/habitat-sh/habitat/pull/9647) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.87 -->
 - Bump flate2 from 1.0.35 to 1.1.0 [#9648](https://github.com/habitat-sh/habitat/pull/9648) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.86 -->
 - Bump reqwest from 0.12.14 to 0.12.15 [#9640](https://github.com/habitat-sh/habitat/pull/9640) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.86 -->
