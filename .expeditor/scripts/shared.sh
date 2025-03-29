@@ -23,7 +23,7 @@ curlbash_hab() {
 
     curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
     case "${pkg_target}" in
-        x86_64-linux | aarch64-linux | x86_64-linux-kernel2)
+        x86_64-linux | aarch64-linux)
             hab_binary="/bin/hab"
             ;;
         x86_64-darwin)
@@ -45,6 +45,17 @@ install_rustup() {
     curl https://sh.rustup.rs -sSf | sh -s -- -y --profile=minimal
     # shellcheck disable=SC1090
     source "$HOME"/.cargo/env
+  fi
+}
+
+install_rust_toolchain() {
+  local toolchain="${1?toolchain argument required}"
+
+  if rustup component list --toolchain "$toolchain" &>/dev/null; then
+    echo "--- :rust: Rust $toolchain is already installed."
+  else
+    echo "--- :rust: Installing rust $toolchain."
+    rustup toolchain install "$toolchain"
   fi
 }
 

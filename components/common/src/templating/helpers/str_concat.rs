@@ -1,23 +1,30 @@
-use handlebars::{Handlebars,
+use handlebars::{Context,
+                 Handlebars,
                  Helper,
                  HelperDef,
+                 HelperResult,
+                 Output,
                  RenderContext};
-
-use super::super::RenderResult;
 
 #[derive(Clone, Copy)]
 pub struct StrConcatHelper;
 
 impl HelperDef for StrConcatHelper {
-    fn call(&self, h: &Helper<'_>, _: &Handlebars, rc: &mut RenderContext<'_>) -> RenderResult<()> {
+    fn call<'reg: 'rc, 'rc>(&self,
+                            h: &Helper<'rc>,
+                            _: &'reg Handlebars<'reg>,
+                            _: &'rc Context,
+                            _rc: &mut RenderContext<'reg, 'rc>,
+                            out: &mut dyn Output)
+                            -> HelperResult {
         let list: Vec<String> = h.params()
                                  .iter()
-                                 .map(handlebars::ContextJson::value)
+                                 .map(handlebars::PathAndJson::value)
                                  .filter(|v| !v.is_object())
                                  .map(|v| v.to_string().replace('\"', ""))
                                  .collect();
 
-        rc.writer.write_all(list.concat().into_bytes().as_ref())?;
+        out.write(list.concat().as_ref())?;
         Ok(())
     }
 }
@@ -35,7 +42,7 @@ mod test {
         handlebars.register_helper("strConcat", Box::new(STR_CONCAT));
         let expected = "foobarbaz";
         assert_eq!(expected,
-                   handlebars.template_render("{{strConcat \"foo\" \"bar\" \"baz\"}}", &json!({}))
+                   handlebars.render_template("{{strConcat \"foo\" \"bar\" \"baz\"}}", &json!({}))
                              .unwrap());
     }
 }

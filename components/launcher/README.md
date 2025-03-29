@@ -57,10 +57,6 @@ curl -H "Content-type: application/json" -H "Authorization: Bearer ${token}"  ht
 
 You must invoke this build before starting a Windows release build.
 
-### Building an x86_64-linux-kernel2 Release
-
-If you are promoting launchers for x86_64-linux and x86_64-windows, you will also need to build a launcher for x86_64-linux-kernel2 by hand. You can do this by creating a CentOS-6 VM, either on your laptop or in a cloud instance. All further instructions are executed in the context of this VM. Once the VM is booted, you will then need to obtain an x86_64-linux-kernel2 hab binary, which can be downloaded by passing the -t argument to the install.sh script: `curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash -s -- -t x86_64-linux-kernel2`.  Then, you will need to obtain the core origin signing keys and [install them](https://www.habitat.sh/docs/habitat-cli/#hab-origin-key-import). Next, you will need to clone this repository. Once that is done, cd into the directory created and run `env HAB_ORIGIN=core hab pkg build components/launcher`.  The resulting hart file should be uploaded to builder to the `unstable` channel. Take note of the `$pkg_ident` for use in the pipeline.
-
 ### Releasing
 
 To release a new version of the supervisor, upload the new `.hart` file and then [promote it to stable in builder](https://bldr.habitat.sh/#/pkgs/core/hab-launcher). If a new release contains important features or bug fixes, it will have to be communicated to the community and installed manually. Because of the nature of the launcher, this will require downtime in production environments, but it should be an exceedingly rare occurrence.

@@ -1,36 +1,45 @@
-use handlebars::{Handlebars,
+use handlebars::{Context,
+                 Handlebars,
                  Helper,
                  HelperDef,
+                 HelperResult,
+                 Output,
                  RenderContext,
-                 RenderError};
-
-use super::super::RenderResult;
+                 RenderErrorReason};
 
 #[derive(Clone, Copy)]
 pub struct StrReplaceHelper;
 
 impl HelperDef for StrReplaceHelper {
-    fn call(&self, h: &Helper<'_>, _: &Handlebars, rc: &mut RenderContext<'_>) -> RenderResult<()> {
+    fn call<'reg: 'rc, 'rc>(&self,
+                            h: &Helper<'rc>,
+                            _: &'reg Handlebars<'reg>,
+                            _: &'rc Context,
+                            _rc: &mut RenderContext<'reg, 'rc>,
+                            out: &mut dyn Output)
+                            -> HelperResult {
         let param =
             h.param(0).and_then(|v| v.value().as_str()).ok_or_else(|| {
-                                                            RenderError::new("Expected 3 string \
-                                                                              parameters for \
-                                                                              \"strReplace\"")
+                RenderErrorReason::ParamTypeMismatchForName(
+                    stringify!($helper_fn_name),
+                    "0".to_owned(),
+                    "string".to_owned())
                                                         })?;
         let old =
             h.param(1).and_then(|v| v.value().as_str()).ok_or_else(|| {
-                                                            RenderError::new("Expected 3 string \
-                                                                              parameters for \
-                                                                              \"strReplace\"")
+                RenderErrorReason::ParamTypeMismatchForName(
+                    stringify!($helper_fn_name),
+                    "0".to_owned(),
+                    "string".to_owned())
                                                         })?;
         let new =
             h.param(2).and_then(|v| v.value().as_str()).ok_or_else(|| {
-                                                            RenderError::new("Expected 3 string \
-                                                                              parameters for \
-                                                                              \"strReplace\"")
+                RenderErrorReason::ParamTypeMismatchForName(
+                    stringify!($helper_fn_name),
+                    "0".to_owned(),
+                    "string".to_owned())
                                                         })?;
-        rc.writer
-          .write_all(param.replace(old, new).into_bytes().as_ref())?;
+        out.write(param.replace(old, new).as_ref())?;
         Ok(())
     }
 }

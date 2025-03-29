@@ -19,9 +19,9 @@ use log::{debug,
           trace};
 use prometheus::{register_int_gauge_vec,
                  IntGaugeVec};
-use rand::{seq::{IteratorRandom,
-                 SliceRandom},
-           thread_rng};
+use rand::{rng,
+           seq::{IteratorRandom,
+                 SliceRandom}};
 use serde::{de,
             ser::{SerializeMap,
                   SerializeStruct},
@@ -101,7 +101,7 @@ impl FromStr for Incarnation {
 
 struct IncarnationVisitor;
 
-impl<'de> de::Visitor<'de> for IncarnationVisitor {
+impl de::Visitor<'_> for IncarnationVisitor {
     type Value = Incarnation;
 
     fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -705,7 +705,7 @@ impl MemberList {
                                       .filter(|member| member.id != exclude_id)
                                       .cloned()
                                       .collect();
-        members.shuffle(&mut thread_rng());
+        members.shuffle(&mut rng());
 
         members
     }
@@ -728,7 +728,7 @@ impl MemberList {
                     && member.id != target_member_id
                     && *health == Health::Alive
                 })
-                .choose_multiple(&mut thread_rng(), PINGREQ_TARGETS)
+                .choose_multiple(&mut rng(), PINGREQ_TARGETS)
         {
             with_closure(member);
         }
@@ -850,7 +850,7 @@ impl<'a> MemberListProxy<'a> {
     pub fn new(m: &'a MemberList) -> Self { MemberListProxy(m) }
 }
 
-impl<'a> Serialize for MemberListProxy<'a> {
+impl Serialize for MemberListProxy<'_> {
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
@@ -876,7 +876,7 @@ impl<'a> MemberProxy<'a> {
     pub fn new(m: &'a Member, h: &'a Health) -> Self { MemberProxy(m, h) }
 }
 
-impl<'a> Serialize for MemberProxy<'a> {
+impl Serialize for MemberProxy<'_> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {

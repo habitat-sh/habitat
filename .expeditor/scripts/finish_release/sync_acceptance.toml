@@ -16,7 +16,7 @@ packages = [
   "core/hab-pkg-export-tar",
 ]
 
-[[x86_64-linux-kernel2]]
+[[aarch64-linux]]
 channel = "stable"
 packages = [
   "core/hab-launcher",
@@ -24,7 +24,9 @@ packages = [
   "core/hab-sup",
   "core/hab-studio",
   "core/hab-plan-build",
-  "core/hab-backline"
+  "core/hab-backline",
+  "core/hab-pkg-export-container",
+  "core/hab-pkg-export-tar",
 ]
 
 [[x86_64-windows]]

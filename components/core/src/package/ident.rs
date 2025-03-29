@@ -368,7 +368,7 @@ impl TryFrom<PackageIdent> for FullyQualifiedPackageIdent {
     }
 }
 
-impl<'a> TryFrom<&'a PackageIdent> for FullyQualifiedPackageIdent {
+impl TryFrom<&PackageIdent> for FullyQualifiedPackageIdent {
     type Error = Error;
 
     fn try_from(ident: &PackageIdent) -> Result<Self> {

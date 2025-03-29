@@ -102,7 +102,7 @@ pub enum Error {
     StringFromUtf8Error(string::FromUtf8Error),
     /// When an error occurs registering template file
     // Boxed due to clippy::large_enum_variant
-    TemplateFileError(Box<handlebars::TemplateFileError>),
+    TemplateError(handlebars::TemplateError),
     /// When an error occurs rendering template
     /// The error is constructed with a handlebars::RenderError's format string instead
     /// of the handlebars::RenderError itself because the cause field of the
@@ -110,7 +110,7 @@ pub enum Error {
     /// and not sync which can lead to upstream compile errors when dealing with the
     /// failure crate. We should change this to a RenderError after we update the
     /// handlebars crate. See https://github.com/sunng87/handlebars-rust/issues/194
-    TemplateRenderError(String),
+    TemplateRenderError(handlebars::RenderError),
     /// When an error occurs merging toml
     TomlMergeError(String),
     /// When an error occurs parsing toml
@@ -216,7 +216,7 @@ impl fmt::Display for Error {
             }
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
-            Error::TemplateFileError(ref err) => format!("{:?}", err),
+            Error::TemplateError(ref err) => format!("{:?}", err),
             Error::TemplateRenderError(ref err) => err.to_string(),
             Error::TomlMergeError(ref e) => format!("Failed to merge TOML: {}", e),
             Error::TomlParser(ref err) => format!("Failed to parse TOML: {}", err),
@@ -242,8 +242,12 @@ impl From<api_client::Error> for Error {
     fn from(err: api_client::Error) -> Self { Error::APIClient(err) }
 }
 
-impl From<handlebars::TemplateFileError> for Error {
-    fn from(err: handlebars::TemplateFileError) -> Self { Error::TemplateFileError(Box::new(err)) }
+impl From<handlebars::TemplateError> for Error {
+    fn from(err: handlebars::TemplateError) -> Self { Error::TemplateError(err) }
+}
+
+impl From<handlebars::RenderError> for Error {
+    fn from(err: handlebars::RenderError) -> Self { Error::TemplateRenderError(err) }
 }
 
 impl From<hcore::Error> for Error {

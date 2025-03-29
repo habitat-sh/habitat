@@ -229,7 +229,7 @@ impl<'a> CensusRingProxy<'a> {
     pub fn new(c: &'a CensusRing) -> Self { CensusRingProxy(c) }
 }
 
-impl<'a> Serialize for CensusRingProxy<'a> {
+impl Serialize for CensusRingProxy<'_> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
@@ -697,7 +697,7 @@ impl std::ops::Deref for CensusMemberProxy<'_> {
     fn deref(&self) -> &Self::Target { &(self.0) }
 }
 
-impl<'a> Serialize for CensusMemberProxy<'a> {
+impl Serialize for CensusMemberProxy<'_> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {

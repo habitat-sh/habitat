@@ -117,7 +117,7 @@ impl<'de> serde::Deserialize<'de> for ServiceBind {
     {
         struct ServiceBindVisitor;
 
-        impl<'de> serde::de::Visitor<'de> for ServiceBindVisitor {
+        impl serde::de::Visitor<'_> for ServiceBindVisitor {
             type Value = ServiceBind;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {

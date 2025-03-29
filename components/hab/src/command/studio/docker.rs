@@ -115,9 +115,20 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
 
     // We need to strip out the -D if it exists to avoid
     // it getting passed to the sup on entering the studio
-    let to_cull = OsString::from("-D");
+    let mut to_cull = OsString::from("-D");
     if let Some(index) = args.iter().position(|x| *x == to_cull) {
         args.remove(index);
+    }
+
+    // the linux docker studio expects no leading args before the studio
+    // command (build, run, enter) so we trim any refresh channel and
+    // put it into the environment
+    to_cull = OsString::from("-f");
+    if let Some(index) = args.iter().position(|x| *x == to_cull) {
+        args.remove(index);
+        let refresh_channel_key = format!("{}{}", HAB_STUDIO_SECRET, "HAB_REFRESH_CHANNEL");
+        env_vars.push(refresh_channel_key.clone());
+        env::set_var(refresh_channel_key, args.remove(index));
     }
 
     // When a user sets SSL_CERT_FILE, we need to modify the absolute
@@ -353,8 +364,6 @@ fn studio_target(windows: bool, target: target::PackageTarget) -> target::Packag
         #[cfg(feature = "supported_targets")]
         target::X86_64_LINUX => target::X86_64_LINUX,
         #[cfg(feature = "supported_targets")]
-        target::X86_64_LINUX_KERNEL2 => target::X86_64_LINUX_KERNEL2,
-        #[cfg(feature = "supported_targets")]
         target::X86_64_WINDOWS => target::X86_64_LINUX,
         #[cfg(feature = "supported_targets")]
         target::AARCH64_DARWIN => target::X86_64_LINUX,
@@ -388,8 +397,6 @@ mod tests {
                    format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION));
         assert_eq!(image_identifier(None, target::X86_64_LINUX),
                    format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION));
-        assert_eq!(image_identifier(None, target::X86_64_LINUX_KERNEL2),
-                   format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux-kernel2", VERSION));
         assert_eq!(image_identifier(None, target::X86_64_WINDOWS),
                    format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION));
         assert_eq!(image_identifier(Some("ltsc2016"), target::X86_64_WINDOWS),

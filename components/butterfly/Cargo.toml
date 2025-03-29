@@ -19,7 +19,7 @@ habitat_core = { path = "../core" }
 habitat_common = { path = "../common" }
 log = "0.4"
 lazy_static = "*"
-prometheus = "*"
+prometheus = { version = "*", default-features = false }
 parking_lot = "*"
 prost = { version = "*", features = ["prost-derive"] }
 rand = "*"

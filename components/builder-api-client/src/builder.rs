@@ -1581,6 +1581,7 @@ mod tests {
                        release: None, }
     }
 
+    #[allow(clippy::type_complexity)]
     fn seach_generator<'a>(
         data: &'a [&str],
         step: usize)

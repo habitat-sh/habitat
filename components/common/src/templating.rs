@@ -16,7 +16,8 @@ use crate::{error::{Error,
             FeatureFlag};
 use handlebars::{Handlebars,
                  RenderError,
-                 TemplateFileError};
+                 TemplateError,
+                 TemplateErrorReason};
 use lazy_static::lazy_static;
 use log::debug;
 use regex::Regex;
@@ -69,10 +70,10 @@ pub async fn compile_for_package_install(package: &PackageInstall,
 
 pub type RenderResult<T> = result::Result<T, RenderError>;
 
-pub struct TemplateRenderer(Handlebars);
+pub struct TemplateRenderer(Handlebars<'static>);
 
 impl TemplateRenderer {
-    pub fn new() -> Self {
+    pub fn new() -> TemplateRenderer {
         let mut handlebars = Handlebars::new();
         handlebars.register_helper("eachAlive", Box::new(helpers::EACH_ALIVE));
         handlebars.register_helper("pkgPathFor", Box::new(helpers::PKG_PATH_FOR));
@@ -96,7 +97,7 @@ impl TemplateRenderer {
         debug!("Rendering template with context, {}, {}", template, raw);
         self.0
             .render(template, &raw)
-            .map_err(|e| Error::TemplateRenderError(format!("{}", e)))
+            .map_err(Error::TemplateRenderError)
     }
 
     // This method is only implemented so we can intercept the call to Handlebars and display
@@ -106,14 +107,14 @@ impl TemplateRenderer {
     pub fn register_template_file<P>(&mut self,
                                      name: &str,
                                      path: P)
-                                     -> result::Result<(), TemplateFileError>
+                                     -> result::Result<(), TemplateError>
         where P: AsRef<std::path::Path>
     {
         let path = path.as_ref();
-        let template_string =
-            std::fs::read_to_string(path).map_err(|e| {
-                                             TemplateFileError::IOError(e, name.to_owned())
-                                         })?;
+        let template_string = std::fs::read_to_string(path).map_err(|e| {
+                                  TemplateError::of(TemplateErrorReason::IoError(e,
+                                                                                 name.to_owned()))
+                              })?;
 
         // If we detect deprecated object access syntax notify the user.
         if RE.is_match(&template_string) {
@@ -136,8 +137,7 @@ impl TemplateRenderer {
                 });
         }
 
-        self.0.register_template_string(name, template_string)?;
-        Ok(())
+        self.0.register_template_string(name, template_string)
     }
 }
 
@@ -148,13 +148,13 @@ impl fmt::Debug for TemplateRenderer {
 }
 
 impl Deref for TemplateRenderer {
-    type Target = Handlebars;
+    type Target = Handlebars<'static>;
 
-    fn deref(&self) -> &Handlebars { &self.0 }
+    fn deref(&self) -> &Handlebars<'static> { &self.0 }
 }
 
 impl DerefMut for TemplateRenderer {
-    fn deref_mut(&mut self) -> &mut Handlebars { &mut self.0 }
+    fn deref_mut(&mut self) -> &mut Handlebars<'static> { &mut self.0 }
 }
 
 /// Disables HTML escaping which is enabled by default in Handlebars.
@@ -332,7 +332,7 @@ mod test {
 
     #[test]
     fn bind_variable() {
-        let content = "{{bind.foo.members[0].sys.ip}}";
+        let content = "{{bind.foo.members.[0].sys.ip}}";
         let mut renderer = TemplateRenderer::new();
         let data = service_config_json_from_toml_file("complex_config.toml");
 
@@ -388,6 +388,25 @@ mod test {
 
         let each_alive_render = renderer.render("each_alive", &data).unwrap();
         let each_if_render = renderer.render("all_members", &data).unwrap();
+
+        assert_eq!(each_alive_render, each_if_render);
+    }
+
+    #[test]
+    fn each_alive_helper_with_idx() {
+        let mut renderer = TemplateRenderer::new();
+        // template using the new `eachAlive` helper
+        renderer.register_template_file("each_alive_idx", templates().join("each_alive_idx.txt"))
+                .unwrap();
+
+        // template using an each block with a nested if block filtering on `alive`
+        renderer.register_template_file("all_members_idx", templates().join("all_members_idx.txt"))
+                .unwrap();
+
+        let data = service_config_json_from_toml_file("multiple_supervisors_config.toml");
+
+        let each_alive_render = renderer.render("each_alive_idx", &data).unwrap();
+        let each_if_render = renderer.render("all_members_idx", &data).unwrap();
 
         assert_eq!(each_alive_render, each_if_render);
     }

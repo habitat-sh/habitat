@@ -158,7 +158,7 @@ mod storage {
     /// lifetime of the service group key.
     pub struct ServiceGroupRumors<'sg_key, R>(Option<&'sg_key RumorSubMap<R>>);
 
-    impl<'sg_key, R> ServiceGroupRumors<'sg_key, R> {
+    impl<R> ServiceGroupRumors<'_, R> {
         /// Allows iterator access to the rumors in a particular service group:
         /// ```
         /// # use habitat_butterfly::rumor::{RumorStore,
@@ -219,7 +219,7 @@ mod storage {
         }
     }
 
-    impl<'a, R: Rumor> IterableGuard<'a, RumorMap<R>> {
+    impl<R: Rumor> IterableGuard<'_, RumorMap<R>> {
         pub fn contains_rumor(&self, rumor: &R) -> bool {
             let RumorKey { key, id, .. } = rumor.into();
 
@@ -238,7 +238,7 @@ mod storage {
         }
     }
 
-    impl<'a, C: ConstKeyRumor> IterableGuard<'a, RumorMap<C>> {
+    impl<C: ConstKeyRumor> IterableGuard<'_, RumorMap<C>> {
         pub fn contains_id(&self, member_id: &str) -> bool {
             self.get(C::const_key())
                 .map(|rumors| rumors.contains_key(member_id))
@@ -246,7 +246,7 @@ mod storage {
         }
     }
 
-    impl<'a, E: ElectionRumor> IterableGuard<'a, RumorMap<E>> {
+    impl<E: ElectionRumor> IterableGuard<'_, RumorMap<E>> {
         pub fn get_term(&self, service_group: &str) -> Option<u64> {
             self.get(service_group)
                 .map(|sg| sg.get(E::const_id()).map(ElectionRumor::term))
@@ -254,7 +254,7 @@ mod storage {
         }
     }
 
-    impl<'a, E: ElectionRumor> IterableGuard<'a, RumorMap<E>> {
+    impl<E: ElectionRumor> IterableGuard<'_, RumorMap<E>> {
         pub fn get_member_id(&self, service_group: &str) -> Option<&str> {
             self.get(service_group)
                 .map(|sg| sg.get(E::const_id()).map(ElectionRumor::member_id))
@@ -269,7 +269,7 @@ mod storage {
     /// let rs: RumorStore<Departure> = RumorStore::default();
     /// assert_eq!(rs.lock_rsr().len(), 0);
     /// ```
-    impl<'a, R> std::ops::Deref for IterableGuard<'a, RumorMap<R>> {
+    impl<R> std::ops::Deref for IterableGuard<'_, RumorMap<R>> {
         type Target = RumorMap<R>;
 
         fn deref(&self) -> &Self::Target { &self.0 }
@@ -374,7 +374,7 @@ mod storage {
         pub fn new(r: &'a RumorStore<T>) -> Self { RumorStoreProxy(r) }
     }
 
-    impl<'a> Serialize for RumorStoreProxy<'a, Departure> {
+    impl Serialize for RumorStoreProxy<'_, Departure> {
         /// # Locking (see locking.md)
         /// * `RumorStore::list` (read)
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
@@ -395,7 +395,7 @@ mod storage {
         }
     }
 
-    impl<'a, C: ConstIdRumor> Serialize for RumorStoreProxy<'a, C> {
+    impl<C: ConstIdRumor> Serialize for RumorStoreProxy<'_, C> {
         /// # Locking (see locking.md)
         /// * `RumorStore::list` (read)
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
@@ -419,7 +419,7 @@ mod storage {
         }
     }
 
-    impl<'a> Serialize for RumorStoreProxy<'a, Service> {
+    impl Serialize for RumorStoreProxy<'_, Service> {
         /// # Locking (see locking.md)
         /// * `RumorStore::list` (read)
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
@@ -436,7 +436,7 @@ mod storage {
         }
     }
 
-    impl<'a> Serialize for RumorStoreProxy<'a, ServiceFile> {
+    impl Serialize for RumorStoreProxy<'_, ServiceFile> {
         /// # Locking (see locking.md)
         /// * `RumorStore::list` (read)
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>

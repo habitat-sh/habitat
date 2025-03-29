@@ -196,7 +196,7 @@ impl<'a> StructuredOutput<'a> {
 // Custom implementation of Serialize to ensure that we can
 // appropriately represent both verbose and non-verbose output, a
 // behavior which isn't otherwise possible to derive.
-impl<'a> Serialize for StructuredOutput<'a> {
+impl Serialize for StructuredOutput<'_> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
@@ -219,7 +219,7 @@ impl<'a> Serialize for StructuredOutput<'a> {
     }
 }
 
-impl<'a> fmt::Display for StructuredOutput<'a> {
+impl fmt::Display for StructuredOutput<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let bufwtr = BufferWriter::stdout(self.format.color_choice());
         let mut buffer = bufwtr.buffer();

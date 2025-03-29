@@ -1,7 +1,7 @@
 FROM {{base_image}}
 ENV PATH {{path}}
 
-{{~ #if multi_layer }}
+{{ #if multi_layer }}
 # TODO (CM): If package-per-layer becomes an issue, we could gain a
 # bit of headspace by putting all the Supervisor-related packages and
 # dependencies in one layer, and then add user packages in subsequent
@@ -10,12 +10,12 @@ ENV PATH {{path}}
 # Alternatively, we might take advantage of a Supervisor-only
 # container as a base image:
 # https://github.com/habitat-sh/habitat/issues/4977
-{{~ #each packages as |pkg|}}
+{{ #each packages as |pkg|}}
 COPY {{../rootfs}}/hab/pkgs/{{pkg}} /hab/pkgs/{{pkg}}
 {{ /each }}
-{{~ else }}
+{{ else }}
 ADD {{rootfs}}/hab /hab
-{{~ /if }}
+{{ /if }}
 
 # Contains all our busybox userspace links, hab binary link, and any user
 # package binary links
@@ -59,11 +59,11 @@ COPY {{rootfs}}/init.sh /init.sh
 
 EXPOSE 9631 {{exposes}}
 RUN HAB_FEAT_OFFLINE_INSTALL=ON \
-    {{~ #if environment}}
-    {{~ #each environment}}
+    {{ #if environment}}
+    {{ #each environment}}
         {{@key}}={{{this}}} \
-    {{~ /each}}
-    {{~ /if}}
+    {{ /each}}
+    {{ /if}}
     {{hab_path}} pkg install {{installed_primary_svc_ident}}
 ENTRYPOINT ["/init.sh"]
 CMD ["run", "{{primary_svc_ident}}"]

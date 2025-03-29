@@ -194,7 +194,7 @@ steps:
 
   - label: "[unit] :linux: common"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh common
+      - HAB_BLDR_CHANNEL=LTS-2024 .expeditor/scripts/verify/run_cargo_test.sh common
     agents:
       queue: 'default-privileged'
     plugins:
@@ -1089,104 +1089,6 @@ steps:
     retry:
       automatic:
         limit: 1
-
-#######################################################################
-# Things that have no tests but should be built to make sure they
-# still build. - Linux Kernel 2
-#######################################################################
-
-  - label: "[build] :linux: :two: build hab"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/hab
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-
-  - label: "[build] :linux: :two: build hab-plan-build"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/plan-build
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-
-  - label: "[build] :linux: :two: build hab-backline"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/backline
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-
-  - label: "[build] :linux: :two: build hab-studio"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/studio
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-
-# Ignoring the following actions - they will eventually be deleted when Linux 2 support
-# is removed for now this causes a build failure that can totally be ignored.
-#  - label: "[build] :linux: :two: build launcher"
-#    command:
-#      - .expeditor/scripts/verify/build_package.sh components/launcher
-#    env:
-#      HAB_LICENSE: "accept-no-persist"
-#      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-#      HAB_BLDR_CHANNEL: "stable"
-#
-#    expeditor:
-#      executor:
-#        docker:
-#          privileged: true
-#
-#  - label: "[build] :linux: :two: build hab-sup"
-#    command:
-#      - .expeditor/scripts/verify/build_package.sh components/sup
-#    env:
-#      HAB_LICENSE: "accept-no-persist"
-#      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-#      HAB_BLDR_CHANNEL: "stable"
-#
-#    expeditor:
-#      executor:
-#        docker:
-#          privileged: true
-
-  - label: "[build] :linux: :two: build hab-pkg-export-tar"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/pkg-export-tar
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-
-    expeditor:
-      executor:
-        docker:
-          privileged: true
 
 #######################################################################
 # Things that have no tests but should be built to make sure they

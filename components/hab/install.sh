@@ -337,7 +337,7 @@ print_help() {
 		    -h    Prints help information
 		    -v    Specifies a version (ex: 0.15.0, 0.15.0/20161222215311)
 		    -t    Specifies the ActiveTarget of the 'hab' program to download.
-		            [values: x86_64-linux, x86_64-linux-kernel2] [default: x86_64-linux]
+		            [values: x86_64-linux, aarch64-linux] [default: x86_64-linux]
 		            This option is only valid on Linux platforms
 		
 		ENVIRONMENT VARIABLES:
@@ -409,9 +409,8 @@ get_platform() {
 }
 
 # Validate the CLI Target requested.  In most cases ${arch}-${sys}
-# for the current system is the only valid Target.  In the case of
-# x86_64-linux systems we also need to support the x86_64-linux-kernel2
-# Target. Creates an array of valid Targets for the current system,
+# for the current system is the only valid Target. Creates an
+# array of valid Targets for the current system,
 # adding any valid alternate Targets, and checks if the requested
 # Target is present in the array.
 validate_target() {
@@ -421,7 +420,7 @@ validate_target() {
     valid_targets+=("x86_64-linux-kernel2")
     ;;
   esac
-
+  
   if ! (_array_contains "${target}" "${valid_targets[@]}"); then
     local _vts
     printf -v _vts "%s, " "${valid_targets[@]}"

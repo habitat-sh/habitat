@@ -27,7 +27,7 @@ habitat_core = { path = "../core" }
 habitat-sup-client = { path = "../sup-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 # We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.
-handlebars = { version = "0.29.1", default-features = false }
+handlebars = { version = "*", default-features = false }
 lazy_static = "*"
 libc = "*"
 log = "0.4"
@@ -74,3 +74,4 @@ v4 = [ "supported_targets", "clap_v4" ]
 default = ["supported_targets", "v2"]
 functional = []
 supported_targets = ["habitat_core/supported_targets"]
+aarch64-linux = ["habitat_core/aarch64-linux"]

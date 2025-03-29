@@ -39,17 +39,6 @@ install_rustfmt() {
   rustup set profile default
 }
 
-install_rust_toolchain() {
-  local toolchain="${1?toolchain argument required}"
-
-  if rustup component list --toolchain "$toolchain" &>/dev/null; then
-    echo "--- :rust: Rust $toolchain is already installed."
-  else
-    echo "--- :rust: Installing rust $toolchain."
-    rustup toolchain install "$toolchain"
-  fi
-}
-
 # Get the version of the nightly toolchain we use for compiling,
 # running, tests, etc.
 get_nightly_toolchain() {
@@ -62,7 +51,7 @@ install_hab_pkg() {
     installed_pkgs=$(hab pkg list "$ident")
 
     if [[ -z $installed_pkgs ]]; then
-      sudo hab pkg install "$ident"
+      sudo -E hab pkg install "$ident"
     else
       echo "$ident already installed"
     fi

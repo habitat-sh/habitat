@@ -1,0 +1,3 @@
+{{~#eachAlive svc.members as |member|}}
+ Member ID: {{member.member_id}} {{@first}} {{@last}}
+{{~/eachAlive}}

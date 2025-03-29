@@ -851,10 +851,10 @@ impl Manager {
                 for entry in entries.flatten() {
                     match entry.path().extension().and_then(OsStr::to_str) {
                         Some("tmp") | Some("health") => {
-                            fs::remove_file(&entry.path()).map_err(|err| {
-                                                              Error::BadDataPath(data_path.clone(),
-                                                                                 err)
-                                                          })?;
+                            fs::remove_file(entry.path()).map_err(|err| {
+                                                             Error::BadDataPath(data_path.clone(),
+                                                                                err)
+                                                         })?;
                         }
                         _ => continue,
                     }
@@ -1896,7 +1896,7 @@ impl Manager {
                            .services
                            .lock_msr()
                            .get(&spec.ident)
-                           .map_or(true, PersistentServiceWrapper::is_ready_for_restart)
+                           .is_none_or(PersistentServiceWrapper::is_ready_for_restart)
                     {
                         self.add_service_rsw_mlw_rhw_msr(spec.clone()).await;
                         services_started.push(spec.ident.clone());

@@ -98,7 +98,7 @@ cargo run -p hab sup --help
 
 ## Compiling with symbols for unsupported targets
 
-The [`habitat_core`](components/core/Cargo.toml) crate defines a [feature](https://doc.rust-lang.org/cargo/reference/manifest.html#the-features-section) for each potential target. `habitat_core` also defines a `supported_targets` feature that enables all supported targets. The supported targets are `x86_64-darwin`, `x86_64-linux`, `x86_64-linux-kernel2`, and `x86_64-windows`. All other targets are unsupported. Their target identifiers exist solely for experimentation.
+The [`habitat_core`](components/core/Cargo.toml) crate defines a [feature](https://doc.rust-lang.org/cargo/reference/manifest.html#the-features-section) for each potential target. `habitat_core` also defines a `supported_targets` feature that enables all supported targets. The supported targets are `x86_64-darwin`, `x86_64-linux`, `aarch64-darwin`, `aarch64-linux`, and `x86_64-windows`. All other targets are unsupported. Their target identifiers exist solely for experimentation.
 
 The `supported_targets` feature is enabled by default. No extra configuration is needed to produce a build aware of these targets. If you would like to produce a build that is aware of an unsupported target, you must set the desired feature flag in all crates that wrap the corresponding `habitat_core` feature flag. Currently, [`hab`](components/hab/Cargo.toml) is the only example of such a crate. For example, to enable the `aarch64-linux` target, follow these steps:
 

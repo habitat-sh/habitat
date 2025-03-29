@@ -171,7 +171,7 @@ async fn download_key(ui: &mut UI,
                       -> Result<()> {
     if key_cache.public_signing_key(named_revision).is_ok() {
         ui.status(Status::Using,
-                  &format!("{} in {}", named_revision, key_cache.as_ref().display()))?;
+                  format!("{} in {}", named_revision, key_cache.as_ref().display()))?;
         Ok(())
     } else {
         retry_builder_api!(async {
@@ -183,7 +183,7 @@ async fn download_key(ui: &mut UI,
                                         ui.progress())
                       .await?;
             ui.status(Status::Cached,
-                      &format!("{} to {}", named_revision, key_cache.as_ref().display()))?;
+                      format!("{} to {}", named_revision, key_cache.as_ref().display()))?;
             Ok::<_, habitat_api_client::error::Error>(())
         }).await
           .map_err(|e| {

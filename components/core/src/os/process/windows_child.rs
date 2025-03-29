@@ -424,7 +424,7 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
         let mut reject_remote_clients_flag = PIPE_REJECT_REMOTE_CLIENTS;
         loop {
             tries += 1;
-            let key: u64 = rand::thread_rng().gen();
+            let key: u64 = rand::rng().random();
             name = format!(r"\\.\pipe\__rust_anonymous_pipe1__.{}.{}",
                            processthreadsapi::GetCurrentProcessId(),
                            key);
@@ -863,7 +863,7 @@ impl RawHandle {
     }
 }
 
-impl<'a> Read for &'a RawHandle {
+impl Read for &RawHandle {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> { (**self).read(buf) }
 
     fn read_to_end(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {

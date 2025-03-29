@@ -1,7 +1,8 @@
 use crate::{common::ui::{Status,
                          UIWriter,
                          UI},
-            error::Result};
+            error::{Error,
+                    Result}};
 use habitat_core::{origin::Origin,
                    package::PackageIdent};
 use handlebars::Handlebars;
@@ -83,21 +84,25 @@ pub fn start(ui: &mut UI,
 
     // We want to render the configured variables.
     if cfg!(windows) {
-        let rendered_plan = handlebars.template_render(PLAN_TEMPLATE_PS1, &data)?;
+        let rendered_plan = handlebars.render_template(PLAN_TEMPLATE_PS1, &data)
+                                      .map_err(|e| Error::HandlebarsRenderError(Box::new(e)))?;
         create_with_template(ui, &format!("{}/plan.ps1", root), &rendered_plan)?;
     } else {
-        let rendered_plan = handlebars.template_render(PLAN_TEMPLATE_SH, &data)?;
+        let rendered_plan = handlebars.render_template(PLAN_TEMPLATE_SH, &data)
+                                      .map_err(|e| Error::HandlebarsRenderError(Box::new(e)))?;
         create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
     }
     ui.para("`plan.sh` is the foundation of your new habitat. It contains metadata, \
              dependencies, and tasks.")?;
-    let rendered_default_toml = handlebars.template_render(DEFAULT_TOML_TEMPLATE, &data)?;
+    let rendered_default_toml = handlebars.render_template(DEFAULT_TOML_TEMPLATE, &data)
+                                          .map_err(|e| Error::HandlebarsRenderError(Box::new(e)))?;
     create_with_template(ui,
                          &format!("{}/default.toml", root),
                          &rendered_default_toml)?;
     ui.para("`default.toml` contains default values for `cfg` prefixed variables.")?;
 
-    let rendered_readme_md = handlebars.template_render(README_TEMPLATE, &data)?;
+    let rendered_readme_md = handlebars.render_template(README_TEMPLATE, &data)
+                                       .map_err(|e| Error::HandlebarsRenderError(Box::new(e)))?;
     create_with_template(ui, &format!("{}/README.md", root), &rendered_readme_md)?;
     ui.para("`README.md` contains a basic README document which you should update.")?;
 
@@ -171,7 +176,7 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
 }
 
 fn is_git_managed(path: &Path) -> bool {
-    path.join(".git").is_dir() || path.parent().map_or(false, is_git_managed)
+    path.join(".git").is_dir() || path.parent().is_some_and(is_git_managed)
 }
 
 fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<()> {

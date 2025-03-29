@@ -399,13 +399,14 @@ impl CfgRenderer {
     pub fn new<T>(templates_path: T) -> Result<Self>
         where T: AsRef<Path>
     {
-        if templates_path.as_ref().is_dir() {
-            load_templates(templates_path.as_ref(),
-                           &PathBuf::new(),
-                           TemplateRenderer::new()).map(CfgRenderer)
+        let renderer = if templates_path.as_ref().is_dir() {
+            let path = PathBuf::new();
+            let renderer = TemplateRenderer::new();
+            load_templates(templates_path.as_ref(), &path, renderer)?
         } else {
-            Ok(CfgRenderer(TemplateRenderer::new()))
-        }
+            TemplateRenderer::new()
+        };
+        Ok(CfgRenderer(renderer))
     }
 
     /// Compile and write all configuration files to the configuration directory.
@@ -557,12 +558,12 @@ fn load_templates(dir: &Path,
     for entry in std::fs::read_dir(dir)?.filter_map(result::Result::ok) {
         // We're storing the pathname relative to the input config directory
         // as the identifier for the template
-        let relative_path = context.join(&entry.file_name());
+        let relative_path = context.join(entry.file_name());
         match entry.file_type() {
             Ok(file_type) if file_type.is_file() => {
                 // JW TODO: This error needs improvement. TemplateFileError is too generic.
-                template.register_template_file(&relative_path.to_string_lossy(), &entry.path())
-                        .map_err(|e| Error::TemplateFileError(Box::new(e)))?;
+                template.register_template_file(&relative_path.to_string_lossy(), entry.path())
+                        .map_err(Error::TemplateError)?;
             }
             Ok(file_type) if file_type.is_dir() => {
                 template = load_templates(&entry.path(), &relative_path, template)?
