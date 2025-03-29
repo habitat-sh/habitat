@@ -607,9 +607,10 @@ _ensure_origin_key_present() {
 # terminated.
 _find_system_commands() {
   if exists stat; then
-    if stat -f '%Su:%g' . 2>/dev/null 1>/dev/null; then
+    _stat_cmd=$(command -v stat)
+    if $_stat_cmd -f '%Su:%g' . 2>/dev/null 1>/dev/null; then
       _stat_variant="bsd"
-    elif stat -c '%u:%g' . 2>/dev/null 1>/dev/null; then
+    elif $_stat_cmd -c '%u:%g' . 2>/dev/null 1>/dev/null; then
       _stat_variant="gnu"
     else
       exit_with "Failed to determine stat variant, we require GNU or BSD stat to determine user and group owners of files; aborting" 1
@@ -1605,9 +1606,9 @@ _set_build_path() {
 _write_pre_build_file() {
   local plan_owner
   if [[ $_stat_variant == "bsd" ]]; then
-    plan_owner="$(stat -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+    plan_owner="$($_stat_cmd -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
   else
-    plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+    plan_owner="$($_stat_cmd -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
   fi
   pre_build_file="$pkg_output_path/pre_build.env"
 
@@ -2181,16 +2182,38 @@ do_strip() {
 # https://bugs.launchpad.net/ubuntu/+source/file/+bug/1747711
 do_default_strip() {
   build_line "Stripping unneeded symbols from binaries and libraries"
-  find "$pkg_prefix" -type f -perm -u+w -print0 2> /dev/null \
-    | while read -rd '' f; do
-      case "$(file -bi "$f")" in
-        *application/x-executable*) strip --strip-all "$f";;
-        *application/x-pie-executable*) strip --strip-unneeded "$f";;
-        *application/x-sharedlib*) strip --strip-unneeded "$f";;
-        *application/x-archive*) strip --strip-debug "$f";;
-        *) continue;;
-      esac
-    done
+  case "$pkg_target" in
+    aarch64-darwin)
+      # TODO: for this to be correct, the file binary we use must be GNU file and not BSD file.
+      # This works for now, sorta, but may need to be fixed in future
+      find "$pkg_prefix" -type f -perm -u+w -print0 2> /dev/null \
+      | while read -rd '' f; do
+        case "$(file -bi "$f")" in
+          *application/x-mach-binary*)
+            echo "$f: $(file -bi "$f")"
+            strip -x "$f"
+            ;;
+          *application/x-archive*)
+            echo "$f: $(file -bi "$f")"
+            strip -Sx "$f"
+            ;;
+          *) continue;;
+        esac
+      done
+      ;;
+    *)
+      find "$pkg_prefix" -type f -perm -u+w -print0 2> /dev/null \
+      | while read -rd '' f; do
+        case "$(file -bi "$f")" in
+          *application/x-executable*) strip --strip-all "$f";;
+          *application/x-pie-executable*) strip --strip-unneeded "$f";;
+          *application/x-sharedlib*) strip --strip-unneeded "$f";;
+          *application/x-archive*) strip --strip-debug "$f";;
+          *) continue;;
+        esac
+      done
+      ;;
+  esac
 }
 
 # At this phase of the build, the package has been built, installed, and
@@ -2339,9 +2362,9 @@ _prepare_build_outputs() {
   _pkg_sha256sum=$($_shasum_cmd "$pkg_artifact" | cut -d " " -f 1)
   _pkg_blake2bsum=$($HAB_BIN pkg hash "$pkg_artifact" | cut -d " " -f 1)
   if [[ $_stat_variant == "bsd" ]]; then
-    plan_owner="$(stat -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+    plan_owner="$($_stat_cmd -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
   else
-    plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+    plan_owner="$($_stat_cmd -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
   fi
 
   mkdir -pv "$pkg_output_path"

@@ -24,7 +24,7 @@ HAB_STUDIO_BACKLINE_PKG="$(< "$(hab pkg path core/hab-backline)"/IDENT)"
 
 export HAB_STUDIO_BACKLINE_PKG
 
-sudo --preserve-env bin/hab-studio.sh new
+sudo --preserve-env bin/hab-studio-linux.sh new
 
 rm libexec/hab
 rm libexec/busybox
