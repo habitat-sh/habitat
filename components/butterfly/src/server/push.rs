@@ -308,9 +308,9 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
         };
         match socket.send(&payload, 0) {
             Ok(()) => {
-                GOSSIP_MESSAGES_SENT.with_label_values(&[&rumor_key.kind.to_string(), "success"])
+                GOSSIP_MESSAGES_SENT.with_label_values(&[&rumor_key.kind.to_string(), &String::from("success")])
                                     .inc();
-                GOSSIP_BYTES_SENT.with_label_values(&[&rumor_key.kind.to_string(), "success"])
+                GOSSIP_BYTES_SENT.with_label_values(&[&rumor_key.kind.to_string(), &String::from("success")])
                                  .set(payload.len().to_i64());
                 debug!("Sent rumor {:?} to {:?}", rumor_key, member);
             }
