@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.89 -->
-## [2.0.89](https://github.com/habitat-sh/habitat/tree/2.0.89) (2025-04-01)
+<!-- latest_release 2.0.90 -->
+## [2.0.90](https://github.com/habitat-sh/habitat/tree/2.0.90) (2025-04-02)
 
 #### Merged Pull Requests
-- Bump prometheus from 0.13.4 to 0.14.0 [#9653](https://github.com/habitat-sh/habitat/pull/9653) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump flate2 from 1.1.0 to 1.1.1 [#9656](https://github.com/habitat-sh/habitat/pull/9656) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump flate2 from 1.1.0 to 1.1.1 [#9656](https://github.com/habitat-sh/habitat/pull/9656) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.90 -->
 - Bump prometheus from 0.13.4 to 0.14.0 [#9653](https://github.com/habitat-sh/habitat/pull/9653) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.89 -->
 - Bump log from 0.4.26 to 0.4.27 [#9652](https://github.com/habitat-sh/habitat/pull/9652) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.88 -->
 - Bump semver from 1.0.25 to 1.0.26 [#9647](https://github.com/habitat-sh/habitat/pull/9647) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.87 -->
