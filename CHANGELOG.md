@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.91 -->
-## [2.0.91](https://github.com/habitat-sh/habitat/tree/2.0.91) (2025-04-02)
+<!-- latest_release 2.0.92 -->
+## [2.0.92](https://github.com/habitat-sh/habitat/tree/2.0.92) (2025-04-03)
 
 #### Merged Pull Requests
-- Bump env_logger from 0.11.7 to 0.11.8 [#9655](https://github.com/habitat-sh/habitat/pull/9655) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- CHEF-19259: perm issues with services [#9645](https://github.com/habitat-sh/habitat/pull/9645) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- CHEF-19259: perm issues with services [#9645](https://github.com/habitat-sh/habitat/pull/9645) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.92 -->
 - Bump env_logger from 0.11.7 to 0.11.8 [#9655](https://github.com/habitat-sh/habitat/pull/9655) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.91 -->
 - Bump flate2 from 1.1.0 to 1.1.1 [#9656](https://github.com/habitat-sh/habitat/pull/9656) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.90 -->
 - Bump prometheus from 0.13.4 to 0.14.0 [#9653](https://github.com/habitat-sh/habitat/pull/9653) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.89 -->
