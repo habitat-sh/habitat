@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.93 -->
-## [2.0.93](https://github.com/habitat-sh/habitat/tree/2.0.93) (2025-04-04)
+<!-- latest_release 2.0.94 -->
+## [2.0.94](https://github.com/habitat-sh/habitat/tree/2.0.94) (2025-04-07)
 
 #### Merged Pull Requests
-- Corrects 2s timeout to 20s in test_supervisor_load_service.ps1 [#9658](https://github.com/habitat-sh/habitat/pull/9658) ([jasonheath](https://github.com/jasonheath))
+- Corrects quoting in test_supervisor_load_service.ps1 [#9659](https://github.com/habitat-sh/habitat/pull/9659) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Corrects quoting in test_supervisor_load_service.ps1 [#9659](https://github.com/habitat-sh/habitat/pull/9659) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.94 -->
 - Corrects 2s timeout to 20s in test_supervisor_load_service.ps1 [#9658](https://github.com/habitat-sh/habitat/pull/9658) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.93 -->
 - CHEF-19259: perm issues with services [#9645](https://github.com/habitat-sh/habitat/pull/9645) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.92 -->
 - Bump env_logger from 0.11.7 to 0.11.8 [#9655](https://github.com/habitat-sh/habitat/pull/9655) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.91 -->
