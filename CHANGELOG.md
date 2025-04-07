@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.95 -->
-## [2.0.95](https://github.com/habitat-sh/habitat/tree/2.0.95) (2025-04-07)
+<!-- latest_release 2.0.96 -->
+## [2.0.96](https://github.com/habitat-sh/habitat/tree/2.0.96) (2025-04-07)
 
 #### Merged Pull Requests
-- Bump tokio from 1.44.1 to 1.44.2 [#9663](https://github.com/habitat-sh/habitat/pull/9663) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump ctrlc from 3.4.5 to 3.4.6 [#9660](https://github.com/habitat-sh/habitat/pull/9660) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump ctrlc from 3.4.5 to 3.4.6 [#9660](https://github.com/habitat-sh/habitat/pull/9660) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.96 -->
+- Bump errno from 0.3.10 to 0.3.11 [#9661](https://github.com/habitat-sh/habitat/pull/9661) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.96 -->
 - Bump tokio from 1.44.1 to 1.44.2 [#9663](https://github.com/habitat-sh/habitat/pull/9663) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.95 -->
 - Corrects quoting in test_supervisor_load_service.ps1 [#9659](https://github.com/habitat-sh/habitat/pull/9659) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.94 -->
 - Corrects 2s timeout to 20s in test_supervisor_load_service.ps1 [#9658](https://github.com/habitat-sh/habitat/pull/9658) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.93 -->
