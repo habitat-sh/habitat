@@ -74,11 +74,11 @@ if ($IsLinux) {
         }
 
         It 'has correct permissions on relevant svc directories' {
-            $out = (bash -c 'ls -l /hab/svc | tail -n 1 | cut -d' ' -f 1')
+            $out = (bash -c "ls -l /hab/ | grep svc | cut -d ' ' -f 1")
             ($out | Out-String) | Should -Match 'drwxr-xr-x'
-            $out = (bash -c 'ls -l /hab/svc/nginx | grep hooks | tail -n 1 | cut -d' ' -f 1')
+            $out = (bash -c "ls -l /hab/svc/nginx | grep hooks | cut -d ' ' -f 1")
             ($out | Out-String) | Should -Match 'drwxr-xr-x'
-            $out = (bash -c 'ls -l /hab/svc/nginx | grep logs | tail -n 1 | cut -d' ' -f 1')
+            $out = (bash -c "ls -l /hab/svc/nginx | grep logs | cut -d ' ' -f 1")
             ($out | Out-String) | Should -Match 'drwxr-xr-x'
         }
 
