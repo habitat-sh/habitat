@@ -216,65 +216,6 @@
         }
       }
     },
-    "/rdeps/{origin}/{name}/group": {
-      "parameters": [
-        {
-          "name": "origin",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        },
-        {
-          "name": "name",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "get": {
-        "description": "Retrieves the list of reverse dependencies for this package,\ncollated into build groups that can be build in parallel (on-prem setup not supported)\n",
-        "responses": {
-          "200": {
-            "description": "Retrieved dependencies organized into build groups",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "origin": "core",
-                    "name": "linux-headers",
-                    "rdeps": [
-                      {
-                        "group": 0,
-                        "idents": [
-                          "core/redis",
-                          "core/protobuf"
-                        ]
-                      },
-                      {
-                        "group": 1,
-                        "idents": [
-                          "core/node"
-                        ]
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Package not found"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
     "/status": {
       "get": {
         "description": "Returns the health of the service",
@@ -622,270 +563,6 @@
             "oauth_2_0": []
           }
         ]
-      }
-    },
-    "/jobs": {},
-    "/jobs/{jobId}": {
-      "parameters": [
-        {
-          "name": "jobId",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "get": {
-        "description": "Get the status of the given job",
-        "responses": {
-          "200": {
-            "description": "Retrieved job status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "id": "73089155726360582",
-                    "origin": "core",
-                    "project": "nginx",
-                    "version": "1.0.0",
-                    "release": "20170505001756",
-                    "state": "Complete",
-                    "created_at": "2017-05-05 00:42:35.213765+00",
-                    "build_started_at": "2017-05-05 00:43:11.729835+00",
-                    "build_finished_at": "2017-05-05 00:44:00.896919+00"
-                  },
-                  "type": "object",
-                  "x-amf-merge": [
-                    {
-                      "$ref": "#/components/schemas/job"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Received a jobId that was not a number"
-          }
-        }
-      }
-    },
-    "/jobs/{jobId}/log": {
-      "parameters": [
-        {
-          "name": "jobId",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "get": {
-        "description": "Get the build log (or a portion thereof) for the\ngiven job. Until an SSE endpoint can be implemented,\nthis endpoint can be used to poll for the logs of a\ncurrently-running job; use of the `start` query\nparameter ensures that only the portion of the log\nthat is \"new\", relative to a prior request, will be\nretrieved.\n",
-        "parameters": [
-          {
-            "name": "start",
-            "description": "Return the portion of the log output that\nstarts at the zero-indexed line\nspecified. A request with no given value\ndefaults to `0`; in other words, the\nentire log will be sent back.\n",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "description": "Return the portion of the log output that\nstarts at the zero-indexed line\nspecified. A request with no given value\ndefaults to `0`; in other words, the\nentire log will be sent back.\n",
-              "default": 0,
-              "example": 100,
-              "type": "integer",
-              "minimum": 0
-            }
-          },
-          {
-            "name": "color",
-            "description": "Whether or not to include embedded ANSI color\ncodes in the log output. By default, all ANSI\nsequences are removed, yielding plain output.\n\nThe following values are interpreted as `true`:\n  * `true`\n  * `TRUE`\n  * `t`\n  * `T`\n  * `1`\n  * `on`\n  * `ON`\n\nThe following values are interpreted as `false`:\n  * `false`\n  * `FALSE`\n  * `f`\n  * `F`\n  * `0`\n  * `off`\n  * `OFF`\n\nAll other values are considered `false`.\n",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "description": "Whether or not to include embedded ANSI color\ncodes in the log output. By default, all ANSI\nsequences are removed, yielding plain output.\n\nThe following values are interpreted as `true`:\n  * `true`\n  * `TRUE`\n  * `t`\n  * `T`\n  * `1`\n  * `on`\n  * `ON`\n\nThe following values are interpreted as `false`:\n  * `false`\n  * `FALSE`\n  * `f`\n  * `F`\n  * `0`\n  * `off`\n  * `OFF`\n\nAll other values are considered `false`.\n",
-              "default": false,
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Retrieved build log",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "start": 0,
-                    "stop": 2,
-                    "content": [
-                      "this is the first line",
-                      "this is the second line"
-                    ],
-                    "is_complete": false
-                  },
-                  "type": "object",
-                  "x-amf-merge": [
-                    {
-                      "$ref": "#/components/schemas/jobLog"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Received a jobId that was not a number, or\nan invalid value for the `start` query\nparameter (e.g., negative, or larger than\nthe actual size of the log file.\n"
-          },
-          "404": {
-            "description": "Job does not exist with corresponding jobId,\nor no log was found for the given job.\n"
-          }
-        }
-      }
-    },
-    "/jobs/group/{id}": {
-      "parameters": [
-        {
-          "name": "id",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ]
-    },
-    "/jobs/group/{id}/cancel": {
-      "parameters": [
-        {
-          "name": "id",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "post": {
-        "description": "Cancels a job group",
-        "responses": {
-          "200": {
-            "description": "Successful"
-          },
-          "400": {
-            "description": "ID or channel not provided"
-          },
-          "404": {
-            "description": "Group not found"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/jobs/group/{id}/rebuild": {
-      "parameters": [
-        {
-          "name": "id",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "post": {
-        "description": "Rebuilds a job group",
-        "responses": {
-          "200": {
-            "description": "Successful"
-          },
-          "400": {
-            "description": "ID or channel not provided"
-          },
-          "404": {
-            "description": "Group not found"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/jobs/group/{id}/promote/{channel}": {
-      "parameters": [
-        {
-          "name": "id",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        },
-        {
-          "name": "channel",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "post": {
-        "description": "Promote every successful project in a job group to the specified channel",
-        "responses": {
-          "200": {
-            "description": "Successful promotion"
-          },
-          "400": {
-            "description": "ID or channel not provided"
-          },
-          "404": {
-            "description": "Group not found"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/jobs/group/{id}/demote/{channel}": {
-      "parameters": [
-        {
-          "name": "id",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        },
-        {
-          "name": "channel",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "post": {
-        "description": "Demote every successful project in a job group to the specified channel",
-        "responses": {
-          "200": {
-            "description": "Successful demotion"
-          },
-          "400": {
-            "description": "ID or channel not provided"
-          },
-          "404": {
-            "description": "Group not found"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
       }
     },
     "/user": {},
@@ -1249,67 +926,6 @@
           },
           "500": {
             "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/projects/{origin}/{name}/jobs": {
-      "parameters": [
-        {
-          "name": "origin",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        },
-        {
-          "name": "name",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "get": {
-        "description": "Retrieve the most recently started jobs for the given project.",
-        "responses": {
-          "200": {
-            "description": "Retrieved recently started jobs",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "range_start": 0,
-                    "range_end": 5,
-                    "total_count": 6,
-                    "data": [
-                      {
-                        "id": "73089155726360582",
-                        "origin": "core",
-                        "project": "nginx",
-                        "version": "1.0.0",
-                        "release": "20170505001756",
-                        "state": "Complete",
-                        "created_at": "2017-05-05 00:42:35.213765+00",
-                        "build_started_at": "2017-05-05 00:43:11.729835+00",
-                        "build_finished_at": "2017-05-05 00:44:00.896919+00"
-                      }
-                    ]
-                  },
-                  "type": "object",
-                  "x-amf-merge": [
-                    {
-                      "$ref": "#/components/schemas/jobs"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Project not found"
           }
         }
       }
@@ -3575,153 +3191,6 @@
         }
       }
     },
-    "/depot/pkgs/schedule/{groupid}": {
-      "parameters": [
-        {
-          "name": "groupid",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "get": {
-        "description": "Get schedule for specified group",
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": {
-                    "id": 1,
-                    "state": "active",
-                    "name": "jobsrv",
-                    "project": "sample",
-                    "target": "linux"
-                  },
-                  "type": "object",
-                  "x-amf-merge": [
-                    {
-                      "$ref": "#/components/schemas/jobGroup"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Group id parse error"
-          },
-          "404": {
-            "description": "Not found"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/depot/pkgs/schedule/{origin}": {
-      "parameters": [
-        {
-          "name": "origin",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ]
-    },
-    "/depot/pkgs/schedule/{origin}/status": {
-      "parameters": [
-        {
-          "name": "origin",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "get": {
-        "description": "Get origin schedule status",
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "example": [
-                    {
-                      "id": 1,
-                      "state": "active",
-                      "name": "jobsrv",
-                      "project": "sample",
-                      "target": "linux"
-                    }
-                  ],
-                  "type": "object",
-                  "x-amf-merge": [
-                    {
-                      "$ref": "#/components/schemas/jobGroups"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/depot/pkgs/schedule/{origin}/{pkg}": {
-      "parameters": [
-        {
-          "name": "origin",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        },
-        {
-          "name": "pkg",
-          "required": true,
-          "in": "path",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "post": {
-        "description": "Schedule a job group",
-        "responses": {
-          "201": {
-            "description": "Scheduled"
-          },
-          "400": {
-            "description": "Bad request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Not found"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
     "/depot/events": {
       "get": {
         "description": "Get local builder events",
@@ -4976,7 +4445,7 @@
             "description": "Unauthorized to perform this action"
           },
           "500": {
-            "description": "Internal server erro"
+            "description": "Internal server error"
           }
         },
         "security": [
@@ -5327,55 +4796,6 @@
           }
         }
       },
-      "job": {
-        "type": "object",
-        "required": [
-          "id",
-          "origin",
-          "name",
-          "version",
-          "release",
-          "state"
-        ],
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "origin": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "version": {
-            "type": "string"
-          },
-          "release": {
-            "type": "string"
-          },
-          "state": {
-            "enum": [
-              "Complete",
-              "Dispatched",
-              "Failed",
-              "Pending",
-              "Processing",
-              "Rejected"
-            ],
-            "type": "string"
-          },
-          "created_at": {
-            "type": "string"
-          },
-          "build_started_at": {
-            "type": "string"
-          },
-          "build_finished_at": {
-            "type": "string"
-          },
-          "error": {}
-        }
-      },
       "integrationList": {
         "type": "object",
         "properties": {
@@ -5385,17 +4805,6 @@
             "items": {
               "type": "string"
             }
-          }
-        }
-      },
-      "jobCreate": {
-        "type": "object",
-        "required": [
-          "project_id"
-        ],
-        "properties": {
-          "project_id": {
-            "type": "string"
           }
         }
       },
@@ -5492,24 +4901,6 @@
               "repo": {
                 "type": "string"
               }
-            }
-          }
-        }
-      },
-      "jobGroups": {
-        "type": "object",
-        "properties": {
-          "jobGroups": {
-            "type": "array",
-            "minItems": 0,
-            "uniqueItems": true,
-            "items": {
-              "type": "object",
-              "x-amf-merge": [
-                {
-                  "$ref": "#/components/schemas/jobGroup"
-                }
-              ]
             }
           }
         }
@@ -5688,36 +5079,6 @@
           }
         }
       },
-      "jobLog": {
-        "type": "object",
-        "required": [
-          "start",
-          "stop",
-          "content",
-          "is_complete"
-        ],
-        "properties": {
-          "start": {
-            "description": "The zero-indexed line number (inclusive) of the first line of log output in `content`.",
-            "type": "integer"
-          },
-          "stop": {
-            "description": "The zero-indexed line number (exclusive) of the last line of log output in `content`. Pass this number as the `start` query parameter on your next log request to retrieve the next portion of the log.",
-            "type": "integer"
-          },
-          "content": {
-            "description": "A subset of the log output, presented as individual lines. Trailing newline characters are not present. May be empty.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "is_complete": {
-            "description": "Indicates whether the job log is complete; i.e. additional polling for new lines is not required. Note that a job itself may be complete (i.e., finished running) but the log may not, as log processing is decoupled from build processing.",
-            "type": "boolean"
-          }
-        }
-      },
       "content": {
         "type": "object",
         "required": [
@@ -5758,24 +5119,6 @@
           },
           "encoding": {
             "type": "string"
-          }
-        }
-      },
-      "jobs": {
-        "type": "object",
-        "properties": {
-          "jobs": {
-            "type": "array",
-            "minItems": 0,
-            "uniqueItems": true,
-            "items": {
-              "type": "object",
-              "x-amf-merge": [
-                {
-                  "$ref": "#/components/schemas/job"
-                }
-              ]
-            }
           }
         }
       },
@@ -5893,35 +5236,6 @@
             "type": "string"
           },
           "value": {
-            "type": "string"
-          }
-        }
-      },
-      "jobGroup": {
-        "type": "object",
-        "required": [
-          "id",
-          "state",
-          "project",
-          "target"
-        ],
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "state": {
-            "type": "string"
-          },
-          "project": {
-            "type": "string"
-          },
-          "target": {
-            "type": "string"
-          },
-          "created_at": {
-            "type": "string"
-          },
-          "updated_at": {
             "type": "string"
           }
         }
