@@ -56,6 +56,9 @@ function Confirm-ContainerBehavior() {
 # alias still functions, until we decide to remove it.
 Describe "Old 'hab pkg export docker' alias" {
     BeforeAll {
+        if ($IsLinux) {
+            Write-Host (bash -c 'ls -la /tmp' | Out-String)
+        }
         $tag = New-CustomTag
         Write-Host (hab pkg export docker --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --tag-custom=$tag | Out-String)
         $script:image = "core/nginx:$tag"
