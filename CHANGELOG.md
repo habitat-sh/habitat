@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.97 -->
-## [2.0.97](https://github.com/habitat-sh/habitat/tree/2.0.97) (2025-04-08)
+<!-- latest_release 2.0.98 -->
+## [2.0.98](https://github.com/habitat-sh/habitat/tree/2.0.98) (2025-04-09)
 
 #### Merged Pull Requests
-- Bump petgraph from 0.7.1 to 0.8.1 [#9665](https://github.com/habitat-sh/habitat/pull/9665) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Habitat on Apple Darwin [#9469](https://github.com/habitat-sh/habitat/pull/9469) ([sajjaphani](https://github.com/sajjaphani))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Habitat on Apple Darwin [#9469](https://github.com/habitat-sh/habitat/pull/9469) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.98 -->
 - Bump petgraph from 0.7.1 to 0.8.1 [#9665](https://github.com/habitat-sh/habitat/pull/9665) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.97 -->
 - Bump ctrlc from 3.4.5 to 3.4.6 [#9660](https://github.com/habitat-sh/habitat/pull/9660) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.96 -->
 - Bump errno from 0.3.10 to 0.3.11 [#9661](https://github.com/habitat-sh/habitat/pull/9661) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.96 -->
