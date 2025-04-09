@@ -10,6 +10,264 @@ if [ -n "${DEBUG:-}" ]; then set -x; fi
 readonly pcio_root="https://packages.chef.io/files"
 export HAB_LICENSE="accept-no-persist"
 
+# This is the main function that sets up the Habitat environment on macOS.
+# It creates, mounts, and configures a designated volume (Habitat Store) with the necessary settings,
+# including file system options and encryption (if needed).
+#
+# High-level steps performed:
+#
+# 1. **Volume Creation**:
+#    - Creates a new APFS volume for Habitat on the identified disk.
+#    - Encrypts the volume (if needed) with a randomly generated password.
+#
+# 2. **Volume Configuration**:
+#    - Verifies that the Habitat root (`/hab`) is properly configured.
+#    - Updates `/etc/synthetic.conf` to ensure the mount point is set correctly.
+#    - Configures `/etc/fstab` with the appropriate volume mount options.
+#
+# 3. **Volume Mounting and Daemon Configuration**:
+#    - Generates and installs a LaunchDaemon plist to mount the volume at system boot.
+#    - Ensures the volume is mounted automatically on startup.
+setup_hab_root() {
+    SCRATCH=$(mktemp -d)
+    readonly SCRATCH
+
+    finish_cleanup() {
+        rm -rf "$SCRATCH"
+    }
+
+    readonly HAB_ROOT="/hab"
+    readonly HAB_VOLUME_LABEL="Habitat Store"
+    readonly HAB_SERVICE_TARGET="sh.habitat.bldr.darwin-store"
+    readonly HAB_VOLUME_MOUNTD_DEST="/Library/LaunchDaemons/$HAB_SERVICE_TARGET.plist"
+
+    root_disk() {
+        /usr/sbin/diskutil info -plist / | xmllint --xpath "/plist/dict/key[text()='ParentWholeDisk']/following-sibling::string[1]/text()" -
+    }
+    HAB_VOLUME_USE_DISK="$(root_disk)"
+    readonly HAB_VOLUME_USE_DISK
+
+    if /usr/bin/fdesetup isactive >/dev/null; then
+        test_filevault_in_use() { return 0; }
+        HAB_VOLUME_DO_ENCRYPT=1
+    else
+        test_filevault_in_use() { return 1; }
+        HAB_VOLUME_DO_ENCRYPT=0
+    fi
+
+    should_encrypt_volume() {
+        test_filevault_in_use && (( HAB_VOLUME_DO_ENCRYPT == 1 ))
+    }
+
+    volume_encrypted() {
+        local volume="$1" # (i.e., disk1s3)
+        /usr/sbin/diskutil apfs listCryptoUsers -plist "$volume" | /usr/bin/grep -q APFSCryptoUserUUID
+    }
+
+    test_fstab() {
+        /usr/bin/grep -q "$HAB_ROOT apfs rw" /etc/fstab 2>/dev/null
+    }
+
+    test_synthetic_conf_mountable() {
+        /usr/bin/grep -q "^${HAB_ROOT:1}$" /etc/synthetic.conf 2>/dev/null
+    }
+
+    create_synthetic_objects() {
+        {
+            /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -t || true # Big Sur and above
+        } >/dev/null 2>&1
+    }
+
+    test_hab() {
+        test -d "$HAB_ROOT"
+    }
+
+    test_volume_daemon() {
+        test -f "$HAB_VOLUME_MOUNTD_DEST"
+    }
+
+    generate_mount_command() {
+        local cmd_type="$1" # encrypted|unencrypted
+        local volume_uuid mountpoint cmd=()
+        printf -v volume_uuid "%q" "$2"
+        printf -v mountpoint "%q" "$HAB_ROOT"
+
+        case "$cmd_type" in
+            encrypted)
+                cmd=(/bin/sh -c "/usr/bin/security find-generic-password -s '$volume_uuid' -w | /usr/sbin/diskutil apfs unlockVolume '$volume_uuid' -mountpoint '$mountpoint' -stdinpassphrase")
+                ;;
+            unencrypted)
+                cmd=(/usr/sbin/diskutil mount -mountPoint "$mountpoint" "$volume_uuid")
+                ;;
+            *)
+                exit_with "Invalid first arg $cmd_type to generate_mount_command"
+                ;;
+        esac
+
+        printf "    <string>%s</string>\n" "${cmd[@]}"
+    }
+
+    generate_mount_daemon() {
+        local cmd_type="$1" # encrypted|unencrypted
+        local volume_uuid="$2"
+
+        cat <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>Label</key>
+   <string>${HAB_SERVICE_TARGET}</string>
+  <key>ProgramArguments</key>
+  <array>
+$(generate_mount_command "$cmd_type" "$volume_uuid")
+  </array>
+</dict>
+</plist>
+EOF
+    }
+
+    add_hab_vol_fstab_line() {
+        local uuid="$1"
+        local mountpoint="${HAB_ROOT}"
+        shift
+
+        cat > "$SCRATCH/ex_cleanroom_wrapper" <<EOF
+#!/bin/sh
+/usr/bin/ex -u NONE -n "\$@"
+EOF
+        chmod 755 "$SCRATCH/ex_cleanroom_wrapper"
+
+        EDITOR="$SCRATCH/ex_cleanroom_wrapper" "$@" <<EOF
+:a
+UUID=$uuid $mountpoint apfs rw,noauto,nobrowse,suid,owners
+.
+:x
+EOF
+    }
+
+    setup_synthetic_conf() {
+        if ! test_synthetic_conf_mountable; then
+            echo "Configuring /etc/synthetic.conf to make a mount-point at $HAB_ROOT" >&2
+            /usr/bin/ex -u NONE -n /etc/synthetic.conf <<EOF
+:a
+${HAB_ROOT:1}
+.
+:x
+EOF
+            if ! test_synthetic_conf_mountable; then
+                exit_with "error: failed to configure synthetic.conf"
+            fi
+            create_synthetic_objects
+            if ! test_hab; then
+                exit_with "error: failed to bootstrap $HAB_ROOT"
+            fi
+        fi
+    }
+
+    setup_fstab() {
+        local volume_uuid="$1"
+        if ! test_fstab; then
+            echo "Configuring /etc/fstab to specify volume mount options" >&2
+            add_hab_vol_fstab_line "$volume_uuid" /usr/sbin/vifs
+        fi
+    }
+
+    encrypt_volume() {
+        local volume_uuid="$1"
+        local volume_label="$2"
+        local password
+
+        echo "Encrypt the Habitat volume" >&2
+
+        /usr/sbin/diskutil mount "$volume_label"
+
+        password="$(/usr/bin/xxd -l 32 -p -c 256 /dev/random)"
+        /usr/bin/security -i <<EOF
+add-generic-password -a "$volume_label" -s "$volume_uuid" -l "$volume_label encryption password" -D "Encrypted volume password" -j "Added automatically by the Habitat installer for use by $HAB_VOLUME_MOUNTD_DEST" -w "$password" -T /System/Library/CoreServices/APFSUserAgent -T /System/Library/CoreServices/CSUserAgent -T /usr/bin/security "/Library/Keychains/System.keychain"
+EOF
+        builtin printf "%s" "$password" | /usr/sbin/diskutil apfs encryptVolume "$volume_label" -user disk -stdinpassphrase
+
+        /usr/sbin/diskutil unmount force "$volume_label"
+    }
+
+    create_volume() {
+        /usr/sbin/diskutil apfs addVolume "$HAB_VOLUME_USE_DISK" "APFS" "$HAB_VOLUME_LABEL" -nomount | /usr/bin/awk '/Created new APFS Volume/ {print $5}'
+    }
+
+    volume_uuid_from_special() {
+        local volume_special="$1" # (i.e., disk1s3)
+        /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -k "$volume_special" || true
+    }
+
+    await_volume() {
+        local timeout=30 # sufficiently long enough to mount the volume
+        local remaining_time=$timeout
+        while (( remaining_time > 0 )); do
+            /usr/sbin/diskutil info "$HAB_ROOT" &>/dev/null && return 0  # If the volume is found, return successfully
+            ((remaining_time--))
+            sleep 1
+        done
+        exit_with "Error: Volume did not appear within $timeout seconds."
+    }
+
+    setup_volume() {
+        local use_special use_uuid profile_packages
+        echo "Creating a Habitat volume" >&2
+
+        use_special="$(create_volume)"
+
+        /usr/sbin/diskutil unmount force "$use_special" || true # might not be mounted
+
+        use_uuid="$(volume_uuid_from_special "$use_special")"
+        readonly use_uuid
+
+        setup_fstab "$use_uuid"
+
+        if should_encrypt_volume; then
+            encrypt_volume "$use_uuid" "$HAB_VOLUME_LABEL"
+            setup_volume_daemon "encrypted" "$use_uuid"
+        elif volume_encrypted "$use_special"; then
+            setup_volume_daemon "encrypted" "$use_uuid"
+        else
+            setup_volume_daemon "unencrypted" "$use_uuid"
+        fi
+
+        await_volume
+
+        if [ "$(/usr/sbin/diskutil info -plist "$HAB_ROOT" | xmllint --xpath "(/plist/dict/key[text()='GlobalPermissionsEnabled'])/following-sibling::*[1]" -)" = "<false/>" ]; then
+            /usr/sbin/diskutil enableOwnership "$HAB_ROOT"
+        fi
+    }
+
+    setup_volume_daemon() {
+        local cmd_type="$1" # encrypted|unencrypted
+        local volume_uuid="$2"
+        if ! test_volume_daemon; then
+            echo "Configuring LaunchDaemon to mount '$HAB_VOLUME_LABEL'" >&2
+            /usr/bin/ex -u NONE -n "$HAB_VOLUME_MOUNTD_DEST" <<EOF
+:a
+$(generate_mount_daemon "$cmd_type" "$volume_uuid")
+.
+:x
+EOF
+            launchctl bootstrap system "$HAB_VOLUME_MOUNTD_DEST" || true
+            launchctl kickstart -k system/"$HAB_SERVICE_TARGET"
+        fi
+    }
+
+    setup_hab_volume() {
+        if ! test_hab; then
+            setup_synthetic_conf
+            setup_volume
+        fi
+    }
+
+    setup_hab_volume
+}
+
 main() {
   # Use stable Bintray channel by default
   channel="stable"
@@ -17,7 +275,7 @@ main() {
   version=""
 
   # Parse command line flags and options.
-  while getopts "c:hv:t:" opt; do
+  while getopts "c:hv:t:u:b:" opt; do
     case "${opt}" in
     c)
       channel="${OPTARG}"
@@ -31,6 +289,12 @@ main() {
       ;;
     t)
       target="${OPTARG}"
+      ;;
+    u)
+      bldrUrl="${OPTARG}"
+      ;;
+    b)
+      bldlChannel="${OPTARG}" # for temporary use
       ;;
     \?)
       echo "" >&2
@@ -247,12 +511,32 @@ extract_archive() {
 install_hab() {
   case "${sys}" in
   darwin)
-    need_cmd mkdir
-    need_cmd install
+    case "${arch}" in
+    x86_64)
+      # No core packages are available yet for x86_64; proceed with the old approach.
+      need_cmd mkdir
+      need_cmd install
 
-    info "Installing hab into /usr/local/bin"
-    mkdir -pv /usr/local/bin
-    install -v "${archive_dir}"/hab /usr/local/bin/hab
+      info "Installing hab into /usr/local/bin"
+      mkdir -pv /usr/local/bin
+      install -v "${archive_dir}"/hab /usr/local/bin/hab
+      ;;
+    aarch64)
+      setup_hab_root
+      local _ident="core/hab"
+
+      if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
+          _ident+="/$version"
+      fi
+      # The Habitat packages for macOS (aarch64) are not currently available in the SaaS Builder.
+      # This is a temporary fix until they become available.
+      _channel="${bldlChannel:-$channel}"
+      "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
+      ;;
+    *)
+      exit_with "Unrecognized sys when installing: ${sys}" 5
+      ;;
+    esac
     ;;
   linux)
     local _ident="core/hab"
@@ -272,7 +556,7 @@ install_hab() {
     # /bin means now you have multiple copies of hab on your system and pathing
     # shenanigans might ensue. Rather than deal with that mess, we do it this
     # way.
-    "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
+    "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
     ;;
   *)
     exit_with "Unrecognized sys when installing: ${sys}" 5

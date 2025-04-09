@@ -1,0 +1,196 @@
+(version 1)
+
+;; Support for dynamic linker from the base system
+(import "dyld-support.sb")
+
+(define STUDIO_DIR (param "STUDIO_DIR"))
+(define STUDIO_HAB (param "STUDIO_HAB"))
+(define WORK_DIR (param "WORK_DIR"))
+
+(deny default)
+
+;; These are some things we actively disallow inside the sandbox.
+;; We do this, as they would otherwise tend to interfere with the build process.
+;; - /etc/localtime, /private/etc/localtime : This will leak the host machine's timezone into the build process
+;; - /hab/etc/cli.toml : This will leak the host's default Habitat CLI configuration into the studio
+
+;; Allow processes to fork
+(allow process-fork)
+
+;; Allow processes to read system information like cpu count, etc
+(allow sysctl-read)
+
+;; Allow POSIX semaphores and shared memory.
+(allow ipc-posix*)
+
+;; Allow socket creation.
+(allow system-socket)
+
+;; Allow sending signals within the sandbox.
+(allow signal (target same-sandbox))
+
+;; Allow file access and process execution inside build, studio and plan context directories
+(allow file* process-exec
+       (subpath STUDIO_DIR)
+       (subpath WORK_DIR))
+
+;; Allow access to the studio's habitat binary
+;; Also allow access to check the existence of accepted habitat licenses
+(allow file* process-exec (literal STUDIO_HAB))
+(allow file-read*
+    (literal "/hab/accepted-licenses")
+    (literal "/hab/accepted-licenses/habitat"))
+
+;; Allow access to read and execute habitat packages, and cache directory
+(allow file* process-exec
+       (literal "/hab")
+       (subpath "/hab/pkgs")
+       (subpath "/hab/cache"))
+
+;; Allow access to env and shell system binaries that are essential 
+;; for proper execution of the studio
+(allow process-exec file*
+    (literal "/usr/bin/env")
+    (literal "/usr/bin/uname")
+    (literal "/bin/bash")
+    (literal "/bin/sh")
+    (literal "/private/var/select/sh"))
+
+;; Allow access to timezone database
+;; This permits reading the timezone information necessary for time-related functions and operations.
+(allow file-read-metadata (literal "/var"))
+(allow file-read* (subpath "/private/var/db/timezone"))
+
+;; Allow access to terminfo database
+(allow file-read* (subpath "/usr/share/terminfo"))
+
+;; Allow access to standard devices including stdin, stdout, terminals, etc.
+;; This is necessary for basic input and output operations, random number generation,
+;; and terminal interactions which are commonly required for various applications.
+(allow file*
+
+    ;; Allow access to the /dev directory, which contains device files
+    ;; for hardware devices and system resources.
+    (literal "/dev")
+
+    ;; Allow access to the random number generator device for generating
+    ;; random numbers, which is often used in cryptographic operations.
+    (literal "/dev/random")
+
+    ;; Allow access to /dev/null, a special file that discards all data written to it
+    ;; and provides an end-of-file indicator when read.
+    (literal "/dev/null")
+
+    ;; Allow access to standard input, which is used for reading input from the user.
+    (literal "/dev/stdin")
+
+    ;; Allow access to standard output, which is used for writing output to the user.
+    (literal "/dev/stdout")
+
+    ;; Allow access to the non-blocking random number generator device,
+    ;; which is similar to /dev/random but does not block if there is insufficient entropy.
+    (literal "/dev/urandom")
+
+    ;; Allow access to the terminal device, which is used for terminal I/O operations.
+    (literal "/dev/tty")
+
+    ;; Allow access to /dev/dtracehelper, a device used by the DTrace framework
+    ;; for dynamic tracing and performance analysis on macOS.
+    (literal "/dev/dtracehelper")
+
+    ;; Allow access to pseudo-terminal devices, which are used to create terminal
+    ;; emulators and facilitate terminal multiplexing. These devices typically
+    ;; have names like /dev/pty[a-z]+.
+    (regex #"^/dev/pty[a-z]+")
+
+    ;; Allow access to terminal devices with names matching the pattern /dev/tty[a-z]+[0-9]+,
+    ;; which represent various terminal and console devices.
+    (regex #"^/dev/tty[a-z]+[0-9]+")
+
+    ;; Allow access to the /dev/fd directory, which contains file descriptor links
+    ;; to open files. This is used to access file descriptors via paths like /dev/fd/0
+    ;; for standard input, /dev/fd/1 for standard output, etc.
+    (subpath "/dev/fd"))
+
+
+;; Allow access to common IPC (Inter-Process Communication) system services
+;; This is necessary for enabling communication with key system services 
+;; required for logging, diagnostics, notifications, and directory information.
+(allow mach-lookup
+
+    ;; Allow access to the logging daemon, which is responsible for system logging.
+    ;; This service handles the collection and storage of log messages from the system and applications.
+    (global-name "com.apple.logd")
+
+    ;; Allow access to the diagnostics daemon, which is used for collecting and reporting
+    ;; diagnostic information about the system. This service helps in troubleshooting and system health monitoring.
+    (global-name "com.apple.diagnosticd")
+
+    ;; Allow access to the system notification center, which manages and displays notifications
+    ;; from the system and applications. This service handles the delivery of alerts and updates to the user.
+    (global-name "com.apple.system.notification_center")
+
+    ;; Allow access to the Open Directory library information service, which is part of the macOS
+    ;; directory services architecture. This service is used for retrieving information about user accounts,
+    ;; groups, and other directory-related data.
+    (global-name "com.apple.system.opendirectoryd.libinfo"))
+
+;; Allow unrestricted access to sandbox-exec to start child sandboxes
+;; This is essential for creating and managing child sandboxes for enhanced security and isolation.
+(allow file-read* (literal "/usr/bin/sandbox-exec"))
+(allow process-exec (with no-sandbox) (literal "/usr/bin/sandbox-exec"))
+
+;; Allow access to user authentication information
+;; This is necessary for reading system files that contain user and group authentication data,
+;; which are essential for user verification and access control.
+(allow file-read*
+    (literal "/etc")
+
+    ;; Allow access to the master.passwd file, which is located in the /private/etc directory.
+    ;; This file contains encrypted user passwords and other user account information.
+    (literal "/private/etc/master.passwd")
+
+    ;; Allow access to the group file, which is located in the /private/etc directory.
+    ;; This file contains group information, including group names and member user IDs.
+    (literal "/private/etc/group"))
+
+;; Allow access to temporary working directories
+(allow file-read-metadata (literal "/tmp"))
+(allow file* process-exec (subpath "/private/tmp"))
+
+;; Allow DNS lookups and network access
+(allow network* (local ip) (local tcp) (local udp))
+
+(allow file-read-metadata
+       (literal "/var")
+       (literal "/etc")
+       (literal "/etc/resolv.conf")
+       (literal "/private/etc/resolv.conf")
+       (literal "/etc/hosts"))
+
+(allow file-read*
+       (literal "/private/var/run/resolv.conf")
+       (literal "/private/etc/hosts"))
+(allow network-outbound (remote unix-socket (path-literal "/private/var/run/mDNSResponder")))
+
+;; Allow lookup of specific macOS services.
+;; - com.apple.SecurityServer: Handles authentication, authorization, and cryptographic services.
+;; - com.apple.analyticsd: System analytics and diagnostics service.
+;; - com.apple.trustd: Manages certificate trust policies and ensures secure communication by verifying the validity of certificates.
+(allow mach-lookup
+    (global-name "com.apple.SecurityServer")
+    (global-name "com.apple.analyticsd")
+    (global-name "com.apple.trustd"))
+
+;; Allow read to required system stuff
+(allow file-read*
+    (regex #"^/usr/share/icu/*")
+    (regex #"^/private/var/db/mds/system/*")
+    (regex #"^/System/Library/*")
+    (regex #"^/System/Library/Frameworks/*"))
+
+;; Allow write access to specific macOS metadata system files.
+;; - /private/var/db/mds/system/: Directory used by the Metadata Server (mds) to store and manage the system’s indexing data.
+;; This rule is necessary for Spotlight search and metadata indexing to function correctly.
+(allow file-write*
+    (regex #"^/private/var/db/mds/system/*"))

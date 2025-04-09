@@ -28,7 +28,10 @@ do_prepare() {
 }
 
 do_build() {
-  cp -v "$SRC_PATH"/bin/hab-studio.sh hab-studio
+  # shellcheck disable=2154
+  kernel="${pkg_target#*-}"
+  kernel="${kernel%%-*}"  # Remove 'kernel2' part if exists
+  cp -v "$SRC_PATH"/bin/hab-studio-"${kernel}".sh hab-studio
   cp -v "$SRC_PATH"/libexec/hab-studio-profile.sh .
   cp -v "$SRC_PATH"/libexec/hab-studio-type-*.sh .
 
