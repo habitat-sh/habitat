@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.99 -->
-## [2.0.99](https://github.com/habitat-sh/habitat/tree/2.0.99) (2025-04-09)
+<!-- latest_release 2.0.100 -->
+## [2.0.100](https://github.com/habitat-sh/habitat/tree/2.0.100) (2025-04-10)
 
 #### Merged Pull Requests
-- bumping crossbeam to clear audit failure [#9667](https://github.com/habitat-sh/habitat/pull/9667) ([mwrock](https://github.com/mwrock))
+- Restores break at PKG_PATH [#9668](https://github.com/habitat-sh/habitat/pull/9668) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Restores break at PKG_PATH [#9668](https://github.com/habitat-sh/habitat/pull/9668) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.100 -->
 - bumping crossbeam to clear audit failure [#9667](https://github.com/habitat-sh/habitat/pull/9667) ([mwrock](https://github.com/mwrock)) <!-- 2.0.99 -->
 - Habitat on Apple Darwin [#9469](https://github.com/habitat-sh/habitat/pull/9469) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.98 -->
 - Bump petgraph from 0.7.1 to 0.8.1 [#9665](https://github.com/habitat-sh/habitat/pull/9665) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.97 -->
