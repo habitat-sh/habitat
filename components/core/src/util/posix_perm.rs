@@ -69,7 +69,7 @@ pub(crate) fn ensure_path_permissions(path: &Path, permissions: u32) -> Result<(
     let euid = users::get_effective_uid();
     let egid = users::get_effective_gid();
     for ancestor in path.ancestors() {
-        if ancestor.ends_with(crate::fs::PKG_PATH) {
+        if ancestor.ends_with(crate::fs::ROOT_PATH) {
             break;
         }
         if euid_egid_matches(&euid, &egid, ancestor) {
