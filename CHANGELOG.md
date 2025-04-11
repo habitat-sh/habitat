@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.102 -->
-## [2.0.102](https://github.com/habitat-sh/habitat/tree/2.0.102) (2025-04-11)
+<!-- latest_release 2.0.103 -->
+## [2.0.103](https://github.com/habitat-sh/habitat/tree/2.0.103) (2025-04-11)
 
 #### Merged Pull Requests
-- remove kernel2 leftover plans [#9666](https://github.com/habitat-sh/habitat/pull/9666) ([sajjaphani](https://github.com/sajjaphani))
+- Bump rustls from 0.23.25 to 0.23.26 [#9670](https://github.com/habitat-sh/habitat/pull/9670) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump rustls from 0.23.25 to 0.23.26 [#9670](https://github.com/habitat-sh/habitat/pull/9670) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.103 -->
 - remove kernel2 leftover plans [#9666](https://github.com/habitat-sh/habitat/pull/9666) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.102 -->
 - Breaks ensure_path_permissions at &#39;hab&#39; not &#39;hab/pkgs&#39; [#9669](https://github.com/habitat-sh/habitat/pull/9669) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.101 -->
 - Restores break at PKG_PATH [#9668](https://github.com/habitat-sh/habitat/pull/9668) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.100 -->
