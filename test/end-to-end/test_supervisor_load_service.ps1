@@ -73,13 +73,29 @@ if ($IsLinux) {
             $out | Should -Match 'Umask:\s+0077'
         }
 
-        It 'has correct permissions on relevant svc directories' {
-            $out = (bash -c 'ls -l /hab/svc | tail -n 1 | cut -d' ' -f 1')
+        It 'has correct permissions on the explicitly managed svc directories' {
+            $out = (bash -c "stat --format '%A' /hab/svc")
             ($out | Out-String) | Should -Match 'drwxr-xr-x'
-            $out = (bash -c 'ls -l /hab/svc/nginx | grep hooks | tail -n 1 | cut -d' ' -f 1')
+
+            $out = (bash -c "stat --format '%A' /hab/svc/nginx/hooks")
             ($out | Out-String) | Should -Match 'drwxr-xr-x'
-            $out = (bash -c 'ls -l /hab/svc/nginx | grep logs | tail -n 1 | cut -d' ' -f 1')
+
+            $out = (bash -c "stat --format '%A' /hab/svc/nginx/logs")
             ($out | Out-String) | Should -Match 'drwxr-xr-x'
+        }
+
+        It 'does not mismanage other permissions' {
+            $out = (bash -c "stat --format '%A' /")
+            ($out | Out-String) | Should -Match 'drwxr-xr-x'
+
+            $out = (bash -c "stat --format '%A' /hab")
+            ($out | Out-String) | Should -Match 'drwxr-xr-x'
+
+            # The specific motivation for this test is that the removal of the
+            # short circuit in ensure_path_permissions was accidentally setting
+            # /tmp to 755 breaking buildkite.
+            $out = (bash -c "stat --format '%A' /tmp")
+            ($out | Out-String) | Should -Match 'drwxrwxrwt'
         }
 
         AfterAll {
