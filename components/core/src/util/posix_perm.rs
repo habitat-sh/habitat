@@ -69,6 +69,9 @@ pub(crate) fn ensure_path_permissions(path: &Path, permissions: u32) -> Result<(
     let euid = users::get_effective_uid();
     let egid = users::get_effective_gid();
     for ancestor in path.ancestors() {
+        // This short circuit is vital. A specific instance is in the case of exporting containers
+        // where hab is rooted in /tmp. Without this check /tmp permissions will be changed and
+        // things that depend on /tmp having "1775/drwxrwxrwt" permissions will break.
         if ancestor.ends_with(crate::fs::ROOT_PATH) {
             break;
         }
