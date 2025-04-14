@@ -326,7 +326,7 @@ steps:
   - label: "[:linux: upload hab binary]"
     command:
       - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true' || build.branch == 'main'
     expeditor:
       executor:
         docker:
@@ -337,7 +337,7 @@ steps:
   - label: "[:linux: upload hab aarch64 binary]"
     command:
       - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true' || build.branch == 'main'
     expeditor:
       executor:
         docker:
@@ -348,7 +348,7 @@ steps:
   - label: "[:windows: upload hab binary]"
     command:
       - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true' || build.branch == 'main'
     expeditor:
       executor:
         docker:
@@ -359,7 +359,7 @@ steps:
   - label: "[:mac: x86_64 upload hab binary]"
     command:
       - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true' || build.branch == 'main'
     expeditor:
       executor:
         docker:
@@ -370,7 +370,7 @@ steps:
   - label: "[:mac: aarch64 upload hab binary]"
     command:
       - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true' || build.branch == 'main'
     expeditor:
       executor:
         docker:
@@ -381,7 +381,7 @@ steps:
   - label: "Update Habitat Documentation"
     command:
       - .expeditor/scripts/release_habitat/update_documentation.sh
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true' || build.branch == 'main'
     artifact_paths:
       # See update_documentation.sh script for the naming of this path.
       - "generated-documentation/**"
@@ -412,7 +412,7 @@ steps:
 
   - label: ":docker: Upload containers to Docker Hub"
     command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true' || build.branch == 'main'
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
     expeditor:
@@ -421,7 +421,7 @@ steps:
           privileged: true
 
   - label: ":docker: :windows: Upload windows 2016 container to Docker Hub"
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true' || build.branch == 'main'
     command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
     expeditor:
       executor:
@@ -429,7 +429,7 @@ steps:
           os_version: 2016
 
   - label: ":docker: :windows: Upload windows 2019 container to Docker Hub"
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true' || build.branch == 'main'
     command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
     expeditor:
       executor:
@@ -437,7 +437,7 @@ steps:
           os_version: 2019
 
   - label: ":docker: :windows: Upload windows 2022 container to Docker Hub"
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true' || build.branch == 'main'
     command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
     expeditor:
       executor:
@@ -450,7 +450,7 @@ steps:
     command:
       - .expeditor/scripts/release_habitat/promote_artifacts_to_dev.sh habitat-release-$BUILDKITE_BUILD_ID
     # Only "real" executions of this pipeline, initiated by Expeditor, should promote anything
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true' || build.branch == 'main'
     expeditor:
       executor:
         docker:
