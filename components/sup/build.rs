@@ -1,13 +1,14 @@
 // Inline common build behavior
 include!("../libbuild.rs");
 
+use handlebars::Handlebars;
+use serde_json;
+use serde_yaml;
 use std::{env,
-          fs::{self, File},
+          fs::{self,
+               File},
           io::Write,
           path::Path};
-use serde_yaml;
-use serde_json;
-use handlebars::Handlebars;
 
 fn main() {
     habitat::common();
@@ -20,13 +21,12 @@ fn generate_apidocs() {
 
     match env::var("CARGO_FEATURE_APIDOCS") {
         Ok(_) => {
-            let src_yaml = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
-                .join("doc/api.yaml");
-            let template = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
-                .join("doc/template.hbs");
+            let src_yaml = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("doc/api.yaml");
+            let template =
+                Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("doc/template.hbs");
 
-            let html = render_with_handlebars(&src_yaml, &template)
-                .expect("Failed to render API docs from YAML");
+            let html = render_with_handlebars(&src_yaml, &template).expect("Failed to render API \
+                                                                            docs from YAML");
 
             fs::write(&dst, html).expect("Failed to write api.html");
         }
@@ -37,7 +37,9 @@ fn generate_apidocs() {
     };
 }
 
-fn render_with_handlebars(yaml_path: &Path, template_path: &Path) -> Result<String, Box<dyn std::error::Error>> {
+fn render_with_handlebars(yaml_path: &Path,
+                          template_path: &Path)
+                          -> Result<String, Box<dyn std::error::Error>> {
     let yaml = fs::read_to_string(yaml_path)?;
     let value: serde_yaml::Value = serde_yaml::from_str(&yaml)?;
     let json = serde_json::to_string_pretty(&value)?;
