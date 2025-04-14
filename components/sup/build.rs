@@ -2,8 +2,6 @@
 include!("../libbuild.rs");
 
 use handlebars::Handlebars;
-use serde_json;
-use serde_yaml;
 use std::{env,
           fs::{self,
                File},
