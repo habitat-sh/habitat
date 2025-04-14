@@ -14,7 +14,6 @@ pkg_build_deps=(core/coreutils
                 core/perl # Needed for vendored openssl-sys
                 core/rust/"$(tail -n 1 "$SRC_PATH/../../rust-toolchain"  | cut -d'"' -f 2)"
                 core/gcc
-                core/raml2html
                 core/protobuf)
 pkg_bin_dirs=(bin)
 
