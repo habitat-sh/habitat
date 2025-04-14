@@ -98,6 +98,10 @@ nix = { version = "*", features = ["signal", "user"] }
 
 [build-dependencies]
 prost-build = "*"
+handlebars = "*"
+serde = { version = "*", features = ["derive"] }
+serde_yaml = "*"
+serde_json = "*"
 
 [features]
 default = []
