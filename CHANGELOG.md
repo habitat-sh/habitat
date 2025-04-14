@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.104 -->
-## [2.0.104](https://github.com/habitat-sh/habitat/tree/2.0.104) (2025-04-14)
+<!-- latest_release 2.0.105 -->
+## [2.0.105](https://github.com/habitat-sh/habitat/tree/2.0.105) (2025-04-14)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.17 to 1.2.19 [#9671](https://github.com/habitat-sh/habitat/pull/9671) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Adds comments and e2e testing for svc umask mgmt [#9674](https://github.com/habitat-sh/habitat/pull/9674) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Adds comments and e2e testing for svc umask mgmt [#9674](https://github.com/habitat-sh/habitat/pull/9674) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.105 -->
+- Bump anyhow from 1.0.97 to 1.0.98 [#9672](https://github.com/habitat-sh/habitat/pull/9672) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.105 -->
 - Bump cc from 1.2.17 to 1.2.19 [#9671](https://github.com/habitat-sh/habitat/pull/9671) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.104 -->
 - Bump rustls from 0.23.25 to 0.23.26 [#9670](https://github.com/habitat-sh/habitat/pull/9670) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.103 -->
 - remove kernel2 leftover plans [#9666](https://github.com/habitat-sh/habitat/pull/9666) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.102 -->
