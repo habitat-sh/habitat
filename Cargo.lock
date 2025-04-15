@@ -1843,6 +1843,7 @@ dependencies = [
  "habitat_common",
  "habitat_core",
  "habitat_http_client",
+ "handlebars",
  "hyper 1.6.0",
  "lazy_static",
  "libc",
