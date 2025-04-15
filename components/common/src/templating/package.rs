@@ -14,11 +14,7 @@ use log::debug;
 use serde::{Deserialize,
             Serialize};
 use std::{collections::{BTreeMap,
-                        HashMap},
-          convert::TryFrom,
-          env,
-          ops::Deref,
-          path::PathBuf};
+                        HashMap}, convert::TryFrom, env, fmt, ops::Deref, path::PathBuf};
 
 pub const DEFAULT_USER: &str = "hab";
 const DEFAULT_GROUP: &str = "hab";
@@ -36,6 +32,15 @@ impl Deref for Env {
 
 impl From<BTreeMap<String, String>> for Env {
     fn from(inner_map: BTreeMap<String, String>) -> Self { Env(inner_map) }
+}
+
+impl fmt::Display for Env {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for (key, value) in self.0.iter() {
+            write!(f, "[{}]=({}) ", key, value)?;
+        }
+        Ok(())
+    }
 }
 
 impl Env {

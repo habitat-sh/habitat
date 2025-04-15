@@ -180,6 +180,14 @@ impl Serialize for Package<'_> {
     }
 }
 
+// struct Words(Vec<String>);
+
+// impl fmt::Display for Words {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         write!(f, "{}", self.0.join(","))
+//     }
+// }
+
 ////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
@@ -353,8 +361,30 @@ two = 2
     fn renders_correctly() {
         let ctx = default_render_context();
 
-        let output = render("{{pkg.origin}}", &ctx);
-
+        let mut output = render("{{pkg.origin}}", &ctx);
         assert_eq!(output, "core");
+
+        output = render("{{pkg.ident}}", &ctx);
+        println!("pkg.ident: {}\n", output);
+
+        // Vec<PackageIdent>
+        output = render("{{pkg.deps}}", &ctx);
+        println!("rendered pkg.deps: {}\n", output);
+        println!("displayed pkg.deps: {}", ctx.pkg.deps.iter().map(|dep| dep.to_string()).collect::<Vec<_>>().join(", "));
+        println!("debugged pkg.deps: {:?}\n", ctx.pkg.deps);
+
+        // Env struct (newtype wrapping BtreeMap<String, String>)
+        output = render("{{pkg.env}}", &ctx);
+        println!("rendered pkg.env: {}\n", output);
+        println!("displayed pkg.env: {}\n", ctx.pkg.env);
+        println!("debugged pkg.env: {:?}\n", ctx.pkg.env);
+
+        // Vec<String>
+        output = render("{{pkg.exposes}}\n", &ctx);
+        println!("pkg.exposes: {}\n", output);
+
+        // BTreeMap<String, String>
+        output = render("{{pkg.exports}}\n", &ctx);
+        println!("pkg.exports: {}\n", output);
     }
 }
