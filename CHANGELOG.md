@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.105 -->
-## [2.0.105](https://github.com/habitat-sh/habitat/tree/2.0.105) (2025-04-14)
+<!-- latest_release 2.0.106 -->
+## [2.0.106](https://github.com/habitat-sh/habitat/tree/2.0.106) (2025-04-15)
 
 #### Merged Pull Requests
-- Adds comments and e2e testing for svc umask mgmt [#9674](https://github.com/habitat-sh/habitat/pull/9674) ([jasonheath](https://github.com/jasonheath))
+- Bump libc from 0.2.171 to 0.2.172 [#9676](https://github.com/habitat-sh/habitat/pull/9676) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.171 to 0.2.172 [#9676](https://github.com/habitat-sh/habitat/pull/9676) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.106 -->
 - Adds comments and e2e testing for svc umask mgmt [#9674](https://github.com/habitat-sh/habitat/pull/9674) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.105 -->
 - Bump anyhow from 1.0.97 to 1.0.98 [#9672](https://github.com/habitat-sh/habitat/pull/9672) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.105 -->
 - Bump cc from 1.2.17 to 1.2.19 [#9671](https://github.com/habitat-sh/habitat/pull/9671) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.104 -->
