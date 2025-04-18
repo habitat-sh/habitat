@@ -1,0 +1,33 @@
+// To handle basic commands such as launching a shell or terminating
+
+use clap_v4 as clap;
+
+use clap::Parser;
+
+use crate::error::Result as HabResult;
+use habitat_common::ui::UI;
+
+use std::ffi::OsString;
+
+#[cfg(not(target_os = "macos"))]
+use crate::command;
+
+/// Gracefully terminate the Habitat Supervisor and all of its running services
+#[derive(Debug, Clone, Parser)]
+#[command(arg_required_else_help = true,
+    help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                     {usage}\n\n{all-args}\n")]
+pub(crate) struct SupTermCommand {
+    #[arg()]
+    args: Vec<OsString>,
+}
+
+impl SupTermCommand {
+    #[cfg(not(target_os = "macos"))]
+    pub(super) async fn execute(&self, ui: &mut UI) -> HabResult<()> {
+        return command::sup::start(ui, &self.args).await;
+    }
+
+    #[cfg(target_os = "macos")]
+    pub(super) async fn execute(&self, _ui: &mut UI) -> HabResult<()> { Ok(()) }
+}
