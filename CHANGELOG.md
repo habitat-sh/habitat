@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.108 -->
-## [2.0.108](https://github.com/habitat-sh/habitat/tree/2.0.108) (2025-04-24)
+<!-- latest_release 2.0.109 -->
+## [2.0.109](https://github.com/habitat-sh/habitat/tree/2.0.109) (2025-04-25)
 
 #### Merged Pull Requests
-- Bump tokio-util from 0.7.14 to 0.7.15 [#9679](https://github.com/habitat-sh/habitat/pull/9679) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.19 to 1.2.20 [#9680](https://github.com/habitat-sh/habitat/pull/9680) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.19 to 1.2.20 [#9680](https://github.com/habitat-sh/habitat/pull/9680) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.109 -->
 - Bump tokio-util from 0.7.14 to 0.7.15 [#9679](https://github.com/habitat-sh/habitat/pull/9679) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.108 -->
 - Move API spec from RAML to OpenAPI 3 [#9673](https://github.com/habitat-sh/habitat/pull/9673) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.107 -->
 - Bump libc from 0.2.171 to 0.2.172 [#9676](https://github.com/habitat-sh/habitat/pull/9676) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.106 -->
