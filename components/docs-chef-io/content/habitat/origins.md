@@ -1,57 +1,36 @@
 +++
-title = "Create an Origin"
-description = "Create an Origin on Chef Habitat Builder"
+title = "Overview of Chef Habitat Builder origins"
 gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
-    title = "Create an Origin"
-    identifier = "habitat/origins Create an Origin"
+    title = "Overview"
+    identifier = "habitat/origins/overview"
     parent = "habitat/origins"
     weight = 10
 +++
 
-An origin is a space on Chef Habitat Builder where you can store, share, and build packages. It is a unique namespace within Chef Habitat Builder, and while you can delete or transfer an origin, you can't rename an origin after it is created. One example of an origin is the "core" origin, which is the set of foundational packages managed and versioned by the core Chef Habitat maintainers.
+{{< readfile file="/habitat/reusable/md/builder_origins.md" >}}
 
-You can join existing origins by invitation and you can create your own origins.
-For more on invitations, see [origin membership and RBAC]({{< relref "origin_rbac.md#origin-membership" >}}).
+## Chef-owned origins
 
-### Create an Origin
+Chef maintains the following origins:
 
-![Chef Habitat Builder without origins](/images/habitat/create-origin.png)
+- **core**: Hosts packages for common dependencies and compilers maintained by Progress Chef.
+- **chef**: Hosts packages for Chef products like Chef Infra Client, Chef InSpec, and Chef Automate.
+- **chef-platform**: Hosts packages for Chef 360 Platform skills.
+- **habitat**: Hosts packages required for an on-prem Habitat Builder deployment.
 
-To create an origin, select the **Create origin** button on the _My Origins_ page which opens the _Create New Origin_ form. (Chef Habitat Builder > My Origins )
+## Where can I create an origin
 
-![Creating an origin](/images/habitat/create-origin-form.png)
+You can create a new origin in an on-prem Habitat Builder deployment.
 
-First, enter a unique name that you want to associate with your packages.  Chef Habitat will only let you create an origin with a unique name. Some examples that you'll see in Chef Habitat Builder are team names, user names, and abstract concepts.
+## Create an origin
 
-Next, choose a privacy setting to set as the default for new packages. You can override this setting when uploading individual packages from the CLI or by connecting a plan file that declares a package as private. The difference between public and private packages is:
+{{< readfile file="/habitat/reusable/md/create_origins_builder.md" >}}
 
-- Anyone can find and use public packages
-- Only users with origin membership can find and use private packages
+### Create an origin with the Chef Habitat CLI
 
-When you select **Save and Continue**, Chef Habitat Builder:
+{{< readfile file="/habitat/reusable/md/create_origins_cli.md" >}}
 
-1. Creates your origin
-1. Creates an [origin key pair]({{< relref "origin_keys.md" >}})
-1. Redirects Chef Habitat Builder to the origin page
-
-![Origin successfully created](/images/habitat/create-origin-done.png)
-
-#### Create an Origin with the Chef Habitat CLI
-
-Use the [hab origin]({{< relref "habitat_cli.md#hab-origin" >}}) commands to manage your origins from the command line.
-
-Create an origin from the command line with the [hab origin create]({{< relref "habitat_cli.md#hab-origin-create" >}}) command
-
-```bash
-hab origin create <origin>
-```
-
-The results of this command differ slightly from creating an origin on the Chef Habitat Builder site. The CLI command:
-
-1. Creates an origin on the Chef Habitat Builder site
-1. Does _not_ generate an origin key pair
-
-For more information, see the [`hab origin create`]({{< relref "habitat_cli.md#hab-origin-create" >}}) CLI documentation.
+To create key pair for your origin, see the [origin keys]({{< relref "/habitat/origin_keys/#generate-origin-keys" >}}) documentation.

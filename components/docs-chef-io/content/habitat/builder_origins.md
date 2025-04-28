@@ -10,77 +10,58 @@ gh_repo = "habitat"
     parent = "habitat/builder"
     weight = 30
 +++
-An origin is a place on Chef Habitat Builder where you can store, share, and build packages. It is a unique namespace within Chef Habitat Builder, and while you can delete or transfer an origin, you can't rename an origin after it is created. One example of an origin is the "core" origin, which is the set of foundational packages managed and versioned by the core Chef Habitat maintainers.
 
-You can join existing origins by invitation and you can create your own origins.
-For more on invitations, see [origin membership and RBAC]({{< relref "#origin-membership" >}}).
+{{< readfile file="/habitat/reusable/md/builder_origins.md" >}}
 
-## Create an Origin
+## Where can I create an origin
 
-![Chef Habitat Builder without origins](/images/habitat/create-origin.png)
+You can create new origins in an on-prem Habitat Builder deployment.
 
-To create an origin, select the **Create origin** button on the _My Origins_ page which opens the _Create New Origin_ form. (Chef Habitat Builder > My Origins )
+## Create an origin
 
-![Creating an origin](/images/habitat/create-origin-form.png)
-
-First, enter a unique name that you want to associate with your packages.  Chef Habitat will only let you create an origin with a unique name. Some examples that you'll see in Chef Habitat Builder are team names, user names, and abstract concepts.
-
-Next, choose a privacy setting to set as the default for new packages. You can override this setting when uploading individual packages from the CLI or by connecting a plan file that declares a package as private. The difference between public and private packages is:
-
-  - Anyone can find and use public packages
-  - Only users with origin membership can find and use private packages
-
-When you select **Save and Continue**, Chef Habitat Builder:
-
-1. Creates your origin
-1. Creates an [origin key pair]({{< relref "#origin-keys" >}})
-1. Redirects Chef Habitat Builder to the origin page
-
-![Origin successfully created](/images/habitat/create-origin-done.png)
+{{< readfile file="/habitat/reusable/md/create_origins_builder.md" >}}
 
 ### Create an Origin with the Chef Habitat CLI
 
-Use the [hab origin]({{< relref "habitat_cli/#hab-origin" >}}) commands to manage your origins from the command line.
+{{< readfile file="/habitat/reusable/md/create_origins_cli.md" >}}
 
-Create an origin from the command line with the [hab origin create]({{< relref "habitat_cli/#hab-origin-create/" >}}) command
+To create key pair for your origin, see the [origin keys](#origin-keys) documentation.
 
-```
-hab origin create <origin>
-```
-
-The results of this command differ slightly from creating an origin on the Chef Habitat Builder site. The CLI command:
-
-1. Creates an origin on the Chef Habitat Builder site
-1. Does _not_ generate an origin key pair
-
-For more information, see the [`hab origin create`]({{< relref "habitat_cli/#hab-origin-create" >}}) CLI documentation.
-
-## Origin Membership & RBAC
+## Origin membership and role-based access control
 
 Prerequisites:
 
-* [Download the Chef Habitat CLI]({{< relref "install_habitat" >}})
-* [Create a Chef Habitat Builder account]({{< relref "#builder-account" >}})
-* [Generate a personal access token]({{< relref "#builder-token" >}})
-* [Create an origin]({{< relref "#create-origin" >}}) or accept an invitation to an existing origin
-* [Get origin keys]({{< relref "#origin-keys" >}})
+- [Download the Chef Habitat CLI]({{< relref "install_habitat" >}})
+- [Create a Chef Habitat Builder account]({{< relref "#builder-account" >}})
+- [Generate a personal access token]({{< relref "#builder-token" >}})
+- [Create an origin]({{< relref "#create-origin" >}}) or accept an invitation to an existing origin
+- [Get origin keys]({{< relref "#origin-keys" >}})
 
 
-### Role-Based Access Control (RBAC) for Chef Habitat Builder (SaaS and on-prem)
+### Role-based access control (RBAC) for Chef Habitat Builder (SaaS and on-prem)
 
 New in: 1.6.140
 
-RBAC provides your organization with better operational safety by letting you assign specific levels of access to each user that belongs to an origin. With RBAC in place, existing standard origin 'members' from earlier versions are assigned the 'Maintainer' role. This role has similar permissions of the previous generic 'member' role, and the areas of difference are detailed below. The origin owner role remains unchanged.
+Role-based access control (RBAC) provides your organization with better operational safety by letting you assign specific levels of access to each user that belongs to an origin. With RBAC in place, existing standard origin 'members' from earlier versions are assigned the 'Maintainer' role. This role has similar permissions of the previous generic 'member' role, and the areas of difference are detailed below. The origin owner role remains unchanged.
 
 When you join or create an origin, Chef Habitat Builder identifies your personal access token and assigns it a membership role for that origin. Your membership role defines the level of access that you have to the resources in an origin. By default, you're assigned the "read-only" role when you join an origin, and you're assigned the 'owner' role when you create an origin.
 
-RBAC Origin Member Roles:
+Chef Habitat Builder has the following RBAC origin member roles:
 
-* Read-Only: This user can read an origin's packages, channels, origin membership, jobs, keys, integrations, invitations, roles, settings but cannot add to, change, or delete anything else in the origin, including uploading packages and inviting users to the origin. Read-Only is the default membership role for users joining the origin.
-* Member: In addition to read-only access, an origin 'Member' can upload and build packages in the 'unstable' channel, but they cannot promote packages to other channels.
-* Maintainer: Existing origin 'members' are now 'Maintainers'. This role has full read and write access to packages, channels, origin membership, jobs, integrations, invitations, settings. However, the 'Maintainer' role is more limited than the past role, in that 'Maintainers' only have read access to packages, channels, origin membership, jobs, keys, integrations, and settings. Origin 'Maintainers' can read origin membership roles and see and send invitations, but they cannot otherwise change origin membership--their own or anybody else's. Finally, 'Maintainers' can neither read nor write origin secrets.
-* Administrator: In addition to 'Maintainer' access, the 'Administrator' role adds the missing privileges for writing origin keys and membership roles, as well as for reading and writing origin secrets. Administrators have full read and write access to packages, channels, origin membership, jobs, keys, integrations, invitations, roles, secrets, settings.
-* Owner: As in the past, the origin 'Owner' has full read and write access to the origin. Only Owners can delete the origin or transfer ownership to another member.
+Read-Only
+: This user can read an origin's packages, channels, origin membership, jobs, keys, integrations, invitations, roles, settings but cannot add to, change, or delete anything else in the origin, including uploading packages and inviting users to the origin. Read-Only is the default membership role for users joining the origin.
+
+Member
+: In addition to read-only access, an origin 'Member' can upload and build packages in the 'unstable' channel, but they cannot promote packages to other channels.
+
+Maintainer
+: Existing origin 'members' are now 'Maintainers'. This role has full read and write access to packages, channels, origin membership, jobs, integrations, invitations, settings. However, the 'Maintainer' role is more limited than the past role, in that 'Maintainers' only have read access to packages, channels, origin membership, jobs, keys, integrations, and settings. Origin 'Maintainers' can read origin membership roles and see and send invitations, but they cannot otherwise change origin membership--their own or anybody else's. Finally, 'Maintainers' can neither read nor write origin secrets.
+
+Administrator
+: In addition to 'Maintainer' access, the 'Administrator' role adds the missing privileges for writing origin keys and membership roles, as well as for reading and writing origin secrets. Administrators have full read and write access to packages, channels, origin membership, jobs, keys, integrations, invitations, roles, secrets, settings.
+
+Owner
+: As in the past, the origin 'Owner' has full read and write access to the origin. Only Owners can delete the origin or transfer ownership to another member.
 
 ### Comparison of RBAC Member Roles and Actions
 
@@ -120,7 +101,7 @@ RBAC Origin Member Roles:
 | Transfer Origin | N | N | N | N | Y |
 | Delete Origin | N | N | N | N | Y |
 
-### Manage Origin Membership
+### Manage origin membership
 
 In tandem with the changes to the Builder membership roles, we've also updated the `hab` CLI to support RBAC. We're working on adding role management to the Chef Habitat Builder site, but in the meantime, you'll need to use the CLI for now.
 
@@ -209,14 +190,14 @@ Set an origin membership RBAC role with:
 hab origin rbac set bluewhale admin --origin two-tier-app
 ```
 
-## Origin Keys
+## Origin keys
 
 Prerequisites:
 
-* [Download the Chef Habitat CLI]({{< relref "install_habitat" >}})
-* [Create a Chef Habitat Builder account]({{< relref "#builder-account" >}})
-* [Generate a personal access token]({{< relref "#builder-token" >}})
-* [Create an origin with `hab origin create` or join an origin by invitation]({{< relref "#create-origin" >}})
+- [Download the Chef Habitat CLI]({{< relref "install_habitat" >}})
+- [Create a Chef Habitat Builder account]({{< relref "#builder-account" >}})
+- [Generate a personal access token]({{< relref "#builder-token" >}})
+- [Create an origin with `hab origin create` or join an origin by invitation]({{< relref "#create-origin" >}})
 
 When you create an origin, Chef Habitat Builder automatically generates _origin keys_.
 Origin key cryptography is asymmetric: it has a public origin key that you can distribute freely, and a private origin key that you should distribute only to users belonging to the origin.
@@ -229,10 +210,10 @@ All Chef Habitat Builder users with access to the origin can view the origin pub
 
 Chef Habitat uses origin keys:
 
-* When you build an artifact in your local environment, Chef Habitat signs the artifact with a public key
-* When you upload an artifact to Chef Habitat Builder or Builder on-prem, Chef Habitat verifies that the artifact was signed with its public key
-* When you install an artifact on a Chef Habitat Supervisor, Chef Habitat uses the public origin key to authorize the artifact's installation; Chef Habitat only installs artifacts for which it has the public origin key
-* When you download an artifact to your local environment, Chef Habitat uses the public origin key to verify the artifact's integrity before it starts the installation
+- When you build an artifact in your local environment, Chef Habitat signs the artifact with a public key
+- When you upload an artifact to Chef Habitat Builder or Builder on-prem, Chef Habitat verifies that the artifact was signed with its public key
+- When you install an artifact on a Chef Habitat Supervisor, Chef Habitat uses the public origin key to authorize the artifact's installation; Chef Habitat only installs artifacts for which it has the public origin key
+- When you download an artifact to your local environment, Chef Habitat uses the public origin key to verify the artifact's integrity before it starts the installation
 
 Chef Habitat Builder origin key names follow the format:
 
@@ -248,40 +229,40 @@ testorigin-20190416223046.pub
 testorigin-20190416223046.sig.key
 ```
 
-* "testorigin" is the origin's name
-* "20190416223046" is the date and time of the key's creation, which was 2019-04-16 22:30:46.
-* `.pub` is the file extension for the public key
-* `.sig.key` is the file extension for the private key, which is also called a "signing key"
+- "testorigin" is the origin's name
+- "20190416223046" is the date and time of the key's creation, which was 2019-04-16 22:30:46.
+- `.pub` is the file extension for the public key
+- `.sig.key` is the file extension for the private key, which is also called a "signing key"
 
-### The Keys Tab
+### Keys tab
 
 When you create an origin, Chef Habitat Builder automatically generates an origin key pair and saves both keys. To view your origin keys on Chef Habitat Builder, navigate to your origin and select the **Keys** tab. (Builder > Origins > Keys) You will always be able to view and download origin public keys, but you will only see the private keys for origins in which you are an "administrator" or "owner".
 
 ![Viewing your origin keys](/images/habitat/origin-keys.png)
 
-#### Download Origin Keys
+#### Download origin keys
 
 Download your private or public origin key by selecting the **download** icon from the right end of the key details, under the _Actions_ heading.
 
 ![Detail of the download icon](/images/habitat/origin-key-download.png)
 
-#### Upload Origin Keys
+#### Upload origin keys
 
 You can upload origin keys that you generate on the command line to Chef Habitat Builder by selecting either the **Upload a private key** or **Upload a public key** icon, and copy your key into the form that appears.
 
 ![Example form content for uploading an origin key in Builder](/images/habitat/builder-key-upload.png)
 
-### Managing Origin Keys with the CLI
+### Managing origin keys with the CLI
 
 Run Chef Habitat CLI commands from your local environment or from within the Chef Habitat Studio.
 
 See the CLI documentation for more information on the [`hab origin key`]({{< relref "habitat_cli/#hab-origin-key" >}}) commands.
 
-#### Find Your Local Origin Keys
+#### Find your local origin keys
 
 Chef Habitat stores your public and private origin keys at `~/.hab/cache/keys` on Linux systems, `C:\hab\cache\keys` on Windows, and at `/hab/cache/keys` inside of the Chef Habitat Studio environment.
 
-##### To find your origin keys in your local environment:
+##### Find your origin keys in your local environment
 
 On Windows:
 
@@ -295,7 +276,7 @@ On Linux or macOS:
 ls -la ~/.hab/cache/keys
 ```
 
-##### To find your existing origin keys from inside of the Chef Habitat Studio:
+##### Find your existing origin keys from inside of the Chef Habitat Studio:
 
 On Windows:
 
@@ -309,14 +290,14 @@ On Linux or macOS:
 ls -la /hab/cache/keys
 ```
 
-#### Generate Origin Keys with the CLI
+#### Generate origin keys with the CLI
 
 When you create an origin through the site, Chef Habitat Builder automatically generates an origin key pair.
 
 The Chef Habitat CLI creates origin key pairs through two different commands, for two different uses:
 
-* Use [`hab setup`]({{< relref "install_habitat" >}}) to generate your first origin key pair as part of setting up the `hab` CLI
-* Use the `hab origin key generate <ORIGIN>` command to create an key pair for an origin created with the `hab origin create` command
+- Use [`hab setup`]({{< relref "install_habitat" >}}) to generate your first origin key pair as part of setting up the `hab` CLI
+- Use the `hab origin key generate <ORIGIN>` command to create an key pair for an origin created with the `hab origin create` command
 
 Create origin keys with the `hab` command:
 
@@ -324,7 +305,7 @@ Create origin keys with the `hab` command:
 hab origin key generate <ORIGIN>
 ```
 
-#### Download Origin Keys with the CLI
+#### Download origin keys with the CLI
 
 To get your public origin key using the command line, use:
 
@@ -332,13 +313,13 @@ To get your public origin key using the command line, use:
 hab origin key download <ORIGIN>
 ```
 
-#### Upload Origin Keys with the CLI
+#### Upload origin keys with the CLI
 
 Creating an origin with the `hab origin create` command registers the origin on Chef Habitat Builder without creating an origin key pair. The `hab origin key generate` command creates the key pair and saves them in your local environment, but it does not upload either origin key to Chef Habitat Builder.
 
-* Only "administrators" and "owners" can upload new keys to an origin.
-* Builder requires the public origin key to upload artifacts for that origin, so you'll need to upload it.
-* Builder requires the private origin key to enable new artifact builds from packages with plans linked to that origin.
+- Only "administrators" and "owners" can upload new keys to an origin.
+- Builder requires the public origin key to upload artifacts for that origin, so you'll need to upload it.
+- Builder requires the private origin key to enable new artifact builds from packages with plans linked to that origin.
 
 Upload origin keys with the `hab` command:
 
@@ -358,7 +339,7 @@ Upload both origin keys at the same time:
 hab origin key upload  --secfile <PATH_TO_PRIVATE_KEY> --pubfile <PATH_TO_PUBLIC_KEY>
 ```
 
-#### Import Origin Keys with the CLI
+#### Import origin keys with the CLI
 
 Use `hab origin key import` to read the key from a standard input stream into Chef Habitat Builder:
 
@@ -368,7 +349,7 @@ hab origin key import <PATH_TO_KEY>
 curl <URL_THAT_RETURNS_KEY> | hab origin key import
 ```
 
-##### Troubleshoot Origin Key Import
+##### Troubleshoot origin key import
 
 On a macOS, you may encounter an upload failure.
 To remediate this failure:
@@ -387,12 +368,12 @@ Initialize the setting from the command line with:
  source ~/.bashrc
 ```
 
-## Origin Settings
+## Origin settings
 
-The _Origin Settings_ tab contains:
+The **Origin Settings** tab contains:
 
-* Default Package Settings
-* Origin Secrets
+- Default Package Settings
+- Origin Secrets
 
 Everyone with origin membership can see the _Settings_ tab, but only origin administrators and owners can add, update, or delete settings content.
 
@@ -406,27 +387,27 @@ Everyone with origin membership can see the _Settings_ tab, but only origin admi
 
 ![The administrator or owner's view of the origin settings tab with a public default package setting and a saved origin secret](/images/habitat/origin-secrets.png)
 
-### Default Package Settings
+### Default package settings
 
 The _Default Package Settings_ define the visibility of build artifacts (.hart files). Everyone with origin membership can view the origin settings, but only origin administrators and owners can add, update, or delete settings.
 
-* Public packages are visible in search results and can be used by every Chef Habitat Builder user
-* Private artifacts do not appear in search results and are available only to users with origin membership
+- Public packages are visible in search results and can be used by every Chef Habitat Builder user
+- Private artifacts do not appear in search results and are available only to users with origin membership
 
 Change the default setting for the origin by switching from **Public Packages** to **Private Packages**. The default setting required for each origin and users with more than one origin can set some as public and others as private. Packages can have different default visibility settings than their origin's. Change the default visibility setting in for individual packages in that package's setting tab (Builder > Origin > Package > Settings).
 
-### Origin Secrets
+### Origin secrets
 
 Everyone with origin membership can view origin secrets, but only origin administrators and owners can add, update, or delete settings. _Origin Secrets_ are located at the bottom of the _Settings_ tab (Builder > Origin > Settings > Origin Secrets) and they let you encrypt and store secrets as environment variables. Origin secrets are useful for plans that require access to protected resources at build time, such as private source-code repositories and cloud storage providers.
 
 Origin secrets are retained by the origin and are available for any of that origin's packages. The origin secrets in your local environment are encrypted with an origin encryption key. Only Chef Habitat Builder can read encrypted origin secrets.
 
-#### Manage Origin Secrets with the Chef Habitat CLI
+#### Manage origin secrets with the Chef Habitat CLI
 
 You can view the list of origin secrets and delete them in Chef Habitat Builder.
 However, the primary way of interacting with origin secrets is with the Chef Habitat CLI.
 
-##### List Secrets
+##### List secrets
 
 To list all of the secrets in an origin, use:
 
@@ -434,7 +415,7 @@ To list all of the secrets in an origin, use:
 hab origin secret list --origin <ORIGIN>
 ```
 
-##### Set Origin Secrets as Environment Variables
+##### Set origin secrets as environment variables
 
 Add your origin secrets as environment variables in your local environment:
 
@@ -444,7 +425,7 @@ export HAB_AUTH_TOKEN=<TOKEN>
 hab origin secret list
 ```
 
-##### Save an Origin Secret
+##### Save an origin secret
 
 To save an origin secret give the secret a name and the key value:
 
@@ -466,7 +447,7 @@ $ hab origin secret upload AWS_ACCESS_KEY_ID 1234567890EXAMPLE
 ✓ Uploaded secret for AWS_ACCESS_KEY_ID.
 ```
 
-##### Delete an Origin Secret
+##### Delete an origin secret
 
 To delete an origin secret from an origin with the CLI
 
