@@ -14,7 +14,7 @@ gh_repo = "habitat"
 
 ## Chef-owned origins
 
-Chef maintains the following origins:
+Progress Chef maintains the following origins:
 
 - **core**: Hosts packages for common dependencies and compilers maintained by Progress Chef.
 - **chef**: Hosts packages for Chef products like Chef Infra Client, Chef InSpec, and Chef Automate.
@@ -23,7 +23,8 @@ Chef maintains the following origins:
 
 ## Where can I create an origin
 
-You can create a new origin in an on-prem Habitat Builder deployment.
+You can create origins in an on-prem Habitat Builder deployment.
+[Chef's public Habitat Builder](https://bldr.habitat.sh) doesn't support creating new origins.
 
 ## Create an origin
 

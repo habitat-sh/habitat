@@ -13,9 +13,19 @@ gh_repo = "habitat"
 
 {{< readfile file="/habitat/reusable/md/builder_origins.md" >}}
 
+## Chef-owned origins
+
+Progress Chef maintains the following origins:
+
+- **core**: Hosts packages for common dependencies and compilers maintained by Progress Chef.
+- **chef**: Hosts packages for Chef products like Chef Infra Client, Chef InSpec, and Chef Automate.
+- **chef-platform**: Hosts packages for Chef 360 Platform skills.
+- **habitat**: Hosts packages required for an on-prem Habitat Builder deployment.
+
 ## Where can I create an origin
 
-You can create new origins in an on-prem Habitat Builder deployment.
+You can create origins in an on-prem Habitat Builder deployment.
+[Chef's public Habitat Builder](https://bldr.habitat.sh) doesn't support creating new origins.
 
 ## Create an origin
 
@@ -276,7 +286,7 @@ On Linux or macOS:
 ls -la ~/.hab/cache/keys
 ```
 
-##### Find your existing origin keys from inside of the Chef Habitat Studio:
+##### Find your existing origin keys from inside of the Chef Habitat Studio
 
 On Windows:
 
