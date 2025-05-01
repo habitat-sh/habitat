@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.111 -->
-## [2.0.111](https://github.com/habitat-sh/habitat/tree/2.0.111) (2025-05-01)
+<!-- latest_release 2.0.112 -->
+## [2.0.112](https://github.com/habitat-sh/habitat/tree/2.0.112) (2025-05-01)
 
 #### Merged Pull Requests
-- Bump nix from 0.29.0 to 0.30.0 [#9685](https://github.com/habitat-sh/habitat/pull/9685) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump chrono from 0.4.40 to 0.4.41 [#9684](https://github.com/habitat-sh/habitat/pull/9684) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump chrono from 0.4.40 to 0.4.41 [#9684](https://github.com/habitat-sh/habitat/pull/9684) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.112 -->
 - Bump nix from 0.29.0 to 0.30.0 [#9685](https://github.com/habitat-sh/habitat/pull/9685) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.111 -->
 - Bump toml from 0.8.20 to 0.8.22 [#9683](https://github.com/habitat-sh/habitat/pull/9683) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.110 -->
 - Bump cc from 1.2.19 to 1.2.20 [#9680](https://github.com/habitat-sh/habitat/pull/9680) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.109 -->
