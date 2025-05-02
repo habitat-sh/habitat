@@ -31,7 +31,7 @@ You can create origins in an on-prem Habitat Builder deployment.
 
 {{< readfile file="/habitat/reusable/md/create_origins_builder.md" >}}
 
-### Create an Origin with the Chef Habitat CLI
+### Create an origin with the Chef Habitat CLI
 
 {{< readfile file="/habitat/reusable/md/create_origins_cli.md" >}}
 
