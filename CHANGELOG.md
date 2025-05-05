@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.114 -->
-## [2.0.114](https://github.com/habitat-sh/habitat/tree/2.0.114) (2025-05-02)
+<!-- latest_release 2.0.115 -->
+## [2.0.115](https://github.com/habitat-sh/habitat/tree/2.0.115) (2025-05-05)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.20 to 1.2.21 [#9687](https://github.com/habitat-sh/habitat/pull/9687) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump nix from 0.30.0 to 0.30.1 [#9691](https://github.com/habitat-sh/habitat/pull/9691) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump nix from 0.30.0 to 0.30.1 [#9691](https://github.com/habitat-sh/habitat/pull/9691) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.115 -->
 - Bump cc from 1.2.20 to 1.2.21 [#9687](https://github.com/habitat-sh/habitat/pull/9687) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.114 -->
 - Update docs about creating origins [#9686](https://github.com/habitat-sh/habitat/pull/9686) ([IanMadd](https://github.com/IanMadd)) <!-- 2.0.113 -->
 - Bump chrono from 0.4.40 to 0.4.41 [#9684](https://github.com/habitat-sh/habitat/pull/9684) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.112 -->
