@@ -14,9 +14,8 @@ use crate::command;
 
 /// Start an interactive Bourne-like shell
 #[derive(Debug, Clone, Parser)]
-#[command(arg_required_else_help = true,
-    help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
-                     {usage}\n\n{all-args}\n")]
+#[command(help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(crate) struct SupShellCommand {
     #[arg()]
     args: Vec<OsString>,
@@ -25,7 +24,9 @@ pub(crate) struct SupShellCommand {
 impl SupShellCommand {
     #[cfg(not(target_os = "macos"))]
     pub(super) async fn execute(&self, ui: &mut UI) -> HabResult<()> {
-        return command::sup::start(ui, &self.args).await;
+        let mut args = vec!["sh".into()];
+        args.extend(self.args.clone());
+        return command::sup::start(ui, &args).await;
     }
 
     #[cfg(target_os = "macos")]

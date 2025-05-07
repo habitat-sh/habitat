@@ -24,10 +24,9 @@ use futures::stream::StreamExt;
 use habitat_sup_protocol as sup_proto;
 
 #[derive(Debug, Clone, Parser)]
-#[command(arg_required_else_help = true,
-    disable_version_flag = true,
-    help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
-                     {usage}\n\n{all-args}\n")]
+#[command(disable_version_flag = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(crate) struct SupRestartOptions {
     #[command(flatten)]
     remote_sup: RemoteSup,

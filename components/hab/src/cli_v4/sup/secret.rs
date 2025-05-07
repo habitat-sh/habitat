@@ -21,9 +21,9 @@ use habitat_core::tls::ctl_gateway as ctl_gateway_tls;
 
 #[derive(Debug, Clone, Parser)]
 #[command(arg_required_else_help = true,
-    disable_version_flag = true,
-    help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
-                     {usage}\n\n{all-args}\n")]
+          disable_version_flag = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub enum SupSecretOptions {
     /// Generate a secret key to use as a Supervisor's Control Gateway secret
     Generate,

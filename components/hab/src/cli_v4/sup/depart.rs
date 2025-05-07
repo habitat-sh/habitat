@@ -25,10 +25,9 @@ use habitat_common::ui::{Status,
                          UIWriter};
 
 #[derive(Debug, Clone, Parser)]
-#[command(arg_required_else_help = true,
-    disable_version_flag = true,
-    help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
-                     {usage}\n\n{all-args}\n")]
+#[command(disable_version_flag = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(crate) struct SupDepartOptions {
     /// The member-id of the Supervisor to depart
     #[arg(name = "MEMBER_ID")]

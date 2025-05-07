@@ -56,10 +56,9 @@ lazy_static! {
 }
 
 #[derive(Debug, Clone, Parser)]
-#[command(arg_required_else_help = true,
-    disable_version_flag = true,
-    help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
-                     {usage}\n\n{all-args}\n")]
+#[command(disable_version_flag = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(crate) struct SupStatusOptions {
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
     #[arg(name = "PKG_IDENT")]

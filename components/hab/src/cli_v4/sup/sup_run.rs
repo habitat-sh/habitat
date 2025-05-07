@@ -72,13 +72,12 @@ impl From<EventStreamAddress> for NatsAddress {
 }
 
 #[derive(Debug, Clone, Args)]
-#[command(arg_required_else_help = true,
-    disable_version_flag = true,
-    help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
-                     {usage}\n\n{all-args}\n")]
+#[command(disable_version_flag = true,
+          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n")]
 pub(crate) struct SupRunOptions {
     /// The listen address for the Gossip Gateway.
-    #[arg(long = "listen-gossip", 
+    #[arg(long = "listen-gossip",
         env = GossipListenAddr::ENVVAR,
         default_value = GossipListenAddr::default_as_str())]
     listen_gossip: GossipListenAddr,
@@ -92,7 +91,7 @@ pub(crate) struct SupRunOptions {
     peer_watch_file: Option<PathBuf>,
 
     /// Start in local gossip mode.
-    #[arg(long = "local-gossip-mode", 
+    #[arg(long = "local-gossip-mode",
         conflicts_with_all = &["listen_gossip", "peer", "peer_watch_file"])]
     local_gossip_mode: bool,
 
@@ -253,8 +252,8 @@ pub(crate) struct SupRunOptions {
     ///
     /// This enables the event stream and requires EVENT_STREAM_APPLICATION,
     /// EVENT_STREAM_ENVIRONMENT, and EVENT_STREAM_TOKEN also be set.
-    #[arg(long = "event-stream-url", 
-            requires_all = &["event_stream_application", 
+    #[arg(long = "event-stream-url",
+            requires_all = &["event_stream_application",
                             "event_stream_environment",
                             "event_stream_token"])]
     event_stream_url: Option<EventStreamAddress>,
