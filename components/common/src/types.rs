@@ -43,7 +43,7 @@ pub struct UserInfo {
     pub gid:       Option<u32>,
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 // TODO (DM): This is unnecessarily difficult due to this issue in serde
 // https://github.com/serde-rs/serde/issues/723. The easiest way to get around the issue is to use
 // these proxy types.

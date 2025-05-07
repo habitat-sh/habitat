@@ -12,6 +12,9 @@ use crate::{error::Result as HabResult,
 mod pkg;
 use pkg::PkgCommand;
 
+pub(crate) mod sup;
+use sup::SupCommand;
+
 mod utils;
 use utils::CacheKeyPath;
 
@@ -51,6 +54,8 @@ enum Hab {
 
     Studio(StudioCommand),
 
+    /// The Habitat Supervisor
+    #[clap(subcommand)]
     Sup(SupCommand),
 
     SupportBundle,
@@ -79,6 +84,7 @@ impl Hab {
     async fn do_cli_command(&self, ui: &mut UI, feature_flags: FeatureFlag) -> HabResult<()> {
         match self {
             Self::Pkg(pkg_command) => pkg_command.do_command(ui, feature_flags).await,
+            Self::Sup(sup_command) => sup_command.do_command(ui, feature_flags).await,
             _ => todo!(),
         }
     }
@@ -110,9 +116,6 @@ pub(crate) struct RingCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct StudioCommand;
-
-#[derive(Clone, Debug, Parser)]
-pub(crate) struct SupCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct SvcCommand;
