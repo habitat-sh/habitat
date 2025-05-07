@@ -8,7 +8,6 @@ source .expeditor/scripts/release_habitat/shared.sh
 # https://github.com/chef/ci-studio-common/issues/200)
 eval "$(vault-util fetch-secret-env)"
 
-export HAB_AUTH_TOKEN="${PIPELINE_HAB_AUTH_TOKEN}"
 export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
 

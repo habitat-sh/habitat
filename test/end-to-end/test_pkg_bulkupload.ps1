@@ -1,7 +1,7 @@
 # Basic set of tests for the hab pkg bulkupload command
 #
 # Assumptions:
-# 1. PIPELINE_HAB_AUTH_TOKEN and PIPELINE_HAB_BLDR_URL environment variables are set and valid
+# 1. HAB_AUTH_TOKEN and PIPELINE_HAB_BLDR_URL environment variables are set and valid
 # 2. ${CACHE_DIR} can be set to a writable location on the filesystem
 # 3. non zero exit code from each command implies success
 
@@ -16,7 +16,6 @@ $env:HAB_NONINTERACTIVE=true
 # for testing. It is hardcoded here to our designated origin for this purpose (habitat-testing).
 $env:HAB_ORIGIN = "habitat-testing"
 $env:HAB_BLDR_URL = $env:PIPELINE_HAB_BLDR_URL
-$env:HAB_AUTH_TOKEN = $env:PIPELINE_HAB_AUTH_TOKEN
 $env:BUILD_PKG_TARGET = "x86_64-linux"
 $env:HAB_BLDR_CHANNEL = $null
 

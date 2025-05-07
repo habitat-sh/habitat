@@ -3,8 +3,6 @@
 # HAB_UPDATE_STRATEGY_FREQUENCY_MS=3000
 # HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK=1
 
-$env:HAB_AUTH_TOKEN = $env:PIPELINE_HAB_AUTH_TOKEN
-
 $supLog = New-SupervisorLogFile("test_at_once_service_updater")
 Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
         "--keep-latest-packages=1"

@@ -4,7 +4,7 @@ services:
     extends:
       service: test_base
     environment:
-      HAB_AUTH_TOKEN: ${PIPELINE_HAB_AUTH_TOKEN}
+      HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
     depends_on:
       - bastion
       - alpha

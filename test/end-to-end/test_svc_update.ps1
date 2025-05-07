@@ -1,6 +1,6 @@
 # For *some reason* this incoming environment variable has quotes,
 # which throws everything off, but apparently only on Windows.
-$env:HAB_AUTH_TOKEN = $env:PIPELINE_HAB_AUTH_TOKEN.Replace("`"", "")
+$env:HAB_AUTH_TOKEN = $env:HAB_AUTH_TOKEN.Replace("`"", "")
 
 $testChannelOne="dynamic-update-one-$([DateTime]::Now.Ticks)"
 $testChannelTwo="dynamic-update-two-$([DateTime]::Now.Ticks)"
