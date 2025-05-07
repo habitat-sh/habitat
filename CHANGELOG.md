@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.116 -->
-## [2.0.116](https://github.com/habitat-sh/habitat/tree/2.0.116) (2025-05-06)
+<!-- latest_release 2.0.117 -->
+## [2.0.117](https://github.com/habitat-sh/habitat/tree/2.0.117) (2025-05-07)
 
 #### Merged Pull Requests
-- Bump rustls from 0.23.26 to 0.23.27 [#9694](https://github.com/habitat-sh/habitat/pull/9694) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Adding clapv4 support for  &quot;hab sup&quot; commands [#9682](https://github.com/habitat-sh/habitat/pull/9682) ([dikshagupta1](https://github.com/dikshagupta1))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Adding clapv4 support for  &quot;hab sup&quot; commands [#9682](https://github.com/habitat-sh/habitat/pull/9682) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.117 -->
 - Bump rustls from 0.23.26 to 0.23.27 [#9694](https://github.com/habitat-sh/habitat/pull/9694) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.116 -->
 - Bump nix from 0.30.0 to 0.30.1 [#9691](https://github.com/habitat-sh/habitat/pull/9691) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.115 -->
 - Bump cc from 1.2.20 to 1.2.21 [#9687](https://github.com/habitat-sh/habitat/pull/9687) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.114 -->
