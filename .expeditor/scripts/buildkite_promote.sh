@@ -28,8 +28,6 @@ source_environment=${1:?You must provide an Expeditor environment}
 # e.g. `acceptance`, `current`, etc
 destination_channel=${2:?You must specify a destination channel value}
 
-export HAB_AUTH_TOKEN="${PIPELINE_HAB_AUTH_TOKEN}"
-
 ########################################################################
 
 source .expeditor/scripts/shared.sh
