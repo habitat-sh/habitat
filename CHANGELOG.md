@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.120 -->
-## [2.0.120](https://github.com/habitat-sh/habitat/tree/2.0.120) (2025-05-13)
+<!-- latest_release 2.0.121 -->
+## [2.0.121](https://github.com/habitat-sh/habitat/tree/2.0.121) (2025-05-13)
 
 #### Merged Pull Requests
-- Bump os_info from 3.10.0 to 3.11.0 [#9701](https://github.com/habitat-sh/habitat/pull/9701) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.21 to 1.2.22 [#9699](https://github.com/habitat-sh/habitat/pull/9699) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.21 to 1.2.22 [#9699](https://github.com/habitat-sh/habitat/pull/9699) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.121 -->
+- Bump ctrlc from 3.4.6 to 3.4.7 [#9698](https://github.com/habitat-sh/habitat/pull/9698) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.121 -->
 - Bump os_info from 3.10.0 to 3.11.0 [#9701](https://github.com/habitat-sh/habitat/pull/9701) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.120 -->
 - Update Habitat Builder API Docs - 20250506142438 [#9695](https://github.com/habitat-sh/habitat/pull/9695) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 2.0.119 -->
 - Bump tokio from 1.44.2 to 1.45.0 [#9696](https://github.com/habitat-sh/habitat/pull/9696) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.118 -->
