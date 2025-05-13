@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.119 -->
-## [2.0.119](https://github.com/habitat-sh/habitat/tree/2.0.119) (2025-05-08)
+<!-- latest_release 2.0.120 -->
+## [2.0.120](https://github.com/habitat-sh/habitat/tree/2.0.120) (2025-05-13)
 
 #### Merged Pull Requests
-- Update Habitat Builder API Docs - 20250506142438 [#9695](https://github.com/habitat-sh/habitat/pull/9695) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+- Bump os_info from 3.10.0 to 3.11.0 [#9701](https://github.com/habitat-sh/habitat/pull/9701) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump os_info from 3.10.0 to 3.11.0 [#9701](https://github.com/habitat-sh/habitat/pull/9701) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.120 -->
 - Update Habitat Builder API Docs - 20250506142438 [#9695](https://github.com/habitat-sh/habitat/pull/9695) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 2.0.119 -->
 - Bump tokio from 1.44.2 to 1.45.0 [#9696](https://github.com/habitat-sh/habitat/pull/9696) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.118 -->
 - Adding clapv4 support for  &quot;hab sup&quot; commands [#9682](https://github.com/habitat-sh/habitat/pull/9682) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.117 -->
