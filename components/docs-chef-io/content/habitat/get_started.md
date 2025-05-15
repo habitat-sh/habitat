@@ -1,6 +1,7 @@
 +++
 title = "Get Started with Chef Habitat"
 gh_repo = "habitat"
+draft = true
 
 [menu]
   [menu.habitat]
@@ -134,7 +135,7 @@ Use the Habitat Studio to generate a Habitat package and preview the running Nod
 
 ## Manage the Service with Habitat Builder
 
-[Chef Habitat Builder]({{< relref "/habitat/builder_overview" >}}) acts as the core of Chef’s Application Delivery Enterprise hub. The Chef Habitat Builder SaaS stores plan files where they can be viewed and accessed by the Chef Habitat community and then deployed by the Chef Habitat Supervisor.
+[Chef Habitat Builder]({{< relref "/habitat/builder_overview" >}}) acts as the core of Chef's Application Delivery Enterprise hub. The Chef Habitat Builder SaaS stores plan files where they can be viewed and accessed by the Chef Habitat community and then deployed by the Chef Habitat Supervisor.
 
 Add your package to your Builder origin and then connect that package to your clone of the sample-node-app repository. Any changes made to your clone of the sample-node-app will trigger the Chef Habitat Builder to rebuild the package.
 
