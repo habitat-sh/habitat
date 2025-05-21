@@ -24,6 +24,7 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    fs::CACHE_KEY_PATH,
                    origin::Origin as CoreOrigin,
                    os::process::ShutdownTimeout,
+                   package::PackageIdent,
                    service::ServiceBind,
                    url::{bldr_url_from_env,
                          BLDR_URL_ENVVAR,
@@ -472,6 +473,67 @@ pub(crate) fn origin_param_or_env(opt: &Option<String>) -> Result<CoreOrigin, Er
                                                                   .into())
                   })
     }
+pub fn shared_load_cli_to_ctl(ident: PackageIdent,
+                              shared_load: SharedLoad,
+                              force: bool)
+                              -> HabResult<habitat_sup_protocol::ctl::SvcLoad> {
+    use habitat_common::{ui,
+                         ui::UIWriter};
+    #[cfg(target_os = "windows")]
+    use habitat_core::crypto::dpapi;
+    use habitat_sup_protocol::{ctl::{ServiceBindList,
+                                     SvcLoad},
+                               types::{HealthCheckInterval,
+                                       ServiceBind}};
+
+    // TODO (DM): This check can eventually be removed.
+    // See https://github.com/habitat-sh/habitat/issues/7339
+    if !shared_load.application.is_empty() || !shared_load.environment.is_empty() {
+        ui::ui().warn("--application and --environment flags are deprecated and ignored.")
+                .ok();
+    }
+
+    let binds = if shared_load.bind.is_empty() {
+        None
+    } else {
+        Some(ServiceBindList { binds: shared_load.bind
+                                                 .into_iter()
+                                                 .map(ServiceBind::from)
+                                                 .collect(), })
+    };
+
+    let config_from = if let Some(config_from) = shared_load.config_from {
+        log::warn!("\nWARNING: Setting '--config-from' should only be used in development, not \
+                    production!\n");
+        Some(config_from.to_string_lossy().to_string())
+    } else {
+        None
+    };
+
+    #[cfg(target_os = "windows")]
+    let svc_encrypted_password = if let Some(password) = shared_load.password {
+        Some(dpapi::encrypt(password)?)
+    } else {
+        None
+    };
+    #[cfg(not(target_os = "windows"))]
+    let svc_encrypted_password = None;
+
+    Ok(SvcLoad { ident: Some(ident.into()),
+                 binds,
+                 binding_mode: Some(shared_load.binding_mode as i32),
+                 bldr_url: Some(habitat_core::url::bldr_url(shared_load.bldr_url)),
+                 bldr_channel: Some(shared_load.channel.to_string()),
+                 config_from,
+                 force: Some(force),
+                 group: Some(shared_load.group),
+                 svc_encrypted_password,
+                 topology: shared_load.topology.map(i32::from),
+                 update_strategy: Some(shared_load.strategy as i32),
+                 health_check_interval:
+                     Some(HealthCheckInterval { seconds: shared_load.health_check_interval, }),
+                 shutdown_timeout: shared_load.shutdown_timeout.map(u32::from),
+                 update_condition: Some(shared_load.update_condition as i32) })
 }
 
 #[cfg(test)]
