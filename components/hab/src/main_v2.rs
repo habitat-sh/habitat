@@ -10,7 +10,6 @@ use futures::stream::StreamExt;
               all(target_os = "windows", target_arch = "x86_64"),))]
 use hab::cli::hab::pkg::ExportCommand as PkgExportCommand;
 use hab::{cli::{self,
-                gateway_util,
                 hab::{license::License,
                       origin::{Rbac,
                                RbacSet,
@@ -33,6 +32,7 @@ use hab::{cli::{self,
                           uninstall::UninstallHookMode}},
           error::{Error,
                   Result},
+          gateway_util,
           key_type::KeyType,
           license,
           scaffolding,
