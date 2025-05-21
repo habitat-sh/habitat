@@ -20,6 +20,9 @@ use pkg::PkgCommand;
 pub(crate) mod sup;
 use sup::SupCommand;
 
+mod svc;
+use svc::SvcCommand;
+
 mod utils;
 use utils::CacheKeyPath;
 
@@ -69,6 +72,8 @@ enum Hab {
 
     SupportBundle,
 
+    /// Commands relating to Habitat Services
+    #[clap(subcommand)]
     Svc(SvcCommand),
 
     User(UserCommand),
@@ -96,6 +101,7 @@ impl Hab {
             Self::Sup(sup_command) => sup_command.do_command(ui, feature_flags).await,
             Self::Config(config_command) => config_command.do_command(ui).await,
             Self::File(file_command) => file_command.do_command(ui).await,
+            Self::Svc(svc_command) => svc_command.do_command(ui, feature_flags).await,
             _ => todo!(),
         }
     }
@@ -121,9 +127,6 @@ pub(crate) struct RingCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct StudioCommand;
-
-#[derive(Clone, Debug, Parser)]
-pub(crate) struct SvcCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct UserCommand;
