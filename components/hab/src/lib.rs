@@ -15,6 +15,9 @@ mod cli_v4;
 #[cfg(feature = "v4")]
 pub use cli_v4::cli_driver;
 
+// TODO : Make this a pub(crate) module once we move to Clap v4 completely.
+pub mod gateway_util;
+
 pub mod command;
 pub mod error;
 mod exec;
