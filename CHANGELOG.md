@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.126 -->
-## [2.0.126](https://github.com/habitat-sh/habitat/tree/2.0.126) (2025-05-19)
+<!-- latest_release 2.0.127 -->
+## [2.0.127](https://github.com/habitat-sh/habitat/tree/2.0.127) (2025-05-28)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.22 to 1.2.23 [#9707](https://github.com/habitat-sh/habitat/pull/9707) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump mio from 1.0.3 to 1.0.4 [#9709](https://github.com/habitat-sh/habitat/pull/9709) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump mio from 1.0.3 to 1.0.4 [#9709](https://github.com/habitat-sh/habitat/pull/9709) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.127 -->
 - Bump cc from 1.2.22 to 1.2.23 [#9707](https://github.com/habitat-sh/habitat/pull/9707) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.126 -->
 - Bump errno from 0.3.11 to 0.3.12 [#9706](https://github.com/habitat-sh/habitat/pull/9706) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.125 -->
 - Bump bitflags from 2.9.0 to 2.9.1 [#9704](https://github.com/habitat-sh/habitat/pull/9704) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.124 -->
