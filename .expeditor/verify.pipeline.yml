@@ -94,7 +94,7 @@ steps:
   # latest refresh.
   - label: "[unit] :linux: ignored"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh -- --ignored
+      - .expeditor/scripts/verify/run_cargo_test.sh -- --ignored --format=pretty
     expeditor:
       executor:
         docker:
@@ -119,7 +119,7 @@ steps:
 
   - label: "[unit] :linux: builder-api-client"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh builder-api-client
+      - .expeditor/scripts/verify/run_cargo_test.sh builder-api-client -- --format=pretty
     expeditor:
       executor:
         docker:
@@ -190,7 +190,7 @@ steps:
 
   - label: "[unit] :linux: common"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh common
+      - .expeditor/scripts/verify/run_cargo_test.sh common -- --format=pretty
     agents:
       queue: 'default-privileged'
     plugins:
@@ -224,7 +224,7 @@ steps:
 
   - label: "[unit] :linux: core"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh core
+      - .expeditor/scripts/verify/run_cargo_test.sh core -- --format=pretty
     expeditor:
       executor:
         docker:
@@ -268,7 +268,7 @@ steps:
 
   - label: "[unit] :linux: http-client"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh http-client
+      - .expeditor/scripts/verify/run_cargo_test.sh http-client -- --format=pretty
     expeditor:
       executor:
         docker:
@@ -293,7 +293,7 @@ steps:
 
   - label: "[unit] :linux: hab"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh hab
+      - .expeditor/scripts/verify/run_cargo_test.sh hab -- --format=pretty
     expeditor:
       executor:
         docker:
@@ -318,7 +318,7 @@ steps:
 
   - label: "[unit] :linux: launcher-client"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh launcher-client
+      - .expeditor/scripts/verify/run_cargo_test.sh launcher-client -- --format=pretty
     expeditor:
       executor:
         docker:
@@ -343,7 +343,7 @@ steps:
 
   - label: "[unit] :linux: launcher-protocol"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh launcher-protocol
+      - .expeditor/scripts/verify/run_cargo_test.sh launcher-protocol -- --format=pretty
     expeditor:
       executor:
         docker:
@@ -368,7 +368,7 @@ steps:
 
   - label: "[unit] :linux: pkg-export-container"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-container
+      - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-container -- --format=pretty
     expeditor:
       executor:
         docker:
@@ -393,7 +393,7 @@ steps:
 
   - label: "[unit] :linux: pkg-export-tar"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-tar
+      - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-tar -- --format=pretty
     expeditor:
       executor:
         docker:
@@ -418,7 +418,7 @@ steps:
 
   - label: "[unit] :linux: sup lock_as_rwlock"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh sup --features "lock_as_rwlock"
+      - .expeditor/scripts/verify/run_cargo_test.sh sup --features "lock_as_rwlock" 
     expeditor:
       executor:
         docker:
@@ -464,7 +464,7 @@ steps:
 
   - label: "[unit] :linux: sup-client"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh sup-client
+      - .expeditor/scripts/verify/run_cargo_test.sh sup-client -- --format=pretty
     expeditor:
       executor:
         docker:
@@ -489,7 +489,7 @@ steps:
 
   - label: "[unit] :linux: sup-protocol"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh sup-protocol
+      - .expeditor/scripts/verify/run_cargo_test.sh sup-protocol -- --format=pretty
     expeditor:
       executor:
         docker:
