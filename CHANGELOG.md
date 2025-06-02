@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.130 -->
-## [2.0.130](https://github.com/habitat-sh/habitat/tree/2.0.130) (2025-05-29)
+<!-- latest_release 2.0.131 -->
+## [2.0.131](https://github.com/habitat-sh/habitat/tree/2.0.131) (2025-06-02)
 
 #### Merged Pull Requests
-- Bump reqwest from 0.12.15 to 0.12.18 [#9711](https://github.com/habitat-sh/habitat/pull/9711) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump parking_lot from 0.12.3 to 0.12.4 [#9713](https://github.com/habitat-sh/habitat/pull/9713) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump parking_lot from 0.12.3 to 0.12.4 [#9713](https://github.com/habitat-sh/habitat/pull/9713) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.131 -->
 - Bump reqwest from 0.12.15 to 0.12.18 [#9711](https://github.com/habitat-sh/habitat/pull/9711) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.130 -->
 - Bump tokio from 1.45.0 to 1.45.1 [#9710](https://github.com/habitat-sh/habitat/pull/9710) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.129 -->
 - Bump cc from 1.2.23 to 1.2.24 [#9708](https://github.com/habitat-sh/habitat/pull/9708) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.128 -->
