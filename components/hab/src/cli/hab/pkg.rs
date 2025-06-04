@@ -413,9 +413,8 @@ pub struct PkgDownload {
     #[structopt(name = "CHANNEL",
                 short = "c",
                 long = "channel",
-                default_value = "stable",
                 env = ChannelIdent::ENVVAR)]
-    channel:             String,
+    channel:             Option<String>,
     /// The path to store downloaded artifacts
     #[structopt(name = "DOWNLOAD_DIRECTORY", long = "download-directory")]
     download_directory:  Option<PathBuf>,
@@ -500,9 +499,8 @@ pub struct PkgInstall {
     /// Install from the specified release channel
     #[structopt(short = "c",
                 long = "channel",
-                default_value = "stable",
                 env = ChannelIdent::ENVVAR)]
-    channel:               String,
+    channel:               Option<String>,
     /// One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat
     /// Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
     #[structopt(required = true)]
