@@ -34,10 +34,13 @@ env_config_string!(#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, Part
                    ChannelIdent::STABLE);
 
 impl ChannelIdent {
+    const BASE: &'static str = "base";
     const STABLE: &'static str = "stable";
     const UNSTABLE: &'static str = "unstable";
 
     pub fn as_str(&self) -> &str { self.0.as_str() }
+
+    pub fn base() -> Self { Self::from(Self::BASE) }
 
     pub fn stable() -> Self { Self::from(Self::STABLE) }
 
