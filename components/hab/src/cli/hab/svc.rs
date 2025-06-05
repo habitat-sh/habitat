@@ -146,9 +146,8 @@ fn health_check_interval_default() -> u64 { 30 }
 #[structopt(no_version, rename_all = "screamingsnake")]
 pub struct SharedLoad {
     /// Receive updates from the specified release channel
-    #[structopt(long = "channel", default_value = &*CHANNEL_IDENT_DEFAULT)]
-    #[serde(default)]
-    pub channel:               ChannelIdent,
+    #[structopt(long = "channel")]
+    pub channel:               Option<ChannelIdent>,
     /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
     /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
     // TODO (DM): This should probably use `env` and `default_value`
@@ -327,6 +326,7 @@ pub fn shared_load_cli_to_ctl(ident: PackageIdent,
                          ui::UIWriter};
     #[cfg(target_os = "windows")]
     use habitat_core::crypto::dpapi;
+    use habitat_core::package::Identifiable;
     use habitat_sup_protocol::{ctl::{ServiceBindList,
                                      SvcLoad},
                                types::{HealthCheckInterval,
@@ -367,11 +367,19 @@ pub fn shared_load_cli_to_ctl(ident: PackageIdent,
     #[cfg(not(target_os = "windows"))]
     let svc_encrypted_password = None;
 
+    let channel = if let Some(ref channel) = shared_load.channel {
+        channel.clone()
+    } else if ident.origin() == "core" {
+        ChannelIdent::base()
+    } else {
+        ChannelIdent::stable()
+    };
+
     Ok(SvcLoad { ident: Some(ident.into()),
                  binds,
                  binding_mode: Some(shared_load.binding_mode as i32),
                  bldr_url: Some(habitat_core::url::bldr_url(shared_load.bldr_url)),
-                 bldr_channel: Some(shared_load.channel.to_string()),
+                 bldr_channel: Some(channel.to_string()),
                  config_from,
                  force: Some(force),
                  group: Some(shared_load.group),
