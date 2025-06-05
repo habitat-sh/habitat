@@ -75,7 +75,7 @@ pub(crate) struct PkgBuildOptions {
           short = 'f',
           long = "refresh-channel",
           env = "HAB_REFRESH_CHANNEL",
-          default_value = "stable")]
+          default_value = "base")]
     refresh_channel: Option<String>,
 }
 
