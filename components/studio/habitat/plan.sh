@@ -1,17 +1,17 @@
 # shellcheck disable=2034
 pkg_name=hab-studio
-pkg_origin=core
+pkg_origin=chef
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_deps=(
-  core/hab-backline
+  chef/hab-backline
 )
-pkg_build_deps=(core/coreutils
+pkg_build_deps=(chef/hab
+                core/coreutils
                 core/tar
                 core/xz
                 core/wget
-                core/busybox-static
-                core/hab)
+                core/busybox-static)
 pkg_bin_dirs=(bin)
 
 pkg_version() {
@@ -24,7 +24,7 @@ do_before() {
 }
 
 do_prepare() {
-  set_runtime_env "HAB_STUDIO_BACKLINE_PKG" "$(< "$(pkg_path_for core/hab-backline)"/IDENT)"
+  set_runtime_env "HAB_STUDIO_BACKLINE_PKG" "$(< "$(pkg_path_for chef/hab-backline)"/IDENT)"
 }
 
 do_build() {

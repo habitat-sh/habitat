@@ -1,7 +1,7 @@
 # shellcheck disable=2154
 pkg_name=hab
 _pkg_distname=$pkg_name
-pkg_origin=core
+pkg_origin=chef
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 # The result is a portable, static binary in a zero-dependency package.
@@ -52,14 +52,6 @@ do_before() {
 # shellcheck disable=2155
 do_prepare() {
   _common_prepare
-
-  # With the musl target, the ring crate is looking for aarch64-linux-musl-gcc,
-  # but the core/musl package provides musl-gcc. This workaround is necessary until the appropriate changes are made to core/musl for aarch64.
-  if [[ "${pkg_target%%-*}" == "aarch64" ]]; then
-    if [[ ! -r "$(pkg_path_for musl)/bin/aarch64-linux-musl-gcc" ]]; then
-      ln -sv "$(pkg_path_for musl)/bin/musl-gcc" "$(pkg_path_for musl)/bin/aarch64-linux-musl-gcc"
-    fi
-  fi
 
   export rustc_target="${pkg_target%%-*}-unknown-linux-musl"
   build_line "Setting rustc_target=$rustc_target"
