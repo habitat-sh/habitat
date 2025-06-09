@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.136 -->
-## [2.0.136](https://github.com/habitat-sh/habitat/tree/2.0.136) (2025-06-06)
+<!-- latest_release 2.0.137 -->
+## [2.0.137](https://github.com/habitat-sh/habitat/tree/2.0.137) (2025-06-09)
 
 #### Merged Pull Requests
-- bump tower-http to 0.6.6 to clear audit failure [#9720](https://github.com/habitat-sh/habitat/pull/9720) ([mwrock](https://github.com/mwrock))
+- Bump os_info from 3.11.0 to 3.12.0 [#9722](https://github.com/habitat-sh/habitat/pull/9722) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump os_info from 3.11.0 to 3.12.0 [#9722](https://github.com/habitat-sh/habitat/pull/9722) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.137 -->
 - bump tower-http to 0.6.6 to clear audit failure [#9720](https://github.com/habitat-sh/habitat/pull/9720) ([mwrock](https://github.com/mwrock)) <!-- 2.0.136 -->
 - Bump cc from 1.2.25 to 1.2.26 [#9719](https://github.com/habitat-sh/habitat/pull/9719) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.135 -->
 - Bump reqwest from 0.12.18 to 0.12.19 [#9716](https://github.com/habitat-sh/habitat/pull/9716) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.134 -->
