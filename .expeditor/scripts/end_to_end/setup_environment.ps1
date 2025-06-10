@@ -13,17 +13,17 @@ Install-Habitat
 $binPath = Join-Path -Path $env:SystemDrive -ChildPath hab | Join-Path -ChildPath bin
 $env:PATH = New-PathString $env:PATH $binPath
 
-Write-Host "--- Installing latest core/hab from $BuilderUrl, $Channel channel"
-Invoke-NativeCommand hab pkg install core/hab `
+Write-Host "--- Installing latest chef/hab from $BuilderUrl, $Channel channel"
+Invoke-NativeCommand hab pkg install chef/hab `
     --force `
     --channel "$Channel" `
     --url="$BuilderUrl"
-$habPath = hab pkg path core/hab
-Invoke-NativeCommand "$habPath/bin/hab.exe" pkg binlink core/hab --force
-Write-Host "--- Using core/hab $(hab --version)"
+$habPath = hab pkg path chef/hab
+Invoke-NativeCommand "$habPath/bin/hab.exe" pkg binlink chef/hab --force
+Write-Host "--- Using chef/hab $(hab --version)"
 
-Write-Host "--- Installing latest core/hab-pkg-export-container from $BuilderUrl, $Channel channel"
-Invoke-NativeCommand hab pkg install core/hab-pkg-export-container `
+Write-Host "--- Installing latest chef/hab-pkg-export-container from $BuilderUrl, $Channel channel"
+Invoke-NativeCommand hab pkg install chef/hab-pkg-export-container `
     --channel "$Channel" `
     --url="$BuilderUrl"
 

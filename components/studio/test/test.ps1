@@ -11,17 +11,17 @@ $env:HAB_LICENSE = "accept-no-persist"
 
 hab pkg install core/powershell
 hab pkg install core/7zip
-hab pkg install core/hab --channel stable
-hab pkg install core/hab-plan-build-ps1 --channel stable
+hab pkg install chef/hab --channel stable
+hab pkg install chef/hab-plan-build-ps1 --channel stable
 
 mkdir "bin/powershell" | Out-Null
 mkdir "bin/hab" | Out-Null
 mkdir "bin/7zip" | Out-Null
 
 Copy-Item "$(hab pkg path core/powershell)/bin/*" "bin/powershell" -Recurse
-Copy-Item "$(hab pkg path core/hab)/bin/*" "bin/hab"
+Copy-Item "$(hab pkg path chef/hab)/bin/*" "bin/hab"
 Copy-Item "$(hab pkg path core/7zip)/bin/*" "bin/7zip"
-Copy-Item "$(hab pkg path core/hab-plan-build-ps1)/bin/*" "bin/"
+Copy-Item "$(hab pkg path chef/hab-plan-build-ps1)/bin/*" "bin/"
 
 try {
     & bin/powershell/pwsh.exe -NoProfile -ExecutionPolicy bypass -NoLogo -File "bin/hab-studio.ps1" new

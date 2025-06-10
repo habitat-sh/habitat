@@ -10,6 +10,9 @@ if [ -n "${DEBUG:-}" ]; then set -x; fi
 readonly pcio_root="https://packages.chef.io/files"
 export HAB_LICENSE="accept-no-persist"
 
+# Set default origin to chef, can be overridden by HAB_ORIGIN env var or -o flag
+readonly origin="${HAB_ORIGIN:-chef}"
+
 # This is the main function that sets up the Habitat environment on macOS.
 # It creates, mounts, and configures a designated volume (Habitat Store) with the necessary settings,
 # including file system options and encryption (if needed).
@@ -275,7 +278,7 @@ main() {
   version=""
 
   # Parse command line flags and options.
-  while getopts "c:hv:t:u:b:" opt; do
+  while getopts "c:hv:t:u:b:o:" opt; do
     case "${opt}" in
     c)
       channel="${OPTARG}"
@@ -296,6 +299,9 @@ main() {
     b)
       bldlChannel="${OPTARG}" # for temporary use
       ;;
+    o)
+      origin="${OPTARG}"
+      ;;
     \?)
       echo "" >&2
       print_help >&2
@@ -311,7 +317,7 @@ main() {
   download_archive "$version" "$channel" "$target"
   verify_archive
   extract_archive
-  install_hab
+  install_hab "$origin"
   print_hab_version
   info "Installation of Habitat 'hab' program complete."
 }
@@ -509,6 +515,8 @@ extract_archive() {
 }
 
 install_hab() {
+  local _origin="${1:-chef}"
+
   case "${sys}" in
   darwin)
     case "${arch}" in
@@ -539,7 +547,7 @@ install_hab() {
     esac
     ;;
   linux)
-    local _ident="core/hab"
+    local _ident="${_origin}/hab"
 
     if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
       _ident+="/$version"
@@ -549,7 +557,7 @@ install_hab() {
     # NOTE: For people (rightly) wondering why we download hab only to use it
     # to install hab from Builder, the main reason is because it allows /bin/hab
     # to be a binlink, meaning that future upgrades can be easily done via
-    # hab pkg install core/hab -bf and everything will Just Work. If we put
+    # hab pkg install chef/hab -bf and everything will Just Work. If we put
     # the hab we downloaded into /bin, then future hab upgrades done via hab
     # itself won't work - you'd need to run this script every time you wanted
     # to upgrade hab, which is not intuitive. Putting it into a place other than

@@ -6,4 +6,4 @@
 # build` leads to the exact same experience, at least as far as initial
 # `$PATH` is concerned.
 
-exec hab pkg exec core/hab-plan-build hab-plan-build "$@"
+exec hab pkg exec chef/hab-plan-build hab-plan-build "$@"

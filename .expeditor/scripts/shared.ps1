@@ -42,10 +42,10 @@ function Install-Habitat {
     $env:path = New-PathString -StartingPath $env:path -Path "c:\hab\bin"
 
     if (Get-Command -Name hab -ErrorAction SilentlyContinue) {
-        hab pkg install core/hab --binlink --force --channel=stable
+        hab pkg install chef/hab --binlink --force --channel=stable
     } else {
         ."$PSScriptRoot\..\..\components\hab\install.ps1"
-        ."$env:ProgramData\habitat\hab.exe" pkg install core/hab --binlink --force
+        ."$env:ProgramData\habitat\hab.exe" pkg install chef/hab --binlink --force
     }
 
     Write-Host "Using habitat version:`n$(hab --version)"

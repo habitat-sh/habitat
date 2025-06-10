@@ -19,7 +19,7 @@ rm -f ~/.hab/cache/ssl/*
 # the auto-installation of the studio on first-run triggers
 # the behavior we're attempting to test
 echo "--- Uninstalling any existing studio packages"
-while hab pkg uninstall core/hab-studio; do 
+while hab pkg uninstall chef/hab-studio; do 
   :; # no-op
 done
 

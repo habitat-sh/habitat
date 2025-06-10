@@ -16,10 +16,10 @@ Describe "hab pkg export tar core/nginx" {
         Get-Ident nginx $tar | Should -Not -Be $null
     }
     It "Includes hab" {
-        Get-Ident hab $tar | Should -BeLike "core/hab/$version/*"
+        Get-Ident hab $tar | Should -BeLike "chef/hab/$version/*"
     }
     It "Includes supervisor" {
-        Get-Ident hab-sup $tar | Should -BeLike "core/hab-sup/$version/*"
+        Get-Ident hab-sup $tar | Should -BeLike "chef/hab-sup/$version/*"
     }
     It "Includes launcher" {
         Get-Ident hab-launcher $tar | Should -Not -Be $null

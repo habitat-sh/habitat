@@ -8,14 +8,14 @@ export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
 # Before we do *ANYTHING*, we're going to just delete any prior
 # version of Habitat that exists in the container.
-rm -Rf /hab/pkgs/core/hab
+rm -Rf /hab/pkgs/chef/hab
 
 ########################################################################
 
 # `component` should be the subdirectory name in `components` where a
 # particular component code resides.
 #
-# e.g. `hab` for `core/hab`, `plan-build` for `core/hab-plan-build`,
+# e.g. `hab` for `chef/hab`, `plan-build` for `chef/hab-plan-build`,
 # etc.
 component=${1:?You must specify a component value}
 

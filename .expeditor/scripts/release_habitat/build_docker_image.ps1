@@ -49,9 +49,9 @@ try {
     Write-Host "Installing and extracting initial Habitat packages"
     Install-Habitat
     $InstallHarts = @(
-        "core/hab-studio",
-        "core/hab-sup",
-        "core/windows-service --ignore-install-hook"
+        "chef/hab-studio",
+        "chef/hab-sup",
+        "chef/windows-service --ignore-install-hook"
     )
     $InstallHarts | ForEach-Object {
         Invoke-Expression "hab pkg install $_ --channel=$ReleaseChannel --url=$BldrUrl"
@@ -59,9 +59,9 @@ try {
             Write-Error "hab install failed for $_, aborting"
         }
     }
-    $studioPath = hab pkg path core/hab-studio
+    $studioPath = hab pkg path chef/hab-studio
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "core/hab-studio must be installed, aborting"
+        Write-Error "chef/hab-studio must be installed, aborting"
     }
 
     # We do this to ensure that these artifacts don't erroneously end

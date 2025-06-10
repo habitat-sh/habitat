@@ -68,15 +68,15 @@ install_release_channel_hab_binary() {
     if [[ -n $hab_version && -n $studio_version && $hab_version == "$studio_version" ]]; then
         echo "--- :habicat: Hab and studio versions match! Found hab: ${hab_version} - studio: ${studio_version}. Upgrading! :metal:"
         channel=$(get_release_channel)
-        "${hab_binary:?}" pkg install --binlink --force --channel "${channel}" core/hab
+        "${hab_binary:?}" pkg install --binlink --force --channel "${channel}" chef/hab
 
         # TODO (CM): Not exactly sure why, but if we call this using
         # `hab` rather than `${hab_binary}`, then we get the wrong
         # version back... related to Workstation's `hab` binary being
         # earlier on the path?
-        hab_binary="$(${hab_binary} pkg path core/hab)/bin/hab"
+        hab_binary="$(${hab_binary} pkg path chef/hab)/bin/hab"
 
-        "${hab_binary:?}" pkg install --binlink --force --channel "${channel}" core/hab-studio
+        "${hab_binary:?}" pkg install --binlink --force --channel "${channel}" chef/hab-studio
         echo "Installed latest build hab: $(${hab_binary} --version) at $hab_binary"
     else
         echo "--- :habicat: Hab and studio versions did not match. hab: ${hab_version:-null} - studio: ${studio_version:-null}"
@@ -128,7 +128,7 @@ get_release_from_hart() {
 }
 
 # This bit of magic strips off the Habitat header (first 6 lines) from
-# the compressed tar file that is a core/hab .hart, and extracts the
+# the compressed tar file that is a chef/hab .hart, and extracts the
 # contents of the `bin` directory only, into the ${archive_dir}
 # directory.
 #
@@ -149,7 +149,7 @@ extract_hab_binaries_from_hart() {
             --directory="${dir}" \
             --xz \
             --strip-components=7 \
-            --wildcards "hab/pkgs/core/hab/*/*/bin/"
+            --wildcards "hab/pkgs/chef/hab/*/*/bin/"
 }
 
 make_tarball() {
