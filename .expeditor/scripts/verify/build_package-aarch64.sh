@@ -5,7 +5,7 @@ set -eou pipefail
 package_path=${1?package_path argument required}
 
 # Install hab from a temporarily uploaded aarch64 package
-curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- -t "$BUILD_PKG_TARGET"
+cat ../../../components/hab/install.sh | sudo bash -s -- -t "$BUILD_PKG_TARGET" -c dev
 
 # Since we are only verifying we don't have build failures, make everything
 # temp!

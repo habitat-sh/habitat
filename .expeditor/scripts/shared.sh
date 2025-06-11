@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# TODO (CM): for the verify and release pipelines, this should
-# probably operate from the install.sh script in the repo itself, right?
-
 # Always install the latest hab binary appropriate for your linux platform
 #
 # This will install `hab` to the place appropriate for the target
@@ -10,7 +7,10 @@ curlbash_hab() {
     local pkg_target="${1:-$BUILD_PKG_TARGET}"
     echo "--- :habicat: Bootstrap installation of the current stable hab binary for $pkg_target using curl|bash"
 
-    curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
+    # install habitat from a specified channel
+    local _channel = "${2:-dev}"
+
+    cat ../../components/hab/install.sh | sudo bash -s -- -t "$pkg_target" -c "$_channel"
     case "${pkg_target}" in
         x86_64-linux | aarch64-linux)
             hab_binary="/bin/hab"
