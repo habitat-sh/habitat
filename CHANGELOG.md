@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.138 -->
-## [2.0.138](https://github.com/habitat-sh/habitat/tree/2.0.138) (2025-06-09)
+<!-- latest_release 2.0.139 -->
+## [2.0.139](https://github.com/habitat-sh/habitat/tree/2.0.139) (2025-06-11)
 
 #### Merged Pull Requests
-- Bump toml from 0.8.22 to 0.8.23 [#9721](https://github.com/habitat-sh/habitat/pull/9721) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump reqwest from 0.12.19 to 0.12.20 [#9725](https://github.com/habitat-sh/habitat/pull/9725) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump reqwest from 0.12.19 to 0.12.20 [#9725](https://github.com/habitat-sh/habitat/pull/9725) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.139 -->
 - Bump toml from 0.8.22 to 0.8.23 [#9721](https://github.com/habitat-sh/habitat/pull/9721) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.138 -->
 - Bump flate2 from 1.1.1 to 1.1.2 [#9723](https://github.com/habitat-sh/habitat/pull/9723) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.138 -->
 - Bump os_info from 3.11.0 to 3.12.0 [#9722](https://github.com/habitat-sh/habitat/pull/9722) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.137 -->
