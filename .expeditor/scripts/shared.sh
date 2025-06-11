@@ -8,9 +8,9 @@ curlbash_hab() {
     echo "--- :habicat: Bootstrap installation of the current stable hab binary for $pkg_target using curl|bash"
 
     # install habitat from a specified channel
-    local _channel = "${2:-dev}"
+    local _channel="${2:-dev}"
 
-    cat ../../components/hab/install.sh | sudo bash -s -- -t "$pkg_target" -c "$_channel"
+    sudo bash -s -- -t "$pkg_target" -c "$_channel" < ./components/hab/install.sh
     case "${pkg_target}" in
         x86_64-linux | aarch64-linux)
             hab_binary="/bin/hab"
