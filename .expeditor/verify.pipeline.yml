@@ -11,6 +11,7 @@ expeditor:
         HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL: "base-2025"
         HAB_REFRESH_CHANNEL: "base-2025"
         HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "dev"
+        HAB_FALLBACK_CHANNEL: "dev"
 steps:
 #######################################################################
 # Linting!
