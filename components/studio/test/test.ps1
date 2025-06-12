@@ -11,8 +11,8 @@ $env:HAB_LICENSE = "accept-no-persist"
 
 hab pkg install core/powershell
 hab pkg install core/7zip
-hab pkg install chef/hab --channel stable
-hab pkg install chef/hab-plan-build-ps1 --channel stable
+hab pkg install chef/hab --channel dev
+hab pkg install chef/hab-plan-build-ps1 --channel dev
 
 mkdir "bin/powershell" | Out-Null
 mkdir "bin/hab" | Out-Null

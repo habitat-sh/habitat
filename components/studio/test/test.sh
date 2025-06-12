@@ -11,7 +11,8 @@ set -euo pipefail
 
 export HAB_LICENSE="accept-no-persist"
 
-sudo hab pkg install core/busybox-static chef/hab chef/hab-backline
+sudo -E hab pkg install core/busybox-static
+sudo -E hab pkg install chef/hab chef/hab-backline -c dev
 
 # Current studio has the expectation that busybox and hab live in the libexec directroy
 # These two lines should be removed at a later date to validate this is no longer a requirement
