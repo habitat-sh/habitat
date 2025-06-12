@@ -19,6 +19,12 @@ $env:HAB_CACHE_KEY_PATH="$job_temp_root/keys"
 
 Write-Host "--- :key: Generating fake origin key"
 hab origin key generate
+
+# Install hab-studio from the chef origin via the dev channel.
+# By default, it installs from the stable channel only,
+# so this may need updating to support other channels.
+hab pkg install chef/hab-studio -c dev
+
 Write-Host "--- :hab: Running hab pkg build for $PackagePath"
 git config --global --add safe.directory C:/workdir
 

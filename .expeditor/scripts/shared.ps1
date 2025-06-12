@@ -1,3 +1,6 @@
+# Set the Habitat channel to install chef/hab from.
+$HabChannel = "dev"
+
 $env:PathSeparator = if ($IsWindows -Or !$IsCoreCLR) {
     ";"
 } else {
@@ -42,10 +45,10 @@ function Install-Habitat {
     $env:path = New-PathString -StartingPath $env:path -Path "c:\hab\bin"
 
     if (Get-Command -Name hab -ErrorAction SilentlyContinue) {
-        hab pkg install chef/hab --binlink --force --channel=stable
+        hab pkg install chef/hab --binlink --force --channel=$HabChannel
     } else {
         ."$PSScriptRoot\..\..\components\hab\install.ps1"
-        ."$env:ProgramData\habitat\hab.exe" pkg install chef/hab --binlink --force
+        ."$env:ProgramData\habitat\hab.exe" pkg install chef/hab --binlink --force --channel=$HabChannel
     }
 
     Write-Host "Using habitat version:`n$(hab --version)"

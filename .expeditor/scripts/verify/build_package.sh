@@ -21,5 +21,11 @@ HAB_CACHE_KEY_PATH="$JOB_TEMP_ROOT/keys"
 
 echo "--- :key: Generating fake origin key"
 ${hab_binary} origin key generate
+
+# Install hab-studio from the chef origin via the dev channel.
+# By default, it installs from the stable channel only,
+# so this may need updating to support other channels.
+hab pkg install chef/hab-studio -c dev
+
 echo "--- :hab: Running hab pkg build for $package_path"
 ${hab_binary} pkg build "$package_path"
