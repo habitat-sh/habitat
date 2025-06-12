@@ -19,6 +19,11 @@ JOB_TEMP_ROOT=$(mktemp -d /tmp/job-root-XXXXXX)
 export HAB_CACHE_KEY_PATH
 HAB_CACHE_KEY_PATH="$JOB_TEMP_ROOT/keys"
 
+echo "HAB_BLDR_CHANNEL: $HAB_BLDR_CHANNEL"
+echo "HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL: $HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL"
+echo "HAB_REFRESH_CHANNEL: $HAB_REFRESH_CHANNEL"
+echo "HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: $HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL"
+
 echo "--- :key: Generating fake origin key"
 ${hab_binary} origin key generate
 echo "--- :hab: Running hab pkg build for $package_path"
