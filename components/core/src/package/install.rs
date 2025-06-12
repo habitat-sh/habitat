@@ -1285,7 +1285,7 @@ mod test {
                         ignored\n");
 
         let mut expected = BTreeMap::new();
-        let fs_root_path = fs_root.into_path();
+        let fs_root_path = fs_root.keep();
         expected.insert("FOO".to_string(), "bar".to_string());
         expected.insert("JAVA_HOME".to_string(), "/my/java/home".to_string());
         expected.insert(
@@ -1339,7 +1339,7 @@ mod test {
                        "PATH=/should/be/ignored\nJAVA_HOME=/my/java/home\nFOO=bar\n");
 
         let mut expected = BTreeMap::new();
-        let fs_root_path = fs_root.into_path();
+        let fs_root_path = fs_root.keep();
         let mut paths = vec![fs::fs_rooted_path(&pkg_prefix_for(&pkg_install).join("bin"),
                                                 &fs_root_path),
                              fs::fs_rooted_path(&pkg_prefix_for(&other_pkg_install).join("sbin"),
