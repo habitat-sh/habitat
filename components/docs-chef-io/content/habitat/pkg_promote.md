@@ -8,7 +8,7 @@ gh_repo = "habitat"
     title = "Promoting Packages"
     identifier = "habitat/packages/promote Promoting Packages"
     parent = "habitat/packages"
-    weight = 20
+    weight = 30
 
 +++
 
