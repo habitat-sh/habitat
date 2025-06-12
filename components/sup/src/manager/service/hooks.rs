@@ -959,7 +959,7 @@ mod tests {
         var.set(&script);
 
         let service_group = service_group();
-        let tmp_root = rendered_hooks_path().into_path();
+        let tmp_root = rendered_hooks_path().keep();
         let hooks_path = tmp_root.clone().join("hooks");
         fs::create_dir_all(&hooks_path).unwrap();
         fs::create_dir_all(svc_logs_path(service_group.service())).unwrap();
@@ -1005,7 +1005,7 @@ mod tests {
         var.set(&script);
 
         let service_group = service_group();
-        let tmp_root = rendered_hooks_path().into_path();
+        let tmp_root = rendered_hooks_path().keep();
         let hooks_path = tmp_root.clone().join("hooks");
         fs::create_dir_all(&hooks_path).unwrap();
         fs::create_dir_all(svc_logs_path(service_group.service())).unwrap();

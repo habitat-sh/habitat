@@ -1132,7 +1132,7 @@ mod test {
 
     #[tokio::test]
     async fn test_compile_recursive_config_dir() {
-        let root = TempDir::new().expect("create temp dir").into_path();
+        let root = TempDir::new().expect("create temp dir").keep();
 
         // Setup a dummy package directory with a config file inside
         // a directory structure

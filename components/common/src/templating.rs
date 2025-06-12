@@ -433,7 +433,7 @@ mod test {
 
     #[tokio::test]
     async fn render_package_install() {
-        let root = TempDir::new().expect("create temp dir").into_path();
+        let root = TempDir::new().expect("create temp dir").keep();
         env::set_var(fs::FS_ROOT_ENVVAR, &root);
         let pg_id = PackageIdent::new("testing", "test", Some("1.0.0"), Some("20170712000000"));
 
