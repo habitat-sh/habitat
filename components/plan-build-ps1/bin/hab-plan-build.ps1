@@ -87,7 +87,7 @@ if (!(Test-Path Env:\HAB_FALLBACK_CHANNEL)) {
 }
 # Use the refresh channel for dependencies in the core origin
 if (!(Test-Path Env:\HAB_REFRESH_CHANNEL)) {
-    $env:HAB_REFRESH_CHANNEL = "stable"
+    $env:HAB_REFRESH_CHANNEL = "base"
 }
 # The value of `$env:Path` on initial start of this program
 $script:INITIAL_PATH = "$env:Path"
