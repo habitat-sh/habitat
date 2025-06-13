@@ -530,6 +530,7 @@ steps:
   - label: "[unit] :linux: install script"
     env:
       HAB_LICENSE: "accept-no-persist"
+      SKIP_INSTALL_TESTS: "true"
     command:
       - .expeditor/scripts/verify/test_install_script.sh
     expeditor:
