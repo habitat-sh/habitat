@@ -1,8 +1,8 @@
 Add-Type -TypeDefinition (Get-Content "$PSScriptroot/../../.expeditor/scripts/end_to_end/SupervisorRunner.cs" | Out-String)
 
 # Download the dependencies first to prevent timing issues, long timeouts, etc.
-hab pkg install core/hab-sup --channel="${env:HAB_BLDR_CHANNEL}"
-hab pkg install core/hab-launcher --channel="${env:HAB_BLDR_CHANNEL}"
+hab pkg install chef/hab-sup --channel="${env:HAB_BLDR_CHANNEL}"
+hab pkg install chef/hab-launcher --channel="${env:HAB_BLDR_CHANNEL}"
 
 # Write the given content to `/hab/sup/default/LOCK`
 function Write-Lockfile($content) {

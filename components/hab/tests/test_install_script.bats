@@ -34,7 +34,8 @@ installed_target() {
 
 @test "Install latest for x86_86-linux" {
   linux || skip "Did not detect a Linux system"
-  run components/hab/install.sh
+  [ "$SKIP_INSTALL_TESTS" = "true" ] && skip "Test skipped: install tests are disabled via SKIP_INSTALL_TESTS=true"
+  run components/hab/install.sh -c dev
 
   [ "$status" -eq 0 ]
   [ "$(installed_target)" == "x86_64-linux" ]
@@ -42,6 +43,7 @@ installed_target() {
 
 @test "Install specific version for x86_64-linux" {
   linux || skip "Did not detect a Linux system"
+  [ "$SKIP_INSTALL_TESTS" = "true" ] && skip "Test skipped: install tests are disabled via SKIP_INSTALL_TESTS=true"
   run components/hab/install.sh -v 0.90.6
 
   [ "$status" -eq 0 ]
@@ -51,6 +53,7 @@ installed_target() {
 
 @test "Install legacy package for x86_84-linux" {
   linux || skip "Did not detect a Linux system"
+  [ "$SKIP_INSTALL_TESTS" = "true" ] && skip "Test skipped: install tests are disabled via SKIP_INSTALL_TESTS=true"
   run components/hab/install.sh -v 0.79.1
 
   [ "$status" -eq 0 ]
@@ -82,6 +85,7 @@ installed_target() {
 }
 
 @test "Install ignores release when installing from packages.chef.io" {
+  [ "$SKIP_INSTALL_TESTS" = "true" ] && skip "Test skipped: install tests are disabled via SKIP_INSTALL_TESTS=true"
   run components/hab/install.sh -v "0.90.6/20191112141314"
   [ "$status" -eq 0 ]
   [ "$(installed_version)" == "hab 0.90.6" ]

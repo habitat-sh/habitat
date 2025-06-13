@@ -43,7 +43,7 @@ function Test-LauncherFailure($version, $testName) {
 
 # These tests will timeout unless the launcher and all of its dependencies
 # are already on disk.
-hab pkg install core/hab-launcher --channel $HAB_BLDR_CHANNEL
+hab pkg install chef/hab-launcher --channel $HAB_BLDR_CHANNEL
 
 Describe "Launcher version check" {
     It "Exits with error when running an incompatible supervisor version" {

@@ -24,7 +24,7 @@ pub const CERT_PATH_ENVVAR: &str = "CERT_PATH";
 pub const SSL_CERT_FILE_ENVVAR: &str = "SSL_CERT_FILE";
 pub const STUDIO_HOST_ARCH_ENVVAR: &str = "HAB_STUDIO_SECRET_HAB_STUDIO_HOST_ARCH";
 
-const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
+const STUDIO_PACKAGE_IDENT: &str = "chef/hab-studio";
 
 #[derive(Clone, Copy)]
 enum Sensitivity {

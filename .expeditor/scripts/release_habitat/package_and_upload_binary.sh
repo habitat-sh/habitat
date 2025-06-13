@@ -23,18 +23,18 @@ import_gpg_keys
 tmp_root="$(mktemp --directory --tmpdir="$(pwd)" -t "repackage-XXXX")"
 cd "${tmp_root}"
 
-echo "--- Downloading core/hab for $BUILD_PKG_TARGET from ${channel} channel"
+echo "--- Downloading chef/hab for $BUILD_PKG_TARGET from ${channel} channel"
 
 # Currently, we must explicitly specify `--url`, despite the presence
 # of `HAB_BLDR_URL` due to a bug in `hab pkg download`.
 #
 # Explicitness never hurt, though :)
-${hab_binary} pkg download core/hab \
+${hab_binary} pkg download chef/hab \
               --target="${BUILD_PKG_TARGET}" \
               --url="${HAB_BLDR_URL}" \
               --channel="${channel}" \
               --download-directory="."
-hart="$(find . -type f -name 'core-hab-*-'"${BUILD_PKG_TARGET}"'.hart')"
+hart="$(find . -type f -name 'chef-hab-*-'"${BUILD_PKG_TARGET}"'.hart')"
 
 echo "--- Generating standalone archive from ${hart}"
 

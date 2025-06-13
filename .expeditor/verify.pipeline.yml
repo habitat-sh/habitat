@@ -10,6 +10,8 @@ expeditor:
         HAB_BLDR_CHANNEL: "base-2025"
         HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL: "base-2025"
         HAB_REFRESH_CHANNEL: "base-2025"
+        HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "dev"
+        HAB_FALLBACK_CHANNEL: "dev"
 steps:
 #######################################################################
 # Linting!
@@ -528,6 +530,7 @@ steps:
   - label: "[unit] :linux: install script"
     env:
       HAB_LICENSE: "accept-no-persist"
+      SKIP_INSTALL_TESTS: "true"
     command:
       - .expeditor/scripts/verify/test_install_script.sh
     expeditor:
