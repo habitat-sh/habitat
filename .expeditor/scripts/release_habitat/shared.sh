@@ -143,13 +143,14 @@ get_release_from_hart() {
 extract_hab_binaries_from_hart() {
     local hart="${1}"
     local dir="${2}"
+    local origin="${3:-chef}"
 
     tail --lines=+6 "${hart}" | \
         tar --extract \
             --directory="${dir}" \
             --xz \
             --strip-components=7 \
-            --wildcards "hab/pkgs/chef/hab/*/*/bin/"
+            --wildcards "hab/pkgs/${origin}/hab/*/*/bin/"
 }
 
 make_tarball() {
@@ -188,12 +189,13 @@ internal_archive_dir_name() {
 create_archive_from_hart() {
     local hart="${1}"
     local target="${2}"
+    local origin="${3:-chef}"
 
     local archive_dir
     archive_dir="$(internal_archive_dir_name "${hart}" "${target}")"
     mkdir "${archive_dir}"
 
-    extract_hab_binaries_from_hart "${hart}" "${archive_dir}"
+    extract_hab_binaries_from_hart "${hart}" "${archive_dir}" "${origin}"
 
     pkg_name="hab-${target}"
 
