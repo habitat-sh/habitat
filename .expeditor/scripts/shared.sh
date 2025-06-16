@@ -9,8 +9,9 @@ curlbash_hab() {
 
     # install habitat from a specified channel
     local _channel="${2:-dev}"
+    local _origin ="${3:-chef}"
 
-    sudo ./components/hab/install.sh -t "$pkg_target" -c "$_channel"
+    sudo ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -o "$_origin"
     case "${pkg_target}" in
         x86_64-linux | aarch64-linux)
             hab_binary="/bin/hab"

@@ -7,7 +7,7 @@ source .expeditor/scripts/shared.sh
 package_path=${1?package_path argument required}
 
 declare -g hab_binary
-curlbash_hab "${BUILD_PKG_TARGET}"
+curlbash_hab "${BUILD_PKG_TARGET}" "${HAB_BLDR_CHANNEL}" "${BUILD_PKG_ORIGIN}"
 
 # Since we are only verifying we don't have build failures, make everything
 # temp!

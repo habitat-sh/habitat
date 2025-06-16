@@ -10,8 +10,9 @@ if [ -n "${DEBUG:-}" ]; then set -x; fi
 readonly pcio_root="https://packages.chef.io/files"
 export HAB_LICENSE="accept-no-persist"
 
-# Set default origin to chef, can be overridden by HAB_ORIGIN env var or -o flag
-readonly origin="${HAB_ORIGIN:-chef}"
+# Set the default origin to 'core'. This can be overridden by the HAB_ORIGIN environment variable or the -o flag.
+# Once we're ready for release, consider changing the default to 'chef'.
+readonly origin="${HAB_ORIGIN:-core}"
 
 # This is the main function that sets up the Habitat environment on macOS.
 # It creates, mounts, and configures a designated volume (Habitat Store) with the necessary settings,
@@ -515,7 +516,7 @@ extract_archive() {
 }
 
 install_hab() {
-  local _origin="${1:-chef}"
+  local _origin="${1:-core}"
 
   case "${sys}" in
   darwin)
@@ -557,7 +558,7 @@ install_hab() {
     # NOTE: For people (rightly) wondering why we download hab only to use it
     # to install hab from Builder, the main reason is because it allows /bin/hab
     # to be a binlink, meaning that future upgrades can be easily done via
-    # hab pkg install chef/hab -bf and everything will Just Work. If we put
+    # hab pkg install core/hab -bf and everything will Just Work. If we put
     # the hab we downloaded into /bin, then future hab upgrades done via hab
     # itself won't work - you'd need to run this script every time you wanted
     # to upgrade hab, which is not intuitive. Putting it into a place other than
