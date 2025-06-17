@@ -16,40 +16,76 @@ identifier = "habitat"
   weight = 15
 
   [[menu.habitat]]
-  title = "Builder"
+  title = "SaaS Builder"
   identifier = "habitat/builder"
   parent = "habitat"
   weight = 20
 
   [[menu.habitat]]
+  title = "On-prem Builder"
+  identifier = "habitat/on-prem-builder"
+  parent = "habitat"
+  weight = 30
+
+    [[menu.habitat]]
+    title = "Install"
+    identifier = "habitat/on-prem-builder/install"
+    parent = "habitat/on-prem-builder"
+    weight = 20
+
+    [[menu.habitat]]
+    title = "Configure"
+    identifier = "habitat/on-prem-builder/configure"
+    parent = "habitat/on-prem-builder"
+    weight = 30
+
+    [[menu.habitat]]
+    title = "Manage"
+    identifier = "habitat/on-prem-builder/manage"
+    parent = "habitat/on-prem-builder"
+    weight = 40
+
+    [[menu.habitat]]
+    title = "Origins"
+    identifier = "habitat/on-prem-builder/origins"
+    parent = "habitat/on-prem-builder"
+    weight = 50
+
+    [[menu.habitat]]
+    title = "Packages"
+    identifier = "habitat/on-prem-builder/packages"
+    parent = "habitat/on-prem-builder"
+    weight = 60
+
+  [[menu.habitat]]
   title = "Origins"
   identifier = "habitat/origins"
   parent = "habitat"
-  weight = 30
+  weight = 40
 
   [[menu.habitat]]
   title = "Packages"
   identifier = "habitat/packages"
   parent = "habitat"
-  weight = 40
+  weight = 50
 
   [[menu.habitat]]
   title = "Plans"
   identifier = "habitat/plans"
   parent = "habitat"
-  weight = 50
+  weight = 60
 
   [[menu.habitat]]
   title = "Services"
   identifier = "habitat/services"
   parent = "habitat"
-  weight = 60
+  weight = 70
 
   [[menu.habitat]]
   title = "Supervisors"
   identifier = "habitat/supervisors"
   parent = "habitat"
-  weight = 70
+  weight = 80
 
   [[menu.habitat]]
   title = "Reference"
