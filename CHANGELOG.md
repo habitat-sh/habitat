@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.141 -->
-## [2.0.141](https://github.com/habitat-sh/habitat/tree/2.0.141) (2025-06-18)
+<!-- latest_release 2.0.142 -->
+## [2.0.142](https://github.com/habitat-sh/habitat/tree/2.0.142) (2025-06-18)
 
 #### Merged Pull Requests
-- Bump prost-build from 0.13.5 to 0.14.0 [#9727](https://github.com/habitat-sh/habitat/pull/9727) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Revert &quot;Bump prost-build from 0.13.5 to 0.14.0&quot; [#9732](https://github.com/habitat-sh/habitat/pull/9732) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Revert &quot;Bump prost-build from 0.13.5 to 0.14.0&quot; [#9732](https://github.com/habitat-sh/habitat/pull/9732) ([mwrock](https://github.com/mwrock)) <!-- 2.0.142 -->
 - Bump prost-build from 0.13.5 to 0.14.0 [#9727](https://github.com/habitat-sh/habitat/pull/9727) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.141 -->
 - Bump tempfile from 3.19.1 to 3.20.0 [#9700](https://github.com/habitat-sh/habitat/pull/9700) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.140 -->
 - Bump reqwest from 0.12.19 to 0.12.20 [#9725](https://github.com/habitat-sh/habitat/pull/9725) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.139 -->
