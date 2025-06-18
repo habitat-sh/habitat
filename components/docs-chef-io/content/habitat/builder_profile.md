@@ -120,3 +120,5 @@ Then initialize the path from the command line, by running:
 ```bash
 source ~/.bashrc
 ```
+
+{{< readfile file="content/habitat/reusable/md/license_key.md" >}}
