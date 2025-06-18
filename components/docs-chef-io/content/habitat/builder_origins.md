@@ -25,7 +25,7 @@ Progress Chef maintains the following origins:
 ## Where can I create an origin
 
 You can create origins in an on-prem Habitat Builder deployment.
-[Chef's public Habitat Builder](https://bldr.habitat.sh) doesn't support creating new origins.
+**Note:** Creating new origins is no longer supported on [Chef's public Habitat Builder](https://bldr.habitat.sh).
 
 ## Create an origin
 
