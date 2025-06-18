@@ -1530,7 +1530,7 @@ dependencies = [
  "libc",
  "log",
  "nix",
- "prost 0.13.5",
+ "prost 0.14.0",
  "semver",
  "thiserror 2.0.12",
  "winapi",
@@ -1548,7 +1548,7 @@ dependencies = [
  "ipc-channel",
  "libc",
  "log",
- "prost 0.13.5",
+ "prost 0.14.0",
  "serde",
  "thiserror 2.0.12",
 ]
@@ -1582,7 +1582,7 @@ dependencies = [
  "habitat_common",
  "habitat_core",
  "log",
- "prost 0.13.5",
+ "prost 0.14.0",
  "rustls 0.23.27",
  "termcolor",
  "tokio",
@@ -1859,7 +1859,7 @@ dependencies = [
  "prometheus",
  "prost 0.13.5",
  "prost-build",
- "prost-types 0.13.5",
+ "prost-types",
  "rand 0.9.1",
  "rants",
  "regex",
@@ -2539,9 +2539,9 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
 name = "libc"
-version = "0.2.172"
+version = "0.2.174"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d750af042f7ef4f724306de029d18836c26c1765a54a6a3f094cbd23a7267ffa"
+checksum = "1171693293099992e19cddea4e8b849964e9846f4acee11b3948bcc337be8776"
 
 [[package]]
 name = "libloading"
@@ -3362,7 +3362,7 @@ dependencies = [
  "petgraph 0.6.5",
  "prettyplease",
  "prost 0.14.0",
- "prost-types 0.14.0",
+ "prost-types",
  "regex",
  "syn 2.0.98",
  "tempfile",
@@ -3392,15 +3392,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.98",
-]
-
-[[package]]
-name = "prost-types"
-version = "0.13.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52c2c1bf36ddb1a1c396b3601a3cec27c2462e45f07c386894ec3ccf5332bd16"
-dependencies = [
- "prost 0.13.5",
 ]
 
 [[package]]
