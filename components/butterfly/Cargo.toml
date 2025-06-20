@@ -21,7 +21,7 @@ log = "0.4"
 lazy_static = "*"
 prometheus = { version = "*", default-features = false }
 parking_lot = "*"
-prost = { version = "*", features = ["prost-derive"] }
+prost = { version = "*", features = ["derive"] }
 rand = "*"
 serde = { version = "*", features = ["derive", "rc"] }
 serde_json = { version = "*", features = [ "preserve_order" ] }
