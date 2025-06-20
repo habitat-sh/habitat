@@ -58,8 +58,7 @@ use habitat_common::{self as common,
 use habitat_core::{crypto::{init,
                             keys::{Key,
                                    KeyCache}},
-                   env::{self as henv,
-                         Config as _},
+                   env::{self as henv},
                    fs::{cache_artifact_path,
                         FS_ROOT_PATH},
                    os::process::ShutdownTimeout,
@@ -220,7 +219,10 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                             let args = args_after_first(2);
                             match sup {
                                 #[cfg(any(
-                                    all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
+                                    all(
+                                        target_os = "linux",
+                                        any(target_arch = "x86_64", target_arch = "aarch64")
+                                    ),
                                     all(target_os = "windows", target_arch = "x86_64"),
                                 ))]
                                 Sup::Bash | Sup::Sh => {
@@ -234,25 +236,33 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                                 }
                             }
                         }
-                        HabSup::Depart { member_id,
-                                         remote_sup, } => {
+                        HabSup::Depart {
+                            member_id,
+                            remote_sup,
+                        } => {
                             return sub_sup_depart(member_id, remote_sup.inner()).await;
                         }
-                        HabSup::Secret(secret) => {
-                            match secret {
-                                Secret::Generate => return sub_sup_secret_generate(),
-                                Secret::GenerateTls { subject_alternative_name,
-                                                      path, } => {
-                                    return sub_sup_secret_generate_key(&subject_alternative_name.dns_name()?,
-                                                                       path)
-                                }
+                        HabSup::Secret(secret) => match secret {
+                            Secret::Generate => return sub_sup_secret_generate(),
+                            Secret::GenerateTls {
+                                subject_alternative_name,
+                                path,
+                            } => {
+                                return sub_sup_secret_generate_key(
+                                    &subject_alternative_name.dns_name()?,
+                                    path,
+                                )
                             }
-                        }
-                        HabSup::Status { pkg_ident,
-                                         remote_sup, } => {
-                            ui.warn("'hab sup status' as an alias for 'hab svc status' is \
+                        },
+                        HabSup::Status {
+                            pkg_ident,
+                            remote_sup,
+                        } => {
+                            ui.warn(
+                                "'hab sup status' as an alias for 'hab svc status' is \
                                      deprecated. Please update your automation and processes \
-                                     accordingly.")?;
+                                     accordingly.",
+                            )?;
                             return sub_svc_status(pkg_ident, remote_sup.inner()).await;
                         }
                         HabSup::Restart { remote_sup } => {
@@ -299,14 +309,16 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                             match export {
                                 #[cfg(any(target_os = "linux", target_os = "windows"))]
                                 PkgExportCommand::Container(args) => {
-                                    return command::pkg::export::container::start(ui, &args.args).await;
+                                    return command::pkg::export::container::start(ui, &args.args)
+                                    .await;
                                 }
                                 #[cfg(any(target_os = "linux", target_os = "windows"))]
                                 PkgExportCommand::Docker(args) => {
                                     ui.warn("'hab pkg export docker' is now a deprecated alias \
                                              for 'hab pkg export container'. Please update your \
                                              automation and processes accordingly.")?;
-                                    return command::pkg::export::container::start(ui, &args.args).await;
+                                    return command::pkg::export::container::start(ui, &args.args)
+                                    .await;
                                 }
                                 #[cfg(any(target_os = "linux", target_os = "windows"))]
                                 PkgExportCommand::Tar(args) => {
@@ -873,22 +885,35 @@ async fn sub_pkg_download(ui: &mut UI,
                           m: &ArgMatches<'_>,
                           _feature_flags: FeatureFlag)
                           -> Result<()> {
+    use habitat_core::package::Identifiable;
+
     let token = maybe_auth_token(m);
     let url = bldr_url_from_matches(m)?;
     let download_dir = download_dir_from_matches(m);
 
     // Construct flat file based inputs
-    let channel = channel_from_matches_or_default(m);
+    let channel = channel_from_matches(m);
     let target = target_from_matches(m)?;
 
-    let install_sources = idents_from_matches(m)?;
+    let idents = idents_from_matches(m)?;
 
-    let mut package_sets = vec![PackageSet { target,
-                                             channel: channel.clone(),
-                                             idents: install_sources }];
-
-    let mut install_sources_from_file = idents_from_file_matches(ui, m, &channel, target)?;
-    package_sets.append(&mut install_sources_from_file);
+    let mut package_sets = if let Some(ref channel) = channel {
+        vec![PackageSet { target,
+                          channel: channel.clone(),
+                          idents }]
+    } else {
+        let (core_idents, non_core_idents): (Vec<_>, Vec<_>) =
+            idents.into_iter()
+                  .partition(|ident| ident.origin() == "core");
+        vec![PackageSet { target,
+                          channel: ChannelIdent::stable(),
+                          idents: non_core_idents },
+             PackageSet { target,
+                          channel: ChannelIdent::base(),
+                          idents: core_idents },]
+    };
+    let mut package_sets_from_file = package_sets_from_file_matches(ui, m, &channel, target)?;
+    package_sets.append(&mut package_sets_from_file);
     package_sets.retain(|set| !set.idents.is_empty());
 
     let verify = verify_from_matches(m);
@@ -1085,8 +1110,10 @@ async fn sub_pkg_install(ui: &mut UI,
                          m: &ArgMatches<'_>,
                          feature_flags: FeatureFlag)
                          -> Result<()> {
+    use habitat_core::package::Identifiable;
+
     let url = bldr_url_from_matches(m)?;
-    let channel = channel_from_matches_or_default(m);
+    let channel = channel_from_matches(m);
     let install_sources = install_sources_from_matches(m)?;
     let token = maybe_auth_token(m);
     let install_mode =
@@ -1111,19 +1138,30 @@ async fn sub_pkg_install(ui: &mut UI,
     init()?;
 
     for install_source in install_sources.iter() {
-        let pkg_install =
-            common::command::package::install::start(ui,
-                                                     &url,
-                                                     &channel,
-                                                     install_source,
-                                                     PRODUCT,
-                                                     VERSION,
-                                                     &FS_ROOT_PATH,
-                                                     &cache_artifact_path(Some(FS_ROOT_PATH.as_path())),
-                                                     token.as_deref(),
-                                                     &install_mode,
-                                                     &local_package_usage,
-                                                     install_hook_mode).await?;
+        let ident: &PackageIdent = install_source.as_ref();
+        let channel = if let Some(ref channel) = channel {
+            channel.clone()
+        } else if ident.origin() == "core" {
+            ChannelIdent::base()
+        } else {
+            ChannelIdent::stable()
+        };
+
+        let pkg_install = common::command::package::install::start(
+            ui,
+            &url,
+            &channel,
+            install_source,
+            PRODUCT,
+            VERSION,
+            &FS_ROOT_PATH,
+            &cache_artifact_path(Some(FS_ROOT_PATH.as_path())),
+            token.as_deref(),
+            &install_mode,
+            &local_package_usage,
+            install_hook_mode,
+        )
+        .await?;
 
         if let Some(dest_dir) = binlink_dest_dir_from_matches(m) {
             let force = m.is_present("FORCE");
@@ -1360,8 +1398,9 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
         match reply.message_id() {
             "NetOk" => (),
             "NetErr" => {
-                let m = reply.parse::<sup_proto::net::NetErr>()
-                             .map_err(SrvClientError::Decode)?;
+                let m = reply
+                    .parse::<sup_proto::net::NetErr>()
+                    .map_err(SrvClientError::Decode)?;
                 match ErrCode::try_from(m.code) {
                     Ok(ErrCode::InvalidPayload) => {
                         ui.warn(m)?;
@@ -1369,7 +1408,11 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                     _ => return Err(SrvClientError::from(m).into()),
                 }
             }
-            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
+            _ => {
+                return Err(
+                    SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into(),
+                )
+            }
         }
     }
     ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))?;
@@ -1379,11 +1422,16 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
         match reply.message_id() {
             "NetOk" => (),
             "NetErr" => {
-                let m = reply.parse::<sup_proto::net::NetErr>()
-                             .map_err(SrvClientError::Decode)?;
+                let m = reply
+                    .parse::<sup_proto::net::NetErr>()
+                    .map_err(SrvClientError::Decode)?;
                 return Err(SrvClientError::from(m).into());
             }
-            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
+            _ => {
+                return Err(
+                    SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into(),
+                )
+            }
         }
     }
     ui.end("Applied configuration")?;
@@ -1399,15 +1447,21 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
         let reply = message_result?;
         match reply.message_id() {
             "ServiceCfg" => {
-                reply.parse::<sup_proto::types::ServiceCfg>()
-                     .map_err(SrvClientError::Decode)?;
+                reply
+                    .parse::<sup_proto::types::ServiceCfg>()
+                    .map_err(SrvClientError::Decode)?;
             }
             "NetErr" => {
-                let m = reply.parse::<sup_proto::net::NetErr>()
-                             .map_err(SrvClientError::Decode)?;
+                let m = reply
+                    .parse::<sup_proto::net::NetErr>()
+                    .map_err(SrvClientError::Decode)?;
                 return Err(SrvClientError::from(m).into());
             }
-            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
+            _ => {
+                return Err(
+                    SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into(),
+                )
+            }
         }
     }
     Ok(())
@@ -1544,8 +1598,9 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
         match reply.message_id() {
             "NetOk" => (),
             "NetErr" => {
-                let m = reply.parse::<sup_proto::net::NetErr>()
-                             .map_err(SrvClientError::Decode)?;
+                let m = reply
+                    .parse::<sup_proto::net::NetErr>()
+                    .map_err(SrvClientError::Decode)?;
                 match ErrCode::try_from(m.code) {
                     Ok(ErrCode::InvalidPayload) => {
                         ui.warn(m)?;
@@ -1553,7 +1608,11 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
                     _ => return Err(SrvClientError::from(m).into()),
                 }
             }
-            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
+            _ => {
+                return Err(
+                    SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into(),
+                )
+            }
         }
     }
     ui.end("Uploaded file")?;
@@ -1579,11 +1638,16 @@ async fn sub_sup_depart(member_id: String,
         match reply.message_id() {
             "NetOk" => (),
             "NetErr" => {
-                let m = reply.parse::<sup_proto::net::NetErr>()
-                             .map_err(SrvClientError::Decode)?;
+                let m = reply
+                    .parse::<sup_proto::net::NetErr>()
+                    .map_err(SrvClientError::Decode)?;
                 return Err(SrvClientError::from(m).into());
             }
-            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
+            _ => {
+                return Err(
+                    SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into(),
+                )
+            }
         }
     }
     ui.end("Departure recorded.")?;
@@ -1603,11 +1667,16 @@ async fn sub_sup_restart(remote_sup: Option<&ResolvedListenCtlAddr>) -> Result<(
         match reply.message_id() {
             "NetOk" => (),
             "NetErr" => {
-                let m = reply.parse::<sup_proto::net::NetErr>()
-                             .map_err(SrvClientError::Decode)?;
+                let m = reply
+                    .parse::<sup_proto::net::NetErr>()
+                    .map_err(SrvClientError::Decode)?;
                 return Err(SrvClientError::from(m).into());
             }
-            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
+            _ => {
+                return Err(
+                    SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into(),
+                )
+            }
         }
     }
     ui.end("Restart recorded.")?;
@@ -1625,8 +1694,10 @@ fn sub_sup_secret_generate() -> Result<()> {
 
 #[cfg(not(target_os = "macos"))]
 fn sub_sup_secret_generate_key(subject_alternative_name: &DnsName, path: PathBuf) -> Result<()> {
-    Ok(ctl_gateway_tls::generate_self_signed_certificate_and_key(subject_alternative_name, path)
-        .map_err(habitat_core::Error::from)?)
+    Ok(
+        ctl_gateway_tls::generate_self_signed_certificate_and_key(subject_alternative_name, path)
+            .map_err(habitat_core::Error::from)?,
+    )
 }
 
 fn sub_supportbundle(ui: &mut UI) -> Result<()> {
@@ -1693,9 +1764,11 @@ fn auth_token_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
                 Ok(v) => Ok(v),
                 Err(_) => {
                     CliConfig::load()?.auth_token.ok_or_else(|| {
-                                                     Error::ArgumentError("No auth token \
+                                                     Error::ArgumentError(
+                    "No auth token \
                                                                                 specified"
-                                                                                          .into())
+                        .into(),
+                )
                                                  })
                 }
             }
@@ -1796,11 +1869,6 @@ fn required_source_channel_from_matches(matches: &ArgMatches<'_>) -> ChannelIden
            .map(ChannelIdent::from)
            .expect("SOURCE_CHANNEl is a required argument!")
 }
-/// Resolve a channel. Taken from the environment or from CLI args, if
-/// given or return the default channel value.
-fn channel_from_matches_or_default(matches: &ArgMatches<'_>) -> ChannelIdent {
-    channel_from_matches(matches).unwrap_or_else(ChannelIdent::configured_value)
-}
 
 /// Resolve a target. Default to x86_64-linux if none specified
 fn target_from_matches(matches: &ArgMatches<'_>) -> Result<PackageTarget> {
@@ -1850,32 +1918,50 @@ fn idents_from_matches(matches: &ArgMatches<'_>) -> Result<Vec<PackageIdent>> {
     }
 }
 
-fn idents_from_file_matches(ui: &mut UI,
-                            matches: &ArgMatches<'_>,
-                            cli_channel: &ChannelIdent,
-                            cli_target: PackageTarget)
-                            -> Result<Vec<PackageSet>> {
+fn package_sets_from_file_matches(ui: &mut UI,
+                                  matches: &ArgMatches<'_>,
+                                  cli_channel: &Option<ChannelIdent>,
+                                  cli_target: PackageTarget)
+                                  -> Result<Vec<PackageSet>> {
+    use habitat_core::package::Identifiable;
     let mut sources: Vec<PackageSet> = Vec::new();
 
     if let Some(files) = matches.values_of("PKG_IDENT_FILE") {
         for f in files {
             let filename = &f.to_string();
             if habitat_common::cli::is_toml_file(filename) {
-                let mut package_sets = idents_from_toml_file(ui, filename)?;
+                let mut package_sets = package_sets_from_toml_file(ui, filename)?;
                 sources.append(&mut package_sets)
             } else {
                 let idents_from_file = habitat_common::cli::file_into_idents(filename)?;
-                let package_set = PackageSet { idents:  idents_from_file,
-                                               channel: cli_channel.clone(),
-                                               target:  cli_target, };
-                sources.push(package_set)
+                match cli_channel {
+                    Some(channel) => {
+                        sources.push(PackageSet { idents:  idents_from_file,
+                                                  channel: channel.clone(),
+                                                  target:  cli_target, })
+                    }
+                    None => {
+                        let (core_idents, non_core_idents): (Vec<_>, Vec<_>) =
+                            idents_from_file.into_iter()
+                                            .partition(|ident| ident.origin() == "core");
+                        let core_package_set = PackageSet { idents:  core_idents,
+                                                            channel: ChannelIdent::from("base"),
+                                                            target:  cli_target, };
+                        sources.push(core_package_set);
+                        let non_core_package_set = PackageSet { idents:  non_core_idents,
+                                                                channel:
+                                                                    ChannelIdent::from("stable"),
+                                                                target:  cli_target, };
+                        sources.push(non_core_package_set);
+                    }
+                }
             }
         }
     }
     Ok(sources)
 }
 
-fn idents_from_toml_file(ui: &mut UI, filename: &str) -> Result<Vec<PackageSet>> {
+fn package_sets_from_toml_file(ui: &mut UI, filename: &str) -> Result<Vec<PackageSet>> {
     let mut sources: Vec<PackageSet> = Vec::new();
 
     let file_data = std::fs::read_to_string(filename)?;
