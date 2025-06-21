@@ -19,7 +19,7 @@ use tokio::{self,
                             Sender},
             time as tokiotime};
 
-pub const SUP_PKG_IDENT: &str = "core/hab-sup";
+pub const SUP_PKG_IDENT: &str = "chef/hab-sup";
 
 // TODO (DM): Remove this deprecated env var
 const DEFAULT_PERIOD: Duration = Duration::from_secs(60);

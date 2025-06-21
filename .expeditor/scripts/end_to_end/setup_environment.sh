@@ -12,7 +12,7 @@ channel=${1:?You must specify a channel value}
 # Note: We should always have a `hab` binary installed in our CI
 # builders / containers.
 
-echo "--- Installing latest core/hab from ${HAB_BLDR_URL}, ${channel} channel"
+echo "--- Installing latest chef/hab from ${HAB_BLDR_URL}, ${channel} channel"
 # Binlink to '/usr/bin' to ensure we do not run the Chef Workstation
 # version of `hab`. (In fact, this will overwrite the link to
 # Workstation's `hab`; for our purposes, that's fine.) That is because
@@ -23,16 +23,16 @@ echo "--- Installing latest core/hab from ${HAB_BLDR_URL}, ${channel} channel"
 # Powershell below, but that falls apart on NON-container workloads,
 # because there, `/usr/local/bin` comes *later* on the path.  See
 # https://github.com/chef/release-engineering/issues/1241 for more.)
-sudo -E hab pkg install core/hab \
+sudo -E hab pkg install chef/hab \
      --binlink \
      --binlink-dir=/usr/bin \
      --force \
      --channel="${channel}" \
      --url="${HAB_BLDR_URL}"
-echo "--- Using core/hab version $("${hab_binary}" --version)"
+echo "--- Using chef/hab version $("${hab_binary}" --version)"
 
-echo "--- Installing latest core/hab-pkg-export-container from ${HAB_BLDR_URL}, ${channel} channel"
-sudo -E hab pkg install core/hab-pkg-export-container \
+echo "--- Installing latest chef/hab-pkg-export-container from ${HAB_BLDR_URL}, ${channel} channel"
+sudo -E hab pkg install chef/hab-pkg-export-container \
     --channel="${channel}" \
     --url="${HAB_BLDR_URL}"
 
