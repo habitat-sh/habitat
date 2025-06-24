@@ -1,5 +1,5 @@
 +++
-title = "Maintenance cycles"
+title = "Habitat package maintenance cycles"
 
 gh_repo = "habitat"
 
@@ -11,9 +11,11 @@ gh_repo = "habitat"
     weight = 14
 +++
 
-Package version refreshes are classified into the following maintenance cycles:
+Each core package undergoes a maintenance cycle during a package refresh. This process determines whether multiple major or minor versions of the package are available.
 
-- Single major, one minor (so)
-- Single major, multiple minor (sm)
-- Multiple major, one minor (mo)
-- Multiple major, multiple minor (mm)
+Package version refreshes are categorized into the following maintenance cycles:
+
+- **Single major, one minor (so):** One major version with a single minor version.
+- **Single major, multiple minor (sm):** One major version with multiple minor versions.
+- **Multiple major, one minor (mo):** Multiple major versions with a single minor version.
+- **Multiple major, multiple minor (mm):** Multiple major versions with multiple minor versions.

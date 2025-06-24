@@ -11,13 +11,11 @@ gh_repo = "habitat"
     weight = 13
 +++
 
-To sync packages hosted by the core, chef, and chef-platform origins with on-prem deployments of Habitat Builder,
-we've created scripts to sync packages from the public Habitat Builder.
-These scripts fetch packages released through the LTS and innovation channels.
+To sync packages from the core, chef, and chef-platform origins with on-prem Habitat Builder deployments, we've created scripts to fetch packages from the public Habitat Builder. These scripts pull packages released through the LTS and innovation channels.
 
-The sync script does the following:
+The sync script works as follows:
 
-1. It performs a pre-flight check that returns a list of packages under the core origin for that channel (for example, LTS-YYYY or Innovation-YYYY) that aren't created or maintained by Progress Chef.
-1. If proceeding with the script:
+1. It performs a pre-flight check to list packages in the core origin for the specified channel (for example, LTS-YYYY or Innovation-YYYY) that aren't created or maintained by Progress Chef.
+1. If you proceed with the script:
    1. Those packages are demoted to the unstable channel.
-   1. Packages are downloaded from the channel specified (for example, LTS-YYYY or Innovation-YYYY) from the public Habitat Builder and uploaded to the on-prem Builder.
+   1. Packages are downloaded from the specified channel (for example, LTS-YYYY or Innovation-YYYY) on Chef's Habitat Builder and uploaded to your Habitat Builder deployment.

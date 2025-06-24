@@ -1,5 +1,5 @@
 +++
-title = "End-of-life (EOL) packages"
+title = "End-of-life (EOL) Habitat packages"
 
 gh_repo = "habitat"
 
@@ -11,13 +11,8 @@ gh_repo = "habitat"
     weight = 12
 +++
 
-End-of-life (EOL) packages refer to packages that have reached the end of their support lifecycle.
-These packages are no longer maintained or updated, and they're excluded from further long-term support (LTS) releases to minimize user disruption.
-For example, OpenSSL 1.1.1 reached the end of it's support lifecycle, so the core/openssl11 package won't have a subsequent LTS release channel.
+End-of-life (EOL) packages are Chef-maintained packages that have reached the end of their support lifecycle. These packages are no longer maintained or updated and are excluded from future long-term support (LTS) releases to minimize user disruption. For example, since OpenSSL 1.1.1 has reached the end of its support lifecycle, the `core/openssl11` package won't be included in subsequent LTS release channels.
 
-This approach allows customers to transition to the latest LTS channel at their convenience,
-while maintaining packages released through the previous LTS channel for those who need them.
+This approach allows customers to transition to the latest LTS channel at their own pace while retaining access to packages from the previous LTS channel if needed. However, older packages will no longer receive support and are not recommended for active use.
 
-However, older packages won't receive support or be recommended for active use.
-
-This strategy ensures that deprecations don't adversely affect customers, granting the package management team the flexibility to implement significant changes without disrupting user workflows.
+By excluding EOL packages from new LTS releases, this strategy ensures that deprecations don't negatively impact customers. It also provides the package management team with the flexibility to implement significant changes without disrupting user workflows.
