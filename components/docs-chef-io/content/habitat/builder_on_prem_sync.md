@@ -5,13 +5,28 @@ gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
-    title = "On-Prem Sync"
+    title = "On-Prem Builder Setup"
     identifier = "habitat/builder/on-prem-sync"
     parent = "habitat/builder"
     weight = 50
 +++
 
-# Bootstrap Core Packages
+# On-Prem Builder Setup
+
+## What is the On-Prem Builder?
+
+The Chef Habitat On-Prem Builder is a self-hosted version of the SaaS Builder service at [bldr.habitat.sh](https://bldr.habitat.sh). It allows organizations to build, store, and manage their own packages privately within their infrastructure.
+
+This guide walks you through setting up an On-Prem Builder from scratch, including installation, configuration, license key setup, and syncing packages.
+
+## Install On-Prem Builder
+
+To install On-Prem Builder, follow the official instructions in the [Chef Habitat On-Prem Builder GitHub repository](https://github.com/habitat-sh/on-prem-builder/blob/main/on-prem-docs/getting-started.md).
+
+Installation typically involves:
+
+* Cloning the repo and running the bootstrap scripts
+* Configuring TLS, ports, and user accounts
 
 ## Generate a Personal Access Token
 
@@ -21,9 +36,15 @@ Select your Gravatar icon on the top right corner of the Chef Habitat Builder on
 
 {{< readfile file="content/habitat/reusable/md/license_key.md" >}}
 
+*The license key needs to be added in the [Public Builder](https://bldr.habitat.sh) under your profile. See [builder profile instructions](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/builder_profile.md) for guidance.*
+
 ## Enable Native Package Support
 
-A couple of the new LTS supported packages include `native` packages. In order for an on-prem builder instance to host LTS packages, that builder instance must be configured to allow native package support. This is done by enabling the `nativepackages` feature and specifying `core` as an allowed native package origin. To do this, an on-prem builder's `/hab/user/builder-api/config/user.toml` file should be edited so that the `[api]` section looks as follows:
+A couple of the latest supported packages include `native` packages. Native packages are platform-specific builds required to support certain operating systems or runtime behaviors.
+
+In order for an on-prem builder instance to host the latest packages, that builder instance must be configured to allow native package support. This is done by enabling the `nativepackages` feature and specifying `core` as an allowed native package origin.
+
+To do this, an on-prem builder's `/hab/user/builder-api/config/user.toml` file should be edited so that the `[api]` section looks as follows:
 
 ```
 [api]
@@ -35,9 +56,12 @@ allowed_native_package_origins = ["core"]
 ## Bootstrap Builder with Habitat Packages
 
 Chef Habitat Builder on-prem has no pre-installed package sets. You must populate your Builder instance by uploading packages.
+
+The following steps walk you through the full process of syncing packages from the public Builder (bldr.habitat.sh) to your On-Prem Builder instance using `pkg-sync`. This includes both connected and airgapped environments.
+
 To assist in bootstrapping an on-prem Builder instance with a set of core packages, you can install the habitat/pkg-sync package which will download packages from the public [SaaS Builder](https://bldr.habitat.sh) followed by a bulkupload to your on-prem Builder instance(s).
 
-A valid license key must be registered to your account before attempting this step.
+A valid license key must be registered to your **public builder profile** before attempting this step.
 
 The following snippet illustrates how to bootstrap the on-prem Builder with a full set of stable core packages:
 
@@ -70,7 +94,7 @@ The following section illustrates the steps required to bootstrap an airgapped o
     hab pkg bulkupload --url https://your-builder.tld --channel stable --auto-create-origins builder_bootstrap/
     ```
 
-## Configuring a user workstation
+## Configuring a User Workstation
 
 Configuring a user's workstation to point to the Chef Habitat Builder on-prem should be fairly straightforward.
 
