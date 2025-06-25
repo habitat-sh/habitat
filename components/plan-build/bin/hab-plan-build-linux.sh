@@ -366,7 +366,7 @@ export HAB_BLDR_CHANNEL
 # has been set to something different.
 : "${HAB_FALLBACK_CHANNEL=stable}"
 # Use the refresh channel for dependencies in the core origin
-: "${HAB_REFRESH_CHANNEL:=stable}"
+: "${HAB_REFRESH_CHANNEL:=base}"
 # If we prefer to use local core deps then a locally installed
 # package in this origin will be used in preference to what is in the refresh
 : "${HAB_PREFER_LOCAL_CHEF_DEPS:=false}"
