@@ -35,7 +35,7 @@ Head over to the Chef Habitat Builder sign-in page at [https://bldr.habitat.sh/#
 1. To sign in with an existing GitHub account, select **Sign in with GitHub**
 1. If you need to set up a GitHub account, select the **Sign up here** link
 
-![Chef Habitat sign in with Github](/images/habitat/builder_signin.png)
+![Chef Habitat sign in with Github](/images/habitat/sign_in_to_public_builder.png)
 
 Signing in with your GitHub account and authorizing the Chef Habitat Builder application the first time you sign in grants you access to the Chef Habitat Builder platform. Once you've completed signing in and authorizing Chef Habitat Builder, you'll arrive at the 'My Origins' view.
 
@@ -57,7 +57,36 @@ Access your profile by selecting the **round icon at the top right corner** of a
 
 Adding an email address to your profile gives the Chef Habitat team permission to contact you directly about important information. If you use an email address associated with a GitHub account, it will also use your GitHub avatar. Save your changes by selecting **save**.
 
-![Register your email address](/images/habitat/builder_profile_user.png)
+![Register your email address](/images/habitat/add_email_to_builder.png)
+
+### Add a License Key
+
+In order to download and sync official Chef-maintained packages from the Public Builder to your On-Prem Builder instance, a valid license key is required.
+
+#### Step 1: Obtain Your License Key
+
+If you are an enterprise user:  
+1. Log into your customer portal.
+2. Copy the license key linked to your asset.
+
+If you are a free or trial user:  
+1. Generate your license key from [https://www.chef.io/license-generation-free-trial](https://www.chef.io/license-generation-free-trial)
+
+#### Step 2: Add the License Key to the Public Builder
+
+After logging into the [Public Builder](https://bldr.habitat.sh), if a valid license key is not already present on your account, a pop-up will appear prompting you to enter your license key.
+
+Enter your license key in the field provided and click **Proceed** to continue.
+
+![Add License Key](/images/habitat/add_license_key_to_builder.png)
+
+Once entered, your account will be authorized to view and download official Chef-maintained packages.
+
+![License Key Added](/images/habitat/license_key_added.png)
+
+In case an invalid license key is provided, or if the license key is expired, you will be prompted to re-enter a valid license key.
+
+![Re-enter License Key](/images/habitat/re_enter_license_key.png)
 
 ### Create a Personal Access Token
 
@@ -121,4 +150,27 @@ Then initialize the path from the command line, by running:
 source ~/.bashrc
 ```
 
-{{< readfile file="content/habitat/reusable/md/license_key.md" >}}
+Or pass it as a CLI flag:
+
+```bash
+  hab pkg download -z <token>
+```
+
+The following `hab` commands require an auth token when interacting with the Public Builder:
+
+```bash
+hab pkg download
+hab pkg build
+hab pkg upload
+hab studio enter
+hab studio build
+hab studio new
+hab studio run
+```
+### Note on Access Restrictions
+
+The UI access restrictions will be applicable to all Habitat packages available in `bldr.habitat.sh`. However, we have ensured that the license restriction for downloading packages does **not** apply to any existing Chef products (e.g., Infra 18, Habitat 1.x, etc.) and related packages in the stable channel.
+
+This change will be applicable for downloading **all new** Chef product releases (e.g., Infra 19, Habitat 2.0, InSpec 7, etc.) and their dependencies from `bldr.habitat.sh`.
+
+Any existing pipelines or workflows that download or build packages for **existing releases** from Public Builder **without using an auth token** are not impacted.
