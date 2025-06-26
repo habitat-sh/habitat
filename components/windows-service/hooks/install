@@ -1,7 +1,7 @@
 . {{pkg.path}}\bin\habitat.ps1
 
 function Set-LauncherPath {
-    $launcherPath = '{{pkgPathFor "core/hab-launcher"}}\bin\hab-launch.exe'
+    $launcherPath = '{{pkgPathFor "chef/hab-launcher"}}\bin\hab-launch.exe'
     [xml]$configXml = Get-Content (Join-Path "{{pkg.svc_path}}" HabService.dll.config)
     $launcherPathNodeList = $configXml.configuration.appSettings.SelectNodes("add[@key='launcherPath']")
     if($launcherPathNodeList.Count -eq 0) {

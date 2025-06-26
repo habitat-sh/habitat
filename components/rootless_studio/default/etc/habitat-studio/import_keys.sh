@@ -9,7 +9,7 @@ if [ -n "$HAB_ORIGIN_KEYS" ]; then
   # will use the outside cache key path, whereas the `hab` function has
   # the `$FS_ROOT` set for the inside of the Studio. We're copying from
   # the outside in, using `hab` twice. I love my job.
-  for key in $(echo "$HAB_ORIGIN_KEYS" | hab pkg exec core/hab-backline tr ',' ' '); do
+  for key in $(echo "$HAB_ORIGIN_KEYS" | hab pkg exec chef/hab-backline tr ',' ' '); do
     key_text=""
     # Import the secret origin key, required for signing packages
     info "Importing '$key' secret origin key"

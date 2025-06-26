@@ -26,8 +26,8 @@ pub(crate) struct Cli {
           default_value = DEFAULT_HAB_PKG_IDENT)]
     pub(crate) hab_pkg: String,
 
-    /// Launcher package identifier (ex: core/hab-launcher) or filepath to a Habitat artifact
-    /// (ex: /home/core-hab-launcher-13829-20200527165030-x86_64-linux.hart) to install
+    /// Launcher package identifier (ex: chef/hab-launcher) or filepath to a Habitat artifact
+    /// (ex: /home/chef-hab-launcher-19633-20250610094807-x86_64-linux.hart) to install
     #[arg(name = "HAB_LAUNCHER_PKG",
           long = "launcher-pkg",
           value_name = "HAB_LAUNCHER_PKG",
@@ -35,8 +35,8 @@ pub(crate) struct Cli {
           default_value = DEFAULT_HAB_LAUNCHER_PKG_IDENT)]
     pub(crate) hab_launcher_pkg: String,
 
-    /// Supervisor package identifier (ex: core/hab-sup) or filepath to a Habitat artifact
-    /// (ex: /home/core-hab-sup-1.6.39-20200527165021-x86_64-linux.hart) to install
+    /// Supervisor package identifier (ex: chef/hab-sup) or filepath to a Habitat artifact
+    /// (ex: /home/chef-hab-sup-2.0.134-20250610093735-x86_64-linux.hart) to install
     #[arg(name = "HAB_SUP_PKG",
           long = "sup-pkg",
           value_name = "HAB_SUP_PKG",

@@ -145,7 +145,7 @@ Context "SSL_CERT_FILE isn't set" {
         # Ensure SSL_CERT_FILE isn't set
         Remove-Item Env:\SSL_CERT_FILE
         hab studio rm
-        hab pkg uninstall core/hab-studio
+        hab pkg uninstall chef/hab-studio
     }
 
     Describe "Studio is auto-installed on first run" {
