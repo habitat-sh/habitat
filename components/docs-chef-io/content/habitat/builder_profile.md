@@ -155,6 +155,7 @@ Or pass it as a CLI flag:
 ```bash
   hab pkg download -z <token>
 ```
+#### Hab commands affected by auth token
 
 The following `hab` commands require an auth token when interacting with the Public Builder:
 
@@ -167,10 +168,10 @@ hab studio build
 hab studio new
 hab studio run
 ```
-### Note on Access Restrictions
+### Note
 
-The UI access restrictions will be applicable to all Habitat packages available in `bldr.habitat.sh`. However, we have ensured that the license restriction for downloading packages does **not** apply to any existing Chef products (e.g., Infra 18, Habitat 1.x, etc.) and related packages in the stable channel.
+UI access controls will apply to all Habitat packages available on bldr.habitat.sh.
+To ensure continuity for existing users, downloads of current Chef product versions (e.g., Infra 18, Habitat 1.x, etc.) and their associated packages will remain unaffected and do not require a license key.
 
-This change will be applicable for downloading **all new** Chef product releases (e.g., Infra 19, Habitat 2.0, InSpec 7, etc.) and their dependencies from `bldr.habitat.sh`.
-
-Any existing pipelines or workflows that download or build packages for **existing releases** from Public Builder **without using an auth token** are not impacted.
+The new license-based access model will apply only to new Chef product releases (e.g., Infra 19, Habitat 2.0, InSpec 7, etc.) and their dependencies.
+ 
