@@ -53,12 +53,6 @@ Access your profile by selecting the **round icon at the top right corner** of a
 
 ![Access your Chef Habitat Builder profile](/images/habitat/builder_profile.png)
 
-### Register an Email Address
-
-Adding an email address to your profile gives the Chef Habitat team permission to contact you directly about important information. If you use an email address associated with a GitHub account, it will also use your GitHub avatar. Save your changes by selecting **save**.
-
-![Register your email address](/images/habitat/add_email_to_builder.png)
-
 ### Add a License Key
 
 In order to download and sync official Chef-maintained packages from the Public Builder to your On-Prem Builder instance, a valid license key is required.
@@ -87,6 +81,12 @@ Once entered, your account will be authorized to view and download official Chef
 In case an invalid license key is provided, or if the license key is expired, you will be prompted to re-enter a valid license key.
 
 ![Re-enter License Key](/images/habitat/re_enter_license_key.png)
+
+### Register an Email Address
+
+Adding an email address to your profile gives the Chef Habitat team permission to contact you directly about important information. If you use an email address associated with a GitHub account, it will also use your GitHub avatar. Save your changes by selecting **save**.
+
+![Register your email address](/images/habitat/add_email_to_builder.png)
 
 ### Create a Personal Access Token
 
