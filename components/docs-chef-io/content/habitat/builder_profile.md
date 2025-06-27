@@ -43,16 +43,6 @@ Signing in with your GitHub account and authorizing the Chef Habitat Builder app
 
 ## Set up your Profile
 
-Use the _Profile_ tab to:
-
-* See the GitHub account used to sign in
-* Add an email to your profile
-* Create your personal access token
-
-Access your profile by selecting the **round icon at the top right corner** of any page. Select the **profiles** option from the drop-down menu to  customize your profile and create your personal access token.
-
-![Access your Chef Habitat Builder profile](/images/habitat/builder_profile.png)
-
 ### Add a License Key
 
 In order to download and sync official Chef-maintained packages from the Public Builder to your On-Prem Builder instance, a valid license key is required.
@@ -155,7 +145,7 @@ Or pass it as a CLI flag:
 ```bash
   hab pkg download -z <token>
 ```
-#### Hab commands affected by auth token
+#### Hab commands that require auth token
 
 The following `hab` commands require an auth token when interacting with the Public Builder:
 
