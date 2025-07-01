@@ -15,8 +15,6 @@ gh_repo = "habitat"
 
 Whether you are looking to leverage the SaaS or on-prem version of Chef Habitat Builder, you will need to create an account on the SaaS version of Chef Habitat Builder. After you have then downloaded the version, you will then sync the two accounts.
 
-This documentation covers everything from creating an account to setting up automated builds and exporting packages to a variety of container registries.
-
 ## Get an Account
 
 ### Prerequisites
@@ -147,12 +145,12 @@ Or pass it as a CLI flag:
 ```
 #### Hab commands that require auth token
 
-The following `hab` commands require an auth token when interacting with the Public Builder:
+The following `hab` commands require an auth token linked to a license key when interacting with the Public Builder:
 
 ```bash
 hab pkg download
 hab pkg build
-hab pkg upload
+hab pkg install
 hab studio enter
 hab studio build
 hab studio new
@@ -165,3 +163,4 @@ To ensure continuity for existing users, downloads of current Chef product versi
 
 The new license-based access model will apply only to new Chef product releases (e.g., Infra 19, Habitat 2.0, InSpec 7, etc.) and their dependencies.
  
+New Chef product releases will adopt a multi-channel approach. Further details—including specifics on the multi-channel strategy and channels requiring license-based access—will be shared at the time of the Hab 2.0 launch.
