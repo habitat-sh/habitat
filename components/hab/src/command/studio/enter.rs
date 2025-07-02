@@ -360,7 +360,7 @@ mod tests {
     #[test]
     fn cache_ssl_cert_file_caches_file() -> std::io::Result<()> {
         let cert_name = "ssl-test-cert.pem";
-        let cert_cache_dir = TempDir::new()?.into_path();
+        let cert_cache_dir = TempDir::new()?.keep();
         let ssl_cert_dir = TempDir::new()?;
         let ssl_cert_filepath = ssl_cert_dir.path().join(cert_name);
         File::create(&ssl_cert_filepath)?;
@@ -375,7 +375,7 @@ mod tests {
     fn cache_ssl_cert_file_replaces_already_cached() -> std::io::Result<()> {
         let cert_name = "ssl-test-cert.pem";
 
-        let cert_cache_dir = TempDir::new()?.into_path();
+        let cert_cache_dir = TempDir::new()?.keep();
         let cached_cert = cert_cache_dir.join(cert_name);
         File::create(&cached_cert)?;
 
@@ -393,7 +393,7 @@ mod tests {
     }
     #[test]
     fn cache_ssl_cert_file_invalid_file() -> std::io::Result<()> {
-        let cert_cache_dir = TempDir::new()?.into_path();
+        let cert_cache_dir = TempDir::new()?.keep();
 
         let non_existant_file_name = "i_shouldnt_exist";
         let non_existant_file = TempDir::new()?.path().join(non_existant_file_name);
@@ -405,8 +405,8 @@ mod tests {
 
     #[test]
     fn cache_ssl_cert_file_cert_file_is_dir() -> std::io::Result<()> {
-        let cert_cache_dir = TempDir::new()?.into_path();
-        let ssl_cert_dir = TempDir::new()?.into_path();
+        let cert_cache_dir = TempDir::new()?.keep();
+        let ssl_cert_dir = TempDir::new()?.keep();
 
         assert!(cache_ssl_cert_file(ssl_cert_dir.to_str().unwrap(), &cert_cache_dir).is_err());
 
@@ -415,7 +415,7 @@ mod tests {
 
     #[test]
     fn cache_ssl_cert_file_cert_file_is_cached_file() -> std::io::Result<()> {
-        let cached_cert_dir = TempDir::new()?.into_path();
+        let cached_cert_dir = TempDir::new()?.keep();
         let cached_cert = cached_cert_dir.join("ssl-cert-file.pem");
         File::create(&cached_cert)?;
 
@@ -426,7 +426,7 @@ mod tests {
 
     #[test]
     fn cache_ssl_cert_file_is_empty_string() -> std::io::Result<()> {
-        let cached_cert_dir = TempDir::new()?.into_path();
+        let cached_cert_dir = TempDir::new()?.keep();
 
         assert!(cache_ssl_cert_file("", &cached_cert_dir).is_err());
 

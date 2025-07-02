@@ -8,7 +8,7 @@ workspace = "../../"
 
 [dependencies]
 bytes = "*"
-prost = { version = "*", features = ["prost-derive"] }
+prost = { version = "*", features = ["derive"] }
 serde = { version = "*", features = ["derive"] }
 
 [build-dependencies]

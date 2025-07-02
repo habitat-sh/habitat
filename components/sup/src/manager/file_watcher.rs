@@ -180,9 +180,9 @@ mod tests {
         fn _send_initial_event(with_relative_paths: bool) -> Result<()> {
             let tempdir = tempdir()?;
             let td_dir = if with_relative_paths {
-                fs::make_relative_to_tempdir(&tempdir.into_path())?.join("enclosing_dir")
+                fs::make_relative_to_tempdir(&tempdir.keep())?.join("enclosing_dir")
             } else {
-                tempdir.into_path().join("enclosing_dir")
+                tempdir.keep().join("enclosing_dir")
             };
             let td_file = td_dir.join("empty.txt");
 

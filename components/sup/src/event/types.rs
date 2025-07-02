@@ -6,6 +6,7 @@ use crate::manager::service::{HealthCheckResult as DomainHealthCheckResult,
                               Service,
                               UpdateStrategy as DomainUpdateStrategy};
 use prost::Message;
+use std::fmt::Debug;
 
 include!(concat!(env!("OUT_DIR"), "/chef.habitat.supervisor.event.rs"));
 
@@ -73,7 +74,7 @@ impl EventCore {
     }
 }
 
-pub trait EventMessage: Message + Sized {
+pub trait EventMessage: Debug + Message + Sized {
     /// All messages will have some top-level metadata about the
     /// Supervisor they come from. This function allows us to set it
     /// generically when we send the message out.
