@@ -36,7 +36,7 @@ installed_target() {
 
 @test "Install latest for x86_86-linux" {
   linux || skip "Did not detect a Linux system"
-  run components/hab/install.sh -c dev
+  run components/hab/install.sh -c acceptance
 
   [ "$status" -eq 0 ]
   [ "$(installed_target)" == "x86_64-linux" ]
@@ -62,7 +62,7 @@ installed_target() {
 
 @test "Install package for x86_84-linux from chef origin" {
   linux || skip "Did not detect a Linux system"
-  run components/hab/install.sh -c dev -o chef
+  run components/hab/install.sh -c acceptance -o chef
 
   [ "$status" -eq 0 ]
   [[ "$(installed_version)" =~ ^hab\ 2\.[0-9]+\.[0-9]+$ ]]

@@ -3,7 +3,7 @@
 set -eou pipefail
 
 # Install hab from a temporarily uploaded aarch64 package
-sudo ./components/hab/install.sh -t aarch64-linux -c dev
+sudo ./components/hab/install.sh -t aarch64-linux -c acceptance
 
 # shellcheck source=.expeditor/scripts/shared.sh
 source .expeditor/scripts/verify/shared.sh

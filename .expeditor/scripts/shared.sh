@@ -8,7 +8,7 @@ curlbash_hab() {
     echo "--- :habicat: Bootstrap installation of the current stable hab binary for $pkg_target using curl|bash"
 
     # install habitat from a specified channel
-    local _channel="${2:-dev}"
+    local _channel="${2:-acceptance}"
     local _origin="${3:-chef}"
 
     sudo ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -o "$_origin"

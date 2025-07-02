@@ -20,10 +20,11 @@ HAB_CACHE_KEY_PATH="$JOB_TEMP_ROOT/keys"
 echo "--- :key: Generating temporary origin key"
 hab origin key generate "$HAB_ORIGIN"
 
-# Install hab-studio from the chef origin via the dev channel.
+# Install hab-studio from the chef origin via the acceptance channel.
 # By default, it installs from the stable channel only,
 # so this may need updating to support other channels.
-hab pkg install chef/hab-studio -c dev
+export HAB_INTERNAL_BLDR_CHANNEL=acceptance
+hab pkg install chef/hab-studio
 
 echo "--- :hab: Running hab pkg build for $package_path"
 hab pkg build "$package_path"
