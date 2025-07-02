@@ -24,7 +24,5 @@ hab origin key generate "$HAB_ORIGIN"
 # By default, it installs from the stable channel only,
 # so this may need updating to support other channels.
 export HAB_INTERNAL_BLDR_CHANNEL=acceptance
-hab pkg install chef/hab-studio
-
 echo "--- :hab: Running hab pkg build for $package_path"
 hab pkg build "$package_path"
