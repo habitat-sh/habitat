@@ -19,7 +19,7 @@ Each new Chef Habitat release brings a new Supervisor that includes all bug fixe
 While an older version of the Supervisor is running, install the newer Supervisor into your local Chef Habitat package repository:
 
 ```bash
-hab pkg install core/hab-sup
+hab pkg install chef/hab-sup
 ```
 
 This will not update the running Supervisor. It simply downloads the new Supervisor and stores it in your `/hab/pkgs` store. To update the running Supervisor, restart it with:

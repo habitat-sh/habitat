@@ -195,7 +195,7 @@ Environment
 
 Navigating
   exit          Pop to the previous context.
-  exit-program  End the /hab/pkgs/core/hab-plan-build/0.6.0/20160604180818/bin/hab-plan-build program.
+  exit-program  End the /hab/pkgs/chef/hab-plan-build/2.0.134/20250606094110/bin/hab-plan-build program.
 
 Aliases
   @             Alias for `whereami`.

@@ -49,7 +49,7 @@ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/
 ```
 
 ```sh
-sudo hab pkg install core/hab --binlink --force --channel=staging
+sudo hab pkg install chef/hab --binlink --force --channel=staging
 ```
 
 #### macOS
@@ -88,7 +88,7 @@ $env:HAB_INTERNAL_BLDR_CHANNEL="staging"
 ```
 
 `HAB_INTERNAL_BLDR_CHANNEL` is needed *outside* the Studio in order to
-install the correct `core/hab-studio` package to begin with. If you already
+install the correct `chef/hab-studio` package to begin with. If you already
 have this installed when executing `hab studio enter`, you can leave
 this variable out.
 
@@ -354,29 +354,29 @@ a release:
    Rolling forward is preferable to yanking a release, because rolling
    forward does not require these manual remediation steps.
 
-   (These examples are for the 0.80.0 release; change the versions as required.)
+   (These examples are for the 2.0.134 release; change the versions as required.)
 
    On Linux:
 
-       hab pkg uninstall core/hab/0.80.0
-       hab pkg uninstall core/hab-sup/0.80.0
+       hab pkg uninstall chef/hab/2.0.134
+       hab pkg uninstall chef/hab-sup/2.0.134
 
-       rm /hab/cache/artifacts/core-hab-0.80.0-*
-       rm /hab/cache/artifacts/core-hab-sup-0.80.0-*
+       rm /hab/cache/artifacts/chef-hab-2.0.134-*
+       rm /hab/cache/artifacts/chef-hab-sup-2.0.134-*
 
    If a Launcher release must be pulled, make note of the version and
    delete any installed versions of it:
 
-       hab pkg uninstall core/hab-launcher/${VERSION}
-       rm /hab/cache/artifacts/core-hab-launcher-${VERSION}-*
+       hab pkg uninstall chef/hab-launcher/${VERSION}
+       rm /hab/cache/artifacts/chef-hab-launcher-${VERSION}-*
 
    On Windows (Chocolatey) :
 
-       hab pkg exec core/windows-service uninstall
-       hab pkg uninstall core/windows-service
+       hab pkg exec chef/windows-service uninstall
+       hab pkg uninstall chef/windows-service
 
-       choco uninstall habitat --version 0.80.0
-       hab pkg uninstall core/hab-sup/0.80.0
+       choco uninstall habitat --version 2.0.134
+       hab pkg uninstall chef/hab-sup/2.0.134
        choco install habitat
 
    On macOS (Homebrew):
