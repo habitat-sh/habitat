@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.149 -->
-## [2.0.149](https://github.com/habitat-sh/habitat/tree/2.0.149) (2025-07-01)
+<!-- latest_release 2.0.150 -->
+## [2.0.150](https://github.com/habitat-sh/habitat/tree/2.0.150) (2025-07-02)
 
 #### Merged Pull Requests
-- Bump reqwest from 0.12.20 to 0.12.21 [#9740](https://github.com/habitat-sh/habitat/pull/9740) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump reqwest from 0.12.21 to 0.12.22 [#9741](https://github.com/habitat-sh/habitat/pull/9741) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump reqwest from 0.12.21 to 0.12.22 [#9741](https://github.com/habitat-sh/habitat/pull/9741) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.150 -->
 - Bump reqwest from 0.12.20 to 0.12.21 [#9740](https://github.com/habitat-sh/habitat/pull/9740) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.149 -->
 - Bump libc from 0.2.172 to 0.2.174 [#9733](https://github.com/habitat-sh/habitat/pull/9733) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.148 -->
 - remove all prost 0.13.5 crates [#9738](https://github.com/habitat-sh/habitat/pull/9738) ([mwrock](https://github.com/mwrock)) <!-- 2.0.147 -->
