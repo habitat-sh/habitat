@@ -12,7 +12,7 @@ gh_repo = "habitat"
 
 +++
 
-Whether you are looking to leverage the SaaS or on-prem version of Chef Habitat Builder, you will need to create an account on the SaaS version of Chef Habitat Builder. After you have then downloaded the version, you will then sync the two accounts.
+Whether you are looking to leverage the SaaS or on-prem version of Chef Habitat Builder, you'll need to create an account on the SaaS version of Chef Habitat Builder. After you have then downloaded the version, you'll then sync the two accounts.
 
 ## Prerequisites
 
@@ -32,6 +32,6 @@ Head over to the Chef Habitat Builder sign-in page at [https://bldr.habitat.sh/#
 
 ![Chef Habitat sign in with Github](/images/habitat/builder_signin.png)
 
-Signing in with your GitHub account and authorizing the Chef Habitat Builder application the first time you sign in grants you access to the Chef Habitat Builder platform. Once you've completed signing in and authorizing Chef Habitat Builder, you'll arrive at the 'My Origins' view.
+Signing in with your GitHub account and authorizing the Chef Habitat Builder application the first time you sign in grants you access to the Chef Habitat Builder platform. Once you've completed signing in and authorizing Chef Habitat Builder, you'll arrive at the **My Origins** view.
 
 ![Authorize the Chef Habitat Application](/images/habitat/authorize.png)
