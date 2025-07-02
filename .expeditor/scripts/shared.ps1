@@ -1,6 +1,3 @@
-# Set the Habitat channel to install chef/hab from.
-$HabChannel = "dev"
-
 $env:PathSeparator = if ($IsWindows -Or !$IsCoreCLR) {
     ";"
 } else {
@@ -41,7 +38,7 @@ function Get-RustfmtToolchain {
     "$(Get-Content $PSScriptRoot\..\..\RUSTFMT_VERSION)-x86_64-pc-windows-msvc"
 }
 
-function Install-Habitat {
+function Install-Habitat($HabChannel = "acceptance") {
     $env:path = New-PathString -StartingPath $env:path -Path "c:\hab\bin"
 
     if (Get-Command -Name hab -ErrorAction SilentlyContinue) {
