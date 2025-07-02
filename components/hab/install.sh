@@ -532,7 +532,7 @@ install_hab() {
       ;;
     aarch64)
       setup_hab_root
-      local _ident="core/hab"
+      local _ident="${_origin}/hab"
 
       if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
           _ident+="/$version"
