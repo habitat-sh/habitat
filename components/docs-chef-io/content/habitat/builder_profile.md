@@ -37,13 +37,34 @@ Signing in with your GitHub account and authorizing the Chef Habitat Builder app
 
 ## Set up your Habitat Builder profile
 
-Use the **Profile** tab to:
+Use the **Profile** page to:
 
 - View the GitHub account used to sign in.
 - Add an email to your profile.
 - Create your personal access token.
+- Add a Progress Chef license key.
 
-Access your profile by selecting the **round icon at the top right corner** of any page, then select **Profile** from the drop-down menu. From here, you can manage your profile, create a personal access token, and add a Progress Chef license key.
+Access your profile by selecting the **round icon at the top right corner** of any page, then select **Profile** from the menu.
+
+{{< note >}}
+
+A Progress Chef license key is required to access [Chef Habitat SaaS Builder](https://bldr.habitat.sh) and a personal access token is required to download or build packages from [Chef Habitat SaaS Builder](https://bldr.habitat.sh).
+
+This requirement applies to all new Chef product releases, such as Infra 19, Habitat 2.0, and InSpec 7, and their dependencies from Chef Habitat SaaS Builder.
+
+It doesn't apply to existing Chef product releases, such as Chef Infra Client 18.x and Habitat 1.x, or related packages in the stable channel.
+
+This requirement applies to the following `hab` CLI commands:
+
+- `hab pkg download`
+- `hab pkg build`
+- `hab pkg install`
+- `hab studio enter`
+- `hab studio build`
+- `hab studio new`
+- `hab studio run`
+
+{{< /note >}}
 
 ### Add a Progress Chef license key
 
@@ -79,7 +100,7 @@ To use your token in a single session, pass it in the command line. To use it ac
 
 To save it permanently, use:
 
-```PS
+```PS1
 SETX HAB_AUTH_TOKEN <TOKEN> /m
 ```
 
