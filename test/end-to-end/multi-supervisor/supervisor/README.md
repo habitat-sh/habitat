@@ -7,8 +7,8 @@ would happen with an image created using `hab pkg export docker`.
 
 # Building
 
-To build an image using the latest stable `core/hab`,
-`core/hab-launcher`, and `core/hab-sup` packages, run:
+To build an image using the latest stable `chef/hab`,
+`chef/hab-launcher`, and `chef/hab-sup` packages, run:
 
 ```sh
 make

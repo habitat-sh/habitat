@@ -1,11 +1,11 @@
 $pkg_name="windows-service"
-$pkg_origin="core"
+$pkg_origin="chef"
 $pkg_version="0.6.1"
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license=@('Apache-2.0')
 $pkg_description="A Windows Service for runnung the Habitat Supervisor"
 $pkg_deps=@(
-    "core/hab-launcher",
+    "chef/hab-launcher",
     "core/powershell/$(Get-Content "$PLAN_CONTEXT/../../POWERSHELL_VERSION")"
 )
 $pkg_build_deps=@("core/dotnet-core-sdk")

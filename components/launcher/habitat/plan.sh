@@ -1,6 +1,6 @@
 # shellcheck disable=2154
 pkg_name=hab-launcher
-pkg_origin=core
+pkg_origin=chef
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_deps=(core/glibc

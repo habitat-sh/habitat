@@ -23,8 +23,8 @@ To run all test cases:
 ./run_all.sh <NAME_OF_CHANNEL>
 ```
 
-This will build all the containers containing `core/hab`,
-`core/hab-sup`, and `core/hab-launcher` packages from the specified
+This will build all the containers containing `chef/hab`,
+`chef/hab-sup`, and `chef/hab-launcher` packages from the specified
 channel in https://bldr.habitat.sh
 
 For additional background, read the comments in the files in this

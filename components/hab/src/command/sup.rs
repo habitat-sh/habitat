@@ -14,7 +14,7 @@ use std::{ffi::OsString,
 
 pub const SUP_CMD: &str = "hab-sup";
 pub const SUP_CMD_ENVVAR: &str = "HAB_SUP_BINARY";
-pub const SUP_PKG_IDENT: &str = "core/hab-sup";
+pub const SUP_PKG_IDENT: &str = "chef/hab-sup";
 
 pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     let command = match henv::var(SUP_CMD_ENVVAR) {

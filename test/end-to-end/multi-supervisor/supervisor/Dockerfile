@@ -12,17 +12,17 @@ ENV HAB_LICENSE=accept-no-persist
 # that we want in the final image.
 RUN apk add bash wget \
   && wget https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh \
-  && bash install.sh \
-  && mv /hab/pkgs/core/hab/*/*/bin/hab /bin/ \
+  && bash install.sh -c acceptance -o chef \
+  && mv /hab/pkgs/chef/hab/*/*/bin/hab /bin/ \
   && rm -Rf /hab
 
 # Install only what's needed to run the Supervisor
 # TODO: need a way to parameterize busybox
-RUN  hab pkg install --channel="${CHANNEL}" core/hab \
-  && hab pkg install --channel="${CHANNEL}" core/hab-sup \
-  && hab pkg install --channel="${CHANNEL}" core/hab-launcher \
+RUN  hab pkg install --channel="${CHANNEL}" chef/hab \
+  && hab pkg install --channel="${CHANNEL}" chef/hab-sup \
+  && hab pkg install --channel="${CHANNEL}" chef/hab-launcher \
   && hab pkg install --channel="stable" core/busybox \
-  && hab pkg binlink core/hab -d /hab/bin
+  && hab pkg binlink chef/hab -d /hab/bin
 
 # Create enough of a filesystem for the Supervisor to operate. We
 # can't do this in a `FROM scratch` image because there's no shell to

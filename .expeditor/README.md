@@ -55,42 +55,40 @@ In addition to uploading the various tarballs to S3, we also create a "manifest"
 ```json
 {
   "schema_version": "1",
-  "version": "1.6.181",
+  "version": "2.0.134",
   "sha": "cf0e228b01d76440487593641e6b732da4b0e193",
   "packages": {
     "x86_64-linux": [
-      "core/hab/1.6.181/20201030172917",
-      "core/hab-backline/1.6.181/20201030180709",
-      "core/hab-launcher/14772/20201030181158",
-      "core/hab-pkg-cfize/1.6.181/20201030182926",
-      "core/hab-pkg-export-container/1.6.181/20201030181204",
-      "core/hab-pkg-export-tar/1.6.181/20201030181205",
-      "core/hab-pkg-mesosize/1.6.181/20201030181205",
-      "core/hab-plan-build/1.6.181/20201030180522",
-      "core/hab-studio/1.6.181/20201030180823",
-      "core/hab-sup/1.6.181/20201030181202"
+      "chef/hab/2.0.134/20201030172917",
+      "chef/hab-backline/2.0.134/20201030180709",
+      "chef/hab-launcher/14772/20201030181158",
+      "chef/hab-pkg-export-container/2.0.134/20201030181204",
+      "chef/hab-pkg-export-tar/2.0.134/20201030181205",
+      "chef/hab-plan-build/2.0.134/20201030180522",
+      "chef/hab-studio/2.0.134/20201030180823",
+      "chef/hab-sup/2.0.134/20201030181202"
     ],
     "aarch64-linux": [
-      "core/hab/1.6.181/20201030172917",
-      "core/hab-backline/1.6.181/20201030180714",
-      "core/hab-launcher/14772/20201030181209",
-      "core/hab-pkg-export-tar/1.6.181/20201030181209",
-      "core/hab-plan-build/1.6.181/20201030180519",
-      "core/hab-studio/1.6.181/20201030180830",
-      "core/hab-sup/1.6.181/20201030181209"
+      "chef/hab/2.0.134/20201030172917",
+      "chef/hab-backline/2.0.134/20201030180714",
+      "chef/hab-launcher/14772/20201030181209",
+      "chef/hab-pkg-export-tar/2.0.134/20201030181209",
+      "chef/hab-plan-build/2.0.134/20201030180519",
+      "chef/hab-studio/2.0.134/20201030180830",
+      "chef/hab-sup/2.0.134/20201030181209"
     ],
     "x86_64-windows": [
-      "core/hab/1.6.181/20201030173308",
-      "core/hab-launcher/14772/20201030181258",
-      "core/hab-pkg-export-container/1.6.181/20201030181259",
-      "core/hab-pkg-export-tar/1.6.181/20201030181255",
-      "core/hab-plan-build-ps1/1.6.181/20201030180619",
-      "core/hab-studio/1.6.181/20201030180915",
-      "core/hab-sup/1.6.181/20201030181309",
+      "chef/hab/2.0.134/20201030173308",
+      "chef/hab-launcher/14772/20201030181258",
+      "chef/hab-pkg-export-container/2.0.134/20201030181259",
+      "chef/hab-pkg-export-tar/2.0.134/20201030181255",
+      "chef/hab-plan-build-ps1/2.0.134/20201030180619",
+      "chef/hab-studio/2.0.134/20201030180915",
+      "chef/hab-sup/2.0.134/20201030181309",
       "core/windows-service/0.6.1/20201030182923"
     ],
     "x86_64-darwin": [
-      "core/hab/1.6.181/20201030173740"
+      "chef/hab/2.0.134/20201030173740"
     ]
   }
 }
@@ -103,7 +101,7 @@ This file is generated at the very end of the release pipeline, and is used by s
 
 ## Why aren't these Habitat packages being built in Builder?
 
-The main reason is that many of these packages have "hidden" dependencies on each other that aren't expressed as either Habitat build-time or run-time dependencies. For instance, if all you have is the `hab` binary and you run `hab sup run`, we transparently download the appropriate `core/hab-sup/${HAB_BINARY_VERSION}` package from Builder, install it, and then execute the `hab-sup` binary from that package. This relationship is currently only expressed in the actual Rust code of the CLI, meaning that it is simply not available to Builder. Similar logic holds for the Studio, the Launcher, and the exporters. These dependencies could be expressed as formal Habitat dependencies, allowing Builder to act upon them, but would require some rethinking of how we onboard new users (since there wouldn't be any "download a single binary to get started" workflow). Alternatively, if we sorted out a way to package everything into a single binary, the point would be moot (though then we'd need to take a look at how we handle Supervisor self-updates, among other things). These aren't impossible to address, but it does explain the current state of the world.
+The main reason is that many of these packages have "hidden" dependencies on each other that aren't expressed as either Habitat build-time or run-time dependencies. For instance, if all you have is the `hab` binary and you run `hab sup run`, we transparently download the appropriate `chef/hab-sup/${HAB_BINARY_VERSION}` package from Builder, install it, and then execute the `hab-sup` binary from that package. This relationship is currently only expressed in the actual Rust code of the CLI, meaning that it is simply not available to Builder. Similar logic holds for the Studio, the Launcher, and the exporters. These dependencies could be expressed as formal Habitat dependencies, allowing Builder to act upon them, but would require some rethinking of how we onboard new users (since there wouldn't be any "download a single binary to get started" workflow). Alternatively, if we sorted out a way to package everything into a single binary, the point would be moot (though then we'd need to take a look at how we handle Supervisor self-updates, among other things). These aren't impossible to address, but it does explain the current state of the world.
 
 # End-to-End Pipeline
 

@@ -10,7 +10,7 @@ New-Item $env:FS_ROOT -ItemType Directory -Force
 
 # Installing the launcher here because FS_ROOT is an imperfect abstraction. It turns out that even
 # if FS_ROOT is in place, we still look for the launcher in `/hab` when we start up.
-hab pkg install core/hab-launcher
+hab pkg install chef/hab-launcher
 
 Describe "Supervisor startup failure" {
     chmod -R a-w $env:FS_ROOT

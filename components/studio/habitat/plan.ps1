@@ -1,11 +1,11 @@
 $pkg_name="hab-studio"
-$pkg_origin="core"
+$pkg_origin="chef"
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license=@("Apache-2.0")
 $pkg_build_deps=@(
+    "chef/hab",
+    "chef/hab-plan-build-ps1",
     "core/powershell/$(Get-Content "$PLAN_CONTEXT/../../../POWERSHELL_VERSION")",
-    "core/hab",
-    "core/hab-plan-build-ps1",
     "core/7zip")
 $pkg_bin_dirs=@(
     "bin",

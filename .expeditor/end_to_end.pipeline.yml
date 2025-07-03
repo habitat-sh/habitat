@@ -46,7 +46,7 @@ steps:
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - hab pkg install --binlink --channel=base-2025 core/expect
-      - hab pkg install --channel=\$HAB_BLDR_CHANNEL core/hab-sup core/hab-launcher
+      - hab pkg install --channel=\$HAB_BLDR_CHANNEL chef/hab-sup chef/hab-launcher
       - test/end-to-end/hup-does-not-abandon-services.exp
     expeditor:
       executor:

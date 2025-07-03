@@ -46,7 +46,7 @@ pub async fn start(ui: &mut UI,
                 Ok(ref ident_str) => PackageIdent::from_str(ident_str)?,
                 Err(_) => {
                     let version: Vec<&str> = VERSION.split('/').collect();
-                    PackageIdent::from_str(&format!("core/{}/{}", export_cmd, version[0]))?
+                    PackageIdent::from_str(&format!("chef/{}/{}", export_cmd, version[0]))?
                 }
             };
             debug!("Using export package `{}` with args `{:?}`", ident, args);

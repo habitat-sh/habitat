@@ -65,7 +65,7 @@ sorted_zip_contents() {
 @test "extract Linux hab binary from hart" {
     hart=$(download_hart core/hab/0.88.0/20191009204957 x86_64-linux)
 
-    run extract_hab_binaries_from_hart "${hart}" "${scratch_dir}"
+    run extract_hab_binaries_from_hart "${hart}" "${scratch_dir}" core
     assert_success
 
     run ls -1 "${scratch_dir}"
@@ -75,7 +75,7 @@ sorted_zip_contents() {
 @test "extract windows hab binary and DLLs from hart" {
     hart=$(download_hart core/hab/0.88.0 x86_64-windows)
 
-    run extract_hab_binaries_from_hart "${hart}" "${scratch_dir}"
+    run extract_hab_binaries_from_hart "${hart}" "${scratch_dir}" core
     assert_success
 
     run ls -1 "${scratch_dir}"
@@ -89,7 +89,7 @@ sorted_zip_contents() {
 
     assert_file_not_exist "${expected_archive_name}"
 
-    run create_archive_from_hart "${hart}" x86_64-linux
+    run create_archive_from_hart "${hart}" x86_64-linux core
     assert_success
     assert_output "${expected_archive_name}"
 
@@ -105,7 +105,7 @@ sorted_zip_contents() {
 
     assert_file_not_exist "${expected_archive_name}"
 
-    run create_archive_from_hart "${hart}" x86_64-darwin
+    run create_archive_from_hart "${hart}" x86_64-darwin core
     assert_success
     assert_output "${expected_archive_name}"
 
@@ -120,7 +120,7 @@ sorted_zip_contents() {
     hart=$(download_hart core/hab/0.88.0/20191009205851 x86_64-windows)
     assert_file_not_exist "${expected_archive_name}"
 
-    run create_archive_from_hart "${hart}" x86_64-windows
+    run create_archive_from_hart "${hart}" x86_64-windows core
     assert_success
     assert_output "${expected_archive_name}"
 

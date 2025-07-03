@@ -1,17 +1,17 @@
 function Install-HabService {
     if($null -ne (Get-Service Habitat -ErrorAction SilentlyContinue)) {
-        Write-Error "The Habitat service is already installed. Please run 'hab pkg exec core/windows-service uninstall' first if you wish to reinstall."
+        Write-Error "The Habitat service is already installed. Please run 'hab pkg exec chef/windows-service uninstall' first if you wish to reinstall."
         return
     }
 
-    if(!(Test-Path (Join-Path $env:SystemDrive "hab\pkgs\core\hab-sup"))) {
+    if(!(Test-Path (Join-Path $env:SystemDrive "hab\pkgs\chef\hab-sup"))) {
         $habProc = Get-Process hab -ErrorAction SilentlyContinue
         if(!$habProc) {
-            Write-Error "Could not locate the Habitat CLI. Make sure you are running this via 'hab pkg exec core/windows-service install'."
+            Write-Error "Could not locate the Habitat CLI. Make sure you are running this via 'hab pkg exec chef/windows-service install'."
             return
         }
         $habExe = $habProc[0].Path
-        & $habExe pkg install core/hab-sup
+        & $habExe pkg install chef/hab-sup
     }
 
     $svcPath = Join-Path $env:SystemDrive "hab\svc\windows-service"
