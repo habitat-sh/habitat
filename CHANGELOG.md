@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.151 -->
-## [2.0.151](https://github.com/habitat-sh/habitat/tree/2.0.151) (2025-07-03)
+<!-- latest_release 2.0.152 -->
+## [2.0.152](https://github.com/habitat-sh/habitat/tree/2.0.152) (2025-07-03)
 
 #### Merged Pull Requests
-- Bump rcgen from 0.13.2 to 0.14.1 [#9743](https://github.com/habitat-sh/habitat/pull/9743) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tokio from 1.45.1 to 1.46.0 [#9742](https://github.com/habitat-sh/habitat/pull/9742) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump tokio from 1.45.1 to 1.46.0 [#9742](https://github.com/habitat-sh/habitat/pull/9742) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.152 -->
 - Bump rcgen from 0.13.2 to 0.14.1 [#9743](https://github.com/habitat-sh/habitat/pull/9743) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.151 -->
 - Bump reqwest from 0.12.21 to 0.12.22 [#9741](https://github.com/habitat-sh/habitat/pull/9741) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.150 -->
 - Bump reqwest from 0.12.20 to 0.12.21 [#9740](https://github.com/habitat-sh/habitat/pull/9740) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.149 -->
