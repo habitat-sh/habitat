@@ -1,41 +1,44 @@
-version: "3.4"
-
 x-service: &srv
   image: hab-sup-network
+  build: .
   volumes:
     - type: bind
       source: ./CTL_SECRET
       target: /hab/sup/default/CTL_SECRET
       read_only: false
+    - hab_cache:/hab/cache
+    - hab_pkgs:/hab/pkgs
     - type: bind
-      source: /hab/cache
-      target: /hab/cache
+      source: /hab/sup/default/config/log.yml
+      target: /hab/sup/default/config/log.yml
       read_only: false
-    - type: bind
-      source: /hab/pkgs
-      target: /hab/pkgs
-      read_only: false
-    - type: bind
-      source: "${PWD}/../../target/debug/hab"
-      target: /bin/hab
-      read_only: false
-    - type: bind
-      source: "${PWD}/../../target/debug/hab-sup"
-      target: /bin/hab-sup
-      read_only: false
-    - type: bind
-      source: "${PWD}/../../target/debug/hab-launch"
-      target: /bin/hab-launch
-      read_only: false
+    # # Mount binaries as executable
+    # - type: bind
+    #   source: "${PWD}/../../target/debug/hab"
+    #   target: /bin/hab
+    #   read_only: false
+    # - type: bind
+    #   source: "${PWD}/../../target/debug/hab-sup"
+    #   target: /bin/hab-sup
+    #   read_only: false
+    # - type: bind
+    #   source: "${PWD}/../../target/debug/hab-launch"
+    #   target: /bin/hab-launch
+    #   read_only: false
   environment:
-    - HAB_NONINTERACTIVE=1
-    - HAB_SUP_BINARY=/bin/hab-sup
-    - HAB_LAUNCH_BINARY=/bin/hab-launch
-    - HAB_LAUNCH_NO_SUP_VERSION_CHECK=1
-    - HAB_LICENSE=accept-no-persist
-    - RUST_LOG=info,rustc_metadata=error,cargo=error,jobserver=error,rustc_trans=error,rustc_driver=error,rustc_mir=error,rustc=error,tokio_core=info
-    - PATH=/bin:/usr/bin
+    RUST_LOG: "info"
+    PATH: "/bin:/usr/bin"
+    HAB_NONINTERACTIVE: "1"
+    HAB_LICENSE: "accept"
+    # HAB_SUP_BINARY: "/bin/hab-sup"
+    # HAB_LAUNCH_BINARY: "/bin/hab-launch"
+    # HAB_LAUNCH_NO_SUP_VERSION_CHECK: "1"
   entrypoint: /bin/hab
+  deploy:
+    resources:
+      limits:
+        memory: 512M
+        cpus: '0.5'
 
 services:
   bastion:
@@ -46,6 +49,7 @@ services:
         aliases:
           - bastion
     command:
+      - "sup"
       - "run"
       - "--listen-ctl=0.0.0.0:9632"
       - "--permanent-peer"
@@ -55,6 +59,7 @@ services:
     networks:
       sup:
     command:
+      - "sup"
       - "run"
       - "--listen-ctl=0.0.0.0:9632"
       - "--peer=bastion"
@@ -63,3 +68,11 @@ services:
 
 networks:
   sup:
+    driver: bridge
+    name: hab-sup-network
+
+volumes:
+  hab_cache:
+    name: hab-cache
+  hab_pkgs:
+    name: hab-pkgs
