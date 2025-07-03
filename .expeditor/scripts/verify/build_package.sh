@@ -26,5 +26,6 @@ ${hab_binary} origin key generate
 # By default, it installs from the stable channel only,
 # so this may need updating to support other channels.
 export HAB_INTERNAL_BLDR_CHANNEL=acceptance
+echo "auth: $HAB_AUTH_TOKEN"
 echo "--- :hab: Running hab pkg build for $package_path"
 ${hab_binary} pkg build "$package_path"
