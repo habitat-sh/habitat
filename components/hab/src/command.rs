@@ -10,3 +10,4 @@ pub mod studio;
 pub mod sup;
 pub mod supportbundle;
 pub mod user;
+pub mod config;
