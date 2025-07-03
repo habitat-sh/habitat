@@ -13,109 +13,131 @@ gh_repo = "habitat"
     weight = 30
 +++
 
-Whether you are looking to leverage the SaaS or on-prem version of Chef Habitat Builder, you will need to create an account on the SaaS version of Chef Habitat Builder. After you have then downloaded the version, you will then sync the two accounts.
+To use the SaaS or on-premises version of Chef Habitat Builder, you need to create an account on the SaaS version. After downloading the version, sync the two accounts.
 
-This documentation covers everything from creating an account to setting up automated builds and exporting packages to a variety of container registries.
-
-## Get an Account
+## Get an account
 
 ### Prerequisites
 
-You need to set a few things up before you can get started with Chef Habitat Builder:
+Set up the following before getting started with Chef Habitat Builder:
 
-* Download and install the [Chef Habitat CLI]({{< relref "install_habitat" >}})
-* A [GitHub account](https://github.com/join)
+- Download and install the [Chef Habitat CLI]({{< relref "install_habitat" >}})
+- A [GitHub account](https://github.com/join)
 
-### Sign-in and Authorize Chef Habitat Builder
+### Sign in and authorize Chef Habitat Builder
 
-Chef Habitat Builder automatically creates your account the first time you sign in using the GitHub authentication process. You'll also need to authorize the Chef Habitat Builder application in Github.
+Chef Habitat Builder automatically creates your account the first time you sign in using GitHub authentication. You'll also need to authorize the Chef Habitat Builder application in GitHub.
 
-Head over to the Chef Habitat Builder sign-in page at [https://bldr.habitat.sh/#/sign-in](https://bldr.habitat.sh/#/sign-in) to get started.
+Go to the [Chef Habitat Builder sign-in page](https://bldr.habitat.sh/#/sign-in) to get started.
 
-1. To sign in with an existing GitHub account, select **Sign in with GitHub**
-1. If you need to set up a GitHub account, select the **Sign up here** link
+1. To sign in with an existing GitHub account, select **Sign in with GitHub**.
+1. To set up a GitHub account, select the **Sign up here** link.
 
-![Chef Habitat sign in with Github](/images/habitat/builder_signin.png)
+Signing in with your GitHub account and authorizing the Chef Habitat Builder application grants you access to the platform. After signing in and authorizing, you'll arrive at the **My Origins** page.
 
-Signing in with your GitHub account and authorizing the Chef Habitat Builder application the first time you sign in grants you access to the Chef Habitat Builder platform. Once you've completed signing in and authorizing Chef Habitat Builder, you'll arrive at the 'My Origins' view.
+## Set up your Habitat Builder profile
 
-![Authorize the Chef Habitat Application](/images/habitat/authorize.png)
+Use the **Profile** page to:
 
-## Set up your Profile
+- View the GitHub account used to sign in.
+- Add an email to your profile.
+- Create your personal access token.
+- Add a Progress Chef license key.
 
-Use the _Profile_ tab to:
+Access your profile by selecting the **round icon at the top right corner** of any page, then select **Profile** from the menu.
 
-* See the GitHub account used to sign in
-* Add an email to your profile
-* Create your personal access token
+{{< note >}}
 
-Access your profile by selecting the **round icon at the top right corner** of any page. Select the **profiles** option from the drop-down menu to  customize your profile and create your personal access token.
+A Progress Chef license key is required to access [Chef Habitat SaaS Builder](https://bldr.habitat.sh) and a personal access token is required to download or build packages from [Chef Habitat SaaS Builder](https://bldr.habitat.sh).
 
-![Access your Chef Habitat Builder profile](/images/habitat/builder_profile.png)
+This requirement applies to all new Chef product releases, such as Infra 19, Habitat 2.0, and InSpec 7, and their dependencies from Chef Habitat SaaS Builder.
 
-### Register an Email Address
+It doesn't apply to existing Chef product releases, such as Chef Infra Client 18.x and Habitat 1.x, or related packages in the stable channel.
 
-Adding an email address to your profile gives the Chef Habitat team permission to contact you directly about important information. If you use an email address associated with a GitHub account, it will also use your GitHub avatar. Save your changes by selecting **save**.
+This requirement applies to the following `hab` CLI commands:
 
-![Register your email address](/images/habitat/builder_profile_user.png)
+- `hab pkg download`
+- `hab pkg build`
+- `hab pkg install`
+- `hab studio enter`
+- `hab studio build`
+- `hab studio new`
+- `hab studio run`
 
-### Create a Personal Access Token
+{{< /note >}}
 
-Chef Habitat Builder uses an access token, called a _personal access token_ or a _Habitat authentication token_ (HAB_AUTH_TOKEN), to give you access to actions that you would like to take on Chef Habitat Builder. The _personal access token_ is the first level of permissions that you need to for any interactions with Chef Habitat Builder, such as uploading packages or checking the status of build jobs.
+### Add a Progress Chef license key
 
-Create your personal access token at the bottom of the profile page (below the save button), by selecting **Generate Token**.
+To download and sync official Chef-maintained packages from Chef Habitat SaaS Builder to an on-premises Builder instance, you need a valid license key.
 
-![Create your personal access token](/images/habitat/generate-token.png)
+To add your license key, follow these steps:
 
-Your generated access token will appear in the field. The access token is visible in the tab once, and navigating away from or reloading the page will cause it to vanish from the display. Copy your access token by selecting the icon on the right side of the field and set it as an environment variable before continuing.
+1. If you're an enterprise user, log into your customer portal and copy the license key linked to your asset.
 
-![Copy your personal access token](/images/habitat/copy-token.png)
+   Free or trial users can get a [free or trial license key](https://www.chef.io/license-generation-free-trial).
 
-#### Set the personal access token as a Windows Environment Variable
+1. Log into [Chef Habitat SaaS Builder](https://bldr.habitat.sh). If you haven't entered your license key, a pop-up will prompt you to do so.
 
-You can use your personal access token as a [Windows environment variable](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-7) for a single session by passing it in the command line or save it in your user settings for use across sessions.
+   Enter your license key in the field provided and select **Proceed**. Once entered, your account will be authorized to view and download official Chef-maintained packages.
 
-Save your personal authorization token as a permanent environment variable in Windows using:
+### Register an email address
 
-```PS
-SETX HAB_AUTH_TOKEN <token> /m
+Adding an email address to your profile allows the Chef Habitat team to contact you about important information. If you use an email address associated with a GitHub account, it will also use your GitHub avatar. Save your changes by selecting **Save**.
+
+### Create a personal access token
+
+Chef Habitat Builder uses a personal access token (`HAB_AUTH_TOKEN`) to authorize actions from the `hab` CLI, such as uploading packages or checking build job statuses.
+
+To create your personal access token:
+
+1. Go to the bottom of the profile page and select **Generate Token**.
+
+1. Copy the generated token by selecting the icon on the right side of the field. The token is visible only once. If you navigate away or reload the page, it will disappear. Save it as an environment variable before continuing.
+
+#### Set the personal access token as a Windows environment variable
+
+To use your token in a single session, pass it in the command line. To use it across sessions, save it as a permanent environment variable.
+
+To save it permanently, use:
+
+```PS1
+SETX HAB_AUTH_TOKEN <TOKEN> /m
 ```
 
-Replacing <token> with the contents of your generated personal access token.
+Replace `<TOKEN>` with your generated token.
 
-You can also save your personal access token as a permanent environment variable using the Windows user interface. In your Windows help bar, enter `environment` and select **Edit the system environment variables** from the list of suggestions.
+You can also save it through the Windows user interface:
 
-This opens the `System Properties` window on the `Advanced` tab. Select the `Environment Variables` button.
+1. Search for "environment" in the Windows help bar and select **Edit the system environment variables**.
+1. In the **System Properties** window, select **Environment Variables**.
+1. In the next window, select **New** under user variables.
+1. Enter `HAB_AUTH_TOKEN` as the variable name and paste your token as the value. Select **OK** to save.
 
-![Navigate to Windows Environment Variables](/images/habitat/environment_variable.png)
+To test, open Command Prompt and enter:
 
-In the next window, select the `New` button in the top part. This opens a dialog box that lets you set individual user variables.
+```cmd
+echo %HAB_AUTH_TOKEN%
+```
 
-![Make new user variable](/images/habitat/environment_variable_new.png)
+You should see your token value.
 
-Create a permanent environment variable by entering `HAB_AUTH_TOKEN` as the variable name. Next, paste the authorization token that you copied after you generated a new token on your profile page as the variable value. After you select the `OK`, you will see the new token in the user variables field.
+#### Set the personal access token as a macOS environment variable
 
-![Save your HAB_AUTH_TOKEN](/images/habitat/environment_variable_new_var.png)
-
-To test that your new token works correctly, open the Command Prompt---which you can find by entering command in the Windows search box---and entering `echo %HAB_AUTH_TOKEN%`. You should see the value that you pasted into the environment variable.
-
-#### Set the personal access token as a macOS Environment Variable
-
-Set the `HAB_AUTH_TOKEN` in the CLI with:
+To set the token for the current session, use:
 
 ```bash
-export HAB_AUTH_TOKEN=<token>
+export HAB_AUTH_TOKEN=<TOKEN>
 ```
 
-Replacing `<token>` with the contents of your generated personal access token.
+Replace `<TOKEN>` with your generated token.
 
-To use your personal access token across sessions, set it as an environment variable in your interactive shell configuration file, such as your `.bashrc`.
+To use it across sessions, add it to your shell configuration file (for example, `.bashrc`):
 
 ```bash
-export HAB_AUTH_TOKEN=<token>
+export HAB_AUTH_TOKEN=<TOKEN>
 ```
 
-Then initialize the path from the command line, by running:
+Then initialize the path with:
 
 ```bash
 source ~/.bashrc
