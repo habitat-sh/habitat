@@ -33,6 +33,9 @@ Install-Habitat
         'init.ps1'
     )
 
+    Write-Host '$PSVersionTable reports...'
+    $PSVersionTable
+
     Write-Host "Checking Powershell formatting..."
     # Excluding PSUseConsistentWhitespace because it conflicts with AlignAssignmentStatement and
     # PSUseConsistentIndentation which are higher value

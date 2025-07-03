@@ -15,9 +15,9 @@ expeditor:
         HAB_INTERNAL_BLDR_CHANNEL: "dev"
 
 steps:
-#######################################################################
-# E2E
-#######################################################################
+  #######################################################################
+  # E2E
+  #######################################################################
 
   - label: ":docker: Docker End-to-End Supervisor Tests"
     command:
@@ -57,10 +57,9 @@ steps:
 
   - label: "[:linux: hab-svc-load]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - hab pkg install --binlink --channel=stable core/expect
-      - hab pkg install --channel=\$HAB_BLDR_CHANNEL core/hab-sup core/hab-launcher
-      - test/end-to-end/hab-svc-load.exp
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_supervisor_load_service
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -873,7 +872,6 @@ steps:
       executor:
         windows:
           privileged: true
-
 
   - label: "[:linux: test_svc_update]"
     command:
