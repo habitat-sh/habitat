@@ -25,7 +25,8 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    url::{BLDR_URL_ENVVAR,
                          DEFAULT_BLDR_URL},
                    ChannelIdent,
-                   AUTH_TOKEN_ENVVAR};
+                   AUTH_TOKEN_ENVVAR,
+                   origin::Origin as CoreOrigin};
 
 use habitat_sup_protocol::types::UpdateCondition;
 
@@ -559,4 +560,10 @@ mod tests {
             assert_eq!(bldr_url.as_str(), test_bldr_url_val, "{:#?}", bldr_url);
         }
     }
+}
+
+#[allow(clippy::needless_pass_by_value)]
+pub(crate) fn valid_origin(val: &str) -> Result<String, String> {
+    CoreOrigin::validate(val.to_string())
+        .map(|()| val.to_string())
 }
