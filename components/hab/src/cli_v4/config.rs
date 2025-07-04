@@ -6,13 +6,15 @@ use crate::error::Result as HabResult;
 mod apply;
 mod show;
 
-pub use apply::ConfigApplyOptions;
-pub use show::ConfigShowOptions;
+use apply::ConfigApplyOptions;
+use show::ConfigShowOptions;
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum ConfigCommand {
+    /// Apply a configuration to a running service
     Apply(ConfigApplyOptions),
 
+    /// Show the current config of a running service
     Show(ConfigShowOptions),
 }
 

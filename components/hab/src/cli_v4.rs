@@ -9,7 +9,7 @@ use crate::{error::Result as HabResult,
             AFTER_HELP,
             VERSION};
 
-pub mod config;
+mod config;
 mod pkg;
 
 use config::ConfigCommand;
@@ -39,6 +39,7 @@ enum Hab {
     /// Commands relating to Habitat runtime config
     Cli(CliCommand),
 
+    /// Commands relating to a Service's runtime config
     #[clap(subcommand)]
     Config(ConfigCommand),
 
