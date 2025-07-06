@@ -9,11 +9,11 @@ studio_type="default"
 studio_env_command="/usr/bin/env"
 studio_enter_environment="STUDIO_ENTER=true"
 # shellcheck disable=SC2154
-studio_enter_command="$libexec_path/hab pkg exec core/hab-backline bash --rcfile $HAB_STUDIO_ROOT/etc/profile"
+studio_enter_command="$libexec_path/hab pkg exec chef/hab-backline bash --rcfile $HAB_STUDIO_ROOT/etc/profile"
 studio_build_environment=
 studio_build_command="${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}/bin/build"
 studio_run_environment=
-studio_run_command="$libexec_path/hab pkg exec core/hab-backline bash --rcfile $HAB_STUDIO_ROOT/etc/profile"
+studio_run_command="$libexec_path/hab pkg exec chef/hab-backline bash --rcfile $HAB_STUDIO_ROOT/etc/profile"
 
 run_user="hab"
 run_group="$run_user"
@@ -30,7 +30,7 @@ finish_setup() {
 #!/bin/sh
 HAB_STUDIO_ROOT=${HAB_STUDIO_ROOT} \
 HAB_STUDIO_HAB_BIN=$libexec_path/bin/hab \
-$libexec_path/hab pkg exec core/hab-backline hab-plan-build "\$@"
+$libexec_path/hab pkg exec chef/hab-backline hab-plan-build "\$@"
 EOF
     $chmod_cmd +x "${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}"/bin/build
 
