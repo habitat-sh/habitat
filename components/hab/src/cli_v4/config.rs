@@ -10,7 +10,7 @@ use apply::ConfigApplyOptions;
 use show::ConfigShowOptions;
 
 #[derive(Debug, Clone, Subcommand)]
-pub enum ConfigCommand {
+pub(crate) enum ConfigCommand {
     /// Apply a configuration to a running service
     Apply(ConfigApplyOptions),
 

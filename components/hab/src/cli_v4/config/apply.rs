@@ -13,30 +13,30 @@ use crate::cli_v4::utils::RemoteSup;
                      {usage-heading} {usage}\n\n{all-args}\n",
     about = "Apply a configuration to a running service"
 )]
-pub struct ConfigApplyOptions {
+pub(crate) struct ConfigApplyOptions {
     /// Supervisor control address (overrides HAB_SUP_CTL_ADDR)
     #[command(flatten)]
-    pub remote_sup: RemoteSup,
+    remote_sup: RemoteSup,
 
     /// Service group identifier, e.g. `core/redis.default`
     #[arg(long)]
-    pub group: String,
+    group: String,
 
     /// Path to the config file ("-" for stdin)
     #[arg(long)]
-    pub file: PathBuf,
+    file: PathBuf,
 
     /// Configuration version number to set
     #[arg(long, default_value_t = 0)]
-    pub version: u64,
+    version: u64,
 
     /// Encrypt the payload for this username
     #[arg(long)]
-    pub user: Option<String>,
+    user: Option<String>,
 }
 
 impl ConfigApplyOptions {
-    pub async fn do_apply(&self, ui: &mut UI) -> HabResult<()> {
+    pub(crate) async fn do_apply(&self, ui: &mut UI) -> HabResult<()> {
         let service_group = self.group.parse()
             .expect("Invalid service group identifier");
 

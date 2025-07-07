@@ -12,18 +12,18 @@ use habitat_core::package::PackageIdent;
                      {usage-heading} {usage}\n\n{all-args}\n",
     about = "Show the current config of a running service"
 )]
-pub struct ConfigShowOptions {
+pub(crate) struct ConfigShowOptions {
     /// Remote Supervisor control address (overrides HAB_SUP_CTL_ADDR)
     #[command(flatten)]
-    pub remote_sup: RemoteSup,
+    remote_sup: RemoteSup,
 
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
     #[arg(long)]
-    pub ident: PackageIdent,
+    ident: PackageIdent,
 }
 
 impl ConfigShowOptions {
-    pub async fn do_show(&self) -> HabResult<()> {
+    pub(crate) async fn do_show(&self) -> HabResult<()> {
         sub_svc_config(
             self.ident.clone(),
             self.remote_sup.inner().cloned(),

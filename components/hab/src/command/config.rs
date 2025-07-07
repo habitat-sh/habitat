@@ -11,7 +11,7 @@ use habitat_sup_protocol::{self as sup_proto, butterfly::MAX_SVC_CFG_SIZE, net::
 use futures::StreamExt;
 use std::{convert::TryFrom, fs::File, io::{self, Read}, path::Path, process};
 
-pub async fn sub_svc_set<U>(
+pub(crate) async fn sub_svc_set<U>(
     ui: &mut U,
     grp: ServiceGroup,
     cfg_path: &Path,
@@ -128,7 +128,7 @@ where
     Ok(())
 }
 
-pub async fn sub_svc_config(
+pub(crate) async fn sub_svc_config(
     ident: PackageIdent,
     remote_sup_addr: Option<ResolvedListenCtlAddr>,
 ) -> Result<()> {
