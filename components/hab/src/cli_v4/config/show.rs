@@ -18,7 +18,7 @@ pub(crate) struct ConfigShowOptions {
     remote_sup: RemoteSup,
 
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
-    #[arg(long)]
+    #[arg(value_name = "PKG_IDENT")]
     ident: PackageIdent,
 }
 

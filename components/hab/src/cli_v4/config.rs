@@ -10,6 +10,11 @@ use apply::ConfigApplyOptions;
 use show::ConfigShowOptions;
 
 #[derive(Debug, Clone, Subcommand)]
+#[command(
+    author = "The Habitat Maintainers <humans@habitat.sh>",
+    arg_required_else_help = true,
+    help_template = "{name} {version} {author-section} {about-section}\n{usage-heading}\n{usage}\n\n{all-args}\n"
+)]
 pub(crate) enum ConfigCommand {
     /// Apply a configuration to a running service
     Apply(ConfigApplyOptions),
