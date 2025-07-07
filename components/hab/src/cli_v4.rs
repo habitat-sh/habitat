@@ -102,7 +102,6 @@ pub(crate) struct BldrCommand;
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct CliCommand;
 
-
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct FileCommand;
 

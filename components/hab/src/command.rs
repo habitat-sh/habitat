@@ -1,5 +1,6 @@
 pub mod bldr;
 pub mod cli;
+pub(crate) mod config;
 pub mod launcher;
 pub mod origin;
 pub mod pkg;
@@ -10,4 +11,3 @@ pub mod studio;
 pub mod sup;
 pub mod supportbundle;
 pub mod user;
-pub(crate) mod config;
