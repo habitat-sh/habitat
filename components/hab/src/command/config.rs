@@ -5,8 +5,7 @@ use habitat_common::{types::ResolvedListenCtlAddr,
                           UIWriter}};
 use habitat_core::{crypto::keys::{Key,
                                   KeyCache},
-                   fs::{cache_key_path,
-                        FS_ROOT_PATH},
+                   fs::cache_key_path,
                    package::PackageIdent,
                    service::ServiceGroup};
 use habitat_sup_client::{SrvClient,
@@ -18,7 +17,8 @@ use std::{convert::TryFrom,
           fs::File,
           io::{self,
                Read},
-          path::Path,
+          path::{Path,
+                 PathBuf},
           process};
 
 pub(crate) async fn sub_svc_set<U>(ui: &mut U,
@@ -26,7 +26,8 @@ pub(crate) async fn sub_svc_set<U>(ui: &mut U,
                                    cfg_path: &Path,
                                    version: u64,
                                    user_opt: Option<String>,
-                                   remote_sup: Option<ResolvedListenCtlAddr>)
+                                   remote_sup: Option<ResolvedListenCtlAddr>,
+                                   key_path: PathBuf)
                                    -> Result<()>
     where U: UIWriter
 {
@@ -47,7 +48,7 @@ pub(crate) async fn sub_svc_set<U>(ui: &mut U,
                                                         ..Default::default() };
     validate.cfg = Some(buf.clone());
 
-    let key_cache = KeyCache::new(cache_key_path(FS_ROOT_PATH.as_path()));
+    let key_cache = KeyCache::new(cache_key_path(key_path));
     key_cache.setup()?;
 
     let mut set_msg = sup_proto::ctl::SvcSetCfg::default();

@@ -10,7 +10,7 @@ use habitat_core::package::PackageIdent;
           rename_all = "kebab-case",
           help_template = "{name} {version} {author-section} {about-section}\n{usage-heading} \
                            {usage}\n\n{all-args}\n",
-          about = "Show the current config of a running service")]
+          about = "Displays the default configuration options for a service")]
 pub(crate) struct ConfigShowOptions {
     /// Remote Supervisor control address (overrides HAB_SUP_CTL_ADDR)
     #[command(flatten)]

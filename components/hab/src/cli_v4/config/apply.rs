@@ -1,4 +1,5 @@
-use crate::{cli_v4::utils::RemoteSup,
+use crate::{cli_v4::utils::{CacheKeyPath,
+                            RemoteSup},
             command::config::sub_svc_set,
             error::Result as HabResult};
 use clap::Parser;
@@ -12,27 +13,33 @@ use std::path::PathBuf;
           rename_all = "kebab-case",
           help_template = "{name} {version} {author-section} {about-section}\n{usage-heading} \
                            {usage}\n\n{all-args}\n",
-          about = "Apply a configuration to a running service")]
+          about = "Sets a configuration to be shared by members of a Service Group")]
 pub(crate) struct ConfigApplyOptions {
+    /// Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default:
+    /// /home/ubuntu/.hab/cache/keys]
+    #[command(flatten)]
+    cache_key_path: CacheKeyPath,
+
     /// Supervisor control address (overrides HAB_SUP_CTL_ADDR)
     #[command(flatten)]
     remote_sup: RemoteSup,
 
-    /// Service group identifier, e.g. `core/redis.default`
+    /// Name of a user key to use for encryption
+    #[arg(short = 'u', long, value_name = "USER")]
+    user: Option<String>,
+
+    /// Target service group service.group[@organization] (ex: redis.default or
+    /// foo.default@bazcorp)
     #[arg(value_name = "SERVICE_GROUP")]
     service_group: String,
 
-    /// Configuration version number to set
+    /// A version number (positive integer) for this configuration (ex: 42)
     #[arg(value_name = "VERSION_NUMBER", value_parser = clap::value_parser!(u64))]
     config_version: u64,
 
-    /// Path to the config file ("-" for stdin)
+    /// Path to local file on disk (ex: /tmp/config.toml, "-" for stdin)
     #[arg(value_parser = FileExistsOrStdinValueParser, value_name = "FILE")]
     file: PathBuf,
-
-    /// Encrypt the payload for this username
-    #[arg(long)]
-    user: Option<String>,
 }
 
 impl ConfigApplyOptions {
@@ -46,6 +53,7 @@ impl ConfigApplyOptions {
                     &self.file,
                     self.config_version,
                     self.user.clone(),
-                    self.remote_sup.inner().cloned()).await
+                    self.remote_sup.inner().cloned(),
+                    (&self.cache_key_path).into()).await
     }
 }
