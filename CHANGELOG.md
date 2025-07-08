@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.153 -->
-## [2.0.153](https://github.com/habitat-sh/habitat/tree/2.0.153) (2025-07-07)
+<!-- latest_release 2.0.154 -->
+## [2.0.154](https://github.com/habitat-sh/habitat/tree/2.0.154) (2025-07-08)
 
 #### Merged Pull Requests
-- Bump tokio from 1.46.0 to 1.46.1 [#9747](https://github.com/habitat-sh/habitat/pull/9747) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Rehabs tool/sup-network [#9745](https://github.com/habitat-sh/habitat/pull/9745) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Rehabs tool/sup-network [#9745](https://github.com/habitat-sh/habitat/pull/9745) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.154 -->
 - Bump tokio from 1.46.0 to 1.46.1 [#9747](https://github.com/habitat-sh/habitat/pull/9747) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.153 -->
 - Bump tokio from 1.45.1 to 1.46.0 [#9742](https://github.com/habitat-sh/habitat/pull/9742) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.152 -->
 - Bump rcgen from 0.13.2 to 0.14.1 [#9743](https://github.com/habitat-sh/habitat/pull/9743) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.151 -->
