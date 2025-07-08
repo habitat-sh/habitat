@@ -499,14 +499,37 @@ impl<'a> SvcDir<'a> {
         Ok(())
     }
 
-    fn create_svc_root(&self) -> Result<()> { Self::create_dir_all(svc_path(self.service_name)) }
+    fn create_svc_root(&self) -> Result<()> {
+        let svc_path = svc_path(self.service_name);
+        #[cfg(windows)]
+        Self::create_dir_all(svc_path)?;
+        #[cfg(unix)]
+        {
+            Self::create_dir_all(&svc_path)?;
+            posix_perm::ensure_path_permissions(&svc_path, 0o755)?;
+        }
+        Ok(())
+    }
 
     /// Creates all to sub-directories in a service directory that are
     /// owned by the Supervisor (that is, the user the current thread
     /// is running as).
     fn create_all_sup_owned_dirs(&self) -> Result<()> {
-        Self::create_dir_all(svc_hooks_path(self.service_name))?;
-        Self::create_dir_all(svc_logs_path(self.service_name))?;
+        let svc_hooks_path = svc_hooks_path(self.service_name);
+        let svc_logs_path = svc_logs_path(self.service_name);
+        #[cfg(windows)]
+        {
+            Self::create_dir_all(svc_hooks_path)?;
+            Self::create_dir_all(svc_logs_path)?;
+        }
+        #[cfg(unix)]
+        {
+            Self::create_dir_all(&svc_hooks_path)?;
+            posix_perm::ensure_path_permissions(&svc_hooks_path, 0o755)?;
+            Self::create_dir_all(&svc_logs_path)?;
+            posix_perm::ensure_path_permissions(&svc_logs_path, 0o755)?;
+        }
+
         Ok(())
     }
 
