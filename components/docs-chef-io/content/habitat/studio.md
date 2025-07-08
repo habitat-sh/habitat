@@ -55,7 +55,7 @@ The Studio as an abstract concept is an environment to provide the required guar
 
 There are currently four implementations of the studio provided by the Habitat team. The studio implementations build upon common utilities, such as chroot or Docker containers, thus constraints on the studio behaviors, where it can run, what kinds of packages it can build, and in many cases what kinds of errors you can expect, are imposed by those tools. In the case of errors, it's often a case of understanding and troubleshooting the underlying tool used to implement the studio rather than troubleshooting the studio itself.
 
-### Linux "native" - aka `chef/hab-studio`
+### Linux "native" - aka `core/hab-studio`
 
 Built using chroot and bind mounts to provide access to required paths from the host. This is the default studio on Linux, and only functions on Linux based systems.  This requires root privileges to invoke, and the `hab studio` command will attempt to use `sudo` to elevate the users privileges, if they are not already root. In addition, the installation of this package requires root privileges, as `/hab/pkgs` is owned by the root user. Specifically, chroot requires CAP_SYS_CHROOT and mounts require CAP_SYS_ADMIN. In addition to the bind mounts, `/proc` is required to be mounted for builds to function.
 
@@ -65,13 +65,13 @@ The Linux Docker Studio is a completely separate implementation from the native 
 
 This studio was built to not require elevated permissions to run, to be able to provide studio builds inside CI systems or orchestration engines such as Kubernetes where elevated privileges are typically verboten. However, you still need to be able to communicate with the container engine in order to start the container.
 
-### Windows "native" - aka `chef/hab-studio`
+### Windows "native" - aka `core/hab-studio`
 
 The Windows studio uses Junction mounts in order to provide a consistent filesystem view in order to provide a similar experience to the Linux studios. Windows has no concept of "chroot" or jailed filesystems, so it provides no isolation from the host paths, registry and other machine scoped APIs (like Windows features, etc.).
 
 ### Windows "Docker Studio"
 
-The Windows Docker studio does not exist as a component like `chef/hab-studio` or `rootless_studio` in the Habitat code base. Instead it is created in our release pipeline, using a minimal Windows Container as the base and layering in the Windows implementation of `chef/hab-studio` to build a Docker image. Like the rootless studio, this can be invoked using only the Docker CLI with the same additional setup required to set the correct options.
+The Windows Docker studio does not exist as a component like `core/hab-studio` or `rootless_studio` in the Habitat code base. Instead it is created in our release pipeline, using a minimal Windows Container as the base and layering in the Windows implementation of `core/hab-studio` to build a Docker image. Like the rootless studio, this can be invoked using only the Docker CLI with the same additional setup required to set the correct options.
 
 ## Studio platform support
 

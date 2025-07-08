@@ -200,9 +200,9 @@ package identifier on each line, like so:
 
 ```text
 # These are the packages needed to run a Supervisor
-chef/hab-launcher
-chef/hab
-chef/hab-sup
+core/hab-launcher
+core/hab
+core/hab-sup
 ```
 
 Each line is a valid package identifier. You can also add comments using `#`.
@@ -233,13 +233,13 @@ file_descriptor = "Packages needed to run an instance of Builder"
 channel = "stable"
 packages = [
   # Supervisor and prerequisites
-  "chef/hab-launcher",
-  "chef/hab",
-  "chef/hab-sup",
+  "core/hab-launcher",
+  "core/hab",
+  "core/hab-sup",
 
   # Utilities
-  "chef/sumologic",
-  "chef/nmap"
+  "core/sumologic",
+  "core/nmap"
 ]
 
 # Targets can be repeated to specify additional subsets of packages,
@@ -259,9 +259,9 @@ packages = [
 channel = "stable"
 packages = [
   # Supervisor and prerequisites
-  "chef/windows-service",
-  "chef/hab",
-  "chef/hab-sup",
+  "core/windows-service",
+  "core/hab",
+  "core/hab-sup",
 
   "habitat/builder-worker"
 ]

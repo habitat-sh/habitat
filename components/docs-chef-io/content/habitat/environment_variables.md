@@ -22,7 +22,7 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_BLDR_CHANNEL` | build system, Supervisor | `stable` | Set the Chef Habitat Builder channel you are subscribing to, to a specific channel. Defaults to `stable`.
 | `HAB_BLDR_URL` | build system, Supervisor | `https://bldr.habitat.sh` | Sets an alternate default endpoint for communicating with Builder. Used by the Chef Habitat build system and the Supervisor |
 | `HAB_DOCKER_OPTS` | build system | no default | When running a Studio on a platform that uses Docker (macOS), additional command line options to pass to the `docker` command. |
-| `HAB_INTERNAL_BLDR_CHANNEL` | build system, Supervisor, exporters | `stable` | Channel from which Chef Habitat-specific packages (e.g., `chef/hab-sup`, `chef/hab-launcher`, etc.) are downloaded on-demand when first called. Generally of use only for those developing Chef Habitat. Only applies to Chef Habitat-specific packages, and nothing else. |
+| `HAB_INTERNAL_BLDR_CHANNEL` | build system, Supervisor, exporters | `stable` | Channel from which Chef Habitat-specific packages (e.g., `core/hab-sup`, `core/hab-launcher`, etc.) are downloaded on-demand when first called. Generally of use only for those developing Chef Habitat. Only applies to Chef Habitat-specific packages, and nothing else. |
 | `HAB_LICENSE` | build system, Supervisor, exporters | no default | Used to accept the [Chef EULA]({{< relref "chef_license#chef-eula" >}}). See [Accepting the Chef License]({{< relref "chef_license_accept#habitat" >}}) for valid values. |
 | `HAB_LISTEN_CTL` | Supervisor | 127.0.0.1:9632 | The listen address for the Control Gateway. This also affects `hab` commands that interact with the Supervisor via the Control Gateway, for example: `hab sup status`. |
 | `HAB_LISTEN_GOSSIP` | Supervisor | 0.0.0.0:9638 | The listen address for the Gossip System Gateway |
@@ -37,7 +37,7 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_RING_KEY` | Supervisor | no default | The contents of the ring key when running with [wire encryption]({{< relref "sup_secure" >}}). Useful when running in a container. |
 | `HAB_STUDIO_SECRET_<VARIABLE>` | build system | no default | Prefix to allow environment variables into the Studio. The prefix will be removed and your variable will be passed into the Studio at build time. |
 | `HAB_STUDIOS_HOME` | build system | `/hab/studios` | Directory in which to create build Studios |
-| `HAB_STUDIO_BACKLINE_PKG` | build system | `chef/hab-backline/{{studio_version}}` | Overrides the default package identifier for the "backline" package which installs the Studio baseline package set. |
+| `HAB_STUDIO_BACKLINE_PKG` | build system | `core/hab-backline/{{studio_version}}` | Overrides the default package identifier for the "backline" package which installs the Studio baseline package set. |
 | `HAB_STUDIO_ROOT` | build system | no default | Root of the current Studio under `$HAB_STUDIOS_HOME`. Infrequently overridden. |
 | `HAB_STUDIO_NOSTUDIORC` | build system | no default | When set to a non-empty value, a `.studiorc` will not be sourced when entering an interactive Studio via `hab studio enter`. |
 | `HAB_STUDIO_SUP` | build system | no default | Used to customize the arguments passed to an automatically launched Supervisor, or to disable the automatic launching by setting it to `false`, `no`, or `0`. |
