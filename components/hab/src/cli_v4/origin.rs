@@ -37,19 +37,19 @@ pub(super) enum OriginCommand {
 
     /// Manage origin member invitations
     #[command(subcommand)]
-    Invitations(invitations::OriginInvitationsOptions),
+    Invitations(invitations::OriginInvitationsCommand),
 
     /// Commands relating to Habitat origin key maintenance
     #[command(subcommand)]
-    Key(key::OriginKeyOptions),
+    Key(key::OriginKeyCommand),
 
     /// Role Based Access Control for origin members
     #[command(subcommand)]
-    Rbac(rbac::OriginRbacOptions),
+    Rbac(rbac::OriginRbacCommand),
 
     /// Commands related to secret management
     #[command(subcommand)]
-    Secret(secret::OriginSecretOptions),
+    Secret(secret::OriginSecretCommand),
 
     /// Transfers ownership of an origin to another member of that origin
     Transfer(transfer::OriginTransferOptions),

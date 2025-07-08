@@ -21,7 +21,7 @@ use reqwest::StatusCode;
 #[command(disable_version_flag = true,
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
-pub(super) struct OriginDeleteOptions {
+pub(crate) struct OriginDeleteOptions {
     /// The origin to be deleted
     #[arg(name = "ORIGIN", value_parser = valid_origin)]
     origin:     String,

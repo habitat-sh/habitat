@@ -21,14 +21,16 @@ use habitat_core::util::text_render::{PortableText,
 #[command(disable_version_flag = true,
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
-pub(super) struct OriginInfoOptions {
+pub(crate) struct OriginInfoOptions {
     /// The origin to be deleted
     #[arg(name = "ORIGIN", value_parser = valid_origin)]
     origin:     String,
 
     /// Output will be rendered in json
-    #[arg(short = 'j', long = "json")]
-    to_json:    bool,
+    #[arg(name = "TO_JSON",
+          short = 'j',
+          long = "json")]
+    to_json: bool,
 
     #[command(flatten)]
     bldr_url:   BldrUrl,
