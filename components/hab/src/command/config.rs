@@ -17,13 +17,12 @@ use std::{convert::TryFrom,
           fs::File,
           io::{self,
                Read},
-          path::{Path,
-                 PathBuf},
+          path::PathBuf,
           process};
 
 pub(crate) async fn sub_svc_set<U>(ui: &mut U,
                                    grp: ServiceGroup,
-                                   cfg_path: &Path,
+                                   cfg_path: &String,
                                    version: u64,
                                    user_opt: Option<String>,
                                    remote_sup: Option<ResolvedListenCtlAddr>,
@@ -32,7 +31,7 @@ pub(crate) async fn sub_svc_set<U>(ui: &mut U,
     where U: UIWriter
 {
     let mut buf = Vec::with_capacity(MAX_SVC_CFG_SIZE);
-    let len = if cfg_path.as_os_str() == "-" {
+    let len = if cfg_path.as_str() == "-" {
         io::stdin().read_to_end(&mut buf)?
     } else {
         let mut f = File::open(cfg_path)?;

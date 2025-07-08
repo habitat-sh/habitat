@@ -6,7 +6,6 @@ use clap::Parser;
 use clap_v4 as clap;
 use habitat_common::{cli::clap_validators::FileExistsOrStdinValueParser,
                      ui::UI};
-use std::path::PathBuf;
 
 #[derive(Debug, Clone, Parser)]
 #[command(arg_required_else_help = true,
@@ -38,8 +37,8 @@ pub(crate) struct ConfigApplyOptions {
     config_version: u64,
 
     /// Path to local file on disk (ex: /tmp/config.toml, "-" for stdin)
-    #[arg(value_parser = FileExistsOrStdinValueParser, value_name = "FILE")]
-    file: PathBuf,
+    #[arg(value_parser = FileExistsOrStdinValueParser, value_name = "FILE", default_value = "-")]
+    file: String,
 }
 
 impl ConfigApplyOptions {
