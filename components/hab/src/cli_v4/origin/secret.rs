@@ -16,7 +16,8 @@ use habitat_common::ui::UI;
 
 use std::path::PathBuf;
 
-use habitat_core::crypto::keys::KeyCache;
+use habitat_core::{crypto::keys::KeyCache,
+                    origin::Origin};
 
 #[derive(Debug, Clone, Parser)]
 #[command(disable_version_flag = true,
@@ -82,20 +83,26 @@ pub(crate) enum OriginSecretCommand {
 
 impl OriginSecretCommand {
     pub(super) async fn execute(&self, ui: &mut UI) -> HabResult<()> {
+
+        fn get_args( bldr_url: &BldrUrl, auth_token: &AuthToken, origin_opt: &Option<String>) 
+                                -> Result<(String, String, Origin), Error> {
+            // URL → String
+            let url   = bldr_url.resolve()?.to_string();
+            // Token → String
+            let token = auth_token.resolve()?;
+            // Origin → Origin newtype
+            let origin = origin_param_or_env(&origin_opt)?;
+            Ok((url, token, origin))
+        }
+
         match self {
             OriginSecretCommand::Delete { key_name, bldr_url, auth_token, origin } => {
-                let url    = bldr_url.resolve()?.to_string();                        
-                let token  = auth_token.resolve()?;                       
-                let origin = origin_param_or_env(&origin)?;
-
+                let (url, token, origin) = get_args(bldr_url, auth_token, origin)?;
                 secret::delete::start(ui, &url, &token, &origin, key_name).await
             }
 
             OriginSecretCommand::List { bldr_url, auth_token, origin } => {
-                let url    = bldr_url.resolve()?.to_string();                         
-                let token  = auth_token.resolve()?;                       
-                let origin = origin_param_or_env(&origin)?;        
-
+                let (url, token, origin) = get_args(bldr_url, auth_token, origin)?;
                 secret::list::start(ui, &url, &token, &origin).await
             }
 
@@ -107,9 +114,7 @@ impl OriginSecretCommand {
                 origin,
                 cache_key_path,
             } => {
-                let url    = bldr_url.resolve()?.to_string();                         
-                let token  = auth_token.resolve()?;                       
-                let origin = origin_param_or_env(&origin)?;        
+                let (url, token, origin) = get_args(bldr_url, auth_token, origin)?;       
 
                 // Build and initialize the KeyCache
                 let cache_dir: PathBuf = cache_key_path.cache_key_path.clone();

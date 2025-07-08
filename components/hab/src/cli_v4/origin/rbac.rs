@@ -5,13 +5,17 @@ use clap_v4 as clap;
 use crate::{cli_v4::utils::{AuthToken,
                             BldrOrigin,
                             BldrUrl},
-            error::Result as HabResult,
+            error::{Result as HabResult,
+                Error},
             command::origin::rbac};
 use clap::Parser;
 
+use url::Url;
+
 use habitat_common::ui::UI;
 
-use habitat_core::origin::OriginMemberRole;
+use habitat_core::origin::{Origin, 
+                            OriginMemberRole};
 
 #[derive(Debug, Clone, Parser)]
 #[command(disable_version_flag = true,
@@ -71,6 +75,18 @@ pub(crate) enum OriginRbacCommand {
 
 impl OriginRbacCommand {
     pub(super) async fn execute(&self, ui: &mut UI) -> HabResult<()> {
+
+        fn get_args( bldr_url: &BldrUrl, auth_token: &AuthToken, origin: &BldrOrigin) 
+                                -> Result<(Url, String, Origin), Error> {
+        // URL → Url
+        let url   = bldr_url.resolve()?;
+        // Token → String
+        let token = auth_token.resolve()?;
+        // Origin → Origin
+        let origin = origin.inner.clone();
+        Ok((url, token, origin))
+        }
+
         match self {
             OriginRbacCommand::Show {
                 origin,
@@ -79,19 +95,9 @@ impl OriginRbacCommand {
                 bldr_url,
                 auth_token,
             } => {
-                let url   = bldr_url.resolve()?;
-                let token = auth_token.resolve()?;
-                let origin_obj = origin.inner.clone();
-
-                rbac::show_role::start(
-                    ui,
-                    url,
-                    origin_obj,
-                    &token,
-                    member_account,
-                    *to_json,
-                )
-                .await
+                let (url, token, origin_obj) = get_args(bldr_url, auth_token, origin)?;
+                rbac::show_role::start(ui, url, origin_obj, &token, member_account, *to_json)
+                                .await
             }
 
             OriginRbacCommand::Set {
@@ -102,20 +108,9 @@ impl OriginRbacCommand {
                 auth_token,
                 no_prompt,
             } => {
-                let url   = bldr_url.resolve()?;
-                let token = auth_token.resolve()?;
-                let origin_obj = origin.inner.clone();
-
-                rbac::set_role::start(
-                    ui,
-                    url,
-                    origin_obj,
-                    &token,
-                    member_account,
-                    *role,
-                    *no_prompt,
-                )
-                .await
+                let (url, token, origin_obj) = get_args(bldr_url, auth_token, origin)?;
+                rbac::set_role::start(ui, url, origin_obj, &token, member_account, *role, *no_prompt)
+                                .await
             }   
         }
     }
