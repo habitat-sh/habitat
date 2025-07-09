@@ -1,22 +1,16 @@
-FROM chefes/buildkite:latest
+FROM ubuntu:24.04
 
-# Minimal Docker container for running BATS tests on our CI tooling.
-#
-# BATS, of course, is needed to run BATS :P
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      ruby ruby-dev build-essential jq zip unzip bats git curl file && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/sstephenson/bats /bats && \
-    cd /bats && \
-    git checkout v0.4.0 && \
-    ./install.sh /usr/local
-RUN mkdir /test_helper
-RUN git clone https://github.com/ztombol/bats-support --branch=v0.3.0 /test_helper/bats-support
-RUN git clone https://github.com/ztombol/bats-assert --branch=v0.3.0 /test_helper/bats-assert
-RUN git clone https://github.com/ztombol/bats-file --branch=v0.2.0 /test_helper/bats-file
+RUN git clone --branch=v0.3.0 https://github.com/bats-core/bats-support /test_helper/bats-support && \
+    git clone --branch=v2.1.0 https://github.com/bats-core/bats-assert /test_helper/bats-assert && \
+    git clone --branch=v0.2.0 https://github.com/bats-core/bats-file /test_helper/bats-file
 
-ENV HAB_LICENSE accept-no-persist
+ENV HAB_LICENSE=accept-no-persist
 
-# Install modern hab... can get rid of this when chefes/buildkite has
-# >= hab 0.88.0
-RUN curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh -o install.sh
-RUN chmod a+x ./install.sh
-RUN /bin/bash -c ./install.sh
+COPY components/hab/install.sh /tmp/install.sh
+
+RUN chmod +x /tmp/install.sh && /bin/bash /tmp/install.sh
