@@ -17,7 +17,7 @@ Chef Habitat's Launcher is a sidecar process for the Supervisor which provides a
 To update your Launchers, run:
 
 ```bash
-hab pkg install core/hab-launcher
+hab pkg install chef/hab-launcher
 ```
 
 Then restart the Supervisor. This will, by necessity, require a restart of supervised services, so factor that into your planning.
