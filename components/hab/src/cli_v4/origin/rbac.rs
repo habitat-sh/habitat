@@ -54,11 +54,7 @@ pub(crate) enum OriginRbacCommand {
         member_account: String,
 
         /// The role name to enforce for the member account
-        #[arg(value_parser = ["READONLY_MEMBER", 
-                            "MEMBER", 
-                            "MAINTAINER", 
-                            "ADMINISTRATOR", 
-                            "OWNER"])]
+        #[arg(value_enum, ignore_case = false, value_name = "ROLE")]
         role:       OriginMemberRole,          
 
         #[command(flatten)]

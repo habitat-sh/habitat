@@ -94,16 +94,11 @@ pub(crate) enum OriginKeyCommand {
         cache_key_path: CacheKeyPath,
 
         /// Upload origin private key in addition to the public key
-        #[arg(name = "WITH_SECRET",
-                short = 's',
-                long = "secret",
-                conflicts_with = "PUBLIC_FILE")]
+        #[arg(name = "WITH_SECRET", short = 's', long = "secret", conflicts_with = "public_file")]
         with_secret:    bool,
 
         /// Path to a local origin private key file on disk
-        #[arg(name = "SECRET_FILE",
-                long = "secfile",
-                conflicts_with = "ORIGIN")]
+        #[arg(name = "SECRET_FILE", long = "secfile", conflicts_with = "origin")]
         secret_file:    Option<PathBuf>,
 
         #[command(flatten)]

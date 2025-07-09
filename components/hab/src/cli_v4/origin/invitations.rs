@@ -110,41 +110,42 @@ pub(crate) enum OriginInvitationsCommand {
 
 impl OriginInvitationsCommand {
     pub(super) async fn execute(&self, ui: &mut UI) -> HabResult<()> {
-        // Helper to extract token+endpoint
-        fn get_token_and_endpoint(opts_bldr: &BldrUrl, opts_auth: &AuthToken)
+        // Helper to extract token+url
+        fn get_token_and_endpoint(bldr: &BldrUrl, auth: &AuthToken)
             -> Result<(String, String), Error>
         {
-            let token = opts_auth
+
+            let url = bldr.to_string();
+            let token = auth
                 .from_cli_or_config()
                 .map_err(|e| Error::ArgumentError(e.to_string()))?;
-            let endpoint = opts_bldr.to_string();
-            Ok((token, endpoint))
+            Ok((url, token))
         }
 
         match self {
             OriginInvitationsCommand::Accept { origin, invitation_id, bldr_url, auth_token } => {
-                let (token, endpoint) = get_token_and_endpoint(bldr_url, auth_token)?;
-                invitations::accept::start(ui, &endpoint, &token, origin, *invitation_id).await
+                let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
+                invitations::accept::start(ui, &url, origin, &token, *invitation_id).await
             }
             OriginInvitationsCommand::Ignore { origin, invitation_id, bldr_url, auth_token } => {
-                let (token, endpoint) = get_token_and_endpoint(bldr_url, auth_token)?;
-                invitations::ignore::start(ui, &endpoint, &token, origin, *invitation_id).await
+                let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
+                invitations::ignore::start(ui, &url, origin, &token, *invitation_id).await
             }
             OriginInvitationsCommand::List { bldr_url, auth_token } => {
-                let (token, endpoint) = get_token_and_endpoint(bldr_url, auth_token)?;
-                invitations::list_user::start(ui, &endpoint, &token).await
+                let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
+                invitations::list_user::start(ui, &url, &token).await
             }
             OriginInvitationsCommand::Pending { origin, bldr_url, auth_token } => {
-                let (token, endpoint) = get_token_and_endpoint(bldr_url, auth_token)?;
-                invitations::list_pending_origin::start(ui, &endpoint, &token, origin).await
+                let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
+                invitations::list_pending_origin::start(ui, &url, &token, origin).await
             }
             OriginInvitationsCommand::Rescind { origin, invitation_id, bldr_url, auth_token } => {
-                let (token, endpoint) = get_token_and_endpoint(bldr_url, auth_token)?;
-                invitations::rescind::start(ui, &endpoint, &token, origin, *invitation_id).await
+                let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
+                invitations::rescind::start(ui, &url, origin, &token, *invitation_id).await
             }
             OriginInvitationsCommand::Send { origin, invitee_account, bldr_url, auth_token } => {
-                let (token, endpoint) = get_token_and_endpoint(bldr_url, auth_token)?;
-                invitations::send::start(ui, &endpoint, &token, origin, invitee_account).await
+                let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
+                invitations::send::start(ui, &url, origin, &token, invitee_account).await
             }
         }
     }
