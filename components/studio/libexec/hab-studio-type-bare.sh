@@ -11,7 +11,7 @@ studio_build_command=
 studio_run_environment=
 studio_run_command=
 
-base_pkgs="core/hab core/hab-sup"
+base_pkgs="chef/hab chef/hab-sup"
 : "${PKGS:=}"
 
 run_user="hab"
@@ -44,14 +44,14 @@ finish_setup() {
   done
 
   local hab_path
-  hab_path=$(_pkgpath_for core/hab)
+  hab_path=$(_pkgpath_for chef/hab)
   local sup_path
-  sup_path=$(_pkgpath_for core/hab-sup)
+  sup_path=$(_pkgpath_for chef/hab-sup)
   local busybox_path
   busybox_path=$(_pkgpath_for core/busybox-static)
 
   local full_path=""
-  for path_pkg in $PKGS core/hab-sup core/busybox-static; do
+  for path_pkg in $PKGS chef/hab-sup core/busybox-static; do
     local path_file
     path_file="$HAB_STUDIO_ROOT/$(_pkgpath_for $path_pkg)/PATH"
     if [ -f "$path_file" ]; then
@@ -83,7 +83,7 @@ finish_setup() {
   $bb mkdir -p $v "$HAB_STUDIO_ROOT""$HAB_ROOT_PATH"/bin
 
   # Put `hab` on the default `$PATH`
-  _hab pkg binlink --dest "$HAB_ROOT_PATH"/bin core/hab hab
+  _hab pkg binlink --dest "$HAB_ROOT_PATH"/bin chef/hab hab
 
   # Create `/bin/{sh,bash}` for software that hardcodes these shells
   _hab pkg binlink --dest=/bin core/busybox-static bash

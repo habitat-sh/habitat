@@ -26,15 +26,17 @@ installed_version() {
 }
 
 installed_target() {
+  local origin="${1:-core}"
+
   version_release="$(hab --version | cut -d' ' -f2)"
   version="$(cut -d'/' -f1 <<< "$version_release")"
   release="$(cut -d'/' -f2 <<< "$version_release")"
-  cat /hab/pkgs/core/hab/"$version"/"$release"/TARGET
+  cat /hab/pkgs/"${origin}"/hab/"$version"/"$release"/TARGET
 }
 
 @test "Install latest for x86_86-linux" {
   linux || skip "Did not detect a Linux system"
-  run components/hab/install.sh
+  run components/hab/install.sh -c acceptance
 
   [ "$status" -eq 0 ]
   [ "$(installed_target)" == "x86_64-linux" ]
@@ -56,6 +58,15 @@ installed_target() {
   [ "$status" -eq 0 ]
   [ "$(installed_version)" == "hab 0.79.1" ]
   [ "$(installed_target)" == "x86_64-linux" ]
+}
+
+@test "Install package for x86_84-linux from chef origin" {
+  linux || skip "Did not detect a Linux system"
+  run components/hab/install.sh -c acceptance -o chef
+
+  [ "$status" -eq 0 ]
+  [[ "$(installed_version)" =~ ^hab\ 2\.[0-9]+\.[0-9]+$ ]]
+  [ "$(installed_target chef)" == "x86_64-linux" ]
 }
 
 @test "Install latest for x86_86-darwin" {

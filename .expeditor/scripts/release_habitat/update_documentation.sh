@@ -23,11 +23,11 @@ install_release_channel_hab_binary "$BUILD_PKG_TARGET"
 # See https://github.com/habitat-sh/habitat/pull/7835
 # and https://github.com/chef/release-engineering/issues/1241 for
 # further background.
-${hab_binary} pkg binlink "core/hab/${version}" --force --dest=/usr/bin
+${hab_binary} pkg binlink "chef/hab/${version}" --force --dest=/usr/bin
 
-hab pkg install core/hab-studio --channel="${channel}"
-hab pkg install core/hab-sup --channel="${channel}"
-hab pkg install core/hab-launcher --channel="${channel}"
+hab pkg install chef/hab-studio --channel="${channel}"
+hab pkg install chef/hab-sup --channel="${channel}"
+hab pkg install chef/hab-launcher --channel="${channel}"
 hab pkg install core/node --binlink
 
 echo "--- :hammer_and_pick: Generating CLI docs"

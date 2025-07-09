@@ -3,7 +3,7 @@
 set -eou pipefail
 
 # Install hab from a temporarily uploaded aarch64 package
-curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- -t aarch64-linux
+sudo ./components/hab/install.sh -t aarch64-linux -c acceptance
 
 # shellcheck source=.expeditor/scripts/shared.sh
 source .expeditor/scripts/verify/shared.sh

@@ -10,6 +10,6 @@ RUN set -ex \
   \
   && cd /tmp \
   && wget https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh \
-  && bash install.sh -t ${PACKAGE_TARGET} \
+  && bash install.sh -t ${PACKAGE_TARGET} -c acceptance -o chef \
   && rm -rf install.sh /hab/cache /root/.wget-hsts /root/.gnupg \
   && apk del .build-deps

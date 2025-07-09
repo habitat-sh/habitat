@@ -72,9 +72,9 @@ fn add_base_packages_args(cmd: Command) -> Command {
             .default_value(DEFAULT_HAB_LAUNCHER_PKG_IDENT)
             .value_parser(HabPackageInstallSourceValueParser)
             .help(
-                "Launcher package identifier (ex: core/hab-launcher) or filepath to a \
+                "Launcher package identifier (ex: chef/hab-launcher) or filepath to a \
                          Habitat artifact (ex: \
-                         /home/core-hab-launcher-13829-20200527165030-x86_64-linux.hart) to \
+                         /home/chef-hab-launcher-19633-20250610094807-x86_64-linux.hart) to \
                          install",
             ),
     )
@@ -85,9 +85,9 @@ fn add_base_packages_args(cmd: Command) -> Command {
             .default_value(DEFAULT_HAB_SUP_PKG_IDENT)
             .value_parser(HabPackageInstallSourceValueParser)
             .help(
-                "Supervisor package identifier (ex: core/hab-sup) or filepath to a \
+                "Supervisor package identifier (ex: chef/hab-sup) or filepath to a \
                  Habitat artifact (ex: \
-                 /home/core-hab-sup-1.6.39-20200527165021-x86_64-linux.hart) to install",
+                 /home/chef-hab-sup-2.0.134-20250610093735-x86_64-linux.hart) to install",
             ),
     )
 }

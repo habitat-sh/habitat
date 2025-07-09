@@ -1,11 +1,12 @@
 # shellcheck disable=2034
 pkg_name=hab-plan-build
-pkg_origin=core
+pkg_origin=chef
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_bin_dirs=(bin)
 
-pkg_deps=(core/bash
+pkg_deps=(chef/hab
+          core/bash
           core/binutils
           core/coreutils
           core/file
@@ -13,7 +14,6 @@ pkg_deps=(core/bash
           core/gawk
           core/grep
           core/gzip
-          core/hab
           core/toml-cli
           core/sed
           core/tar
