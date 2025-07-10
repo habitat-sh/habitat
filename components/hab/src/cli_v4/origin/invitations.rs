@@ -137,7 +137,7 @@ impl OriginInvitationsCommand {
             }
             OriginInvitationsCommand::Pending { origin, bldr_url, auth_token } => {
                 let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
-                invitations::list_pending_origin::start(ui, &url, &token, origin).await
+                invitations::list_pending_origin::start(ui, &url, origin, &token).await
             }
             OriginInvitationsCommand::Rescind { origin, invitation_id, bldr_url, auth_token } => {
                 let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
