@@ -27,6 +27,8 @@ declare -g hab_binary
 install_release_channel_hab_binary "$BUILD_PKG_TARGET"
 import_keys
 
+hab pkg install chef/hab-studio -c acceptance
+
 echo "--- :zap: Cleaning up old studio, if present"
 ${hab_binary} studio rm
 
