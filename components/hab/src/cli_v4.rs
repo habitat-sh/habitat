@@ -10,9 +10,11 @@ use crate::{error::Result as HabResult,
             VERSION};
 
 mod config;
+mod file;
 mod pkg;
 
 use config::ConfigCommand;
+use file::FileCommand;
 use pkg::PkgCommand;
 
 pub(crate) mod sup;
@@ -43,6 +45,8 @@ enum Hab {
     #[clap(subcommand)]
     Config(ConfigCommand),
 
+    /// Commands relating to Habitat files
+    #[clap(subcommand)]
     File(FileCommand),
 
     License(LicenseCommand),
@@ -91,6 +95,7 @@ impl Hab {
             Self::Pkg(pkg_command) => pkg_command.do_command(ui, feature_flags).await,
             Self::Sup(sup_command) => sup_command.do_command(ui, feature_flags).await,
             Self::Config(config_command) => config_command.do_command(ui).await,
+            Self::File(file_command) => file_command.do_command(ui).await,
             _ => todo!(),
         }
     }
@@ -101,9 +106,6 @@ pub(crate) struct BldrCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct CliCommand;
-
-#[derive(Clone, Debug, Parser)]
-pub(crate) struct FileCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct LicenseCommand;
