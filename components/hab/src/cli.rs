@@ -1,4 +1,3 @@
-pub mod gateway_util;
 #[allow(legacy_derive_helpers)]
 pub mod hab;
 
