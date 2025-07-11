@@ -2,6 +2,8 @@ pub mod bldr;
 pub mod cli;
 #[cfg(feature = "v4")]
 pub(crate) mod config;
+#[cfg(feature = "v4")]
+pub(crate) mod file;
 pub mod launcher;
 pub mod origin;
 pub mod pkg;
