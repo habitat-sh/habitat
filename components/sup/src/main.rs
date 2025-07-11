@@ -29,8 +29,11 @@ use habitat_core::{self,
                             keys::{KeyCache,
                                    RingKey}},
                    os::signals,
+                   package::{Identifiable,
+                             PackageIdent},
                    tls::rustls_wrapper::{CertificateChainCli,
-                                         RootCertificateStoreCli}};
+                                         RootCertificateStoreCli},
+                   ChannelIdent};
 use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE,
                               OK_NO_RETRY_EXCODE};
@@ -281,6 +284,13 @@ async fn split_apart_sup_run(sup_run: SupRun,
 
     let key_cache = KeyCache::new(sup_run.cache_key_path.cache_key_path);
     key_cache.setup()?;
+
+    let channel = if let Some(ref channel) = shared_load.channel {
+        channel.clone()
+    } else {
+        ChannelIdent::stable()
+    };
+
     let cfg =
         ManagerConfig { auto_update: sup_run.auto_update,
                         auto_update_period: sup_run.auto_update_period.into(),
@@ -293,7 +303,7 @@ async fn split_apart_sup_run(sup_run: SupRun,
                         custom_state_path: None, // remove entirely?
                         key_cache,
                         update_url: bldr_url.clone(),
-                        update_channel: shared_load.channel.clone(),
+                        update_channel: channel,
                         http_disable: sup_run.http_disable,
                         organization: sup_run.organization,
                         gossip_permanent: sup_run.permanent_peer,
@@ -333,14 +343,21 @@ async fn split_apart_sup_run(sup_run: SupRun,
 
     // Do we have an initial service to start?
     let maybe_svc_load_msg = if let Some(install_source) = sup_run.pkg_ident_or_artifact {
+        let ident: &PackageIdent = install_source.as_ref();
+        let channel = if let Some(ref channel) = shared_load.channel {
+            channel.clone()
+        } else if ident.origin() == "core" {
+            ChannelIdent::base()
+        } else {
+            ChannelIdent::stable()
+        };
+
         let ident = match install_source {
             source @ InstallSource::Archive(_) => {
                 // Install the archive manually then explicitly set the pkg ident to the version
                 // found in the archive. This will lock the software to this specific version.
-                let install = util::pkg::install(&mut ui::ui(),
-                                                 &bldr_url,
-                                                 &source,
-                                                 &shared_load.channel).await?;
+                let install =
+                    util::pkg::install(&mut ui::ui(), &bldr_url, &source, &channel).await?;
                 install.ident
             }
             InstallSource::Ident(ident, _) => ident,

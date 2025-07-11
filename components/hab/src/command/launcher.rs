@@ -9,7 +9,8 @@ use crate::{command::sup::{SUP_CMD,
                     env as henv,
                     fs::find_command,
                     os::process,
-                    package::PackageIdent},
+                    package::PackageIdent,
+                    ChannelIdent},
             VERSION};
 
 use std::{ffi::OsString,
@@ -29,7 +30,10 @@ const LAUNCH_PKG_IDENT: &str = "chef/hab-launcher";
 #[cfg(feature = "v2")]
 pub async fn start(ui: &mut UI, sup_run: SupRun, args: &[OsString]) -> Result<()> {
     init()?;
-    let channel = sup_run.shared_load.channel;
+    // We chose `stable` here because the `hab*` packages will be moving to `chef` origin.
+    let channel = sup_run.shared_load
+                         .channel
+                         .unwrap_or_else(ChannelIdent::stable);
     if henv::var(SUP_CMD_ENVVAR).is_err() {
         let version: Vec<&str> = VERSION.split('/').collect();
         exec::command_from_min_pkg_with_channel(ui,
@@ -60,7 +64,10 @@ pub async fn start(ui: &mut UI, sup_run: SupRun, args: &[OsString]) -> Result<()
 #[cfg(feature = "v4")]
 pub(crate) async fn start_v4(ui: &mut UI, sup_run: SupRunOptions, args: &[OsString]) -> Result<()> {
     init()?;
-    let channel = sup_run.shared_load.channel;
+    // We chose `stable` here because the `hab*` packages will be moving to `chef` origin.
+    let channel = sup_run.shared_load
+                         .channel
+                         .unwrap_or_else(ChannelIdent::stable);
     if henv::var(SUP_CMD_ENVVAR).is_err() {
         let version: Vec<&str> = VERSION.split('/').collect();
         exec::command_from_min_pkg_with_channel(ui,
