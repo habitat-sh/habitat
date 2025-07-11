@@ -6,38 +6,38 @@ file_descriptor = "Packages to sync acceptance from production after release"
 [[x86_64-linux]]
 channel = "stable"
 packages = [
-  "core/hab-launcher",
-  "core/hab",
-  "core/hab-sup",
-  "core/hab-studio",
-  "core/hab-plan-build",
-  "core/hab-backline",
-  "core/hab-pkg-export-container",
-  "core/hab-pkg-export-tar",
+  "chef/hab-launcher",
+  "chef/hab",
+  "chef/hab-sup",
+  "chef/hab-studio",
+  "chef/hab-plan-build",
+  "chef/hab-backline",
+  "chef/hab-pkg-export-container",
+  "chef/hab-pkg-export-tar",
 ]
 
 [[aarch64-linux]]
 channel = "stable"
 packages = [
-  "core/hab-launcher",
-  "core/hab",
-  "core/hab-sup",
-  "core/hab-studio",
-  "core/hab-plan-build",
-  "core/hab-backline",
-  "core/hab-pkg-export-container",
-  "core/hab-pkg-export-tar",
+  "chef/hab-launcher",
+  "chef/hab",
+  "chef/hab-sup",
+  "chef/hab-studio",
+  "chef/hab-plan-build",
+  "chef/hab-backline",
+  "chef/hab-pkg-export-container",
+  "chef/hab-pkg-export-tar",
 ]
 
 [[x86_64-windows]]
 channel = "stable"
 packages = [
-  "core/windows-service",
-  "core/hab-launcher",
-  "core/hab",
-  "core/hab-sup",
-  "core/hab-studio",
-  "core/hab-plan-build-ps1",
-  "core/hab-pkg-export-container",
-  "core/hab-pkg-export-tar"
+  "chef/windows-service",
+  "chef/hab-launcher",
+  "chef/hab",
+  "chef/hab-sup",
+  "chef/hab-studio",
+  "chef/hab-plan-build-ps1",
+  "chef/hab-pkg-export-container",
+  "chef/hab-pkg-export-tar"
 ]

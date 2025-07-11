@@ -236,7 +236,7 @@ impl BuildContext {
                 .as_ref(),
             "path": ctx.env_path(),
             "hab_path": util::pkg_path_for(
-                &PackageIdent::from_str("core/hab")?,
+                &PackageIdent::from_str("chef/hab")?,
                 ctx.rootfs())?.join("bin/hab")
                 .to_string_lossy()
                 .replace('\\', "/"),

@@ -10,6 +10,10 @@ if [ -n "${DEBUG:-}" ]; then set -x; fi
 readonly pcio_root="https://packages.chef.io/files"
 export HAB_LICENSE="accept-no-persist"
 
+# Set the default origin to 'core'. This can be overridden by the HAB_ORIGIN environment variable or the -o flag.
+# Once we're ready for release, consider changing the default to 'chef'.
+origin="${HAB_ORIGIN:-core}"
+
 # This is the main function that sets up the Habitat environment on macOS.
 # It creates, mounts, and configures a designated volume (Habitat Store) with the necessary settings,
 # including file system options and encryption (if needed).
@@ -275,7 +279,7 @@ main() {
   version=""
 
   # Parse command line flags and options.
-  while getopts "c:hv:t:u:b:" opt; do
+  while getopts "c:hv:t:u:b:o:" opt; do
     case "${opt}" in
     c)
       channel="${OPTARG}"
@@ -296,6 +300,9 @@ main() {
     b)
       bldlChannel="${OPTARG}" # for temporary use
       ;;
+    o)
+      origin="${OPTARG}"
+      ;;
     \?)
       echo "" >&2
       print_help >&2
@@ -311,7 +318,7 @@ main() {
   download_archive "$version" "$channel" "$target"
   verify_archive
   extract_archive
-  install_hab
+  install_hab "$origin"
   print_hab_version
   info "Installation of Habitat 'hab' program complete."
 }
@@ -509,6 +516,8 @@ extract_archive() {
 }
 
 install_hab() {
+  local _origin="${1:-core}"
+
   case "${sys}" in
   darwin)
     case "${arch}" in
@@ -523,7 +532,7 @@ install_hab() {
       ;;
     aarch64)
       setup_hab_root
-      local _ident="core/hab"
+      local _ident="${_origin}/hab"
 
       if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
           _ident+="/$version"
@@ -539,7 +548,7 @@ install_hab() {
     esac
     ;;
   linux)
-    local _ident="core/hab"
+    local _ident="${_origin}/hab"
 
     if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
       _ident+="/$version"

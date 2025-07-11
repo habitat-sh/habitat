@@ -15,8 +15,8 @@ Add-Type -TypeDefinition (Get-Content "$PSScriptroot/../../.expeditor/scripts/en
 # spurious failures, depending on how long the downloading takes.
 #
 # Doing things this way, we eliminate that concern.
-hab pkg install core/hab-sup --channel="${env:HAB_BLDR_CHANNEL}"
-hab pkg install core/hab-launcher --channel="${env:HAB_BLDR_CHANNEL}"
+hab pkg install chef/hab-sup --channel="${env:HAB_BLDR_CHANNEL}"
+hab pkg install chef/hab-launcher --channel="${env:HAB_BLDR_CHANNEL}"
 
 Describe "Supervisor boot failure" {
     $sup = New-Object SupervisorRunner

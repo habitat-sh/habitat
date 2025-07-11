@@ -325,10 +325,10 @@ async fn maybe_delete<U>(ui: &mut U,
     let ident = install.ident();
     let pkg_root_path = hfs::pkg_root_path(Some(fs_root_path));
 
-    let hab = PackageIdent::from_str("core/hab")?;
+    let hab = PackageIdent::from_str("chef/hab")?;
     if ident.satisfies(&hab) {
         ui.status(Status::Skipping,
-                  format!("{}. You can't uninstall core/hab", &ident))?;
+                  format!("{}. You can't uninstall chef/hab", &ident))?;
         return Ok(false);
     }
 

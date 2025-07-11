@@ -45,5 +45,5 @@ else
   sudo -E addgroup --system hab || true
 fi
 
-curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash
-sudo HAB_LICENSE="accept-no-persist" hab pkg install core/busybox-static core/hab-studio
+sudo ./components/hab/install.sh -c acceptance
+sudo HAB_LICENSE="accept-no-persist" hab pkg install core/busybox-static chef/hab-studio

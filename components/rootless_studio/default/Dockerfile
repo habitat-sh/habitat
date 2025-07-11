@@ -4,9 +4,9 @@ ENV PATH=${PATH}:/hab/bin
 ARG BLDR_CHANNEL=stable
 ARG BLDR_URL=https://bldr.habitat.sh
 ARG HAB_LICENSE=no-accept
-RUN hab pkg install --url ${BLDR_URL} --channel ${BLDR_CHANNEL} core/hab-backline \
+RUN hab pkg install --url ${BLDR_URL} --channel ${BLDR_CHANNEL} chef/hab-backline \
   && hab pkg binlink core/bash -d /hab/bin \
-  && hab pkg binlink core/hab -d /hab/bin
+  && hab pkg binlink chef/hab -d /hab/bin
 
 FROM scratch
 COPY --from=hab /hab /hab

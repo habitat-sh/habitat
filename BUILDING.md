@@ -171,7 +171,7 @@ These binary overrides can be great for rapid iteration, but will hide errors li
 
 ## Testing exporters
 
-Changes to the exporters can be tested once the exporter package has been built locally. For example, to test changes to the container exporter (`core/hab-pkg-export-container`), first enter the studio and build a new package:
+Changes to the exporters can be tested once the exporter package has been built locally. For example, to test changes to the container exporter (`chef/hab-pkg-export-container`), first enter the studio and build a new package:
 
 ```shell
 ➤ hab studio enter
