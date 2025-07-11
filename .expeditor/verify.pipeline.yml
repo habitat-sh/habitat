@@ -82,6 +82,20 @@ steps:
         linux:
           privileged: true
 
+  - label: "[unit] aarch64 CI Tests :scream:"
+    agents:
+      queue: default-privileged-aarch64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - cd .expeditor
+      - ./run-bats.sh
+    timeout_in_minutes: 30
+    retry:
+      automatic:
+        limit: 1
+
 #######################################################################
 # Unit Tests - Linux!
 #######################################################################

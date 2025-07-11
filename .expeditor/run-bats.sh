@@ -21,7 +21,7 @@ fi
 image="hab-bats-cleanroom"
 container_name="expeditor-ci-bats-${BUILDKITE_BUILD_ID:-local}"
 
-docker build --tag "${image}" --file ./test/Dockerfile .
+docker build --tag "${image}" --file test/Dockerfile ..
 
 # Mount the whole repository at /test, because various `source` calls
 # assume that's where you are.
@@ -30,4 +30,4 @@ docker run -it --rm \
        --workdir=/test \
        --name "$container_name" \
        "${image}" \
-       bats ${TESTS}
+       bats "${TESTS}"
