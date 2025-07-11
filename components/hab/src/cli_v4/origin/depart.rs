@@ -2,19 +2,19 @@
 
 use clap_v4 as clap;
 
-use crate::{cli_v4::utils::{BldrUrl,
+use crate::{api_client::{self,
+                         Client},
+            cli_v4::utils::{valid_origin,
                             AuthToken,
-                            valid_origin},
-            error::{Result as HabResult,
-                    Error}};
+                            BldrUrl},
+            error::{Error,
+                    Result as HabResult},
+            PRODUCT,
+            VERSION};
 use clap::Parser;
 use habitat_common::ui::{Status,
                          UIWriter,
                          UI};
-use crate::{api_client::{self,
-                        Client},
-            PRODUCT,
-            VERSION};
 use reqwest::StatusCode;
 
 #[derive(Debug, Clone, Parser)]
@@ -24,10 +24,10 @@ use reqwest::StatusCode;
 pub(crate) struct OriginDepartOptions {
     /// The origin name
     #[arg(name = "ORIGIN", value_parser = valid_origin)]
-    origin:     String,
+    origin: String,
 
     #[command(flatten)]
-    bldr_url:   BldrUrl,
+    bldr_url: BldrUrl,
 
     #[command(flatten)]
     auth_token: AuthToken,
@@ -36,17 +36,15 @@ pub(crate) struct OriginDepartOptions {
 impl OriginDepartOptions {
     pub(super) async fn do_depart(&self, ui: &mut UI) -> HabResult<()> {
         // Resolve token
-        let token = self
-            .auth_token
-            .from_cli_or_config()
-            .map_err(|e| Error::ArgumentError(e.to_string()))?;
+        let token = self.auth_token
+                        .from_cli_or_config()
+                        .map_err(|e| Error::ArgumentError(e.to_string()))?;
 
         // Build endpoint
         let endpoint = self.bldr_url.to_string();
 
         // Create client
-        let api_client = Client::new(endpoint, PRODUCT, VERSION, None)
-            .map_err(Error::APIClient)?;
+        let api_client = Client::new(endpoint, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
         // Show departing status
         ui.status(Status::Departing,
@@ -66,14 +64,13 @@ impl OriginDepartOptions {
             }
             Err(err @ api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
                 ui.fatal("Failed to depart origin membership!")?;
-                ui.fatal("You don't appear to be a member of the origin you're trying to depart from.")?;
+                ui.fatal("You don't appear to be a member of the origin you're trying to depart \
+                          from.")?;
                 Err(Error::APIClient(err))
             }
             Err(e) => {
-                ui.fatal(format!(
-                    "Failed to depart membership from origin {}, {:?}.",
-                    self.origin, e
-                ))?;
+                ui.fatal(format!("Failed to depart membership from origin {}, {:?}.",
+                                 self.origin, e))?;
                 Err(Error::from(e))
             }
         }

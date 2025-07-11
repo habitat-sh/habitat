@@ -2,19 +2,19 @@
 
 use clap_v4 as clap;
 
-use crate::{cli_v4::utils::{BldrUrl,
+use crate::{api_client::{self,
+                         Client},
+            cli_v4::utils::{valid_origin,
                             AuthToken,
-                            valid_origin},
-            error::{Result as HabResult,
-                    Error}};
+                            BldrUrl},
+            error::{Error,
+                    Result as HabResult},
+            PRODUCT,
+            VERSION};
 use clap::Parser;
 use habitat_common::ui::{Status,
                          UIWriter,
                          UI};
-use crate::{api_client::{self,
-                        Client},
-            PRODUCT,
-            VERSION};
 use reqwest::StatusCode;
 
 #[derive(Debug, Clone, Parser)]
@@ -24,10 +24,10 @@ use reqwest::StatusCode;
 pub(crate) struct OriginCreateOptions {
     /// The origin to be created
     #[arg(name = "ORIGIN", value_parser = valid_origin)]
-    origin:     String,
+    origin: String,
 
     #[command(flatten)]
-    bldr_url:   BldrUrl,
+    bldr_url: BldrUrl,
 
     #[command(flatten)]
     auth_token: AuthToken,
@@ -40,34 +40,23 @@ impl OriginCreateOptions {
 
         // Pull the token out (this will return an Err if it's missing)
         let token = self.auth_token
-            .from_cli_or_config()
-            .map_err(|e| Error::ArgumentError(e.to_string()))?;
+                        .from_cli_or_config()
+                        .map_err(|e| Error::ArgumentError(e.to_string()))?;
 
         // Create the client
-        let api_client = Client::new(
-            endpoint,      
-            PRODUCT,
-            VERSION,
-            None,
-        )
-        .map_err(Error::APIClient)?;
+        let api_client = Client::new(endpoint, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
         ui.status(Status::Creating, format!("origin {}.", self.origin))?;
 
         // Call create_origin with &str for both args
-        match api_client
-            .create_origin(&self.origin, &token)
-            .await
-        {
+        match api_client.create_origin(&self.origin, &token).await {
             Ok(_) => {
                 ui.status(Status::Created, format!("origin {}.", self.origin))?;
                 Ok(())
             }
             Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
-                ui.status(
-                    Status::Skipping,
-                    format!("origin {} already exists, skipping", self.origin),
-                )?;
+                ui.status(Status::Skipping,
+                          format!("origin {} already exists, skipping", self.origin))?;
                 Ok(())
             }
             Err(e) => {

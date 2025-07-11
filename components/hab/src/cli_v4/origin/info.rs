@@ -2,20 +2,20 @@
 
 use clap_v4 as clap;
 
-use crate::{cli_v4::utils::{BldrUrl,
+use crate::{api_client::Client,
+            cli_v4::utils::{valid_origin,
                             AuthToken,
-                            valid_origin},
-            error::{Result as HabResult,
-                    Error}};
+                            BldrUrl},
+            error::{Error,
+                    Result as HabResult},
+            PRODUCT,
+            VERSION};
 use clap::Parser;
 use habitat_common::ui::{Status,
                          UIWriter,
                          UI};
-use crate::{api_client::Client,
-            PRODUCT,
-            VERSION};
 use habitat_core::util::text_render::{PortableText,
-    TabularText};
+                                      TabularText};
 
 #[derive(Debug, Clone, Parser)]
 #[command(disable_version_flag = true,
@@ -24,16 +24,14 @@ use habitat_core::util::text_render::{PortableText,
 pub(crate) struct OriginInfoOptions {
     /// The origin to be deleted
     #[arg(name = "ORIGIN", value_parser = valid_origin)]
-    origin:     String,
+    origin: String,
 
     /// Output will be rendered in json
-    #[arg(name = "TO_JSON",
-          short = 'j',
-          long = "json")]
+    #[arg(name = "TO_JSON", short = 'j', long = "json")]
     to_json: bool,
 
     #[command(flatten)]
-    bldr_url:   BldrUrl,
+    bldr_url: BldrUrl,
 
     #[command(flatten)]
     auth_token: AuthToken,
@@ -42,17 +40,15 @@ pub(crate) struct OriginInfoOptions {
 impl OriginInfoOptions {
     pub(super) async fn do_info(&self, ui: &mut UI) -> HabResult<()> {
         // Resolve the token
-        let token = self
-            .auth_token
-            .from_cli_or_config()
-            .map_err(|e| Error::ArgumentError(e.to_string()))?;
+        let token = self.auth_token
+                        .from_cli_or_config()
+                        .map_err(|e| Error::ArgumentError(e.to_string()))?;
 
         // Build the endpoint URL
         let endpoint = self.bldr_url.to_string();
 
         // Create the Habit API client
-        let api_client = Client::new(endpoint, PRODUCT, VERSION, None)
-            .map_err(Error::APIClient)?;
+        let api_client = Client::new(endpoint, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
         // Fetch the origin info
         match api_client.origin_info(&token, &self.origin).await {

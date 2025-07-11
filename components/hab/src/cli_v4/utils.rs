@@ -7,12 +7,12 @@
 use clap_v4 as clap;
 
 use crate::error::Error;
-use clap::{ Parser,
-            ArgGroup};
+use clap::{ArgGroup,
+           Parser};
 use lazy_static::lazy_static;
 use rustls::pki_types::DnsName;
-use url::{Url,
-        ParseError};
+use url::{ParseError,
+          Url};
 
 use habitat_common::{cli_config::CliConfig,
                      types::{GossipListenAddr,
@@ -22,14 +22,14 @@ use habitat_common::{cli_config::CliConfig,
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    env as hcore_env,
                    fs::CACHE_KEY_PATH,
+                   origin::Origin as CoreOrigin,
                    os::process::ShutdownTimeout,
                    service::ServiceBind,
-                   url::{BLDR_URL_ENVVAR,
-                         DEFAULT_BLDR_URL,
-                         bldr_url_from_env},
+                   url::{bldr_url_from_env,
+                         BLDR_URL_ENVVAR,
+                         DEFAULT_BLDR_URL},
                    ChannelIdent,
-                   AUTH_TOKEN_ENVVAR,
-                   origin::Origin as CoreOrigin};
+                   AUTH_TOKEN_ENVVAR};
 
 use habitat_sup_protocol::types::UpdateCondition;
 
@@ -181,11 +181,11 @@ impl AuthToken {
             Err(_) => {
                 let cfg = CliConfig::load()?;
                 cfg.auth_token.clone().ok_or_else(|| {
-                    Error::ArgumentError(
-                        "No auth token specified: please pass `-z/--auth` or set \
-                         HAB_AUTH_TOKEN".into()
-                    )
-                })
+                                          Error::ArgumentError("No auth token specified: please \
+                                                                pass `-z/--auth` or set \
+                                                                HAB_AUTH_TOKEN"
+                                                                               .into())
+                                      })
             }
         }
     }
@@ -451,8 +451,7 @@ pub(crate) struct BldrOrigin {
 
 #[allow(clippy::needless_pass_by_value)]
 pub(crate) fn valid_origin(val: &str) -> Result<String, String> {
-    CoreOrigin::validate(val.to_string())
-        .map(|()| val.to_string())
+    CoreOrigin::validate(val.to_string()).map(|()| val.to_string())
 }
 
 // Resolve an optional origin (from `--origin <ORIGIN>` or `-o`) into `Origin`,
@@ -467,8 +466,11 @@ pub(crate) fn origin_param_or_env(opt: &Option<String>) -> Result<CoreOrigin, Er
     } else {
         // Last resort: config file
         let cfg = CliConfig::load()?;
-        cfg.origin
-            .ok_or_else(|| Error::ArgumentError("No origin specified; please set --origin, HAB_ORIGIN, or configure cli.toml".into()))
+        cfg.origin.ok_or_else(|| {
+                      Error::ArgumentError("No origin specified; please set --origin, HAB_ORIGIN, \
+                                            or configure cli.toml"
+                                                                  .into())
+                  })
     }
 }
 
