@@ -7,10 +7,12 @@
 use clap_v4 as clap;
 
 use crate::error::Error;
-use clap::Parser;
+use clap::{ArgGroup,
+           Parser};
 use lazy_static::lazy_static;
 use rustls::pki_types::DnsName;
-use url::Url;
+use url::{ParseError,
+          Url};
 
 use habitat_common::{cli_config::CliConfig,
                      types::{GossipListenAddr,
@@ -20,9 +22,11 @@ use habitat_common::{cli_config::CliConfig,
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    env as hcore_env,
                    fs::CACHE_KEY_PATH,
+                   origin::Origin as CoreOrigin,
                    os::process::ShutdownTimeout,
                    service::ServiceBind,
-                   url::{BLDR_URL_ENVVAR,
+                   url::{bldr_url_from_env,
+                         BLDR_URL_ENVVAR,
                          DEFAULT_BLDR_URL},
                    ChannelIdent,
                    AUTH_TOKEN_ENVVAR};
@@ -42,6 +46,10 @@ use std::{convert::TryFrom,
 
 use serde::{Deserialize,
             Serialize};
+
+use log::error;
+
+use crate::ORIGIN_ENVVAR;
 
 lazy_static! {
     pub(crate) static ref CACHE_KEY_PATH_DEFAULT: String =
@@ -97,6 +105,33 @@ impl BldrUrl {
             }
         }
     }
+
+    /// Return the configured Builder URL, falling back to ENV or config.
+    pub(crate) fn resolve(&self) -> Result<Url, ParseError> {
+        if let Some(ref url) = self.bldr_url {
+            Ok(url.clone())
+        } else {
+            let default = bldr_url_from_env_load_or_default();
+            Url::parse(&default)
+        }
+    }
+}
+
+fn bldr_url_from_env_load_or_default() -> String {
+    bldr_url_from_env().unwrap_or_else(|| {
+                           match CliConfig::load() {
+                               Ok(config) => {
+                                   config.bldr_url
+                                         .unwrap_or_else(|| DEFAULT_BLDR_URL.to_string())
+                               }
+                               Err(e) => {
+                                   error!("Found a cli.toml but unable to load it. Resorting to \
+                                           default BLDR_URL: {}",
+                                          e);
+                                   DEFAULT_BLDR_URL.to_string()
+                               }
+                           }
+                       })
 }
 
 #[derive(Debug, Clone, Parser)]
@@ -133,6 +168,25 @@ impl AuthToken {
         match self.from_cli_or_config() {
             Ok(v) => Some(v),
             Err(_) => None,
+        }
+    }
+
+    /// Return the token from CLI, ENV, or config, or `Err(Error::ArgumentError)`.
+    pub fn resolve(&self) -> Result<String, Error> {
+        if let Some(ref tok) = self.auth_token {
+            return Ok(tok.clone());
+        }
+        match std::env::var(AUTH_TOKEN_ENVVAR) {
+            Ok(v) => Ok(v),
+            Err(_) => {
+                let cfg = CliConfig::load()?;
+                cfg.auth_token.clone().ok_or_else(|| {
+                                          Error::ArgumentError("No auth token specified: please \
+                                                                pass `-z/--auth` or set \
+                                                                HAB_AUTH_TOKEN"
+                                                                               .into())
+                                      })
+            }
         }
     }
 }
@@ -366,6 +420,58 @@ pub(crate) struct SharedLoad {
     /// Use the package config from this path rather than the package itself
     #[arg(long = "config-from")]
     config_from: Option<PathBuf>,
+}
+
+#[derive(Serialize, Clone, Parser, Debug)]
+#[command(
+    disable_version_flag = true,
+    group(
+        ArgGroup::new("upload")
+            .required(true)
+            .args(&["origin", "public_file"])
+    )
+)]
+pub(crate) struct UploadGroup {
+    /// The origin name
+    #[arg(value_name = "ORIGIN", value_parser = valid_origin, group = "upload")]
+    pub origin: Option<String>,
+
+    /// Path to a local public origin key file on disk
+    #[arg(value_name = "PUBLIC_FILE", long = "pubfile", group = "upload")]
+    pub public_file: Option<PathBuf>,
+}
+
+#[derive(Clone, Parser, Deserialize, Serialize, Debug)]
+#[command(disable_version_flag = true)]
+pub(crate) struct BldrOrigin {
+    /// The Builder origin name to target
+    #[arg(value_name = "ORIGIN", short = 'o', long = "origin")]
+    pub inner: CoreOrigin,
+}
+
+#[allow(clippy::needless_pass_by_value)]
+pub(crate) fn valid_origin(val: &str) -> Result<String, String> {
+    CoreOrigin::validate(val.to_string()).map(|()| val.to_string())
+}
+
+// Resolve an optional origin (from `--origin <ORIGIN>` or `-o`) into `Origin`,
+// falling back to HAB_ORIGIN envvar or the `cli.toml` config if none was supplied.
+pub(crate) fn origin_param_or_env(opt: &Option<String>) -> Result<CoreOrigin, Error> {
+    if let Some(o) = opt {
+        // User passed `--origin foo`
+        Ok(CoreOrigin::from_str(o).map_err(Error::from)?)
+    } else if let Ok(env_val) = hcore_env::var(ORIGIN_ENVVAR) {
+        // Fallback to HAB_ORIGIN env var
+        Ok(CoreOrigin::from_str(&env_val).map_err(Error::from)?)
+    } else {
+        // Last resort: config file
+        let cfg = CliConfig::load()?;
+        cfg.origin.ok_or_else(|| {
+                      Error::ArgumentError("No origin specified; please set --origin, HAB_ORIGIN, \
+                                            or configure cli.toml"
+                                                                  .into())
+                  })
+    }
 }
 
 #[cfg(test)]

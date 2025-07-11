@@ -20,6 +20,9 @@ use pkg::PkgCommand;
 pub(crate) mod sup;
 use sup::SupCommand;
 
+mod origin;
+use origin::OriginCommand;
+
 mod utils;
 use utils::CacheKeyPath;
 
@@ -51,6 +54,8 @@ enum Hab {
 
     License(LicenseCommand),
 
+    /// Commands relating to Habitat Builder origins
+    #[clap(subcommand)]
     Origin(OriginCommand),
 
     /// Commands relating to Habitat packages
@@ -94,6 +99,7 @@ impl Hab {
         match self {
             Self::Pkg(pkg_command) => pkg_command.do_command(ui, feature_flags).await,
             Self::Sup(sup_command) => sup_command.do_command(ui, feature_flags).await,
+            Self::Origin(origin_command) => origin_command.do_command(ui, feature_flags).await,
             Self::Config(config_command) => config_command.do_command(ui).await,
             Self::File(file_command) => file_command.do_command(ui).await,
             _ => todo!(),
@@ -109,9 +115,6 @@ pub(crate) struct CliCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct LicenseCommand;
-
-#[derive(Clone, Debug, Parser)]
-pub(crate) struct OriginCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct PlanCommand;
