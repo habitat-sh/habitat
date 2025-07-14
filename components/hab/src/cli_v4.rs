@@ -12,10 +12,12 @@ use crate::{error::Result as HabResult,
 mod config;
 mod file;
 mod pkg;
+mod user;
 
 use config::ConfigCommand;
 use file::FileCommand;
 use pkg::PkgCommand;
+use user::UserCommand;
 
 pub(crate) mod sup;
 use sup::SupCommand;
@@ -71,6 +73,8 @@ enum Hab {
 
     Svc(SvcCommand),
 
+    /// Commands relating to Habitat users
+    #[clap(subcommand)]
     User(UserCommand),
 
     // Aliases Below
@@ -96,6 +100,7 @@ impl Hab {
             Self::Sup(sup_command) => sup_command.do_command(ui, feature_flags).await,
             Self::Config(config_command) => config_command.do_command(ui).await,
             Self::File(file_command) => file_command.do_command(ui).await,
+            Self::User(user_command) => user_command.do_command(ui).await,
             _ => todo!(),
         }
     }
@@ -124,9 +129,6 @@ pub(crate) struct StudioCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct SvcCommand;
-
-#[derive(Clone, Debug, Parser)]
-pub(crate) struct UserCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct ServiceConfigCommand;
