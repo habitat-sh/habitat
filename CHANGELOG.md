@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.158 -->
-## [2.0.158](https://github.com/habitat-sh/habitat/tree/2.0.158) (2025-07-11)
+<!-- latest_release 2.0.159 -->
+## [2.0.159](https://github.com/habitat-sh/habitat/tree/2.0.159) (2025-07-14)
 
 #### Merged Pull Requests
-- Bump rcgen from 0.14.1 to 0.14.2 [#9754](https://github.com/habitat-sh/habitat/pull/9754) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Updated `hab user` to use clap v4 [#9761](https://github.com/habitat-sh/habitat/pull/9761) ([sougata-progress](https://github.com/sougata-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Updated `hab user` to use clap v4 [#9761](https://github.com/habitat-sh/habitat/pull/9761) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.159 -->
 - Bump rcgen from 0.14.1 to 0.14.2 [#9754](https://github.com/habitat-sh/habitat/pull/9754) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.158 -->
 - Bump rustls-webpki from 0.103.3 to 0.103.4 [#9756](https://github.com/habitat-sh/habitat/pull/9756) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.158 -->
 - Updated `hab file` to use clap v4 [#9752](https://github.com/habitat-sh/habitat/pull/9752) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.157 -->
