@@ -31,6 +31,7 @@ use crate::{cli_v4::utils::{BldrUrl,
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct UpdateCommand {
+    /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
     #[arg(name = "PKG_IDENT", value_parser = HabPkgIdentValueParser::simple())]
     pkg_ident: PackageIdent,
 
@@ -72,7 +73,7 @@ pub(crate) struct UpdateCommand {
     /// newer than the package at the head of the channel will be automatically uninstalled
     /// during a service rollback.
     #[arg(long = "update-condition", default_value=UpdateCondition::Latest.as_str())]
-    update_condition: Option<UpdateCondition>,
+    update_condition: UpdateCondition,
 
     /// One or more service groups to bind to a configuration
     #[arg(long = "bind")]
@@ -118,7 +119,7 @@ impl TryFrom<UpdateCommand> for ctl::SvcUpdate {
                                    binding_mode: u.binding_mode.map(|v| v as i32),
                                    topology: u.topology.map(|v| v as i32),
                                    update_strategy: u.strategy.map(|v| v as i32),
-                                   update_condition: u.update_condition.map(|v| v as i32),
+                                   update_condition: Some(u.update_condition as i32),
                                    shutdown_timeout: u.shutdown_timeout.map(Into::into),
                                    #[cfg(windows)]
                                    svc_encrypted_password: u.password,

@@ -18,6 +18,13 @@ serde = {version = "*", features = ["derive"] }
 tokio = { version = "*", features = ["full"] }
 tokio-util = { version = "0.7", features = ["full"] }
 
+clap_v4 = { version = "4", package = "clap", optional = true }
+
+
+[features]
+default = []
+v4 = ["clap_v4"]
+
 [build-dependencies]
 prost-build = "*"
 

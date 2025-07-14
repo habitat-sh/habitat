@@ -16,6 +16,9 @@ use std::{fmt::{self,
                 Write},
           str::FromStr};
 
+#[cfg(feature = "v4")]
+use clap_v4::builder::PossibleValue;
+
 include!(concat!(env!("OUT_DIR"), "/sup.types.rs"));
 
 impl message::MessageStatic for PackageIdent {
@@ -54,6 +57,18 @@ impl fmt::Display for BindingMode {
             BindingMode::Strict => "strict",
         };
         write!(f, "{}", value)
+    }
+}
+
+#[cfg(feature = "v4")]
+impl clap_v4::ValueEnum for BindingMode {
+    fn value_variants<'a>() -> &'a [Self] { &[Self::Strict, Self::Relaxed] }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        Some(match self {
+                 Self::Strict => PossibleValue::new("strict"),
+                 Self::Relaxed => PossibleValue::new("relaxed"),
+             })
     }
 }
 
@@ -300,6 +315,18 @@ impl fmt::Display for Topology {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
 }
 
+#[cfg(feature = "v4")]
+impl clap_v4::ValueEnum for Topology {
+    fn value_variants<'a>() -> &'a [Self] { &[Self::Leader, Self::Standalone] }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        Some(match self {
+                 Self::Leader => PossibleValue::new("leader"),
+                 Self::Standalone => PossibleValue::new("standalone"),
+             })
+    }
+}
+
 impl UpdateStrategy {
     fn as_str(&self) -> &str {
         match *self {
@@ -307,6 +334,19 @@ impl UpdateStrategy {
             UpdateStrategy::AtOnce => "at-once",
             UpdateStrategy::Rolling => "rolling",
         }
+    }
+}
+
+#[cfg(feature = "v4")]
+impl clap_v4::ValueEnum for UpdateStrategy {
+    fn value_variants<'a>() -> &'a [Self] { &[Self::None, Self::AtOnce, Self::Rolling] }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        Some(match self {
+                 Self::None => PossibleValue::new("none"),
+                 Self::AtOnce => PossibleValue::new("at-once"),
+                 Self::Rolling => PossibleValue::new("rolling"),
+             })
     }
 }
 
@@ -352,6 +392,18 @@ impl FromStr for UpdateCondition {
 
 impl fmt::Display for UpdateCondition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
+}
+
+#[cfg(feature = "v4")]
+impl clap_v4::ValueEnum for UpdateCondition {
+    fn value_variants<'a>() -> &'a [Self] { &[Self::Latest, Self::TrackChannel] }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        Some(match self {
+                 Self::Latest => PossibleValue::new("latest"),
+                 Self::TrackChannel => PossibleValue::new("track-channel"),
+             })
+    }
 }
 
 #[cfg(test)]
