@@ -6,7 +6,7 @@ use habitat_common::{ui::UI,
                      FeatureFlag};
 
 use crate::{error::Result as HabResult,
-            AFTER_HELP,
+            AFTER_HELP_V4,
             VERSION};
 
 mod config;
@@ -30,11 +30,12 @@ use utils::CacheKeyPath;
             version = VERSION,
             about = "Patents: https://chef.io/patents\n\"A Habitat is the natural environment for your services\" - Alan Turing",
             author = "\nThe Habitat Maintainers <humans@habitat.sh>",
-            after_help = AFTER_HELP,
+            after_help = AFTER_HELP_V4,
             arg_required_else_help = true,
             propagate_version = true,
+            term_width = 100,
             help_template = "{name} {version} {author-section} {about-section} \
-                    \n{usage-heading} {usage}\n\n{all-args}\n{after-help}\n",
+                    \n{usage-heading} {usage}\n\n{all-args}{after-help}\n",
         )]
 enum Hab {
     /// Commands relating to Habitat Builder
@@ -78,18 +79,25 @@ enum Hab {
     User(UserCommand),
 
     // Aliases Below
+    #[clap(hide = true)]
     Apply(ServiceConfigCommand),
 
+    #[clap(hide = true)]
     Install(PkgInstallCommand),
 
+    #[clap(hide = true)]
     Run(SupRunCommand),
 
+    #[clap(hide = true)]
     Setup(CacheKeyPath),
 
+    #[clap(hide = true)]
     Start(SvcStartCommand),
 
+    #[clap(hide = true)]
     Stop(SvcStopCommand),
 
+    #[clap(hide = true)]
     Term,
 }
 
