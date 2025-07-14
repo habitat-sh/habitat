@@ -22,6 +22,7 @@ use crate::{cli_v4::utils::{shared_load_cli_to_ctl,
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct LoadCommand {
+    /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
     #[arg(name = "PKG_IDENT", value_parser = HabPkgIdentValueParser::simple())]
     pkg_ident: PackageIdent,
 

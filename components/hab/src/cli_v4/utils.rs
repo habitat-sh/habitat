@@ -473,6 +473,8 @@ pub(crate) fn origin_param_or_env(opt: &Option<String>) -> Result<CoreOrigin, Er
                                                                   .into())
                   })
     }
+}
+
 pub fn shared_load_cli_to_ctl(ident: PackageIdent,
                               shared_load: SharedLoad,
                               force: bool)
