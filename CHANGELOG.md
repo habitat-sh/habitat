@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.161 -->
-## [2.0.161](https://github.com/habitat-sh/habitat/tree/2.0.161) (2025-07-14)
+<!-- latest_release 2.0.162 -->
+## [2.0.162](https://github.com/habitat-sh/habitat/tree/2.0.162) (2025-07-15)
 
 #### Merged Pull Requests
-- Adds sonarqube [#9760](https://github.com/habitat-sh/habitat/pull/9760) ([jasonheath](https://github.com/jasonheath))
+- remove HAB_ORIGIN form install.sh [#9758](https://github.com/habitat-sh/habitat/pull/9758) ([sajjaphani](https://github.com/sajjaphani))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- remove HAB_ORIGIN form install.sh [#9758](https://github.com/habitat-sh/habitat/pull/9758) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.162 -->
 - Adds sonarqube [#9760](https://github.com/habitat-sh/habitat/pull/9760) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.161 -->
 - Bump rustls from 0.23.28 to 0.23.29 [#9757](https://github.com/habitat-sh/habitat/pull/9757) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.160 -->
 - Upgrade `hab origin` subcommand to clapv4 [#9753](https://github.com/habitat-sh/habitat/pull/9753) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.160 -->
