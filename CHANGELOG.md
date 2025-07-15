@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.162 -->
-## [2.0.162](https://github.com/habitat-sh/habitat/tree/2.0.162) (2025-07-15)
+<!-- latest_release 2.0.163 -->
+## [2.0.163](https://github.com/habitat-sh/habitat/tree/2.0.163) (2025-07-15)
 
 #### Merged Pull Requests
-- remove HAB_ORIGIN form install.sh [#9758](https://github.com/habitat-sh/habitat/pull/9758) ([sajjaphani](https://github.com/sajjaphani))
+- update tests to run on aarch64 [#9751](https://github.com/habitat-sh/habitat/pull/9751) ([sajjaphani](https://github.com/sajjaphani))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- update tests to run on aarch64 [#9751](https://github.com/habitat-sh/habitat/pull/9751) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.163 -->
+- Agadgil/hab svc subcmd clapv4 [#9759](https://github.com/habitat-sh/habitat/pull/9759) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.163 -->
 - remove HAB_ORIGIN form install.sh [#9758](https://github.com/habitat-sh/habitat/pull/9758) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.162 -->
 - Adds sonarqube [#9760](https://github.com/habitat-sh/habitat/pull/9760) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.161 -->
 - Bump rustls from 0.23.28 to 0.23.29 [#9757](https://github.com/habitat-sh/habitat/pull/9757) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.160 -->
