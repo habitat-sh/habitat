@@ -10,9 +10,7 @@ if [ -n "${DEBUG:-}" ]; then set -x; fi
 readonly pcio_root="https://packages.chef.io/files"
 export HAB_LICENSE="accept-no-persist"
 
-# Set the default origin to 'core'. This can be overridden by the HAB_ORIGIN environment variable or the -o flag.
-# Once we're ready for release, consider changing the default to 'chef'.
-origin="${HAB_ORIGIN:-core}"
+origin="core"
 
 # This is the main function that sets up the Habitat environment on macOS.
 # It creates, mounts, and configures a designated volume (Habitat Store) with the necessary settings,
