@@ -59,6 +59,8 @@ structopt = { git = "https://github.com/habitat-sh/structopt.git" , optional = t
 
 clap_v4 = { version = "4", package = "clap", features = ["env", "derive", "string", "wrap_help"], optional = true }
 
+clap_complete = "*"
+
 [dependencies.uuid]
 version = "*"
 features = ["v4"]
