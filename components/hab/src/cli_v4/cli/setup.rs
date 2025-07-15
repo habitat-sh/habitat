@@ -13,8 +13,6 @@ use std::path::PathBuf;
                            {about-section}\n{usage-heading}\n{usage}\n\n{all-args}\n",
           about = "Sets up the CLI with reasonable defaults")]
 pub(crate) struct CliSetupOptions {
-    /// Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default:
-    /// /hab/cache/keys]
     #[command(flatten)]
     cache_key_path: CacheKeyPath,
 }

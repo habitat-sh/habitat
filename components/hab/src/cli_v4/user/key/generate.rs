@@ -20,8 +20,6 @@ pub(crate) struct UserKeyGenerateOptions {
     #[arg(value_name = "USER")]
     user: String,
 
-    /// Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default:
-    /// /hab/cache/keys]
     #[command(flatten)]
     cache_key_path: CacheKeyPath,
 }
