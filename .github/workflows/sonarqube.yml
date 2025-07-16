@@ -8,7 +8,7 @@ on:
       - 'release/**'
       - 'v1.6'
   pull_request:
-      types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened]
 
 jobs:
   SonarQube:
@@ -18,44 +18,44 @@ jobs:
       contents: read
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Prepare Secrets and Login into Azure
-      id: get-aad-secret
-      uses: 'chef/common-github-actions/.github/actions/azure-login@main'
-      with:
-        akeyless-access-id: '${{ secrets.AKEYLESS_JWT_ID }}'
+      - name: Prepare Secrets and Login into Azure
+        id: get-aad-secret
+        uses: 'chef/common-github-actions/.github/actions/azure-login@main'
+        with:
+          akeyless-access-id: '${{ secrets.AKEYLESS_JWT_ID }}'
 
-    - name: Add runner IP to Firewall List
-      uses: chef/common-github-actions/.github/actions/update-firewall-rule@main
-      with:
-        action-to-execute: add
+      - name: Add runner IP to Firewall List
+        uses: chef/common-github-actions/.github/actions/update-firewall-rule@main
+        with:
+          action-to-execute: add
 
-    - name: wait
-      shell: bash
-      run: |
-        echo "##[warning]Waiting for 30 seconds to allow the firewall rule to take effect"
-        sleep 30
+      - name: wait
+        shell: bash
+        run: |
+          echo "##[warning]Waiting for 30 seconds to allow the firewall rule to take effect"
+          sleep 30
 
-    - name: SonarQube Scan
-      uses: sonarsource/sonarqube-scan-action@v5.2.0
-      continue-on-error: true
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@v5.2.0
+        continue-on-error: true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-    - name: Remove Storage Firewall Rule
-      if: always()
-      uses: chef/common-github-actions/.github/actions/update-firewall-rule@main
-      with:
+      - name: Remove Storage Firewall Rule
+        if: always()
+        uses: chef/common-github-actions/.github/actions/update-firewall-rule@main
+        with:
           perform-sonar-build: true
           action-to-execute: remove
 
-    - name: logout
-      if: always()
-      shell: bash
-      run: |
+      - name: logout
+        if: always()
+        shell: bash
+        run: |
           az logout
