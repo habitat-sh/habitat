@@ -30,6 +30,9 @@ use svc::SvcCommand;
 mod utils;
 use utils::CacheKeyPath;
 
+mod license;
+use license::LicenseCommand;
+
 #[derive(Debug, Clone, Parser)]
 #[command(name = "hab",
             version = VERSION,
@@ -57,6 +60,8 @@ enum Hab {
     #[clap(subcommand)]
     File(FileCommand),
 
+    /// Commands relating to Habitat license agreements
+    #[clap(subcommand)]
     License(LicenseCommand),
 
     /// Commands relating to Habitat Builder origins
@@ -120,6 +125,7 @@ impl Hab {
             Self::File(file_command) => file_command.do_command(ui).await,
             Self::User(user_command) => user_command.do_command(ui).await,
             Self::Svc(svc_command) => svc_command.do_command(ui, feature_flags).await,
+            Self::License(license_command) => license_command.do_command(ui).await,
             _ => todo!(),
         }
     }
@@ -130,9 +136,6 @@ pub(crate) struct BldrCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct CliCommand;
-
-#[derive(Clone, Debug, Parser)]
-pub(crate) struct LicenseCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct PlanCommand;
