@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.165 -->
-## [2.0.165](https://github.com/habitat-sh/habitat/tree/2.0.165) (2025-07-16)
+<!-- latest_release 2.0.166 -->
+## [2.0.166](https://github.com/habitat-sh/habitat/tree/2.0.166) (2025-07-16)
 
 #### Merged Pull Requests
-- CLI Usage fixes for Clap v4 [#9766](https://github.com/habitat-sh/habitat/pull/9766) ([agadgil-progress](https://github.com/agadgil-progress))
+- Upgrade hab license subcommand to clapv4 [#9763](https://github.com/habitat-sh/habitat/pull/9763) ([dikshagupta1](https://github.com/dikshagupta1))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Upgrade hab license subcommand to clapv4 [#9763](https://github.com/habitat-sh/habitat/pull/9763) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.166 -->
 - CLI Usage fixes for Clap v4 [#9766](https://github.com/habitat-sh/habitat/pull/9766) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.165 -->
 - documentation updates to reflect move to chef origin [#9749](https://github.com/habitat-sh/habitat/pull/9749) ([mwrock](https://github.com/mwrock)) <!-- 2.0.164 -->
 - update tests to run on aarch64 [#9751](https://github.com/habitat-sh/habitat/pull/9751) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.163 -->
