@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.164 -->
-## [2.0.164](https://github.com/habitat-sh/habitat/tree/2.0.164) (2025-07-15)
+<!-- latest_release 2.0.165 -->
+## [2.0.165](https://github.com/habitat-sh/habitat/tree/2.0.165) (2025-07-16)
 
 #### Merged Pull Requests
-- documentation updates to reflect move to chef origin [#9749](https://github.com/habitat-sh/habitat/pull/9749) ([mwrock](https://github.com/mwrock))
+- CLI Usage fixes for Clap v4 [#9766](https://github.com/habitat-sh/habitat/pull/9766) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- CLI Usage fixes for Clap v4 [#9766](https://github.com/habitat-sh/habitat/pull/9766) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.165 -->
 - documentation updates to reflect move to chef origin [#9749](https://github.com/habitat-sh/habitat/pull/9749) ([mwrock](https://github.com/mwrock)) <!-- 2.0.164 -->
 - update tests to run on aarch64 [#9751](https://github.com/habitat-sh/habitat/pull/9751) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.163 -->
 - Agadgil/hab svc subcmd clapv4 [#9759](https://github.com/habitat-sh/habitat/pull/9759) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.163 -->
