@@ -412,6 +412,14 @@ steps:
         linux:
           privileged: true
 
+  - label: ":docker: Upload containers (aarch64) to Docker Hub"
+    agents:
+      queue: default-privileged-aarch64
+    command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    env:
+      BUILD_PKG_TARGET: "aarch64-linux"
+
   - label: ":docker: :windows: Upload windows 2016 container to Docker Hub"
     if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
     command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
