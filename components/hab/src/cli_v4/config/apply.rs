@@ -14,8 +14,6 @@ use habitat_common::{cli::clap_validators::FileExistsOrStdinValueParser,
                            {usage}\n\n{all-args}\n",
           about = "Sets a configuration to be shared by members of a Service Group")]
 pub(crate) struct ConfigApplyOptions {
-    /// Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default:
-    /// /home/ubuntu/.hab/cache/keys]
     #[command(flatten)]
     cache_key_path: CacheKeyPath,
 
