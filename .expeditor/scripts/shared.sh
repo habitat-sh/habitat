@@ -5,13 +5,14 @@
 # This will install `hab` to the place appropriate for the target
 curlbash_hab() {
     local pkg_target="${1:-$BUILD_PKG_TARGET}"
-    echo "--- :habicat: Bootstrap installation of the current stable hab binary for $pkg_target using curl|bash"
 
     # install habitat from a specified channel
     local _channel="${2:-acceptance}"
     local _origin="${3:-chef}"
 
-    sudo ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -o "$_origin"
+    echo "--- :habicat: Bootstrap installation of the current $_channel $_origin/hab binary for $pkg_target using curl|bash"
+
+    sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -o "$_origin"
     case "${pkg_target}" in
         x86_64-linux | aarch64-linux)
             hab_binary="/bin/hab"

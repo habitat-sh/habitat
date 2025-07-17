@@ -752,8 +752,10 @@ _install_dependency() {
     local channel="$HAB_BLDR_CHANNEL"
     if [[ -z "${NO_INSTALL_DEPS:-}" || ${NO_INSTALL_DEPS} == "false" ]]; then
         origin="$(echo "$dep" | cut -d "/" -f 1)"
-        if [[ $origin == "core" ]]; then
-            channel="$HAB_REFRESH_CHANNEL"
+        if [[ $origin == "core" || $origin == "chef" ]]; then
+            if [[ $origin == "core" ]]; then
+                channel="$HAB_REFRESH_CHANNEL"
+            fi
             if [[ $HAB_PREFER_LOCAL_CHEF_DEPS == "false" ]]; then
                 IGNORE_LOCAL="--ignore-local"
             fi

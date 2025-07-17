@@ -16,8 +16,7 @@ function Install-LatestHabitat() {
     # Install latest hab from using install.ps1
     $env:HAB_LICENSE = "accept-no-persist"
     Write-Host "--- :habicat: Installing latest hab binary for $Env:HAB_PACKAGE_TARGET using install.ps1"
-    Set-ExecutionPolicy Bypass -Scope Process -Force
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.ps1')) | Out-Null
+    Install-Habitat | Out-Null
     $baseHabExe="$Env:ProgramData\Habitat\hab.exe"
 
     $HabVersion=GetLatestPkgVersionFromChannel("hab")
@@ -44,7 +43,7 @@ function GetLatestPkgVersionFromChannel($PackageName) {
     }
     $ReleaseChannel="habitat-release-$Env:BUILDKITE_BUILD_ID"
     try {
-        $version=(Invoke-WebRequest "$Env:HAB_BLDR_URL/v1/depot/channels/core/$ReleaseChannel/pkgs/$PackageName/latest?target=$Env:BUILD_PKG_TARGET" -UseBasicParsing).Content | jq -r '.ident | .version'
+        $version=(Invoke-WebRequest "$Env:HAB_BLDR_URL/v1/depot/channels/chef/$ReleaseChannel/pkgs/$PackageName/latest?target=$Env:BUILD_PKG_TARGET" -UseBasicParsing).Content | jq -r '.ident | .version'
         Write-Host "Found version of ${PackageName} - $version"
     } catch {
         Write-Host "No version found for $PackageName"
