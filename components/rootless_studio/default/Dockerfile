@@ -1,11 +1,11 @@
 ARG PACKAGE_TARGET
 FROM habitat-${PACKAGE_TARGET}:hab-base as hab
-ARG HAB_AUTH_TOKEN
 ENV PATH=${PATH}:/hab/bin
 ARG BLDR_CHANNEL=stable
 ARG BLDR_URL=https://bldr.habitat.sh
 ARG HAB_LICENSE=no-accept
-RUN export HAB_AUTH_TOKEN=$HAB_AUTH_TOKEN \
+RUN --mount=type=secret,id=hab_auth_token \
+  export HAB_AUTH_TOKEN=$(cat /run/secrets/hab_auth_token) \
   && hab pkg install --url ${BLDR_URL} --channel ${BLDR_CHANNEL} chef/hab-backline \
   && hab pkg binlink core/bash -d /hab/bin \
   && hab pkg binlink chef/hab -d /hab/bin \
