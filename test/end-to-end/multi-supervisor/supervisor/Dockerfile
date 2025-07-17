@@ -3,9 +3,11 @@ FROM alpine as build_image
 # All Supervisor-related packages will be downloaded from this channel
 # on Builder.
 ARG CHANNEL=stable
+ARG HAB_AUTH_TOKEN
 
 # Always accept the license when we run this image.
 ENV HAB_LICENSE=accept-no-persist
+ENV HAB_AUTH_TOKEN=${HAB_AUTH_TOKEN}
 
 # Bootstrap us enough to get a `hab` binary on the box, but then clear
 # out the /hab directory. The `hab` binary isn't necessarily the one
