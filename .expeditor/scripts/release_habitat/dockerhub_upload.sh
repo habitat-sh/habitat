@@ -45,6 +45,7 @@ trap 'rm -f $HOME/.docker/config.json' INT TERM EXIT
 
     docker build \
            --build-arg PACKAGE_TARGET="${target}" \
+           --build-arg HAB_AUTH_TOKEN="${HAB_AUTH_TOKEN}" \
            --tag "habitat-${target}:hab-base" .
 
     docker build \
@@ -52,6 +53,7 @@ trap 'rm -f $HOME/.docker/config.json' INT TERM EXIT
            --build-arg BLDR_URL="${bldr_url}" \
            --build-arg BLDR_CHANNEL="${channel}" \
            --build-arg PACKAGE_TARGET="${target}" \
+           --build-arg HAB_AUTH_TOKEN="${HAB_AUTH_TOKEN}" \
            --no-cache \
            --tag "${image_name_with_tag}" \
            ./default
