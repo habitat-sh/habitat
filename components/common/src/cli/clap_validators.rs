@@ -110,15 +110,17 @@ impl clap_v4::builder::TypedValueParser for HabOriginValueParser {
 #[derive(Clone)]
 pub struct FileExistsValueParser;
 
+use std::path::PathBuf;
+
 impl clap_v4::builder::TypedValueParser for FileExistsValueParser {
-    type Value = String;
+    type Value = PathBuf;
 
     fn parse_ref(&self,
                  cmd: &clap_v4::Command,
                  arg: Option<&clap_v4::Arg>,
                  value: &std::ffi::OsStr)
                  -> Result<Self::Value, clap_v4::Error> {
-        parse_ref_internal(cmd, arg, value, false, false, "is not a valid file")
+        parse_ref_internal(cmd, arg, value, false, false, "is not a valid file").map(Into::<PathBuf>::into)
     }
 }
 
