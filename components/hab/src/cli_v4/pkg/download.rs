@@ -17,6 +17,7 @@ use habitat_common::{cli::{clap_validators::{HabPkgIdentValueParser,
 
 use habitat_core::{env::Config,
                    package::{target,
+                             Identifiable,
                              PackageIdent,
                              PackageTarget},
                    ChannelIdent};
@@ -76,8 +77,6 @@ pub(crate) struct PkgDownloadOptions {
 
 impl PkgDownloadOptions {
     pub(super) async fn do_download(&self, ui: &mut UI) -> HabResult<()> {
-        use habitat_core::package::Identifiable;
-
         let auth_token = self.auth_token.try_from_cli_or_config();
 
         let target = self.pkg_target.unwrap_or_else(|| {
@@ -127,7 +126,6 @@ impl PkgDownloadOptions {
 
     fn idents_from_file_matches(&self, target: PackageTarget) -> HabResult<Vec<PackageSet>> {
         let mut sources: Vec<PackageSet> = Vec::new();
-        use habitat_core::package::Identifiable;
 
         if !self.pkg_ident_file.is_empty() {
             for f in &self.pkg_ident_file {
