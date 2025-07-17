@@ -10,7 +10,7 @@ expeditor:
     buildkite:
       timeout_in_minutes: 45
       env:
-        HAB_ORIGIN: "core"
+        HAB_ORIGIN: "chef"
         PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
         # Necessary to prevent old studios from poisoning builds after core plans refreshes
         HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "base-2025"

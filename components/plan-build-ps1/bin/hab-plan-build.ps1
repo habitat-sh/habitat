@@ -340,8 +340,10 @@ function Install-Dependency($dependency, $install_args = $null) {
         $origin = $dependency.Split("/")[0]
         $channel = $env:HAB_BLDR_CHANNEL
         $ignoreLocal = ""
-        if ($origin -eq "core") {
-            $channel="$env:HAB_REFRESH_CHANNEL"
+        if ($origin -eq "core" -or $origin -eq "chef") {
+            if ($origin -eq "core") {
+                $channel = $env:HAB_REFRESH_CHANNEL
+            }
             if (!$env:HAB_PREFER_LOCAL_CHEF_DEPS) {
                 $ignoreLocal="--ignore-local"
             }

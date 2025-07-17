@@ -34,26 +34,27 @@ choco install jq -y | Out-Null
 $Channel = "habitat-release-$Env:BUILDKITE_BUILD_ID"
 Write-Host "--- Channel: $Channel - bldr url: $Env:HAB_BLDR_URL"
 
-$baseHabExe=Install-LatestHabitat
-
-# Get keys
-Write-Host "--- :key: Downloading 'core' public keys from Builder"
-Invoke-Expression "$baseHabExe origin key download core"
-Write-Host "--- :closed_lock_with_key: Downloading latest 'core' secret key from Builder"
-Invoke-Expression "$baseHabExe origin key download core --auth $Env:HAB_AUTH_TOKEN --secret"
-$Env:HAB_CACHE_KEY_PATH = "C:\hab\cache\keys"
-$Env:HAB_ORIGIN = "core"
-
-# Run a build!
-Write-Host "--- Running hab pkg build for $Component"
-git config --global --add safe.directory C:/workdir
 # Note: HAB_BLDR_CHANNEL *must* be set for the following `hab pkg
 # build` command! There isn't currently a CLI option to set that, and
 # we must ensure that we're pulling dependencies from our build
 # channel when applicable.
 $Env:HAB_BLDR_CHANNEL="$Channel"
-$Env:HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL="$Channel"
-Invoke-Expression "$baseHabExe pkg build components\$Component --keys core"
+
+$baseHabExe=Install-LatestHabitat
+
+# Get keys
+Write-Host "--- :key: Downloading 'chef' public keys from Builder"
+Invoke-Expression "$baseHabExe origin key download chef"
+Write-Host "--- :closed_lock_with_key: Downloading latest 'chef' secret key from Builder"
+Invoke-Expression "$baseHabExe origin key download chef --auth $Env:HAB_AUTH_TOKEN --secret"
+$Env:HAB_CACHE_KEY_PATH = "C:\hab\cache\keys"
+$Env:HAB_ORIGIN = "chef"
+
+# Run a build!
+Write-Host "--- Running hab pkg build for $Component"
+git config --global --add safe.directory C:/workdir
+
+Invoke-Expression "$baseHabExe pkg build components\$Component --keys chef"
 . results\last_build.ps1
 
 Write-Host "--- Running hab pkg upload for $Component to channel $Channel"
