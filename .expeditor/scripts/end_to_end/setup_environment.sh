@@ -58,7 +58,7 @@ sudo -E hab pkg install core/powershell \
     --binlink \
     --binlink-dir="/usr/local/bin" \
     --force \
-    --channel="base-2025" \
+    --channel="stable" \
     --url="${HAB_BLDR_URL}"
 echo "--- Using core/powershell version $(pwsh --version)"
 
