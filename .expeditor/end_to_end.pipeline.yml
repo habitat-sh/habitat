@@ -386,7 +386,7 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[:windows: 2016 :docker: test_studio_version]"
+  - label: "[:windows: 2022 :docker: test_studio_version]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_version
     artifact_paths:
@@ -397,7 +397,7 @@ steps:
     expeditor:
       executor:
         windows:
-          os_version: 2016
+          os_version: 2022
     retry:
       automatic:
         limit: 1
