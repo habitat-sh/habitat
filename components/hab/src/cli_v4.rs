@@ -30,6 +30,9 @@ use ring::RingCommand;
 mod user;
 use user::UserCommand;
 
+mod supportbundle;
+use supportbundle::SupportBundleOpts;
+
 pub(crate) mod sup;
 use sup::SupCommand;
 
@@ -103,7 +106,9 @@ enum Hab {
     #[clap(subcommand)]
     Sup(SupCommand),
 
-    SupportBundle,
+    /// Create a tarball of Habitat Supervisor data to send to support
+    #[command(name = "supportbundle")]
+    SupportBundle(SupportBundleOpts),
 
     /// Commands relating to Habitat Services
     #[clap(subcommand)]
@@ -148,9 +153,12 @@ impl Hab {
             Self::Svc(svc_command) => svc_command.do_command(ui, feature_flags).await,
             Self::License(license_command) => license_command.do_command(ui).await,
             Self::Cli(cli_command) => cli_command.do_command(ui, feature_flags).await,
-            Self::Bldr(b) => b.do_command(ui).await,
+            Self::Bldr(bldr_command) => bldr_command.do_command(ui).await,
             Self::Ring(ring_command) => ring_command.do_command(ui).await,
             Self::Plan(plan_command) => plan_command.do_command(ui).await,
+            Self::SupportBundle(support_bundle_command) => {
+                support_bundle_command.do_command(ui).await
+            }
             _ => todo!(),
         }
     }
