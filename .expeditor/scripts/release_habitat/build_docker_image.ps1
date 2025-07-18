@@ -92,7 +92,7 @@ RUN `$env:HAB_LICENSE='accept-no-persist'; ``
     # we run it again here without the flag so that its install hook is run in
     # the image. We don't want a windows service installed in the local build
     # environment, but we do want one in the image.
-    &/hab/pkgs/$ident/bin/hab/hab.exe pkg install core/windows-service --channel=$ReleaseChannel --url=$BldrUrl; ``
+    &/hab/pkgs/$ident/bin/hab/hab.exe pkg install chef/windows-service --channel=$ReleaseChannel --url=$BldrUrl; ``
     (Get-Content /hab/svc/windows-service/HabService.dll.config).replace('--no-color', '') | Set-Content /hab/svc/windows-service/HabService.dll.config; ``
     (Get-Content /hab/svc/windows-service/log4net.xml).replace('%date - ', '') | Set-Content /hab/svc/windows-service/log4net.xml; ``
     Remove-Item /hab/cache -Recurse -Force
