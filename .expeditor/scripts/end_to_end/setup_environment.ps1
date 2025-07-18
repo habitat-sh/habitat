@@ -39,11 +39,11 @@ Write-Host "--- Installing latest core/powershell from $BuilderUrl, stable chann
 Invoke-NativeCommand hab pkg install core/powershell `
     --binlink `
     --force `
-    --channel=base `
+    --channel=base-2025 `
     --url="$BuilderUrl"
 Write-Host "--- Using core/powershell $(pwsh --version)"
 
 Write-Host "--- Installing latest core/pester from $BuilderUrl, stable channel"
 Invoke-NativeCommand hab pkg install core/pester `
-    --channel=base `
+    --channel=base-2025 `
     --url="$BuilderUrl"

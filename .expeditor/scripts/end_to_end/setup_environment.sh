@@ -47,7 +47,7 @@ echo "--- Installing latest core/netcat from ${HAB_BLDR_URL}, stable channel"
 sudo -E hab pkg install core/netcat \
     --binlink \
     --force \
-    --channel="base" \
+    --channel="base-2025" \
     --url="${HAB_BLDR_URL}"
 
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
@@ -58,13 +58,13 @@ sudo -E hab pkg install core/powershell \
     --binlink \
     --binlink-dir="/usr/local/bin" \
     --force \
-    --channel="base" \
+    --channel="base-2025" \
     --url="${HAB_BLDR_URL}"
 echo "--- Using core/powershell version $(pwsh --version)"
 
 echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, stable channel"
 sudo -E hab pkg install core/pester \
-    --channel="base" \
+    --channel="base-2025" \
     --url="${HAB_BLDR_URL}"
 
 sudo useradd --system --no-create-home hab
