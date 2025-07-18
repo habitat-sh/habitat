@@ -13,12 +13,14 @@ mod cli;
 mod config;
 mod file;
 mod pkg;
+mod supportbundle;
 mod user;
 
 use cli::CliCommand;
 use config::ConfigCommand;
 use file::FileCommand;
 use pkg::PkgCommand;
+use supportbundle::SupportBundleOpts;
 use user::UserCommand;
 
 pub(crate) mod sup;
@@ -85,7 +87,9 @@ enum Hab {
     #[clap(subcommand)]
     Sup(SupCommand),
 
-    SupportBundle,
+    /// Create a tarball of Habitat Supervisor data to send to support
+    #[command(name = "supportbundle")]
+    SupportBundle(SupportBundleOpts),
 
     /// Commands relating to Habitat Services
     #[clap(subcommand)]
@@ -130,6 +134,7 @@ impl Hab {
             Self::Svc(svc_command) => svc_command.do_command(ui, feature_flags).await,
             Self::License(license_command) => license_command.do_command(ui).await,
             Self::Cli(cli_command) => cli_command.do_command(ui, feature_flags).await,
+            Self::SupportBundle(cli_command) => cli_command.do_command(ui).await,
             _ => todo!(),
         }
     }
