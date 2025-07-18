@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.169 -->
-## [2.0.169](https://github.com/habitat-sh/habitat/tree/2.0.169) (2025-07-17)
+<!-- latest_release 2.0.170 -->
+## [2.0.170](https://github.com/habitat-sh/habitat/tree/2.0.170) (2025-07-18)
 
 #### Merged Pull Requests
-- do not brew install gpung on mac install tests [#9772](https://github.com/habitat-sh/habitat/pull/9772) ([mwrock](https://github.com/mwrock))
+- Using `base` channel as default channel for packages in `core` origin [#9717](https://github.com/habitat-sh/habitat/pull/9717) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Using `base` channel as default channel for packages in `core` origin [#9717](https://github.com/habitat-sh/habitat/pull/9717) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.170 -->
 - do not brew install gpung on mac install tests [#9772](https://github.com/habitat-sh/habitat/pull/9772) ([mwrock](https://github.com/mwrock)) <!-- 2.0.169 -->
 - publish aarch64-linux docker image [#9771](https://github.com/habitat-sh/habitat/pull/9771) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.168 -->
 - fixes the release pipeline with chef origin [#9769](https://github.com/habitat-sh/habitat/pull/9769) ([mwrock](https://github.com/mwrock)) <!-- 2.0.167 -->
