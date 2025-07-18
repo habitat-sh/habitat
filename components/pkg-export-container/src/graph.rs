@@ -136,9 +136,9 @@ mod tests {
     //
     // Yes, these are properly all FullyQualifiedPackageIdents, but
     // the PackageGraph doesn't yet handle those.
-    pkg!(hab, "core/hab/1.5.71/20200318171932");
-    pkg!(sup, "core/hab-sup/1.5.71/20200318174937");
-    pkg!(launcher, "core/hab-launcher/13458/20200318174911");
+    pkg!(hab, "chef/hab/1.5.71/20200318171932");
+    pkg!(sup, "chef/hab-sup/1.5.71/20200318174937");
+    pkg!(launcher, "chef/hab-launcher/13458/20200318174911");
     pkg!(busybox, "core/busybox-static/1.29.2/20190115014552");
     pkg!(cacerts, "core/cacerts/2018.12.05/20190115014206");
 

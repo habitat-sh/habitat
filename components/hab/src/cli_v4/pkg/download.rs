@@ -15,7 +15,9 @@ use habitat_common::{cli::{clap_validators::{HabPkgIdentValueParser,
                      ui::UI,
                      Error as HabitatCommonError};
 
-use habitat_core::{package::{target,
+use habitat_core::{env::Config,
+                   package::{target,
+                             Identifiable,
                              PackageIdent,
                              PackageTarget},
                    ChannelIdent};
@@ -45,8 +47,8 @@ pub(crate) struct PkgDownloadOptions {
     #[arg(name = "CHANNEL",
           short = 'c',
           long = "channel",
-          default_value = "stable")]
-    channel: ChannelIdent,
+          env = habitat_core::ChannelIdent::ENVVAR)]
+    channel: Option<ChannelIdent>,
 
     /// The path to store downloaded artifacts
     #[arg(name = "DOWNLOAD_DIRECTORY", long = "download-directory")]
@@ -88,9 +90,24 @@ impl PkgDownloadOptions {
         let mut package_sets = vec![];
 
         if !self.pkg_ident.is_empty() {
-            package_sets.push(PackageSet { target,
-                                           channel: self.channel.clone(),
-                                           idents: self.pkg_ident.clone() });
+            let (core_idents, non_core_idents): (Vec<_>, Vec<_>) =
+                self.pkg_ident
+                    .clone()
+                    .into_iter()
+                    .partition(|ident| ident.origin() == "core");
+
+            if let Some(ref channel) = self.channel {
+                package_sets.push(PackageSet { target,
+                                               channel: channel.clone(),
+                                               idents: self.pkg_ident.clone() });
+            } else {
+                package_sets.push(PackageSet { target,
+                                               channel: ChannelIdent::base(),
+                                               idents: core_idents });
+                package_sets.push(PackageSet { target,
+                                               channel: ChannelIdent::stable(),
+                                               idents: non_core_idents });
+            }
         }
         let mut package_sets_from_file = self.idents_from_file_matches(target)?;
         package_sets.append(&mut package_sets_from_file);
@@ -119,10 +136,28 @@ impl PkgDownloadOptions {
                     sources.append(&mut toml_data.to_package_sets()?);
                 } else {
                     let idents_from_file = file_into_idents(f)?;
-                    let package_set = PackageSet { idents: idents_from_file,
-                                                   channel: self.channel.clone(),
-                                                   target };
-                    sources.push(package_set)
+                    match self.channel {
+                        Some(ref channel) => {
+                            sources.push(PackageSet { idents: idents_from_file,
+                                                      channel: channel.clone(),
+                                                      target })
+                        }
+                        None => {
+                            let (core_idents, non_core_idents): (Vec<_>, Vec<_>) =
+                                idents_from_file.into_iter()
+                                                .partition(|ident| ident.origin() == "core");
+                            let core_package_set = PackageSet { idents: core_idents,
+                                                                channel:
+                                                                    ChannelIdent::from("base"),
+                                                                target };
+                            sources.push(core_package_set);
+                            let non_core_package_set = PackageSet { idents: non_core_idents,
+                                                                    channel:
+                                                                        ChannelIdent::from("stable"),
+                                                                    target };
+                            sources.push(non_core_package_set);
+                        }
+                    }
                 }
             }
         }

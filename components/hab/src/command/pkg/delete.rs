@@ -35,6 +35,14 @@ pub async fn start(ui: &mut UI,
                    (ident, target): (&PackageIdent, PackageTarget),
                    token: &str)
                    -> Result<()> {
+    use habitat_core::package::Identifiable;
+
+    let stable_channel_str = if ident.origin() == "core" {
+        "base"
+    } else {
+        "stable"
+    };
+
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Deleting {} ({}) from Builder", ident, target))?;
@@ -51,11 +59,12 @@ pub async fn start(ui: &mut UI,
             Err(Error::APIClient(err))
         }
         Err(err @ api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
-            ui.fatal("Before you can delete this package artifact, demote it from the `stable` \
-                      channel\nand remove any reverse dependencies.")?;
+            ui.fatal(format!("Before you can delete this package artifact, demote it from the \
+                              `{}` channel\nand remove any reverse dependencies.",
+                             stable_channel_str))?;
             ui.fatal(format!("Demote the package artifact with the command:\nhab pkg demote {} \
-                              stable {}",
-                             ident, target))?;
+                              {} {}",
+                             ident, stable_channel_str, target))?;
             ui.fatal(format!("Discover any reverse dependencies with the command:\nhab pkg \
                               dependencies --reverse {}",
                              ident))?;

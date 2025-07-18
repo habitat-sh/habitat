@@ -13,6 +13,7 @@ use clap::{builder::NonEmptyStringValueParser,
 use habitat_core::{env::Config,
                    fs::{cache_artifact_path,
                         FS_ROOT_PATH},
+                   package::PackageIdent,
                    ChannelIdent};
 
 use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
@@ -46,9 +47,8 @@ pub(crate) struct PkgInstallOptions {
     /// Install from the specified release channel
     #[arg(short = 'c',
                 long = "channel",
-                default_value = "stable",
-                env = ChannelIdent::ENVVAR)]
-    channel: ChannelIdent,
+                env = habitat_core::ChannelIdent::ENVVAR)]
+    channel: Option<ChannelIdent>,
 
     /// One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat
     /// Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
@@ -95,6 +95,8 @@ impl PkgInstallOptions {
                                    ui: &mut UI,
                                    feature_flags: FeatureFlag)
                                    -> HabResult<()> {
+        use habitat_core::package::Identifiable;
+
         let pkg_install_args: Vec<_> = std::env::args_os().skip(2).collect();
 
         let auth_token = self.auth_token.try_from_cli_or_config();
@@ -124,10 +126,18 @@ impl PkgInstallOptions {
         };
 
         for install_source in &self.pkg_ident_or_artifact {
-            // let install_source = InstallSource::from_str(install_source)?;
+            let ident: &PackageIdent = install_source.as_ref();
+            let channel = if let Some(ref channel) = self.channel {
+                channel.clone()
+            } else if ident.origin() == "core" {
+                ChannelIdent::base()
+            } else {
+                ChannelIdent::stable()
+            };
+
             let pkg_install = install::start(ui,
                                              &self.bldr_url.to_string(),
-                                             &self.channel,
+                                             &channel,
                                              &install_source,
                                              PRODUCT,
                                              VERSION,
