@@ -10,15 +10,18 @@ use crate::{error::Result as HabResult,
             VERSION};
 
 mod cli;
-mod config;
-mod file;
-mod pkg;
-mod user;
-
 use cli::CliCommand;
+
+mod config;
 use config::ConfigCommand;
+
+mod file;
 use file::FileCommand;
+
+mod pkg;
 use pkg::PkgCommand;
+
+mod user;
 use user::UserCommand;
 
 pub(crate) mod sup;
@@ -26,6 +29,7 @@ use sup::SupCommand;
 
 mod origin;
 use origin::OriginCommand;
+
 mod svc;
 use svc::SvcCommand;
 
@@ -34,6 +38,9 @@ use utils::CacheKeyPath;
 
 mod license;
 use license::LicenseCommand;
+
+mod plan;
+use plan::PlanCommand;
 
 #[derive(Debug, Clone, Parser)]
 #[command(name = "hab",
@@ -75,6 +82,8 @@ enum Hab {
     #[clap(subcommand)]
     Pkg(PkgCommand),
 
+    /// Commands relating to plans and other app-specific configuration
+    #[clap(subcommand)]
     Plan(PlanCommand),
 
     Ring(RingCommand),
@@ -130,6 +139,7 @@ impl Hab {
             Self::Svc(svc_command) => svc_command.do_command(ui, feature_flags).await,
             Self::License(license_command) => license_command.do_command(ui).await,
             Self::Cli(cli_command) => cli_command.do_command(ui, feature_flags).await,
+            Self::Plan(plan_command) => plan_command.do_command(ui).await,
             _ => todo!(),
         }
     }
@@ -137,9 +147,6 @@ impl Hab {
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct BldrCommand;
-
-#[derive(Clone, Debug, Parser)]
-pub(crate) struct PlanCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct RingCommand;
