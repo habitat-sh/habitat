@@ -34,17 +34,23 @@ Invoke-NativeCommand hab pkg install chef/hab-studio `
 Invoke-NativeCommand hab pkg install chef/hab-sup `
     --channel "$Channel" `
     --url="$BuilderUrl"
+Invoke-NativeCommand hab pkg install chef/hab-launcher `
+    --channel "$Channel" `
+    --url="$BuilderUrl"
+Invoke-NativeCommand hab pkg install chef/hab-pkg-export-tar `
+    --channel "$Channel" `
+    --url="$BuilderUrl"
 
 Write-Host "--- Installing latest core/powershell from $BuilderUrl, stable channel"
 Invoke-NativeCommand hab pkg install core/powershell `
     --binlink `
     --force `
     --channel=base-2025 `
-    --ignore-local `
     --url="$BuilderUrl"
 Write-Host "--- Using core/powershell $(pwsh --version)"
 
 Write-Host "--- Installing latest core/pester from $BuilderUrl, stable channel"
 Invoke-NativeCommand hab pkg install core/pester `
     --channel=stable `
+    --ignore-local `
     --url="$BuilderUrl"

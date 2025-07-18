@@ -42,6 +42,12 @@ sudo -E hab pkg install chef/hab-studio \
 sudo -E hab pkg install chef/hab-sup \
     --channel="${channel}" \
     --url="${HAB_BLDR_URL}"
+sudo -E hab pkg install chef/hab-launcher \
+    --channel="${channel}" \
+    --url="${HAB_BLDR_URL}"
+sudo -E hab pkg install chef/hab-pkg-export-tar \
+    --channel="${channel}" \
+    --url="${HAB_BLDR_URL}"
 
 echo "--- Installing latest core/netcat from ${HAB_BLDR_URL}, stable channel"
 sudo -E hab pkg install core/netcat \
