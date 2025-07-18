@@ -40,6 +40,7 @@ Invoke-NativeCommand hab pkg install core/powershell `
     --binlink `
     --force `
     --channel=base-2025 `
+    --ignore-local `
     --url="$BuilderUrl"
 Write-Host "--- Using core/powershell $(pwsh --version)"
 
