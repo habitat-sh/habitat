@@ -21,12 +21,6 @@ steps:
 # Release!
 #######################################################################
 
-  - label: "[:linux: build hab (ARM)]"
-    command:
-      - .expeditor/scripts/release_habitat/package_and_upload_arm_binary.sh
-    agents:
-      queue: docker-linux-arm64
-
   - label: "[:linux: build hab]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh hab
