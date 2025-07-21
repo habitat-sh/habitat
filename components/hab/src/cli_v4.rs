@@ -9,6 +9,7 @@ use crate::{error::Result as HabResult,
             AFTER_HELP_V4,
             VERSION};
 
+mod bldr;
 mod cli;
 mod config;
 mod file;
@@ -16,6 +17,7 @@ mod pkg;
 mod ring;
 mod user;
 
+use bldr::BldrCommand;
 use cli::CliCommand;
 use config::ConfigCommand;
 use file::FileCommand;
@@ -51,6 +53,7 @@ use license::LicenseCommand;
         )]
 enum Hab {
     /// Commands relating to Habitat Builder
+    #[clap(subcommand)]
     Bldr(BldrCommand),
 
     /// Commands relating to Habitat runtime config
@@ -134,15 +137,12 @@ impl Hab {
             Self::Svc(svc_command) => svc_command.do_command(ui, feature_flags).await,
             Self::License(license_command) => license_command.do_command(ui).await,
             Self::Cli(cli_command) => cli_command.do_command(ui, feature_flags).await,
+            Self::Bldr(b) => b.do_command(ui).await,
             Self::Ring(ring_command) => ring_command.do_command(ui).await,
             _ => todo!(),
         }
     }
 }
-
-#[derive(Clone, Debug, Parser)]
-pub(crate) struct BldrCommand;
-
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct PlanCommand;
 
