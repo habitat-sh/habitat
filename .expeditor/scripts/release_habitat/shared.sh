@@ -25,20 +25,20 @@ get_version_from_repo() {
 # through the pipeline. As we bring more platforms into play, this may
 # change. FYI.
 import_keys() {
-    echo "--- :key: Downloading 'core' public keys from ${HAB_BLDR_URL}"
-    ${hab_binary:?} origin key download core
-    echo "--- :closed_lock_with_key: Downloading latest 'core' secret key from ${HAB_BLDR_URL}"
+    echo "--- :key: Downloading 'chef' public keys from ${HAB_BLDR_URL}"
+    ${hab_binary:?} origin key download chef
+    echo "--- :closed_lock_with_key: Downloading latest 'chef' secret key from ${HAB_BLDR_URL}"
     ${hab_binary:?} origin key download \
         --auth="${HAB_AUTH_TOKEN}" \
         --secret \
-        core
+        chef
 }
 
 # Returns the full "release" version in the form of X.Y.Z/DATESTAMP
 get_latest_pkg_release_version_in_release_channel() {
     local pkg_name="${1}"
     local pkg_target="${2}"
-    curl -s "${HAB_BLDR_URL}/v1/depot/channels/core/$(get_release_channel)/pkgs/${pkg_name}/latest?target=${pkg_target}" \
+    curl -s "${HAB_BLDR_URL}/v1/depot/channels/chef/$(get_release_channel)/pkgs/${pkg_name}/latest?target=${pkg_target}" \
         | jq -r '.ident | .version + "/" + .release'
 }
 
@@ -60,7 +60,7 @@ install_release_channel_hab_binary() {
     local pkg_target="${1}"
     curlbash_hab "${pkg_target}"
 
-    echo "--- :habicat: Installed latest stable hab: $(${hab_binary} --version)"
+    echo "--- :habicat: Installed latest acceptance hab: $(${hab_binary} --version)"
     # now install the latest hab available in our channel, if it and the studio exist yet
     hab_version=$(get_latest_pkg_version_in_release_channel "hab" "${pkg_target}")
     studio_version=$(get_latest_pkg_version_in_release_channel "hab-studio" "${pkg_target}")

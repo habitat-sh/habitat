@@ -33,7 +33,9 @@ docker login \
   --username="${DOCKER_LOGIN_USER}" \
   --password="${DOCKER_LOGIN_PASSWORD}"
 
-trap 'rm -f $HOME/.docker/config.json' INT TERM EXIT
+# Create the token file securely
+echo "$HAB_AUTH_TOKEN" > ./components/rootless_studio/hab_auth_token.txt
+trap 'rm -f $HOME/.docker/config.json ./components/rootless_studio/hab_auth_token.txt' INT TERM EXIT
 
 (
     cd ./components/rootless_studio
@@ -44,10 +46,12 @@ trap 'rm -f $HOME/.docker/config.json' INT TERM EXIT
     # actually is.
 
     docker build \
+           --secret id=hab_auth_token,src=hab_auth_token.txt \
            --build-arg PACKAGE_TARGET="${target}" \
            --tag "habitat-${target}:hab-base" .
 
     docker build \
+           --secret id=hab_auth_token,src=hab_auth_token.txt \
            --build-arg HAB_LICENSE="accept-no-persist" \
            --build-arg BLDR_URL="${bldr_url}" \
            --build-arg BLDR_CHANNEL="${channel}" \

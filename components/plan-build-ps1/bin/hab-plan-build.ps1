@@ -87,7 +87,7 @@ if (!(Test-Path Env:\HAB_FALLBACK_CHANNEL)) {
 }
 # Use the refresh channel for dependencies in the core origin
 if (!(Test-Path Env:\HAB_REFRESH_CHANNEL)) {
-    $env:HAB_REFRESH_CHANNEL = "stable"
+    $env:HAB_REFRESH_CHANNEL = "base"
 }
 # The value of `$env:Path` on initial start of this program
 $script:INITIAL_PATH = "$env:Path"
@@ -340,8 +340,10 @@ function Install-Dependency($dependency, $install_args = $null) {
         $origin = $dependency.Split("/")[0]
         $channel = $env:HAB_BLDR_CHANNEL
         $ignoreLocal = ""
-        if ($origin -eq "core") {
-            $channel="$env:HAB_REFRESH_CHANNEL"
+        if ($origin -eq "core" -or $origin -eq "chef") {
+            if ($origin -eq "core") {
+                $channel = $env:HAB_REFRESH_CHANNEL
+            }
             if (!$env:HAB_PREFER_LOCAL_CHEF_DEPS) {
                 $ignoreLocal="--ignore-local"
             }

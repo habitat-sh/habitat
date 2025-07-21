@@ -14,6 +14,7 @@ mod cli;
 mod config;
 mod file;
 mod pkg;
+mod ring;
 mod user;
 
 use bldr::BldrCommand;
@@ -21,6 +22,7 @@ use cli::CliCommand;
 use config::ConfigCommand;
 use file::FileCommand;
 use pkg::PkgCommand;
+use ring::RingCommand;
 use user::UserCommand;
 
 pub(crate) mod sup;
@@ -80,6 +82,8 @@ enum Hab {
 
     Plan(PlanCommand),
 
+    /// Commands relating to Habitat rings
+    #[clap(subcommand)]
     Ring(RingCommand),
 
     Studio(StudioCommand),
@@ -134,15 +138,13 @@ impl Hab {
             Self::License(license_command) => license_command.do_command(ui).await,
             Self::Cli(cli_command) => cli_command.do_command(ui, feature_flags).await,
             Self::Bldr(b) => b.do_command(ui).await,
+            Self::Ring(ring_command) => ring_command.do_command(ui).await,
             _ => todo!(),
         }
     }
 }
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct PlanCommand;
-
-#[derive(Clone, Debug, Parser)]
-pub(crate) struct RingCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct StudioCommand;

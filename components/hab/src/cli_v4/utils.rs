@@ -331,9 +331,8 @@ fn health_check_interval_default() -> u64 { 30 }
 #[command(disable_version_flag = true, rename_all = "screamingsnake")]
 pub(crate) struct SharedLoad {
     /// Receive updates from the specified release channel
-    #[arg(long = "channel", default_value = &*CHANNEL_IDENT_DEFAULT)]
-    #[serde(default)]
-    pub channel: ChannelIdent,
+    #[arg(long = "channel")]
+    pub channel: Option<ChannelIdent>,
 
     /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
     /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
@@ -525,7 +524,7 @@ pub fn shared_load_cli_to_ctl(ident: PackageIdent,
                  binds,
                  binding_mode: Some(shared_load.binding_mode as i32),
                  bldr_url: Some(habitat_core::url::bldr_url(shared_load.bldr_url)),
-                 bldr_channel: Some(shared_load.channel.to_string()),
+                 bldr_channel: shared_load.channel.map(|x| x.to_string()),
                  config_from,
                  force: Some(force),
                  group: Some(shared_load.group),
