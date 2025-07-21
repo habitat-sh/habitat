@@ -2,8 +2,7 @@
                   any(target_arch = "x86_64", target_arch = "aarch64")),
               all(target_os = "windows", target_arch = "x86_64"),))]
 use crate::sup::command;
-use crate::sup::{cli::cli,
-                 error::{Error,
+use crate::sup::{error::{Error,
                          Result},
                  event::EventStreamConfig,
                  logger,
@@ -12,8 +11,6 @@ use crate::sup::{cli::cli,
                            TLSConfig},
                  util};
 use configopt::ConfigOpt;
-use hab::cli::hab::{sup::SupRun,
-                    svc};
 use habitat_common::{command::package::install::InstallSource,
                      liveliness_checker,
                      output::{self,
@@ -55,6 +52,12 @@ use sup::manager::ServiceRestartConfig;
 use tokio::{self,
             runtime::Builder as RuntimeBuilder};
 
+#[cfg(feature = "v2")]
+use crate::sup::cli_v2::cli;
+
+#[cfg(feature = "v2")]
+use hab::cli::hab::{sup::SupRun,
+                    svc};
 /// Our output key
 static LOGKEY: &str = "MN";
 
