@@ -23,7 +23,7 @@ pub(crate) enum ConfigCommand {
 }
 
 impl ConfigCommand {
-    pub async fn do_command(&self, ui: &mut UI) -> HabResult<()> {
+    pub(crate) async fn do_command(&self, ui: &mut UI) -> HabResult<()> {
         match self {
             ConfigCommand::Apply(opts) => opts.do_apply(ui).await,
             ConfigCommand::Show(opts) => opts.do_show().await,
