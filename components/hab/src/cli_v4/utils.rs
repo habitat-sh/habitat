@@ -449,7 +449,6 @@ pub(crate) struct BldrOrigin {
     pub inner: CoreOrigin,
 }
 
-#[allow(clippy::needless_pass_by_value)]
 pub(crate) fn valid_origin(val: &str) -> Result<String, String> {
     CoreOrigin::validate(val.to_string()).map(|()| val.to_string())
 }
