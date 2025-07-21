@@ -10,10 +10,9 @@ use crate::{cli_v4::utils::{CacheKeyPath,
                             SocketAddrProxy},
             error::Result as HabResult};
 
-use crate::cli::hab::{svc::DEFAULT_SVC_CONFIG_DIR,
-                      util::tls::{CertificateChainCli,
-                                  PrivateKeyCli,
-                                  RootCertificateStoreCli}};
+use habitat_core::tls::rustls_wrapper::{CertificateChainCli,
+                                        PrivateKeyCli,
+                                        RootCertificateStoreCli};
 
 use habitat_common::{cli::{RING_ENVVAR,
                            RING_KEY_ENVVAR},
@@ -278,14 +277,6 @@ pub(crate) struct SupRunOptions {
     /// automatic package cleanup is performed.
     #[arg(long = "keep-latest-packages", env = "HAB_KEEP_LATEST_PACKAGES")]
     keep_latest_packages: Option<usize>,
-
-    /// Paths to files or directories of service config files to load on startup
-    ///
-    /// See `hab svc bulkload --help` for details
-    #[arg(long = "svc-config-paths",
-                default_value = DEFAULT_SVC_CONFIG_DIR,
-                hide = !FEATURE_FLAGS.contains(FeatureFlag::SERVICE_CONFIG_FILES))]
-    svc_config_paths: Vec<PathBuf>,
 
     #[command(flatten)]
     pub shared_load: SharedLoad,
