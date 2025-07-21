@@ -8,7 +8,8 @@ use clap_v4 as clap;
 
 use crate::error::Error;
 use clap::{ArgGroup,
-           Parser};
+           Parser,
+            Args};
 use lazy_static::lazy_static;
 use rustls::pki_types::DnsName;
 use url::{ParseError,
@@ -43,7 +44,8 @@ use std::{convert::TryFrom,
           num::ParseIntError,
           path::PathBuf,
           str::FromStr,
-          time::Duration};
+          time::Duration,
+          ffi::OsString};
 
 use serde::{Deserialize,
             Serialize};
@@ -448,6 +450,22 @@ pub(crate) struct BldrOrigin {
     #[arg(value_name = "ORIGIN", short = 'o', long = "origin")]
     pub inner: CoreOrigin,
 }
+
+
+#[derive(Clone, Debug, Args)]
+#[command(
+    trailing_var_arg = true,
+    allow_hyphen_values = true,
+    disable_help_flag = true,
+    disable_help_subcommand = true,
+    disable_version_flag = true
+)]
+pub struct ExternalCommandArgs {
+    /// Arguments to the command
+    #[arg(value_name = "ARGS", value_parser = clap::builder::OsStringValueParser::new())]
+    pub args: Vec<OsString>,
+}
+
 
 #[allow(clippy::needless_pass_by_value)]
 pub(crate) fn valid_origin(val: &str) -> Result<String, String> {

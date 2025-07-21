@@ -37,6 +37,9 @@ use utils::CacheKeyPath;
 mod license;
 use license::LicenseCommand;
 
+mod studio;
+use studio::StudioOpts;
+
 #[derive(Debug, Clone, Parser)]
 #[command(name = "hab",
             version = VERSION,
@@ -83,7 +86,13 @@ enum Hab {
     #[clap(subcommand)]
     Ring(RingCommand),
 
-    Studio(StudioCommand),
+    /// Commands relating to Habitat Studios
+    #[cfg(any(target_os = "macos",
+              any(all(target_os = "linux",
+                      any(target_arch = "x86_64", target_arch = "aarch64")),
+                  all(target_os = "windows", target_arch = "x86_64"))))]
+    #[command(name = "studio")]
+    Studio(StudioOpts),
 
     /// The Habitat Supervisor
     #[clap(subcommand)]
@@ -135,6 +144,7 @@ impl Hab {
             Self::License(license_command) => license_command.do_command(ui).await,
             Self::Cli(cli_command) => cli_command.do_command(ui, feature_flags).await,
             Self::Ring(ring_command) => ring_command.do_command(ui).await,
+            Self::Studio(studio_command) => studio_command.do_command(ui).await,
             _ => todo!(),
         }
     }
@@ -145,9 +155,6 @@ pub(crate) struct BldrCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct PlanCommand;
-
-#[derive(Clone, Debug, Parser)]
-pub(crate) struct StudioCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct ServiceConfigCommand;
