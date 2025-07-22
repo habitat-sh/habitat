@@ -43,7 +43,7 @@ pub mod test_helpers;
 pub mod util;
 
 #[cfg(feature = "v2")]
-pub mod cli;
+pub mod cli_v2;
 
 use std::env;
 

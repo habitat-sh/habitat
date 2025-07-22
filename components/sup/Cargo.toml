@@ -105,6 +105,7 @@ serde_json = "*"
 [features]
 v2 = ["clap", "configopt", "structopt"]
 v4 = ["clap_v4"]
+default = ["v2"]
 
 apidocs = []
 ignore_integration_tests = []
