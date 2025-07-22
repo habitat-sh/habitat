@@ -1,4 +1,5 @@
-use crate::{common::{self,
+use crate::{cli::hab::util::maybe_bldr_auth_token_from_args_or_load,
+            common::{self,
                      command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  LocalPackageUsage},
@@ -88,6 +89,8 @@ async fn command_from_min_pkg_with_optional_channel(ui: &mut UI,
 
             let channel = internal_tooling_channel(channel);
 
+            let auth_token = maybe_bldr_auth_token_from_args_or_load(None);
+
             // JB TODO - Does an auth token need to be plumbed into here?  Not 100% sure.
             retry::retry_future!(delay::NoDelay.take(RETRY_LIMIT), async {
                 common::command::package::install::start(ui,
@@ -100,7 +103,7 @@ async fn command_from_min_pkg_with_optional_channel(ui: &mut UI,
                                                          VERSION,
                                                          fs_root_path,
                                                          &cache_artifact_path(None::<String>),
-                                                         None,
+                                                         auth_token.as_deref(),
                                                          // TODO fn: pass through and enable
                                                          // offline
                                                          // install mode
