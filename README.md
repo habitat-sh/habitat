@@ -86,7 +86,7 @@ $ curl https://raw.githubusercontent.com/habitat-sh/habitat/refs/heads/v1.6/comp
 Powershell:
 ```
 C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
-C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.ps1'))
+C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/refs/heads/v1.6/components/hab/install.ps1'))
 ```
 
 ## Contribute

@@ -9,6 +9,10 @@ package_path=${1?package_path argument required}
 declare -g hab_binary
 curlbash_hab "${BUILD_PKG_TARGET}"
 
+# echo "--- Installing the latest dev-v1.6 hab"
+# hab pkg install core/hab --binlink --force --channel=dev-v1.6
+# hab pkg install core/hab-studio --binlink --force --channel=dev-v1.6
+
 # Since we are only verifying we don't have build failures, make everything
 # temp!
 export HAB_ORIGIN

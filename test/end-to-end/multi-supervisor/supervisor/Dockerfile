@@ -2,7 +2,7 @@ FROM alpine as build_image
 
 # All Supervisor-related packages will be downloaded from this channel
 # on Builder.
-ARG CHANNEL=stable
+ARG CHANNEL=dev-v1.6
 
 # Always accept the license when we run this image.
 ENV HAB_LICENSE=accept-no-persist
@@ -12,17 +12,17 @@ ENV HAB_LICENSE=accept-no-persist
 # that we want in the final image.
 RUN apk add bash wget \
   && wget https://raw.githubusercontent.com/habitat-sh/habitat/refs/heads/v1.6/components/hab/install.sh \
-  && bash install.sh -c dev-v1.6 \
+  && bash install.sh -c stable \
   && mv /hab/pkgs/core/hab/*/*/bin/hab /bin/ \
   && rm -Rf /hab
 
 # Install only what's needed to run the Supervisor
 # TODO: need a way to parameterize busybox
-RUN  hab pkg install --channel="${CHANNEL}" core/hab \
-  && hab pkg install --channel="${CHANNEL}" core/hab-sup \
-  && hab pkg install --channel="${CHANNEL}" core/hab-launcher \
-  && hab pkg install --channel="stable" core/busybox \
-  && hab pkg binlink core/hab -d /hab/bin
+RUN --mount=type=secret,id=hat HAB_AUTH_TOKEN=$(cat /run/secrets/hat) hab pkg install --channel="${CHANNEL}" core/hab
+RUN --mount=type=secret,id=hat HAB_AUTH_TOKEN=$(cat /run/secrets/hat) hab pkg install --channel="${CHANNEL}" core/hab-sup
+RUN --mount=type=secret,id=hat HAB_AUTH_TOKEN=$(cat /run/secrets/hat) hab pkg install --channel="${CHANNEL}" core/hab-launcher
+RUN --mount=type=secret,id=hat HAB_AUTH_TOKEN=$(cat /run/secrets/hat) hab pkg install --channel="stable" core/busybox
+RUN --mount=type=secret,id=hat HAB_AUTH_TOKEN=$(cat /run/secrets/hat) hab pkg binlink core/hab -d /hab/bin
 
 # Create enough of a filesystem for the Supervisor to operate. We
 # can't do this in a `FROM scratch` image because there's no shell to

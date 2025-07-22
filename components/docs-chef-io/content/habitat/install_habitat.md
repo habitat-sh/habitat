@@ -78,7 +78,7 @@ Alternatively, you can install Chef Habitat by downloading and running the insta
 
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force
-iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.ps1'))
+iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/refs/heads/v1.6/components/hab/install.ps1'))
 ```
 
 ### Installing Habitat for Windows using the dowloaded Chef Habitat package.

@@ -94,5 +94,5 @@ store_in_s3 "${version}" manifest.json
 # hierarchy, and not in the "channels" hierarchy; *this* code is what
 # ultimately gets it into said hierarchy.
 
-promote_packages_to_builder_channel manifest.json dev
-promote_version_in_s3 "${version}" dev
+promote_packages_to_builder_channel manifest.json dev-v1.6
+promote_version_in_s3 "${version}" dev-v1.6

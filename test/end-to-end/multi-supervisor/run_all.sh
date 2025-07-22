@@ -13,7 +13,7 @@ docker-compose --version
 
 # TODO (CM): Pass the name of a single test case to run
 
-channel=${1:-stable}
+channel=${1:-dev-v1.6}
 image_name="supervisor-testing-${channel}"
 
 output_dir="habitat_integration_output"
@@ -21,7 +21,7 @@ rm -Rf "${output_dir}"
 mkdir "${output_dir}"
 
 # Ensure the requisite images are present.
-make habitat_integration_base CHANNEL="${channel}"
+make habitat_integration_base CHANNEL="${channel}" HAB_AUTH_TOKEN="${HAB_AUTH_TOKEN}"
 make supervisor_image CHANNEL="${channel}" IMAGE_NAME="${image_name}"
 
 # Assume success until told otherwise; the first failure will set this

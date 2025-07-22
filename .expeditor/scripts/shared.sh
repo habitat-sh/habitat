@@ -20,7 +20,7 @@ curlbash_hab() {
       sudo rm -rf /hab/pkgs/core/hab/0.82.0 || \
            rm -rf /hab/pkgs/core/hab/0.82.0
     fi
-    curl https://raw.githubusercontent.com/habitat-sh/habitat/refs/heads/v1.6/components/hab/install.sh | sudo bash -s -- -t "$pkg_target" -c dev-v1.6
+    curl https://raw.githubusercontent.com/habitat-sh/habitat/refs/heads/v1.6/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
     case "${pkg_target}" in
         x86_64-linux | x86_64-linux-kernel2)
             hab_binary="/bin/hab"
@@ -42,7 +42,7 @@ install_rustup() {
   else
     echo "--- :rust: Installing rustup."
     curl https://sh.rustup.rs -sSf | sh -s -- -y --profile=minimal
-    # shellcheck disable=SC1090
+    # shellcheck disable=SC1091
     source "$HOME"/.cargo/env
   fi
 }
@@ -313,6 +313,7 @@ chef_ci_github_token() {
 # possible misspellings, but also to make it very obvious what it is.
 #
 # Should correspond with `hab_auth_token` above.
+# shellcheck disable=SC2034
 readonly expeditor_hab_bldr_url="https://bldr.habitat.sh"
 
 # This allows people to e.g. trigger end-to-end pipeline runs manually

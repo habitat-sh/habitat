@@ -48,6 +48,7 @@ rustc --version # just 'cause I'm paranoid and I want to double check
 echo "--- :habicat: Building components/hab"
 
 HAB_BLDR_CHANNEL="${channel}" macos_build components/hab
+#shellcheck disable=SC1091
 source results/last_build.env
 
 # This is a hack to rebuild the hart with corrected directory structure
