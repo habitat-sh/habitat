@@ -1,6 +1,5 @@
 pub(crate) mod cli;
 
-use habitat_core::env::Config;
 habitat_core::env_config_int!(/// Represents how many threads to start for our main Tokio runtime
                               #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
                               TokioThreadCount,
