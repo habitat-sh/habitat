@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.173 -->
-## [2.0.173](https://github.com/habitat-sh/habitat/tree/2.0.173) (2025-07-22)
+<!-- latest_release 2.0.174 -->
+## [2.0.174](https://github.com/habitat-sh/habitat/tree/2.0.174) (2025-07-22)
 
 #### Merged Pull Requests
-- fix docker builds in release pipeline [#9774](https://github.com/habitat-sh/habitat/pull/9774) ([mwrock](https://github.com/mwrock))
+- Fixed `HAB_AUTH_TOKEN` bug [#9779](https://github.com/habitat-sh/habitat/pull/9779) ([sougata-progress](https://github.com/sougata-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Fixed `HAB_AUTH_TOKEN` bug [#9779](https://github.com/habitat-sh/habitat/pull/9779) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.174 -->
 - fix docker builds in release pipeline [#9774](https://github.com/habitat-sh/habitat/pull/9774) ([mwrock](https://github.com/mwrock)) <!-- 2.0.173 -->
 - Implementation of `hab plan` subcommand [#9770](https://github.com/habitat-sh/habitat/pull/9770) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.172 -->
 - Updated `hab bldr` to use clap v4 [#9768](https://github.com/habitat-sh/habitat/pull/9768) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.172 -->
