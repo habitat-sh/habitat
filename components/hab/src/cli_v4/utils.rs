@@ -139,7 +139,10 @@ fn bldr_url_from_env_load_or_default() -> String {
 pub(crate) struct AuthToken {
     // TODO: Add Validator for this?
     /// Authentication token for Builder.
-    #[arg(name = "AUTH_TOKEN", short = 'z', long = "auth")]
+    #[arg(name = "AUTH_TOKEN",
+          short = 'z',
+          long = "auth",
+          env = "HAB_AUTH_TOKEN")]
     auth_token: Option<String>,
 }
 
