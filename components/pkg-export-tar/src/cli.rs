@@ -80,7 +80,8 @@ pub(crate) struct Cli {
     #[arg(name = "BLDR_AUTH_TOKEN",
           long = "auth",
           short = 'z',
-          value_name = "BLDR_AUTH_TOKEN")]
+          value_name = "BLDR_AUTH_TOKEN",
+          env = "HAB_AUTH_TOKEN")]
     pub(crate) bldr_auth_token: Option<String>,
 
     /// A Habitat package identifier (ex: acme/redis) and/or filepath to a Habitat artifact

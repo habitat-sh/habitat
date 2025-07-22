@@ -181,7 +181,7 @@ impl<'a> BuildSpec<'a> {
                      self.base_pkgs_url,
                      &self.base_pkgs_channel,
                      fs_root_path,
-                     None)
+                     self.auth)
             .await
     }
 
@@ -195,7 +195,7 @@ impl<'a> BuildSpec<'a> {
                      self.base_pkgs_url,
                      &ChannelIdent::stable(),
                      fs_root_path,
-                     None)
+                     self.auth)
             .await
     }
 
