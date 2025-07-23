@@ -25,9 +25,7 @@ use habitat_common::{cli::{RING_ENVVAR,
                              HttpListenAddr,
                              ListenCtlAddr,
                              ResolvedListenCtlAddr},
-                     ui::UI,
-                     FeatureFlag,
-                     FEATURE_FLAGS};
+                     ui::UI};
 
 use rants::{error::Error as RantsError,
             Address as NatsAddress};
