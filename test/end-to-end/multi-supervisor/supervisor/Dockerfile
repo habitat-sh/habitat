@@ -11,8 +11,8 @@ ENV HAB_LICENSE=accept-no-persist
 # out the /hab directory. The `hab` binary isn't necessarily the one
 # that we want in the final image.
 RUN apk add bash wget \
-  && wget https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh \
-  && bash install.sh \
+  && wget https://raw.githubusercontent.com/habitat-sh/habitat/refs/heads/v1.6/components/hab/install.sh \
+  && bash install.sh -c dev-v1.6 \
   && mv /hab/pkgs/core/hab/*/*/bin/hab /bin/ \
   && rm -Rf /hab
 

@@ -5,9 +5,9 @@ ARG CHANNEL=stable
 
 # Bootstrap the installation of Habitat
 RUN apt-get update && apt-get -y install curl
-RUN curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh -o install.sh
+RUN curl https://raw.githubusercontent.com/habitat-sh/habitat/refs/heads/v1.6/components/hab/install.sh -o install.sh
 RUN chmod a+x ./install.sh
-RUN /bin/bash -c ./install.sh
+RUN /bin/bash -c ./install.sh -o core -c dev-v1.6
 
 # Always accept the license when we run this image.
 ENV HAB_LICENSE=accept-no-persist

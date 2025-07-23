@@ -20,7 +20,7 @@ curlbash_hab() {
       sudo rm -rf /hab/pkgs/core/hab/0.82.0 || \
            rm -rf /hab/pkgs/core/hab/0.82.0
     fi
-    curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
+    curl https://raw.githubusercontent.com/habitat-sh/habitat/refs/heads/v1.6/components/hab/install.sh | sudo bash -s -- -t "$pkg_target" -c dev-v1.6
     case "${pkg_target}" in
         x86_64-linux | x86_64-linux-kernel2)
             hab_binary="/bin/hab"
@@ -249,8 +249,8 @@ promote_packages_to_builder_channel() {
     fi
 }
 
-# Create a datadog event for the promotion of a Supervisor version to a builder channel. 
-# 
+# Create a datadog event for the promotion of a Supervisor version to a builder channel.
+#
 # e.g. send_channel_promotion_datadog_event 0.88.0 dev
 send_channel_promotion_datadog_event() {
     local version="${1}"
@@ -268,7 +268,7 @@ send_channel_promotion_datadog_event() {
       --header "DD-API-KEY: ${DD_CLIENT_API_KEY}" \
       --header 'Content-Type: application/json charset=utf-8' \
       --data-binary @- << EOF
-{   
+{
   "aggregation_key":"supervisor_promotion",
   "alert_type":"info",
   "date_happened":$(date "+%s"),
@@ -364,7 +364,7 @@ push_current_branch() {
   repo=$(git remote get-url origin | sed -rn  's/.+github\.com[\/\:](.*)\.git/\1/p')
   head=$(git rev-parse --abbrev-ref HEAD)
 
-  if [ "$head" == "main" ]; then 
+  if [ "$head" == "main" ]; then
     echo "Error: Attempting to push to main!"
     exit 1
   fi
@@ -384,7 +384,7 @@ macos_install_bootstrap_package() {
     sudo hdiutil detach "/Volumes/Habitat macOS Bootstrapper"
     brew install wget
     export PATH=/opt/mac-bootstrapper/embedded/bin:/usr/local/bin:$PATH
-    
+
 }
 
 macos_use_cert_file_from_linux_cacerts_package() {
