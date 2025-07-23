@@ -7,6 +7,7 @@ use crate::{error::Result,
 #[cfg(feature = "v2")]
 use clap::ArgMatches;
 
+#[cfg(feature = "v2")]
 use std::str::FromStr;
 
 /// There are three options for what we can list:

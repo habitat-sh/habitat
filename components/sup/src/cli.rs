@@ -18,9 +18,8 @@ use habitat_common::{command::package::install::InstallSource,
                      ui::{self},
                      FeatureFlag};
 use habitat_core::{self,
-                   crypto::{self,
-                            keys::{KeyCache,
-                                   RingKey}},
+                   crypto::keys::{KeyCache,
+                                  RingKey},
                    package::{Identifiable,
                              PackageIdent},
                    tls::rustls_wrapper::{CertificateChainCli,
@@ -30,10 +29,6 @@ use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE,
                               OK_NO_RETRY_EXCODE};
 
-#[cfg(any(all(target_os = "linux",
-                  any(target_arch = "x86_64", target_arch = "aarch64")),
-              all(target_os = "windows", target_arch = "x86_64"),))]
-use habitat_sup::command;
 use habitat_sup::{error::{Error,
                           Result},
                   event::EventStreamConfig,
@@ -43,8 +38,7 @@ use habitat_sup::{error::{Error,
                             TLSConfig},
                   util};
 use habitat_sup_protocol::{self as sup_proto};
-use log::{error,
-          info,
+use log::{info,
           warn};
 
 use habitat_sup::cli_v2::cli;
@@ -53,27 +47,6 @@ use hab::cli::hab::{sup::SupRun,
                     svc};
 
 static LOGKEY: &str = "MN";
-
-pub(crate) fn boot() -> Option<LauncherCli> {
-    if crypto::init().is_err() {
-        error!("Failed to initialization libsodium, make sure it is available in your runtime \
-                environment");
-        process::exit(1);
-    }
-    match habitat_launcher_client::env_pipe() {
-        Some(pipe) => {
-            match LauncherCli::connect(pipe) {
-                Ok(launcher) => Some(launcher),
-                Err(err) => {
-                    error!("Failed to connect to launcher: {:?}",
-                           anyhow::Error::new(err));
-                    process::exit(1);
-                }
-            }
-        }
-        None => None,
-    }
-}
 
 /// # Locking (see locking.md)
 /// * `RumorStore::list` (read)
@@ -89,7 +62,7 @@ pub(crate) async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFla
         return Err(Error::TestBootFail);
     }
     liveliness_checker::spawn_thread_alive_checker();
-    let launcher = crate::cli::boot();
+    let launcher = crate::cli_common::boot();
 
     let app_matches = match cli().get_matches_safe() {
         Ok(matches) => matches,
@@ -114,7 +87,7 @@ pub(crate) async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFla
         #[cfg(any(all(target_os = "linux",
                       any(target_arch = "x86_64", target_arch = "aarch64")),
                   all(target_os = "windows", target_arch = "x86_64"),))]
-        ("bash", Some(_)) => sub_bash().await,
+        ("bash", Some(_)) => crate::cli_common::sub_bash().await,
         ("run", Some(_)) => {
             // TODO (DM): This is a little hacky. Essentially, for `hab sup run` we switch to using
             // structopt/configopt instead of querying clap `ArgMatches` directly. We skip the first
@@ -141,16 +114,11 @@ pub(crate) async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFla
         #[cfg(any(all(target_os = "linux",
                       any(target_arch = "x86_64", target_arch = "aarch64")),
                   all(target_os = "windows", target_arch = "x86_64"),))]
-        ("sh", Some(_)) => sub_sh().await,
-        ("term", Some(_)) => sub_term(),
+        ("sh", Some(_)) => crate::cli_common::sub_sh().await,
+        ("term", Some(_)) => crate::cli_common::sub_term(),
         _ => unreachable!(),
     }
 }
-
-#[cfg(any(all(target_os = "linux",
-              any(target_arch = "x86_64", target_arch = "aarch64")),
-          all(target_os = "windows", target_arch = "x86_64"),))]
-pub(crate) async fn sub_bash() -> Result<()> { command::shell::bash().await }
 
 /// # Locking (see locking.md)
 /// * `RumorStore::list` (read)
@@ -183,21 +151,6 @@ pub(crate) async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run: SupRun,
     let manager = Manager::load_imlw(manager_cfg, launcher).await?;
     manager.run_rsw_imlw_mlw_gsw_smw_rhw_msw(svc_load_msgs)
            .await
-}
-
-#[cfg(any(all(target_os = "linux",
-              any(target_arch = "x86_64", target_arch = "aarch64")),
-          all(target_os = "windows", target_arch = "x86_64"),))]
-pub(crate) async fn sub_sh() -> Result<()> { command::shell::sh().await }
-
-pub(crate) fn sub_term() -> Result<()> {
-    match Manager::term() {
-        Err(e @ Error::LockFileError(..)) => {
-            println!("Supervisor not terminated: {}", e);
-            Ok(())
-        }
-        result => result,
-    }
 }
 
 // Internal Implementation Details
@@ -337,7 +290,7 @@ pub(crate) async fn split_apart_sup_run(
 // Various CLI Parsing Functions
 ////////////////////////////////////////////////////////////////////////
 
-pub(crate) fn get_ring_key(sup_run: &SupRun) -> Result<Option<RingKey>> {
+fn get_ring_key(sup_run: &SupRun) -> Result<Option<RingKey>> {
     let cache_key_path = &sup_run.cache_key_path.cache_key_path;
     let cache = KeyCache::new(cache_key_path);
     cache.setup()?;
@@ -363,7 +316,7 @@ pub(crate) fn get_ring_key(sup_run: &SupRun) -> Result<Option<RingKey>> {
 // ServiceSpec Modification Functions
 ////////////////////////////////////////////////////////////////////////
 
-pub(crate) fn set_supervisor_logging_options(sup_run: &SupRun) {
+fn set_supervisor_logging_options(sup_run: &SupRun) {
     if sup_run.verbose {
         output::set_verbosity(OutputVerbosity::Verbose);
     }

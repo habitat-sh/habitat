@@ -1,11 +1,11 @@
 use clap::Parser;
 
-use crate::common::{cli::clap_validators::{HabPackageInstallSourceValueParser,
-                                           UrlValueParser},
-                    consts::{DEFAULT_BUILDER_URL,
-                             DEFAULT_HAB_LAUNCHER_PKG_IDENT,
-                             DEFAULT_HAB_PKG_IDENT,
-                             DEFAULT_HAB_SUP_PKG_IDENT}};
+use habitat_common::{cli::clap_validators::{HabPackageInstallSourceValueParser,
+                                            UrlValueParser},
+                     consts::{DEFAULT_BUILDER_URL,
+                              DEFAULT_HAB_LAUNCHER_PKG_IDENT,
+                              DEFAULT_HAB_PKG_IDENT,
+                              DEFAULT_HAB_SUP_PKG_IDENT}};
 
 #[derive(Debug, Clone, Parser)]
 #[command(

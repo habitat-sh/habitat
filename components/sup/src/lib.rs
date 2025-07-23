@@ -25,9 +25,11 @@
 //! * [The Habitat Command Line Reference](command)
 //! * [The Habitat Supervisor Sidecar; http interface to promises](sidecar)
 
+#[cfg(feature = "v2")]
 #[cfg(test)]
 #[macro_use]
 pub mod cli_test_helpers;
+
 pub mod census;
 pub mod command;
 pub mod ctl_gateway;

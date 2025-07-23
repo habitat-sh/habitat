@@ -1,4 +1,7 @@
+#[cfg(feature = "v2")]
 pub(crate) mod cli;
+
+pub(crate) mod cli_common;
 
 habitat_core::env_config_int!(/// Represents how many threads to start for our main Tokio runtime
                               #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
