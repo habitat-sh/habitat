@@ -73,7 +73,7 @@ winreg = "*"
 [features]
 v2 = [ "clap", "configopt", "structopt" ]
 v4 = [ "clap_v4" ]
-default = ["supported_targets", "v2"]
+default = ["supported_targets", "v4"]
 functional = []
 supported_targets = ["habitat_core/supported_targets"]
 aarch64-linux = ["habitat_core/aarch64-linux"]

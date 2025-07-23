@@ -69,7 +69,7 @@ winapi = { version = "^0.3", features = ["consoleapi", "processenv"] }
 [features]
 v2 = ["clap"]
 v4 = []
-default = ["v2"]
+default = ["v4"]
 deadlock_detection = []
 lock_as_rwlock = []
 lock_as_mutex = []
