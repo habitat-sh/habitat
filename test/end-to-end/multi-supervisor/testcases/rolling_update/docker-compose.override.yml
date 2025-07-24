@@ -1,10 +1,26 @@
-version: '2.4'
+version: '3.8'
 services:
   tester:
-    extends:
-      service: test_base
+    image: ${TESTCASE}_image
+    domainname: habitat.dev
     environment:
       HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
+      HAB_LICENSE: accept-no-persist
+      HAB_NONINTERACTIVE: '1'
+      TESTCASE: ${TESTCASE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+    volumes:
+      - source: ./CTL_SECRET
+        target: /hab/sup/default/CTL_SECRET
+        type: bind
+      - source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        type: bind
+      - source: ../../../.expeditor/scripts
+        target: /scripts
+        type: bind
+    build:
+      context: ${TESTCASE_DIR}
     depends_on:
       - bastion
       - alpha
@@ -25,13 +41,26 @@ services:
       RUST_LOG: habitat_sup::manager::service_updater=debug
 
   gamma1:
-    extends:
-      service: sup_base
-    hostname: gamma1
+    image: ${SUPERVISOR_IMAGE}
+    domainname: habitat.dev
     environment:
+      HAB_LICENSE: accept-no-persist
+      HAB_NONINTERACTIVE: '1'
+      TESTCASE: ${TESTCASE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
       HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
       HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
       RUST_LOG: habitat_sup::manager::service_updater=debug
+    volumes:
+      - source: ./CTL_SECRET
+        target: /hab/sup/default/CTL_SECRET
+        type: bind
+    command:
+      - run
+      - --listen-ctl=0.0.0.0:9632
+      - --peer=bastion.habitat.dev
+    hostname: gamma1
     networks:
       default:
         aliases:
@@ -40,13 +69,26 @@ services:
       - bastion
 
   gamma2:
-    extends:
-      service: sup_base
-    hostname: gamma2
+    image: ${SUPERVISOR_IMAGE}
+    domainname: habitat.dev
     environment:
+      HAB_LICENSE: accept-no-persist
+      HAB_NONINTERACTIVE: '1'
+      TESTCASE: ${TESTCASE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
       HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
       HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
       RUST_LOG: habitat_sup::manager::service_updater=debug
+    volumes:
+      - source: ./CTL_SECRET
+        target: /hab/sup/default/CTL_SECRET
+        type: bind
+    command:
+      - run
+      - --listen-ctl=0.0.0.0:9632
+      - --peer=bastion.habitat.dev
+    hostname: gamma2
     networks:
       default:
         aliases:
@@ -55,13 +97,26 @@ services:
       - bastion
 
   gamma3:
-    extends:
-      service: sup_base
-    hostname: gamma3
+    image: ${SUPERVISOR_IMAGE}
+    domainname: habitat.dev
     environment:
+      HAB_LICENSE: accept-no-persist
+      HAB_NONINTERACTIVE: '1'
+      TESTCASE: ${TESTCASE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
       HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
       HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
       RUST_LOG: habitat_sup::manager::service_updater=debug
+    volumes:
+      - source: ./CTL_SECRET
+        target: /hab/sup/default/CTL_SECRET
+        type: bind
+    command:
+      - run
+      - --listen-ctl=0.0.0.0:9632
+      - --peer=bastion.habitat.dev
+    hostname: gamma3
     networks:
       default:
         aliases:
