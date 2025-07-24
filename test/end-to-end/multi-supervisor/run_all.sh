@@ -3,13 +3,13 @@
 set -euo pipefail
 
 export HAB_LICENSE="accept-no-persist"
-# We need this version of docker compose. Later versions do not support the
-# extends keyword.
-sudo -E hab pkg install core/docker-compose/1.29.2/20220312064236
-sudo rm -f /bin/docker-compose
-sudo -E hab pkg binlink core/docker-compose docker-compose --force
 
-docker-compose --version
+# Force Docker Compose to use the default builder instead of docker-container
+# This ensures that locally built images are accessible during builds
+export DOCKER_BUILDKIT=0
+export COMPOSE_DOCKER_CLI_BUILD=0
+
+docker compose version
 
 # TODO (CM): Pass the name of a single test case to run
 
