@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.175 -->
-## [2.0.175](https://github.com/habitat-sh/habitat/tree/2.0.175) (2025-07-22)
+<!-- latest_release 2.0.176 -->
+## [2.0.176](https://github.com/habitat-sh/habitat/tree/2.0.176) (2025-07-24)
 
 #### Merged Pull Requests
-- Bump rcgen from 0.14.2 to 0.14.3 [#9780](https://github.com/habitat-sh/habitat/pull/9780) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Updated `hab supportbundle` to use clap v4 [#9773](https://github.com/habitat-sh/habitat/pull/9773) ([sougata-progress](https://github.com/sougata-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Updated `hab supportbundle` to use clap v4 [#9773](https://github.com/habitat-sh/habitat/pull/9773) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.176 -->
 - Bump rcgen from 0.14.2 to 0.14.3 [#9780](https://github.com/habitat-sh/habitat/pull/9780) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.175 -->
 - Fixed `HAB_AUTH_TOKEN` bug [#9779](https://github.com/habitat-sh/habitat/pull/9779) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.174 -->
 - fix docker builds in release pipeline [#9774](https://github.com/habitat-sh/habitat/pull/9774) ([mwrock](https://github.com/mwrock)) <!-- 2.0.173 -->
