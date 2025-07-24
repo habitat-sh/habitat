@@ -27,7 +27,7 @@ export HAB_AUTH_TOKEN=$(cat /run/secrets/hab_auth_token) \
   &&  hab pkg install --channel="${CHANNEL}" chef/hab \
   && hab pkg install --channel="${CHANNEL}" chef/hab-sup \
   && hab pkg install --channel="${CHANNEL}" chef/hab-launcher \
-  && hab pkg install --channel="stable" core/busybox \
+  && hab pkg install --channel="base-2025" core/busybox \
   && hab pkg binlink chef/hab -d /hab/bin
 
 # Create enough of a filesystem for the Supervisor to operate. We
