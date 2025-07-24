@@ -1,6 +1,9 @@
 #[cfg(feature = "v2")]
 pub(crate) mod cli;
 
+#[cfg(feature = "v4")]
+pub(crate) mod cli_v4;
+
 pub(crate) mod cli_common;
 
 habitat_core::env_config_int!(/// Represents how many threads to start for our main Tokio runtime
