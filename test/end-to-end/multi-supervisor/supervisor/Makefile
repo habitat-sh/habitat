@@ -2,4 +2,10 @@ CHANNEL ?= stable
 IMAGE_NAME ?= supervisor
 
 image: Dockerfile
-	docker build --build-arg CHANNEL=${CHANNEL} --build-arg HAB_AUTH_TOKEN=${HAB_AUTH_TOKEN} -t ${IMAGE_NAME} .
+	@echo "Building supervisor image..."
+	@echo "${HAB_AUTH_TOKEN}" > hab_auth_token.txt
+	@DOCKER_BUILDKIT=1 docker build \
+	  --build-arg CHANNEL=${CHANNEL} \
+	  --secret id=hab_auth_token,src=hab_auth_token.txt \
+	  -t ${IMAGE_NAME} .
+	@rm hab_auth_token.txt
