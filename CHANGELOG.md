@@ -1,16 +1,25 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.171 -->
-## [2.0.171](https://github.com/habitat-sh/habitat/tree/2.0.171) (2025-07-21)
+<!-- latest_release 2.0.176 -->
+## [2.0.176](https://github.com/habitat-sh/habitat/tree/2.0.176) (2025-07-24)
 
 #### Merged Pull Requests
-- Updated `hab ring` to use clap v4 [#9767](https://github.com/habitat-sh/habitat/pull/9767) ([sougata-progress](https://github.com/sougata-progress))
+- Updated `hab supportbundle` to use clap v4 [#9773](https://github.com/habitat-sh/habitat/pull/9773) ([sougata-progress](https://github.com/sougata-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Updated `hab supportbundle` to use clap v4 [#9773](https://github.com/habitat-sh/habitat/pull/9773) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.176 -->
+- Bump rcgen from 0.14.2 to 0.14.3 [#9780](https://github.com/habitat-sh/habitat/pull/9780) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.175 -->
+- Fixed `HAB_AUTH_TOKEN` bug [#9779](https://github.com/habitat-sh/habitat/pull/9779) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.174 -->
+- fix docker builds in release pipeline [#9774](https://github.com/habitat-sh/habitat/pull/9774) ([mwrock](https://github.com/mwrock)) <!-- 2.0.173 -->
+- Implementation of `hab plan` subcommand [#9770](https://github.com/habitat-sh/habitat/pull/9770) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.172 -->
+- Updated `hab bldr` to use clap v4 [#9768](https://github.com/habitat-sh/habitat/pull/9768) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.172 -->
+- Bump cc from 1.2.29 to 1.2.30 [#9775](https://github.com/habitat-sh/habitat/pull/9775) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.172 -->
+- Bump rand from 0.9.1 to 0.9.2 [#9777](https://github.com/habitat-sh/habitat/pull/9777) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.172 -->
+- Bump serde_json from 1.0.140 to 1.0.141 [#9776](https://github.com/habitat-sh/habitat/pull/9776) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.172 -->
 - Updated `hab ring` to use clap v4 [#9767](https://github.com/habitat-sh/habitat/pull/9767) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.171 -->
 - Using `base` channel as default channel for packages in `core` origin [#9717](https://github.com/habitat-sh/habitat/pull/9717) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.170 -->
 - do not brew install gpung on mac install tests [#9772](https://github.com/habitat-sh/habitat/pull/9772) ([mwrock](https://github.com/mwrock)) <!-- 2.0.169 -->

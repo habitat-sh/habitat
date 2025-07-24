@@ -9,25 +9,36 @@ use crate::{error::Result as HabResult,
             AFTER_HELP_V4,
             VERSION};
 
-mod cli;
-mod config;
-mod file;
-mod pkg;
-mod ring;
-mod user;
+mod bldr;
+use bldr::BldrCommand;
 
+mod cli;
 use cli::CliCommand;
+
+mod config;
 use config::ConfigCommand;
+
+mod file;
 use file::FileCommand;
+
+mod pkg;
 use pkg::PkgCommand;
+
+mod ring;
 use ring::RingCommand;
+
+mod user;
 use user::UserCommand;
+
+mod supportbundle;
+use supportbundle::SupportBundleOpts;
 
 pub(crate) mod sup;
 use sup::SupCommand;
 
 mod origin;
 use origin::OriginCommand;
+
 mod svc;
 use svc::SvcCommand;
 
@@ -39,6 +50,9 @@ use license::LicenseCommand;
 
 mod studio;
 use studio::StudioOpts;
+
+mod plan;
+use plan::PlanCommand;
 
 #[derive(Debug, Clone, Parser)]
 #[command(name = "hab",
@@ -54,6 +68,7 @@ use studio::StudioOpts;
         )]
 enum Hab {
     /// Commands relating to Habitat Builder
+    #[clap(subcommand)]
     Bldr(BldrCommand),
 
     /// Commands relating to Habitat runtime config
@@ -80,6 +95,8 @@ enum Hab {
     #[clap(subcommand)]
     Pkg(PkgCommand),
 
+    /// Commands relating to plans and other app-specific configuration
+    #[clap(subcommand)]
     Plan(PlanCommand),
 
     /// Commands relating to Habitat rings
@@ -98,7 +115,9 @@ enum Hab {
     #[clap(subcommand)]
     Sup(SupCommand),
 
-    SupportBundle,
+    /// Create a tarball of Habitat Supervisor data to send to support
+    #[command(name = "supportbundle")]
+    SupportBundle(SupportBundleOpts),
 
     /// Commands relating to Habitat Services
     #[clap(subcommand)]
@@ -143,18 +162,17 @@ impl Hab {
             Self::Svc(svc_command) => svc_command.do_command(ui, feature_flags).await,
             Self::License(license_command) => license_command.do_command(ui).await,
             Self::Cli(cli_command) => cli_command.do_command(ui, feature_flags).await,
+            Self::Bldr(bldr_command) => bldr_command.do_command(ui).await,
             Self::Ring(ring_command) => ring_command.do_command(ui).await,
             Self::Studio(studio_command) => studio_command.do_command(ui).await,
+            Self::Plan(plan_command) => plan_command.do_command(ui).await,
+            Self::SupportBundle(support_bundle_command) => {
+                support_bundle_command.do_command(ui).await
+            }
             _ => todo!(),
         }
     }
 }
-
-#[derive(Clone, Debug, Parser)]
-pub(crate) struct BldrCommand;
-
-#[derive(Clone, Debug, Parser)]
-pub(crate) struct PlanCommand;
 
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct ServiceConfigCommand;
