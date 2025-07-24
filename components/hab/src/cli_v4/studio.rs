@@ -10,7 +10,6 @@ use crate::{command::studio::enter,
 #[derive(Clone, Debug, Args)]
 #[command(author = "\nThe Habitat Maintainers <humans@habitat.sh>",
           about = "Commands relating to Habitat Studios",
-          arg_required_else_help = true,
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
 
