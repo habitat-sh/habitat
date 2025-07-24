@@ -72,7 +72,7 @@ impl From<EventStreamAddress> for NatsAddress {
 #[command(disable_version_flag = true,
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
-pub(crate) struct SupRunOptions {
+pub struct SupRunOptions {
     /// The listen address for the Gossip Gateway.
     #[arg(long = "listen-gossip",
         env = GossipListenAddr::ENVVAR,
@@ -277,7 +277,7 @@ pub(crate) struct SupRunOptions {
     keep_latest_packages: Option<usize>,
 
     #[command(flatten)]
-    pub shared_load: SharedLoad,
+    pub(crate) shared_load: SharedLoad,
 }
 
 impl SupRunOptions {
