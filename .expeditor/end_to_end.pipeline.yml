@@ -23,6 +23,8 @@ steps:
     command:
       - cd test/end-to-end/multi-supervisor
       - ./run_all.sh dev
+    env:
+      DOCKER_BUILDKIT: "1"
     expeditor:
       executor:
         linux:

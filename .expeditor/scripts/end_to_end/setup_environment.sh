@@ -40,7 +40,7 @@ echo "--- Installing latest core/netcat from ${HAB_BLDR_URL}, stable channel"
 sudo -E hab pkg install core/netcat \
     --binlink \
     --force \
-    --channel="stable" \
+    --channel="base-2025" \
     --url="${HAB_BLDR_URL}"
 
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
