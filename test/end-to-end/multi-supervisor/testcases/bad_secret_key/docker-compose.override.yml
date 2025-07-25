@@ -1,8 +1,25 @@
-version: '2.4'
+version: '3.8'
 services:
   tester:
-    extends:
-      service: test_base
+    image: ${TESTCASE}_image
+    domainname: habitat.dev
+    environment:
+      HAB_LICENSE: accept-no-persist
+      HAB_NONINTERACTIVE: '1'
+      TESTCASE: ${TESTCASE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+    volumes:
+      - source: ./CTL_SECRET
+        target: /hab/sup/default/CTL_SECRET
+        type: bind
+      - source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        type: bind
+      - source: ../../../.expeditor/scripts
+        target: /scripts
+        type: bind
+    build:
+      context: ${TESTCASE_DIR}
     depends_on:
       - bastion
       - alpha
