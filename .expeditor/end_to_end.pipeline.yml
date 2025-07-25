@@ -14,7 +14,7 @@ expeditor:
       env:
         HAB_ORIGIN: "habitat-testing" # just to be safe
         HAB_BLDR_URL: "https://bldr.habitat.sh"
-        HAB_BLDR_CHANNEL: "stable"
+        HAB_BLDR_CHANNEL: "dev-1.6" # mirrors use of dev on main/2.x
         HAB_FALLBACK_CHANNEL: "stable"
         HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
         HAB_INTERNAL_BLDR_CHANNEL: "dev-v1.6"
@@ -23,9 +23,9 @@ expeditor:
         HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL: "stable"
 
 steps:
-  #######################################################################
-  # E2E
-  #######################################################################
+#######################################################################
+# E2E
+#######################################################################
 
   - label: ":docker: Docker End-to-End Supervisor Tests"
     command:
