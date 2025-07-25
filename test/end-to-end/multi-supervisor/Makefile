@@ -2,7 +2,7 @@ CHANNEL ?= stable
 IMAGE_NAME ?= supervisor-testing-${CHANNEL}
 
 habitat_integration_base: Dockerfile
-	docker build --build-arg CHANNEL=${CHANNEL} -t habitat_integration_base .
+	DOCKER_BUILDKIT=1 docker build --progress plain --build-arg CHANNEL=${CHANNEL} --secret id=hat,env=HAB_AUTH_TOKEN -t habitat_integration_base .
 
 supervisor_image: supervisor/Dockerfile
 	$(MAKE) -C supervisor CHANNEL=${CHANNEL} IMAGE_NAME=${IMAGE_NAME}

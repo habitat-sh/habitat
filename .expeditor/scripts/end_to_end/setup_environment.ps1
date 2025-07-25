@@ -1,5 +1,5 @@
 param (
-    [string]$Channel = "dev",
+    [string]$Channel = "dev-v1.6",
     [string]$BuilderUrl = $env:HAB_BLDR_URL
 )
 
@@ -8,6 +8,7 @@ $ErrorActionPreference = "stop"
 . .expeditor/scripts/shared.ps1
 $env:HAB_NOCOLORING = "true"
 $env:HAB_LICENSE = "accept-no-persist"
+$env:HAB_AUTH_TOKEN=$env:HAB_AUTH_TOKEN
 
 Install-Habitat
 $binPath = Join-Path -Path $env:SystemDrive -ChildPath hab | Join-Path -ChildPath bin
@@ -24,6 +25,16 @@ Write-Host "--- Using core/hab $(hab --version)"
 
 Write-Host "--- Installing latest core/hab-pkg-export-container from $BuilderUrl, $Channel channel"
 Invoke-NativeCommand hab pkg install core/hab-pkg-export-container `
+    --channel "$Channel" `
+    --url="$BuilderUrl"
+
+Write-Host "--- Installing latest core/hab-studio from $BuilderUrl, $Channel channel"
+Invoke-NativeCommand hab pkg install core/hab-studio `
+    --channel "$Channel" `
+    --url="$BuilderUrl"
+
+Write-Host "--- Installing latest core/hab-sup from $BuilderUrl, $Channel channel"
+Invoke-NativeCommand hab pkg install core/hab-sup `
     --channel "$Channel" `
     --url="$BuilderUrl"
 

@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+export HAB_AUTH_TOKEN=${HAB_AUTH_TOKEN}
+
 channel=${1:?You must specify a channel value}
 test_name=${2:-}
 

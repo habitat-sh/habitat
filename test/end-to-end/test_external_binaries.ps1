@@ -26,10 +26,10 @@ Describe "`hab` correctly executes external binaries" {
 
     It "`hab sup --version` correctly reports version" {
         # Install an use an old supervisor to ensure version match
-        Invoke-NativeCommand hab pkg install "core/hab-sup/1.6.56"
-        $env:HAB_SUP_BINARY = "$(hab pkg path core/hab-sup/1.6.56)/bin/hab-sup"
+        Invoke-NativeCommand hab pkg install "core/hab-sup/1.6.1244"
+        $env:HAB_SUP_BINARY = "$(hab pkg path core/hab-sup/1.6.1244)/bin/hab-sup"
         $out = hab sup --version | Join-String
-        $out | Should -BeLike "*1.6.56*"
+        $out | Should -BeLike "*1.6.1244*"
         $env:HAB_SUP_BINARY = ""
     }
 }

@@ -3,6 +3,9 @@ expeditor:
     PIPELINE_HAB_AUTH_TOKEN:
       path: account/static/habitat/chef-ci
       field: auth_token # Production Builder
+    HAB_AUTH_TOKEN:
+      path: account/static/habitat/chef-ci
+      field: auth_token # Production Builder
       # acceptance_auth_token = acceptance
   accounts:
     - aws/chef-cd
@@ -12,20 +15,17 @@ expeditor:
       env:
         HAB_ORIGIN: "core"
         PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
-        # Necessary to prevent old studios from poisoning builds after core plans refreshes
-        HAB_STUDIO_SECRET_HAB_PREFER_LOCAL_CHEF_DEPS: "true"
+        HAB_FALLBACK_CHANNEL: "stable"
+        HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
+        HAB_INTERNAL_BLDR_CHANNEL: "stable"
+        HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL: "stable"
+        HAB_REFRESH_CHANNEL: "stable"
         HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL: "stable"
 
 steps:
 #######################################################################
 # Release!
 #######################################################################
-
-  - label: "[:linux: build hab (ARM)]"
-    command:
-      - .expeditor/scripts/release_habitat/package_and_upload_arm_binary.sh
-    agents:
-      queue: docker-linux-arm64
 
   - label: "[:linux: build hab]"
     command:
@@ -418,6 +418,7 @@ steps:
     if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+      DOCKER_BUILDKIT: "1"
     expeditor:
       executor:
         linux:
@@ -428,6 +429,7 @@ steps:
     if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
     env:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+      DOCKER_BUILDKIT: "1"
     expeditor:
       executor:
         linux:
@@ -459,7 +461,7 @@ steps:
 
   - wait
 
-  - label: "[:habicat: Generate Manifest and promote to dev channel]"
+  - label: "[:habicat: Generate Manifest and promote to dev-v1.6 channel]"
     command:
       - .expeditor/scripts/release_habitat/promote_artifacts_to_dev.sh habitat-release-$BUILDKITE_BUILD_ID
     # Only "real" executions of this pipeline, initiated by Expeditor, should promote anything

@@ -44,10 +44,12 @@ trap 'rm -f $HOME/.docker/config.json' INT TERM EXIT
     # actually is.
 
     docker build \
+           --secret id=hat,env=HAB_AUTH_TOKEN \
            --build-arg PACKAGE_TARGET="${target}" \
            --tag "habitat-${target}:hab-base" .
 
     docker build \
+           --secret id=hat,env=HAB_AUTH_TOKEN \
            --build-arg HAB_LICENSE="accept-no-persist" \
            --build-arg BLDR_URL="${bldr_url}" \
            --build-arg BLDR_CHANNEL="${channel}" \

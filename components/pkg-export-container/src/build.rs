@@ -349,7 +349,7 @@ impl BuildSpec {
                      &self.base_pkgs_url,
                      &self.base_pkgs_channel,
                      fs_root_path,
-                     None)
+                     self.auth.as_deref())
             .await
     }
 
@@ -363,7 +363,7 @@ impl BuildSpec {
                      &self.base_pkgs_url,
                      &ChannelIdent::stable(),
                      fs_root_path,
-                     None)
+                     self.auth.as_deref())
             .await
     }
 

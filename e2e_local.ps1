@@ -1,7 +1,7 @@
 Param(
     [Parameter(Mandatory=$true)]
     [string]$TestName,
-    [string]$Channel="dev"
+    [string]$Channel="dev-v1.6"
 )
 
 $ErrorActionPreference="stop"

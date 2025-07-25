@@ -17,7 +17,7 @@ doc = false
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
 
-clap = { version = "4" , features = [ "derive", "wrap_help", "cargo" ] }
+clap = { version = "4" , features = [ "derive", "wrap_help", "cargo", "env" ] }
 env_logger = { version = "*" }
 log = {version = "0.4" }
 mktemp = { version = "*" }

@@ -1,5 +1,5 @@
 $cliVersion = ((hab --version) -split " ")[1]
-$env:HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL="dev"
+$env:HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL="dev-v1.6"
 hab origin key generate $env:HAB_ORIGIN
 
 
