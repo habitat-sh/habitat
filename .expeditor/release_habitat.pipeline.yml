@@ -429,6 +429,7 @@ steps:
     if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
     env:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+      DOCKER_BUILDKIT: "1"
     expeditor:
       executor:
         linux:
