@@ -22,12 +22,6 @@ actix-web = { version = "*", default-features = false, features = [
 actix-http = { version = "3", features = [ "rustls-0_23" ]}
 actix-rt = "*"
 byteorder = "*"
-clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [
-  "suggestions",
-  "color",
-  "unstable",
-] }
-configopt = { git = "https://github.com/habitat-sh/configopt.git" }
 cpu-time = "*"
 derivative = "*"
 fs2 = "*"
@@ -66,7 +60,6 @@ serde_json = { version = "*", features = ["preserve_order"] }
 serde_yaml = "*"
 serde-transcode = "*"
 state = "*"
-structopt = { git = "https://github.com/habitat-sh/structopt.git" }
 tempfile = "*"
 termcolor = "*"
 thiserror = "*"
@@ -78,6 +71,12 @@ tokio-util = { version = "0.7", features = ["full"] }
 uuid = { version = "*", features = ["v4"] }
 url = "*"
 valico = "*"
+
+clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] , optional = true}
+configopt = { git = "https://github.com/habitat-sh/configopt.git" , optional = true}
+structopt = { git = "https://github.com/habitat-sh/structopt.git" , optional = true}
+
+clap_v4 = { version = "4", package = "clap", features = ["env", "derive", "string", "wrap_help"], optional = true }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
@@ -104,7 +103,10 @@ serde_yaml = "*"
 serde_json = "*"
 
 [features]
-default = []
+v2 = ["clap", "configopt", "structopt"]
+v4 = ["clap_v4"]
+default = ["v4"]
+
 apidocs = []
 ignore_integration_tests = []
 lock_as_rwlock = ["habitat_common/lock_as_rwlock"]

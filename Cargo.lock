@@ -1838,6 +1838,7 @@ dependencies = [
  "bytes",
  "caps",
  "clap 2.33.1",
+ "clap 4.5.29",
  "configopt",
  "cpu-time",
  "ctrlc",

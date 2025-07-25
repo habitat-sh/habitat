@@ -51,7 +51,7 @@ function Invoke-Prepare {
 function Invoke-Build {
     Push-Location "$PLAN_CONTEXT"
     try {
-        cargo build --release --no-default-features --features apidocs
+        cargo build --release
         if($LASTEXITCODE -ne 0) {
             Write-Error "Cargo build failed!"
         }

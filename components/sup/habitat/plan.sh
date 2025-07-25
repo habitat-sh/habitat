@@ -90,8 +90,7 @@ do_build() {
   export LIBRARY_PATH=$LIBZMQ_PREFIX/lib
 
   pushd "$SRC_PATH" > /dev/null || exit
-  cargo build ${build_type#--debug} --target="$rustc_target" --verbose --no-default-features \
-    --features apidocs
+  cargo build ${build_type#--debug} --target="$rustc_target" --verbose
   popd > /dev/null || exit
 }
 

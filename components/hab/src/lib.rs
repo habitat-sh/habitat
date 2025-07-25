@@ -15,6 +15,11 @@ mod cli_v4;
 #[cfg(feature = "v4")]
 pub use cli_v4::cli_driver;
 
+#[cfg(feature = "v4")]
+pub use cli_v4::sup::sup_run::SupRunOptions;
+#[cfg(feature = "v4")]
+pub use cli_v4::utils::shared_load_cli_to_ctl;
+
 // TODO : Make this a pub(crate) module once we move to Clap v4 completely.
 pub mod gateway_util;
 

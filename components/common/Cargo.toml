@@ -14,7 +14,7 @@ clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", f
   "suggestions",
   "color",
   "unstable",
-] }
+] , optional = true }
 # TODO: When we finally get rid of everything, in clap_v2 make it just `clap`.
 # This is required right now because we would like to start common Validation code for all
 # the other packages that are using it.
@@ -67,7 +67,9 @@ nix = { version = "*", features = ["signal", "user"] }
 winapi = { version = "^0.3", features = ["consoleapi", "processenv"] }
 
 [features]
-default = []
+v2 = ["clap"]
+v4 = []
+default = ["v4"]
 deadlock_detection = []
 lock_as_rwlock = []
 lock_as_mutex = []
