@@ -134,7 +134,7 @@ subscriptions:
 
 artifact_channels:
   # e2e pipeline tests from here
-  - dev
+  - dev-v1.6
   # acceptance Builder Supervisors update from here
   - acceptance
   # stable "holding area" for us to perform manual evaluations. This
