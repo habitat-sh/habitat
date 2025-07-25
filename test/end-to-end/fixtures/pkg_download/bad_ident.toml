@@ -5,5 +5,4 @@ file_descriptor = "fooa"
 # complex, target first
 [[x86_64-windows]]
 channel = "stable"
-packages = ["effortless/audit-baseline/not/a/real/ident"]
-
+packages = ["core/powershell/not/a/real/ident"]

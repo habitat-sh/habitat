@@ -10,7 +10,9 @@ ENV HAB_LICENSE=accept-no-persist
 # Bootstrap us enough to get a `hab` binary on the box, but then clear
 # out the /hab directory. The `hab` binary isn't necessarily the one
 # that we want in the final image.
-RUN apk add bash wget \
+RUN --mount=type=secret,id=hab_auth_token \
+export HAB_AUTH_TOKEN=$(cat /run/secrets/hab_auth_token) \
+  && apk add bash wget \
   && wget https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh \
   && bash install.sh -c acceptance -o chef \
   && mv /hab/pkgs/chef/hab/*/*/bin/hab /bin/ \
@@ -18,7 +20,9 @@ RUN apk add bash wget \
 
 # Install only what's needed to run the Supervisor
 # TODO: need a way to parameterize busybox
-RUN  hab pkg install --channel="${CHANNEL}" chef/hab \
+RUN --mount=type=secret,id=hab_auth_token \
+export HAB_AUTH_TOKEN=$(cat /run/secrets/hab_auth_token) \
+  &&  hab pkg install --channel="${CHANNEL}" chef/hab \
   && hab pkg install --channel="${CHANNEL}" chef/hab-sup \
   && hab pkg install --channel="${CHANNEL}" chef/hab-launcher \
   && hab pkg install --channel="stable" core/busybox \

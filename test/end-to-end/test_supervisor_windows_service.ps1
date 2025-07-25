@@ -18,7 +18,7 @@ Describe "Habitat Windows Service" {
             Remove-Item "c:\hab\svc\windows-service\logs\habitat.log"
             Start-Service Habitat
             Wait-Supervisor -Timeout 45
-            hab svc load core/nginx
+            hab svc load core/nginx --channel stable
             Wait-SupervisorService nginx
         }
 
@@ -55,7 +55,7 @@ Describe "Habitat Windows Service" {
             $configXml.Save($configPath)
             Start-Service Habitat
             Wait-Supervisor -Timeout 45
-            hab svc load core/nginx
+            hab svc load core/nginx --channel stable
             Wait-SupervisorService nginx
         }
 
