@@ -69,7 +69,7 @@ pub struct CacheKeyPath {
     #[arg(long = "cache-key-path",
                 env = CACHE_KEY_PATH_ENV_VAR,
                 default_value = &*CACHE_KEY_PATH_DEFAULT)]
-    pub(crate) cache_key_path: PathBuf,
+    pub cache_key_path: PathBuf,
 }
 
 impl From<PathBuf> for CacheKeyPath {
@@ -329,7 +329,7 @@ fn health_check_interval_default() -> u64 { 30 }
 #[derive(Debug, Clone, Parser, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[command(disable_version_flag = true, rename_all = "screamingsnake")]
-pub(crate) struct SharedLoad {
+pub struct SharedLoad {
     /// Receive updates from the specified release channel
     #[arg(long = "channel")]
     pub channel: Option<ChannelIdent>,
@@ -339,7 +339,7 @@ pub(crate) struct SharedLoad {
     // TODO (DM): This should probably use `env` and `default_value`
     // TODO (DM): serde nested flattens do no work https://github.com/serde-rs/serde/issues/1547
     #[arg(long = "url", short = 'u')]
-    bldr_url: Option<Url>,
+    pub bldr_url: Option<Url>,
 
     /// The service group with shared config and topology
     #[arg(long = "group", default_value = &*GROUP_DEFAULT)]

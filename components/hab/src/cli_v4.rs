@@ -33,7 +33,7 @@ use origin::OriginCommand;
 mod svc;
 use svc::SvcCommand;
 
-mod utils;
+pub(crate) mod utils;
 use utils::CacheKeyPath;
 
 mod license;
