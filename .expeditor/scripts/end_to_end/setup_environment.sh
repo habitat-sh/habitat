@@ -2,8 +2,6 @@
 
 set -euo pipefail
 
-export HAB_AUTH_TOKEN=${HAB_AUTH_TOKEN}
-
 source .expeditor/scripts/shared.sh
 
 # `channel` should be channel we are pulling from
@@ -35,16 +33,6 @@ echo "--- Using core/hab version $("${hab_binary}" --version)"
 
 echo "--- Installing latest core/hab-pkg-export-container from ${HAB_BLDR_URL}, ${channel} channel"
 sudo -E hab pkg install core/hab-pkg-export-container \
-    --channel="${channel}" \
-    --url="${HAB_BLDR_URL}"
-
-echo "--- Installing latest core/hab-studio from ${HAB_BLDR_URL}, ${channel} channel"
-sudo -E hab pkg install core/hab-studio \
-    --channel="${channel}" \
-    --url="${HAB_BLDR_URL}"
-
-echo "--- Installing latest core/hab-sup from ${HAB_BLDR_URL}, ${channel} channel"
-sudo -E hab pkg install core/hab-sup \
     --channel="${channel}" \
     --url="${HAB_BLDR_URL}"
 
