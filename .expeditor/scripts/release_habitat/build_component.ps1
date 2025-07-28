@@ -55,6 +55,7 @@ Write-Host "--- Running hab pkg build for $Component"
 # we must ensure that we're pulling dependencies from our build
 # channel when applicable.
 $Env:HAB_BLDR_CHANNEL="$Channel"
+$Env:HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL="$Channel"
 Invoke-Expression "$baseHabExe pkg build components\$Component --keys core"
 . results\last_build.ps1
 
