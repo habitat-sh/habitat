@@ -88,7 +88,7 @@ Describe "hab pkg export container" {
 
     Describe "executing the container as root" {
         BeforeEach {
-            write-host "--- Starting container with image $script:image"
+            Write-Host "--- Starting container with image $script:image"
             $script:container = Start-Container $script:image
         }
 
