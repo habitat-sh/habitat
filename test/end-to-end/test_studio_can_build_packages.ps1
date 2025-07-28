@@ -149,7 +149,7 @@ Describe "Consuming runtime variables of build dependency" {
 Describe "Targeting different refresh channels" {
     if($IsLinux) {
         It "Can target a downgraded channel" {
-            Invoke-BuildAndInstall -PackageName breakable-refresh-downgrade -RefreshChannel refresh2022q2
+             write-host (Invoke-BuildAndInstall -PackageName breakable-refresh-downgrade -RefreshChannel refresh2022q2 | Out-String)
             . ./results/last_build.ps1
             "/hab/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/glibc/2.34"
         }
