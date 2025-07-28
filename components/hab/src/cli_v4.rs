@@ -54,6 +54,7 @@ use studio::StudioOpts;
 mod plan;
 use plan::PlanCommand;
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, Parser)]
 #[command(name = "hab",
             version = VERSION,

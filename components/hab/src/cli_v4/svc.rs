@@ -68,12 +68,12 @@ impl SvcCommand {
         match self {
             Self::BulkLoad(_bulk_load_cmd) => {
                 if FEATURE_FLAGS.contains(FeatureFlag::SERVICE_CONFIG_FILES) {
-                    todo!()
+                    Err(Error::ArgumentError(String::from("`hab svc bulkload` is deprecated")))
                 } else {
-                    return Err(Error::ArgumentError(String::from("`hab svc bulkload` is \
-                                                                  only available when \
-                                                                  `HAB_FEAT_SERVICE_CONFIG_FILES` \
-                                                                  is set")));
+                    Err(Error::ArgumentError(String::from("`hab svc bulkload` is \
+                                                           only available when \
+                                                           `HAB_FEAT_SERVICE_CONFIG_FILES` \
+                                                           is set")))
                 }
             }
             Self::Load(load_cmd) => load_cmd.do_command().await,

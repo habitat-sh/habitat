@@ -49,7 +49,7 @@ impl PkgBinlinkOptions {
         if let Some(binary) = &self.binary {
             binlink::start(ui,
                            &self.pkg_ident,
-                           &binary,
+                           binary,
                            &self.dest_dir,
                            &FS_ROOT_PATH,
                            self.force)

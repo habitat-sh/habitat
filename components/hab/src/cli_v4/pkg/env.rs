@@ -24,7 +24,5 @@ pub(crate) struct PkgEnvOptions {
 }
 
 impl PkgEnvOptions {
-    pub(super) fn do_env(&self) -> HabResult<()> {
-        env::start(&self.pkg_ident, &*FS_ROOT_PATH).map_err(Into::into)
-    }
+    pub(super) fn do_env(&self) -> HabResult<()> { env::start(&self.pkg_ident, &FS_ROOT_PATH) }
 }

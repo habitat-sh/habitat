@@ -21,7 +21,6 @@ mod transfer;
           arg_required_else_help = true,
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
-
 pub(super) enum OriginCommand {
     /// Creates a new Builder origin
     Create(create::OriginCreateOptions),

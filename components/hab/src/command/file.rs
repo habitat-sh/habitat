@@ -33,9 +33,9 @@ pub(crate) async fn sub_file_put<U>(service_group: &str,
 
     let remote_sup_addr = remote_sup.expect("RemoteSup must be provided");
 
-    let mut msg = sup_proto::ctl::SvcFilePut::default();
-    msg.service_group = Some(grp.clone().into());
-    msg.version = Some(version);
+    let mut msg = sup_proto::ctl::SvcFilePut { service_group: Some(grp.clone().into()),
+                                               version: Some(version),
+                                               ..Default::default() };
 
     let file = PathBuf::from(file_path);
     if file.metadata()?.len() > MAX_FILE_PUT_SIZE_BYTES as u64 {

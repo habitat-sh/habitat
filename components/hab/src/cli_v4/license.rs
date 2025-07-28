@@ -11,7 +11,6 @@ use habitat_common::ui::UI;
           arg_required_else_help = true,
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
-
 pub(super) enum LicenseCommand {
     /// Accept the Chef Binary Distribution Agreement without prompting
     Accept,
@@ -22,7 +21,7 @@ impl LicenseCommand {
         match self {
             Self::Accept => {
                 license::accept_license(ui)?;
-                return Ok(());
+                Ok(())
             }
         }
     }

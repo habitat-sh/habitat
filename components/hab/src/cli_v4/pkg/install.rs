@@ -138,7 +138,7 @@ impl PkgInstallOptions {
             let pkg_install = install::start(ui,
                                              &self.bldr_url.to_string(),
                                              &channel,
-                                             &install_source,
+                                             install_source,
                                              PRODUCT,
                                              VERSION,
                                              &FS_ROOT_PATH,

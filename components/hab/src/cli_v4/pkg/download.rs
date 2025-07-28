@@ -119,7 +119,7 @@ impl PkgDownloadOptions {
                         VERSION,
                         &package_sets,
                         self.download_directory.as_ref(),
-                        auth_token.as_ref().map(|x| x.as_str()),
+                        auth_token.as_deref(),
                         self.verify,
                         self.ignore_missing_seed).await
     }
@@ -189,26 +189,22 @@ mod tests {
 
         let no_header_toml_string = "no_header.toml".to_string();
         let _ = toml_files_map.get(&no_header_toml_string);
-        for toml in tomls_dir.read_dir().unwrap() {
-            if let Ok(toml) = toml {
-                let key = toml.file_name().into_string().unwrap();
-                let path = toml.path().into_os_string().into_string();
-                eprintln!("{}: {:#?}", key, path);
-                if let Ok(path) = path {
-                    let args = ["download", "--file", &path];
-                    let result = PkgDownloadOptions::try_parse_from(args);
-                    assert!(result.is_ok(), "{:#?}", result.err().unwrap());
+        for toml in tomls_dir.read_dir().unwrap().flatten() {
+            let key = toml.file_name().into_string().unwrap();
+            let path = toml.path().into_os_string().into_string();
+            if let Ok(path) = path {
+                let args = ["download", "--file", &path];
+                let result = PkgDownloadOptions::try_parse_from(args);
+                assert!(result.is_ok(), "{:#?}", result.err().unwrap());
 
-                    let pkg_download = result.unwrap();
-                    let result =
-                        pkg_download.idents_from_file_matches(PackageTarget::active_target());
-                    let should_be_ok = toml_files_map.get(&key).unwrap();
-                    assert_eq!(result.is_ok(),
-                               *should_be_ok,
-                               "{}: {:#?}",
-                               key,
-                               result.err().unwrap());
-                }
+                let pkg_download = result.unwrap();
+                let result = pkg_download.idents_from_file_matches(PackageTarget::active_target());
+                let should_be_ok = toml_files_map[&key];
+                assert_eq!(result.is_ok(),
+                           should_be_ok,
+                           "{}: {:#?}",
+                           key,
+                           result.err().unwrap());
             }
         }
     }

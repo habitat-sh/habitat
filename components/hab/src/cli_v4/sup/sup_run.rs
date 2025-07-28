@@ -206,7 +206,6 @@ pub struct SupRunOptions {
     pub verbose: bool,
 
     /// Disable ANSI color.
-
     #[arg(long = "no-color")]
     pub no_color: bool,
 

@@ -90,10 +90,9 @@ pub(crate) struct BldrUrl {
     bldr_url: Option<Url>,
 }
 
-impl BldrUrl {
-    //
-    pub(crate) fn to_string(&self) -> String {
-        if let Some(url) = &self.bldr_url {
+impl fmt::Display for BldrUrl {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let url = if let Some(url) = &self.bldr_url {
             url.to_string()
         } else {
             match hcore_env::var(BLDR_URL_ENVVAR) {
@@ -106,9 +105,12 @@ impl BldrUrl {
                     }
                 }
             }
-        }
+        };
+        write!(f, "{}", url)
     }
+}
 
+impl BldrUrl {
     /// Return the configured Builder URL, falling back to ENV or config.
     pub(crate) fn resolve(&self) -> Result<Url, ParseError> {
         if let Some(ref url) = self.bldr_url {
@@ -141,16 +143,14 @@ fn bldr_url_from_env_load_or_default() -> String {
 pub(crate) struct AuthToken {
     // TODO: Add Validator for this?
     /// Authentication token for Builder.
-    #[arg(name = "AUTH_TOKEN",
-          short = 'z',
-          long = "auth",
-          env = "HAB_AUTH_TOKEN")]
+    #[arg(name = "AUTH_TOKEN", short = 'z', long = "auth")]
     auth_token: Option<String>,
 }
 
 impl AuthToken {
     // This function returns a result. Use this when `auth_token` is required. Either as a command
     // line option or env or from config.
+    #[allow(clippy::wrong_self_convention)]
     pub(crate) fn from_cli_or_config(&self) -> HabResult<String> {
         if let Some(auth_token) = &self.auth_token {
             Ok(auth_token.clone())
@@ -240,9 +240,7 @@ impl FromStr for DurationProxy {
 }
 
 impl fmt::Display for DurationProxy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", u64::from(self.clone()))
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", u64::from(*self)) }
 }
 
 /// A wrapper around `SocketAddr`

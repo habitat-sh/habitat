@@ -48,6 +48,7 @@ use habitat_sup_protocol::{self as sup_proto};
 
 static LOGKEY: &str = "MN";
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, Parser)]
 #[command(name = "hab-sup",
             version = habitat_sup::VERSION,
@@ -122,7 +123,7 @@ pub(crate) async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFla
             if launcher.is_some() {
                 let exit_code = if e.use_stderr() {
                     let mut writer = io::stderr().lock();
-                    write!(&mut writer, "{}", e).expect("Error writing to stdout");
+                    write!(&mut writer, "{}", e).expect("Error writing to stderr");
                     OK_NO_RETRY_EXCODE
                 } else {
                     let mut writer = io::stdout().lock();
