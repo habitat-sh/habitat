@@ -19,8 +19,6 @@ expeditor:
         HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
         HAB_INTERNAL_BLDR_CHANNEL: "dev-v1.6"
         HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL: "dev-v1.6"
-        HAB_REFRESH_CHANNEL: "stable"
-        HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL: "stable"
 
 steps:
 #######################################################################
