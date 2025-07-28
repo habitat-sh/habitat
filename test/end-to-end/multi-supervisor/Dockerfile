@@ -32,6 +32,7 @@ RUN --mount=type=secret,id=hab_auth_token \
 
 RUN --mount=type=secret,id=hab_auth_token \
     export HAB_AUTH_TOKEN="$(cat /run/secrets/hab_auth_token)" \
-    && hab pkg install core/powershell --binlink --force -c base-2025 \
+    && hab pkg install core/powershell -c base-2025 \
+    && hab pkg binlink core/powershell pwsh --force \
     && hab pkg install core/pester -c base-2025 \
     && unset HAB_AUTH_TOKEN
