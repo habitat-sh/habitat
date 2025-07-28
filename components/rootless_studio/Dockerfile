@@ -10,7 +10,7 @@ RUN set -ex \
     bash \
   \
   && cd /tmp \
-  && curl https://raw.githubusercontent.com/habitat-sh/habitat/refs/heads/v1.6/components/hab/install.sh -o install.sh \
+  && curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh -o install.sh \
   && bash install.sh -t ${PACKAGE_TARGET} \
   && rm -rf install.sh /hab/cache /root/.wget-hsts /root/.gnupg \
   && apk del .build-deps
