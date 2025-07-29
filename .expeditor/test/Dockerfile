@@ -19,4 +19,4 @@ ENV HAB_LICENSE accept-no-persist
 # >= hab 0.88.0
 RUN curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh -o install.sh
 RUN chmod a+x ./install.sh
-RUN /bin/bash -c ./install.sh
+RUN /bin/bash -c ./install.sh -c dev-v1.6

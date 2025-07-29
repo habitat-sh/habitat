@@ -1,5 +1,5 @@
 param (
-    [string]$Channel = "dev",
+    [string]$Channel = "dev-v1.6",
     [string]$BuilderUrl = $env:HAB_BLDR_URL
 )
 

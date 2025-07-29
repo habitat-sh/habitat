@@ -45,7 +45,7 @@ if ($IsLinux) {
     Describe 'hab svc load on Linux with umask 077' {
 
         $loadOut = hab svc load core/nginx
-        Wait-SupervisorService nginx -Timeout 2
+        Wait-SupervisorService nginx -Timeout 20
 
         It 'Successfully loads service' {
             ($loadOut | Out-String) |

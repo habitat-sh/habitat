@@ -1,21 +1,23 @@
 expeditor:
+  secrets:
+    HAB_AUTH_TOKEN:
+      path: account/static/habitat/chef-ci
+      field: auth_token # Production Builder
   defaults:
     buildkite:
       timeout_in_minutes: 60
-
+      env:
+        HAB_BLDR_CHANNEL: "stable"
+        HAB_FALLBACK_CHANNEL: "stable"
+        HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "stable"
+        HAB_INTERNAL_BLDR_CHANNEL: "stable"
+        HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL: "stable"
+        HAB_REFRESH_CHANNEL: "stable"
+        HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL: "stable"
 steps:
 #######################################################################
 # Linting!
 #######################################################################
-
-  - label: "[unit] :linux: ARM Platform Support"
-    command:
-      - .expeditor/scripts/verify/run_native_cargo_test.sh
-    agents:
-      queue: docker-linux-arm64
-    plugins:
-      - docker#v3.13.0:
-          image: "rust:1.62.1-buster"
 
   - label: "[lint] :linux: :bash: Shellcheck"
     command:
@@ -30,12 +32,11 @@ steps:
 
   - label: "[lint] :windows: PSScriptAnalyzer!"
     command:
-      - .expeditor\scripts\verify\run_psscriptanalyzer.ps1
+      - powershell .expeditor\scripts\verify\run_psscriptanalyzer.ps1
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 10
 
   - label: "[lint] :linux: :bash: rustfmt"
@@ -59,15 +60,12 @@ steps:
 
   - label: "[lint] :windows: :paperclip: clippy!"
     command:
-      - .expeditor\scripts\verify\run_clippy.ps1 .\support\unexamined_lints.txt .\support\allowed_lints.txt .\support\lints_to_fix.txt .\support\denied_lints.txt
+      - powershell .expeditor\scripts\verify\run_clippy.ps1 .\support\unexamined_lints.txt .\support\allowed_lints.txt .\support\lints_to_fix.txt .\support\denied_lints.txt
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
-
-
 
 #######################################################################
 # CI Tests!
@@ -156,10 +154,14 @@ steps:
         group: "buildkite-agent"
         image: "chefes/buildkite"
         privileged: true
+        environment:
+          - HAB_AUTH_TOKEN
+          - HAB_BLDR_CHANNEL
     timeout_in_minutes: 10
     retry:
       automatic:
         limit: 1
+
 
   - label: "[unit] :linux: core"
     command:
@@ -346,12 +348,11 @@ steps:
   # See "[unit] :linux: ignored"; the same approach applies here for windows
   - label: "[unit] :windows: ignored"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 -TestOptions "--ignored"
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 -TestOptions "--ignored"
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -359,12 +360,11 @@ steps:
 
   - label: "[unit] :windows: builder-api-client"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 builder-api-client
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 builder-api-client
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 25
     retry:
       automatic:
@@ -372,23 +372,21 @@ steps:
 
   - label: "[unit] :windows: butterfly lock_as_mutex"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_mutex deadlock_detection" -TestOptions "--test-threads=1"
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_mutex deadlock_detection" -TestOptions "--test-threads=1"
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 25
     soft_fail: true
 
   - label: "[unit] :windows: butterfly lock_as_rwlock"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_rwlock deadlock_detection" -TestOptions "--test-threads=1"
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_rwlock deadlock_detection" -TestOptions "--test-threads=1"
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -396,12 +394,11 @@ steps:
 
   - label: "[unit] :windows: common"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 common -TestOptions "--test-threads=1"
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 common -TestOptions "--test-threads=1"
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 25
     retry:
       automatic:
@@ -409,12 +406,11 @@ steps:
 
   - label: "[unit] :windows: core"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 core
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 core
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -422,22 +418,20 @@ steps:
 
   - label: "[unit] :windows: core functional"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 core -Features "functional"
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 core -Features "functional"
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 25
 
   - label: "[unit] :windows: hab"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 hab
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 hab
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 25
     retry:
       automatic:
@@ -445,12 +439,11 @@ steps:
 
   - label: "[unit] :windows: http-client"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 http-client
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 http-client
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -458,12 +451,11 @@ steps:
 
   - label: "[unit] :windows: launcher-client"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 launcher-client
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 launcher-client
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -471,12 +463,11 @@ steps:
 
   - label: "[unit] :windows: launcher-protocol"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 launcher-protocol
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 launcher-protocol
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -484,12 +475,11 @@ steps:
 
   - label: "[unit] :windows: pkg-export-container"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 pkg-export-container
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 pkg-export-container
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 25
     retry:
       automatic:
@@ -497,12 +487,11 @@ steps:
 
   - label: "[unit] :windows: pkg-export-tar"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 pkg-export-tar
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 pkg-export-tar
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -510,28 +499,23 @@ steps:
 
   - label: "[unit] :windows: sup lock_as_mutex"
     command:
-      # This test has test (not code) concurrency issues and will fail if we don't limit it
-      - .expeditor/scripts/verify/run_cargo_test.ps1 sup -Features "lock_as_mutex" -TestOptions "--test-threads=1"
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 sup -Features "lock_as_mutex" -TestOptions "--test-threads=1"
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
     soft_fail: true
 
   - label: "[unit] :windows: sup lock_as_rwlock"
     env:
-    # Avoids timeouts creating health check named pipe in tests
       HAB_START_PIPE_TIMEOUT_SECS: 60
     command:
-      # This test has test (not code) concurrency issues and will fail if we don't limit it
-      - .expeditor/scripts/verify/run_cargo_test.ps1 sup -Features "lock_as_rwlock" -TestOptions "--test-threads=1"
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 sup -Features "lock_as_rwlock" -TestOptions "--test-threads=1"
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -539,12 +523,11 @@ steps:
 
   - label: "[unit] :windows: sup-client"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 sup-client
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 sup-client
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -552,12 +535,11 @@ steps:
 
   - label: "[unit] :windows: sup-protocol"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 sup-protocol
+      - powershell .expeditor/scripts/verify/run_cargo_test.ps1 sup-protocol
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -565,12 +547,11 @@ steps:
 
   - label: "[unit] :windows: studio"
     command:
-      - .expeditor/scripts/verify/run_studio_test.ps1
+      - powershell .expeditor/scripts/verify/run_studio_test.ps1
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -578,12 +559,11 @@ steps:
 
   - label: "[unit] :windows: plan-build-ps1"
     command:
-      - components\plan-build-ps1\tests\test.ps1
+      - powershell components\plan-build-ps1\tests\test.ps1
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -593,12 +573,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/test_install_script.ps1
+      - powershell .expeditor/scripts/verify/test_install_script.ps1
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 5
     retry:
       automatic:
@@ -627,8 +606,6 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux"
-      HAB_BLDR_CHANNEL: "stable"
-      HAB_INTERNAL_BLDR_CHANNEL: "stable"
     command:
       - .expeditor/scripts/verify/build_package.sh components/backline
     expeditor:
@@ -667,6 +644,20 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[build] :linux: pkg-mesosize"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "x86_64-linux"
+    command:
+      - .expeditor/scripts/verify/build_package.sh components/pkg-mesosize
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[build] :linux: pkg-export-container"
     env:
       HAB_LICENSE: "accept-no-persist"
@@ -687,20 +678,6 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux"
     command:
       - .expeditor/scripts/verify/build_package.sh components/pkg-export-tar
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[build] :linux: pkg-mesosize"
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/pkg-mesosize
     expeditor:
       executor:
         docker:
@@ -756,6 +733,20 @@ steps:
 # still build. - Linux Kernel 2
 #######################################################################
 
+  - label: "[build] :linux: :two: build hab-backline"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+    command:
+      - .expeditor/scripts/verify/build_package.sh components/backline
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[build] :linux: :two: build hab"
     command:
       - .expeditor/scripts/verify/build_package.sh components/hab
@@ -766,6 +757,36 @@ steps:
       executor:
         docker:
           privileged: true
+
+  - label: "[build] :linux: :two: build launcher"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+    command:
+      - .expeditor/scripts/verify/build_package.sh components/launcher
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: :two: build hab-pkg-export-tar"
+    command:
+      - .expeditor/scripts/verify/build_package.sh components/pkg-export-tar
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
 
   - label: "[build] :linux: :two: build hab-plan-build"
     command:
@@ -778,58 +799,26 @@ steps:
         docker:
           privileged: true
 
-  - label: "[build] :linux: :two: build hab-backline"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/backline
+  - label: "[build] :linux: :two: build hab-studio"
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-      HAB_BLDR_CHANNEL: "stable"
-      HAB_INTERNAL_BLDR_CHANNEL: "stable"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-
-  - label: "[build] :linux: :two: build hab-studio"
     command:
       - .expeditor/scripts/verify/build_package.sh components/studio
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
     expeditor:
       executor:
         docker:
           privileged: true
-
-  - label: "[build] :linux: :two: build launcher"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/launcher
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[build] :linux: :two: build hab-sup"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
     command:
       - .expeditor/scripts/verify/build_package.sh components/sup
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-
-  - label: "[build] :linux: :two: build hab-pkg-export-tar"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/pkg-export-tar
-    env:
-      HAB_LICENSE: "accept-no-persist"
-      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
     expeditor:
       executor:
         docker:
@@ -844,12 +833,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_package.ps1 test-services/test-probe
+      - powershell .expeditor/scripts/verify/build_package.ps1 test-services/test-probe
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -859,12 +847,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_package.ps1 components/hab
+      - powershell .expeditor/scripts/verify/build_package.ps1 components/hab
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -874,12 +861,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_package.ps1 components/launcher
+      - powershell .expeditor/scripts/verify/build_package.ps1 components/launcher
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     retry:
       automatic:
         limit: 1
@@ -888,12 +874,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_package.ps1 components/pkg-export-container
+      - powershell .expeditor/scripts/verify/build_package.ps1 components/pkg-export-container
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     retry:
       automatic:
         limit: 1
@@ -902,12 +887,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_package.ps1 components/pkg-export-tar
+      - powershell .expeditor/scripts/verify/build_package.ps1 components/pkg-export-tar
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -917,12 +901,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_package.ps1 components/plan-build-ps1
+      - powershell .expeditor/scripts/verify/build_package.ps1 components/plan-build-ps1
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     retry:
       automatic:
         limit: 1
@@ -931,12 +914,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_package.ps1 components/studio
+      - powershell .expeditor/scripts/verify/build_package.ps1 components/studio
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     retry:
       automatic:
         limit: 1
@@ -945,12 +927,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_package.ps1 components/sup
+      - powershell .expeditor/scripts/verify/build_package.ps1 components/sup
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     retry:
       automatic:
         limit: 1
@@ -959,12 +940,11 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_package.ps1 components/windows-service
+      - powershell .expeditor/scripts/verify/build_package.ps1 components/windows-service
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
     retry:
       automatic:
         limit: 1

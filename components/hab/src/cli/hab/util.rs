@@ -41,7 +41,10 @@ use webpki::types::DnsName;
 pub struct AuthToken {
     /// Authentication token for Builder.
     // TODO (JM): This should probably use `env`
-    #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
+    #[structopt(name = "AUTH_TOKEN",
+                short = "z",
+                long = "auth",
+                env = "HAB_AUTH_TOKEN")]
     pub value: Option<String>,
 }
 
