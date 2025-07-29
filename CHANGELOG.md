@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.178 -->
-## [2.0.178](https://github.com/habitat-sh/habitat/tree/2.0.178) (2025-07-29)
+<!-- latest_release 2.0.179 -->
+## [2.0.179](https://github.com/habitat-sh/habitat/tree/2.0.179) (2025-07-29)
 
 #### Merged Pull Requests
-- fixes e2e tests broken by chef origin and builder restrictions [#9785](https://github.com/habitat-sh/habitat/pull/9785) ([mwrock](https://github.com/mwrock))
+- Bump sonarsource/sonarqube-scan-action from 5.2.0 to 5.3.0 [#9782](https://github.com/habitat-sh/habitat/pull/9782) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump sonarsource/sonarqube-scan-action from 5.2.0 to 5.3.0 [#9782](https://github.com/habitat-sh/habitat/pull/9782) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.179 -->
+- Bump rustls from 0.23.29 to 0.23.30 [#9787](https://github.com/habitat-sh/habitat/pull/9787) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.179 -->
+- Bump tokio from 1.46.1 to 1.47.0 [#9786](https://github.com/habitat-sh/habitat/pull/9786) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.179 -->
 - fixes e2e tests broken by chef origin and builder restrictions [#9785](https://github.com/habitat-sh/habitat/pull/9785) ([mwrock](https://github.com/mwrock)) <!-- 2.0.178 -->
 - upgrade hab studio to clapv4 [#9783](https://github.com/habitat-sh/habitat/pull/9783) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.177 -->
 - Updated `hab supportbundle` to use clap v4 [#9773](https://github.com/habitat-sh/habitat/pull/9773) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.176 -->
