@@ -35,9 +35,6 @@ $Channel = "habitat-release-$Env:BUILDKITE_BUILD_ID"
 Write-Host "--- Channel: $Channel - bldr url: $Env:HAB_BLDR_URL"
 
 $baseHabExe=Install-LatestHabitat
-# hab pkg install core/hab --channel=dev-v1.6 --binlink --binlink-dir="C:\hab\bin" --force
-# hab pkg install core/hab-studio --channel=dev-v1.6 --binlink --binlink-dir="C:\hab\bin" --force
-# $Env:PATH = "C:\hab\bin;$Env:PATH"
 
 # Get keys
 Write-Host "--- :key: Downloading 'core' public keys from Builder"

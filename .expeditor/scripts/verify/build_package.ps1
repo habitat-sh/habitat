@@ -9,7 +9,6 @@ param (
 
 . $PSScriptRoot\shared.ps1
 Install-Habitat
-# hab pkg install core/hab-studio --channel=dev-v1.6 --binlink --force
 
 # Since we are only verifying we don't have build failures, make everything
 # temp!

@@ -26,8 +26,6 @@ echo "--- Channel: $channel - bldr url: $HAB_BLDR_URL"
 
 declare -g hab_binary
 install_release_channel_hab_binary "$BUILD_PKG_TARGET"
-# hab pkg install core/hab --channel=dev-v1.6 --binlink --force
-# hab pkg install core/hab-studio --channel=dev-v1.6 --binlink --force
 import_keys
 
 echo "--- :zap: Cleaning up old studio, if present"
