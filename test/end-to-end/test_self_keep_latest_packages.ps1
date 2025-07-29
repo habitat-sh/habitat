@@ -1,13 +1,13 @@
 # Test Supervisor package cleanup using the `--keep-latest-packages` option
 
-$pkg="core/hab-sup"
+$pkg="chef/hab-sup"
 
 Describe "Supervisor package cleanup" {
     It "loads old Supervisor versions" {
-        hab pkg install "core/hab-sup/1.5.30" --channel unstable
-        hab pkg install "core/hab-sup/1.5.42" --channel unstable
-        hab pkg install "core/hab-sup/1.5.50" --channel unstable
-        hab pkg install "core/hab-sup/1.5.60" --channel unstable
+        hab pkg install "chef/hab-sup/2.0.171" --channel unstable
+        hab pkg install "chef/hab-sup/2.0.172" --channel unstable
+        hab pkg install "chef/hab-sup/2.0.173" --channel unstable
+        hab pkg install "chef/hab-sup/2.0.174" --channel unstable
         Wait-CommandLinesOfOutput "hab pkg list $pkg" 4
     }
 
@@ -24,7 +24,7 @@ Describe "Supervisor package cleanup" {
 
     Context "start the Supervisor with package cleanup" {
         $supLog = New-SupervisorLogFile("start_the_supervisor_with_package_cleanup")
-        $expected = hab pkg list core/hab-sup | Select-Object -Last 2
+        $expected = hab pkg list chef/hab-sup | Select-Object -Last 2
         Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
                 "--keep-latest-packages=2"
         ) | Out-Null

@@ -13,11 +13,12 @@ RUN /bin/bash -c ./install.sh -c acceptance -o chef
 ENV HAB_LICENSE=accept-no-persist
 
 # Ensure that the desired version of `hab` is actually in the image.
-RUN hab pkg install chef/hab --binlink --force --channel="${CHANNEL}"
+RUN --mount=type=secret,id=hab_auth_token \
+export HAB_AUTH_TOKEN=$(cat /run/secrets/hab_auth_token) \
+&& hab pkg install chef/hab --binlink --force --channel="${CHANNEL}" \
+&& hab pkg install core/docker --binlink --force \
+&& hab pkg install core/powershell --channel stable --binlink --force \
+&& hab pkg install core/pester --channel stable
 
 # For tests where the testing container needs access to Docker to test
 # things. If that describes your test, remember to mount /var/run/docker.sock!
-RUN hab pkg install core/docker --binlink --force
-
-RUN hab pkg install core/powershell --binlink --force
-RUN hab pkg install core/pester

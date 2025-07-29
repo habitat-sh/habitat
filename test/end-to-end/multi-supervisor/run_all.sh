@@ -21,8 +21,12 @@ rm -Rf "${output_dir}"
 mkdir "${output_dir}"
 
 # Ensure the requisite images are present.
-make habitat_integration_base CHANNEL="${channel}"
-make supervisor_image CHANNEL="${channel}" IMAGE_NAME="${image_name}"
+echo "$HAB_AUTH_TOKEN" > hab_auth_token.txt
+trap 'rm -f hab_auth_token.txt' INT TERM EXIT
+(
+    make habitat_integration_base CHANNEL="${channel}"
+    make supervisor_image CHANNEL="${channel}" IMAGE_NAME="${image_name}"
+)
 
 # Assume success until told otherwise; the first failure will set this
 # to non-zero.

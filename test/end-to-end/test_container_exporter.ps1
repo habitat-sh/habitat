@@ -36,7 +36,9 @@ function Start-Container() {
     # We're using a non-standard port because we will also execute these
     # tests as a non-root user, and non-root users don't get to listen
     # on port 80.
-    Write-Host (docker run -d -p 9999:9999 --name=$name --rm --env=HAB_LICENSE=accept-no-persist --env=HAB_NGINX='http.listen.port = 9999' $extra_args $image | Out-String)
+    $cmd = "docker run -d -p 9999:9999 --name=$name --rm --env=HAB_LICENSE=accept-no-persist --env=HAB_NGINX='http.listen.port = 9999' $extra_args $image"
+    Write-Host "running $cmd"
+    Write-Host (Invoke-Expression $cmd | Out-String)
     "$name"
 }
 
@@ -86,7 +88,8 @@ Describe "hab pkg export container" {
 
     Describe "executing the container as root" {
         BeforeEach {
-            $script:container = Start-Container $image
+            Write-Host "--- Starting container with image $script:image"
+            $script:container = Start-Container $script:image
         }
 
         AfterEach {

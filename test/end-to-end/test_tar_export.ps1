@@ -1,7 +1,7 @@
 Remove-Item *.tar.gz
 
 function Get-Ident($pkg, $tar) {
-    $ident = tar --list --file $tar | Where-Object { $_ -like "hab/pkgs/core/$pkg/**/IDENT" }
+    $ident = tar --list --file $tar | Where-Object { $_ -like "hab/pkgs/$pkg/**/IDENT" }
     tar --extract --to-stdout --file $tar $ident
 }
 
@@ -13,15 +13,15 @@ Describe "hab pkg export tar core/nginx" {
         $tar | Should -Not -Be $null
     }
     It "Includes nginx" {
-        Get-Ident nginx $tar | Should -Not -Be $null
+        Get-Ident core/nginx $tar | Should -Not -Be $null
     }
     It "Includes hab" {
-        Get-Ident hab $tar | Should -BeLike "chef/hab/$version/*"
+        Get-Ident chef/hab $tar | Should -BeLike "chef/hab/$version/*"
     }
     It "Includes supervisor" {
-        Get-Ident hab-sup $tar | Should -BeLike "chef/hab-sup/$version/*"
+        Get-Ident chef/hab-sup $tar | Should -BeLike "chef/hab-sup/$version/*"
     }
     It "Includes launcher" {
-        Get-Ident hab-launcher $tar | Should -Not -Be $null
+        Get-Ident chef/hab-launcher $tar | Should -Not -Be $null
     }
 }

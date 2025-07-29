@@ -36,11 +36,11 @@ sudo -E hab pkg install chef/hab-pkg-export-container \
     --channel="${channel}" \
     --url="${HAB_BLDR_URL}"
 
-echo "--- Installing latest core/netcat from ${HAB_BLDR_URL}, stable channel"
+echo "--- Installing latest core/netcat from ${HAB_BLDR_URL}, base-2025 channel"
 sudo -E hab pkg install core/netcat \
     --binlink \
     --force \
-    --channel="stable" \
+    --channel="base-2025" \
     --url="${HAB_BLDR_URL}"
 
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
