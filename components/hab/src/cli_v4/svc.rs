@@ -5,14 +5,9 @@ use clap_v4 as clap;
 use clap::Subcommand;
 
 use habitat_common::{ui::UI,
-                     FeatureFlag,
-                     FEATURE_FLAGS};
+                     FeatureFlag};
 
-use crate::error::{Error,
-                   Result as HabResult};
-
-mod bulk_load;
-use bulk_load::BulkLoadCommand;
+use crate::error::Result as HabResult;
 
 mod key;
 use key::KeyCommand;
@@ -41,9 +36,6 @@ use unload::UnloadCommand;
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
 pub(crate) enum SvcCommand {
-    #[clap(hide = !habitat_common::FEATURE_FLAGS.contains(habitat_common::FeatureFlag::SERVICE_CONFIG_FILES), name="bulkload")]
-    BulkLoad(BulkLoadCommand),
-
     #[clap(subcommand)]
     Key(KeyCommand),
 
@@ -66,16 +58,6 @@ impl SvcCommand {
                                    _feature_flags: FeatureFlag)
                                    -> HabResult<()> {
         match self {
-            Self::BulkLoad(_bulk_load_cmd) => {
-                if FEATURE_FLAGS.contains(FeatureFlag::SERVICE_CONFIG_FILES) {
-                    Err(Error::ArgumentError(String::from("`hab svc bulkload` is deprecated")))
-                } else {
-                    Err(Error::ArgumentError(String::from("`hab svc bulkload` is \
-                                                           only available when \
-                                                           `HAB_FEAT_SERVICE_CONFIG_FILES` \
-                                                           is set")))
-                }
-            }
             Self::Load(load_cmd) => load_cmd.do_command().await,
             Self::Unload(unload_cmd) => unload_cmd.clone().do_command().await,
             Self::Key(KeyCommand::Generate(key_generate_cmd)) => {

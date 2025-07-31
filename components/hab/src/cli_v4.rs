@@ -6,7 +6,6 @@ use habitat_common::{ui::UI,
                      FeatureFlag};
 
 use crate::{error::Result as HabResult,
-            AFTER_HELP_V4,
             VERSION};
 
 mod bldr;
@@ -60,12 +59,11 @@ use plan::PlanCommand;
             version = VERSION,
             about = "Patents: https://chef.io/patents\n\"A Habitat is the natural environment for your services\" - Alan Turing",
             author = "\nThe Habitat Maintainers <humans@habitat.sh>",
-            after_help = AFTER_HELP_V4,
             arg_required_else_help = true,
             propagate_version = true,
             term_width = 100,
             help_template = "{name} {version} {author-section} {about-section} \
-                    \n{usage-heading} {usage}\n\n{all-args}{after-help}\n",
+                    \n{usage-heading} {usage}\n\n{all-args}\n",
         )]
 enum Hab {
     /// Commands relating to Habitat Builder
