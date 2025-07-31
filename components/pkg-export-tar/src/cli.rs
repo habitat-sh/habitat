@@ -84,6 +84,14 @@ pub(crate) struct Cli {
           env = "HAB_AUTH_TOKEN")]
     pub(crate) bldr_auth_token: Option<String>,
 
+    /// Exclude the hab bin directory from the exported tar
+    #[arg(name = "NO_HAB_BIN", long = "no-hab-bin")]
+    pub(crate) no_hab_bin: bool,
+
+    /// Exclude supervisor and launcher packages from the exported tar
+    #[arg(name = "NO_HAB_SUP", long = "no-hab-sup")]
+    pub(crate) no_hab_sup: bool,
+
     /// A Habitat package identifier (ex: acme/redis) and/or filepath to a Habitat artifact
     /// (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
     #[arg(name = "PKG_IDENT_OR_ARTIFACT",
