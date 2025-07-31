@@ -101,6 +101,7 @@ impl HabSup {
             Self::Term => crate::cli_common::sub_term(),
             Self::Run(run_opts) => {
                 let launcher = launcher.ok_or(Error::NoLauncher)?;
+                let run_opts = SupRunOptions::maybe_merge_from_config_files(run_opts)?;
                 sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(run_opts, launcher, feature_flags).await
             }
         }
