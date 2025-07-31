@@ -19,6 +19,10 @@ habitat_core::env_config_int!(/// Represents how many threads to start for our m
 #[cfg(feature = "v2")]
 mod cli_tests;
 
+#[cfg(test)]
+#[cfg(feature = "v4")]
+mod cli_tests_v4;
+
 #[cfg(feature = "v2")]
 mod main_v2;
 
