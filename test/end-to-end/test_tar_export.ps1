@@ -40,10 +40,10 @@ Describe "hab pkg export tar core/nginx --no-hab-bin" {
         $habBinDir | Should -Be $null
     }
     It "Includes supervisor" {
-        Get-Ident chef/hab-sup $tar | Should -Not -Be $null
+        Get-Ident core/hab-sup $tar | Should -Not -Be $null
     }
     It "Includes launcher" {
-        Get-Ident chef/hab-launcher $tar | Should -Not -Be $null
+        Get-Ident core/hab-launcher $tar | Should -Not -Be $null
     }
 }
 
@@ -61,9 +61,9 @@ Context "hab pkg export tar core/nginx --no-hab-sup" {
         $habBinDir | Should -Not -Be $null
     }
     It "Does not include supervisor" {
-        Get-Ident chef/hab-sup $tar | Should -Be $null
+        Get-Ident core/hab-sup $tar | Should -Be $null
     }
     It "Does not include launcher" {
-        Get-Ident chef/hab-launcher $tar | Should -Be $null
+        Get-Ident core/hab-launcher $tar | Should -Be $null
     }
 }
