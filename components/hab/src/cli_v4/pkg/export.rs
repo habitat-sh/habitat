@@ -46,7 +46,7 @@ impl PkgExportCommand {
                 export::container::start(ui,
                                          &opts.args
                                               .iter()
-                                              .map(|s| OsString::from(s))
+                                              .map(OsString::from)
                                               .collect::<Vec<_>>()).await
             }
             #[cfg(any(target_os = "linux", target_os = "windows"))]
@@ -56,7 +56,7 @@ impl PkgExportCommand {
                 export::container::start(ui,
                                          &opts.args
                                               .iter()
-                                              .map(|s| OsString::from(s))
+                                              .map(OsString::from)
                                               .collect::<Vec<_>>()).await
             }
             #[cfg(any(target_os = "linux", target_os = "windows"))]
@@ -64,7 +64,7 @@ impl PkgExportCommand {
                 export::tar::start(ui,
                                    &opts.args
                                         .iter()
-                                        .map(|s| OsString::from(s))
+                                        .map(OsString::from)
                                         .collect::<Vec<_>>()).await
             }
         }

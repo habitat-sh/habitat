@@ -47,6 +47,6 @@ impl PkgDependenciesOptions {
             DependencyRelation::Requires
         };
 
-        dependencies::start(&self.pkg_ident, scope, relation, &*FS_ROOT_PATH).map_err(Into::into)
+        dependencies::start(&self.pkg_ident, scope, relation, &FS_ROOT_PATH)
     }
 }

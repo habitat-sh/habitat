@@ -6,7 +6,6 @@ use habitat_common::{ui::UI,
                      FeatureFlag};
 
 use crate::{error::Result as HabResult,
-            AFTER_HELP_V4,
             VERSION};
 
 mod bldr;
@@ -42,7 +41,7 @@ use origin::OriginCommand;
 mod svc;
 use svc::SvcCommand;
 
-mod utils;
+pub(crate) mod utils;
 use utils::CacheKeyPath;
 
 mod license;
@@ -54,17 +53,17 @@ use studio::StudioOpts;
 mod plan;
 use plan::PlanCommand;
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, Parser)]
 #[command(name = "hab",
             version = VERSION,
             about = "Patents: https://chef.io/patents\n\"A Habitat is the natural environment for your services\" - Alan Turing",
             author = "\nThe Habitat Maintainers <humans@habitat.sh>",
-            after_help = AFTER_HELP_V4,
             arg_required_else_help = true,
             propagate_version = true,
             term_width = 100,
             help_template = "{name} {version} {author-section} {about-section} \
-                    \n{usage-heading} {usage}\n\n{all-args}{after-help}\n",
+                    \n{usage-heading} {usage}\n\n{all-args}\n",
         )]
 enum Hab {
     /// Commands relating to Habitat Builder

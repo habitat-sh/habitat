@@ -11,7 +11,6 @@ use habitat_common::ui::UI;
           about = "Commands relating to Habitat Studios",
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
-
 pub(crate) struct StudioOpts {
     #[command(flatten)]
     args: ExternalCommandArgs,

@@ -71,7 +71,7 @@ pub struct CacheKeyPath {
     #[arg(long = "cache-key-path",
                 env = CACHE_KEY_PATH_ENV_VAR,
                 default_value = &*CACHE_KEY_PATH_DEFAULT)]
-    pub(crate) cache_key_path: PathBuf,
+    pub cache_key_path: PathBuf,
 }
 
 impl From<PathBuf> for CacheKeyPath {
@@ -90,10 +90,9 @@ pub(crate) struct BldrUrl {
     bldr_url: Option<Url>,
 }
 
-impl BldrUrl {
-    //
-    pub(crate) fn to_string(&self) -> String {
-        if let Some(url) = &self.bldr_url {
+impl fmt::Display for BldrUrl {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let url = if let Some(url) = &self.bldr_url {
             url.to_string()
         } else {
             match hcore_env::var(BLDR_URL_ENVVAR) {
@@ -106,9 +105,12 @@ impl BldrUrl {
                     }
                 }
             }
-        }
+        };
+        write!(f, "{}", url)
     }
+}
 
+impl BldrUrl {
     /// Return the configured Builder URL, falling back to ENV or config.
     pub(crate) fn resolve(&self) -> Result<Url, ParseError> {
         if let Some(ref url) = self.bldr_url {
@@ -141,16 +143,14 @@ fn bldr_url_from_env_load_or_default() -> String {
 pub(crate) struct AuthToken {
     // TODO: Add Validator for this?
     /// Authentication token for Builder.
-    #[arg(name = "AUTH_TOKEN",
-          short = 'z',
-          long = "auth",
-          env = "HAB_AUTH_TOKEN")]
+    #[arg(name = "AUTH_TOKEN", short = 'z', long = "auth")]
     auth_token: Option<String>,
 }
 
 impl AuthToken {
     // This function returns a result. Use this when `auth_token` is required. Either as a command
     // line option or env or from config.
+    #[allow(clippy::wrong_self_convention)]
     pub(crate) fn from_cli_or_config(&self) -> HabResult<String> {
         if let Some(auth_token) = &self.auth_token {
             Ok(auth_token.clone())
@@ -240,9 +240,7 @@ impl FromStr for DurationProxy {
 }
 
 impl fmt::Display for DurationProxy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", u64::from(self.clone()))
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", u64::from(*self)) }
 }
 
 /// A wrapper around `SocketAddr`
@@ -334,7 +332,7 @@ fn health_check_interval_default() -> u64 { 30 }
 #[derive(Debug, Clone, Parser, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[command(disable_version_flag = true, rename_all = "screamingsnake")]
-pub(crate) struct SharedLoad {
+pub struct SharedLoad {
     /// Receive updates from the specified release channel
     #[arg(long = "channel")]
     pub channel: Option<ChannelIdent>,
@@ -344,7 +342,7 @@ pub(crate) struct SharedLoad {
     // TODO (DM): This should probably use `env` and `default_value`
     // TODO (DM): serde nested flattens do no work https://github.com/serde-rs/serde/issues/1547
     #[arg(long = "url", short = 'u')]
-    bldr_url: Option<Url>,
+    pub bldr_url: Option<Url>,
 
     /// The service group with shared config and topology
     #[arg(long = "group", default_value = &*GROUP_DEFAULT)]
@@ -552,6 +550,30 @@ pub fn shared_load_cli_to_ctl(ident: PackageIdent,
                      Some(HealthCheckInterval { seconds: shared_load.health_check_interval, }),
                  shutdown_timeout: shared_load.shutdown_timeout.map(u32::from),
                  update_condition: Some(shared_load.update_condition as i32) })
+}
+
+pub(crate) fn bldr_auth_token_from_args_env_or_load(opt: Option<String>) -> Result<String, Error> {
+    if let Some(token) = opt {
+        Ok(token)
+    } else {
+        match hcore_env::var(AUTH_TOKEN_ENVVAR) {
+            Ok(v) => Ok(v),
+            Err(_) => {
+                CliConfig::load()?.auth_token.ok_or_else(|| {
+                                                 Error::ArgumentError("No auth token specified. \
+                                                                       Please check that you have \
+                                                                       specified a valid Personal \
+                                                                       Access Token with:  -z, \
+                                                                       --auth <AUTH_TOKEN>"
+                                                                                           .into())
+                                             })
+            }
+        }
+    }
+}
+
+pub(crate) fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Option<String> {
+    bldr_auth_token_from_args_env_or_load(opt).ok()
 }
 
 #[cfg(test)]

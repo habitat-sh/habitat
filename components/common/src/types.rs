@@ -1,6 +1,8 @@
 use crate::{error::Error,
             util};
+#[cfg(feature = "v2")]
 use clap::ArgMatches;
+
 use native_tls::Certificate;
 use serde::{Deserialize,
             Serialize};
@@ -139,6 +141,7 @@ impl EventStreamToken {
     }
 }
 
+#[cfg(feature = "v2")]
 impl<'a> From<&'a ArgMatches<'a>> for EventStreamToken {
     /// Create an instance of `EventStreamToken` from validated
     /// user input.
@@ -247,6 +250,7 @@ impl EventStreamServerCertificate {
         value.parse::<Self>().map(|_| ()).map_err(|e| e.to_string())
     }
 
+    #[cfg(feature = "v2")]
     /// Create an instance of `EventStreamServerCertificate` from validated user input.
     pub fn from_arg_matches(m: &ArgMatches) -> Option<Self> {
         m.value_of(Self::ARG_NAME).map(|value| {

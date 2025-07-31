@@ -145,7 +145,7 @@ impl OriginKeyCommand {
                 let cache_dir: PathBuf = cache_key_path.cache_key_path.clone();
                 let key_cache = KeyCache::new(cache_dir);
                 key_cache.setup().map_err(Error::from)?;
-                let kt = key_type.clone().unwrap_or(KeyType::Public);
+                let kt = (*key_type).unwrap_or(KeyType::Public);
                 let origin_obj: Origin = origin.parse().map_err(Error::from)?;
                 key::export::start(&origin_obj, kt, &key_cache)?;
                 Ok(())

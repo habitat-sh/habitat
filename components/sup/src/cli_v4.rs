@@ -1,13 +1,21 @@
-use std::{convert::TryInto,
-          env,
-          io,
+// CLI V4 specific functionality
+
+use clap_v4 as clap;
+
+use std::{io,
           io::Write,
           net::{IpAddr,
                 Ipv4Addr},
-          process,
-          str::{self}};
+          process};
 
-use configopt::ConfigOpt;
+use log::{info,
+          warn};
+
+use clap::Parser;
+
+use hab::{shared_load_cli_to_ctl,
+          SupRunOptions};
+
 use habitat_common::{command::package::install::InstallSource,
                      liveliness_checker,
                      output::{self,
@@ -15,7 +23,7 @@ use habitat_common::{command::package::install::InstallSource,
                               OutputVerbosity},
                      outputln,
                      types::GossipListenAddr,
-                     ui::{self},
+                     ui,
                      FeatureFlag};
 use habitat_core::{self,
                    crypto::keys::{KeyCache,
@@ -28,7 +36,6 @@ use habitat_core::{self,
 use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE,
                               OK_NO_RETRY_EXCODE};
-
 use habitat_sup::{error::{Error,
                           Result},
                   event::EventStreamConfig,
@@ -38,24 +45,68 @@ use habitat_sup::{error::{Error,
                             TLSConfig},
                   util};
 use habitat_sup_protocol::{self as sup_proto};
-use log::{info,
-          warn};
-
-use habitat_sup::cli_v2::cli;
-
-use hab::cli::hab::{sup::SupRun,
-                    svc};
 
 static LOGKEY: &str = "MN";
 
-/// # Locking (see locking.md)
-/// * `RumorStore::list` (read)
-/// * `MemberList::initial_members` (write)
-/// * `MemberList::entries` (write)
-/// * `GatewayState::inner` (write)
-/// * `Server::member` (write)
-/// * `RumorHeat::inner` (write)
-/// * `ManagerServices::inner` (write)
+#[allow(clippy::large_enum_variant)]
+#[derive(Debug, Clone, Parser)]
+#[command(name = "hab-sup",
+            version = habitat_sup::VERSION,
+            about = "Patents: https://chef.io/patents\n\"A Habitat is the natural environment for your services\" - Alan Turing",
+            author = "\nThe Habitat Maintainers <humans@habitat.sh>",
+            arg_required_else_help = true,
+            propagate_version = true,
+            term_width = 100,
+            help_template = "{name} {version} {author-section} {about-section} \
+                    \n{usage-heading} {usage}\n\n{all-args}",
+        )]
+pub(crate) enum HabSup {
+    /// Start an interactive Bash-like shell
+    #[cfg(any(all(target_os = "linux",
+                  any(target_arch = "x86_64", target_arch = "aarch64")),
+              all(target_os = "windows", target_arch = "x86_64"),))]
+    #[command(aliases = &["b", "ba", "bas"])]
+    Bash,
+
+    /// Run the Habitat Supervisor
+    #[command(aliases = &["r", "ru"])]
+    Run(SupRunOptions),
+
+    /// Start an interactive Bourne-like shell
+    #[cfg(any(all(target_os = "linux",
+                  any(target_arch = "x86_64", target_arch = "aarch64")),
+              all(target_os = "windows", target_arch = "x86_64"),))]
+    #[command()]
+    Sh,
+
+    /// Gracefully terminate the Habitat Supervisor and all of its running services
+    #[command(aliases = &["ter"])]
+    Term,
+}
+
+impl HabSup {
+    async fn do_command(self,
+                        launcher: Option<LauncherCli>,
+                        feature_flags: FeatureFlag)
+                        -> Result<()> {
+        match self {
+            #[cfg(any(all(target_os = "linux",
+                          any(target_arch = "x86_64", target_arch = "aarch64")),
+                      all(target_os = "windows", target_arch = "x86_64"),))]
+            Self::Bash => crate::cli_common::sub_bash().await,
+            #[cfg(any(all(target_os = "linux",
+                          any(target_arch = "x86_64", target_arch = "aarch64")),
+                      all(target_os = "windows", target_arch = "x86_64"),))]
+            Self::Sh => crate::cli_common::sub_sh().await,
+            Self::Term => crate::cli_common::sub_term(),
+            Self::Run(run_opts) => {
+                let launcher = launcher.ok_or(Error::NoLauncher)?;
+                sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(run_opts, launcher, feature_flags).await
+            }
+        }
+    }
+}
+
 pub(crate) async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFlag) -> Result<()> {
     if feature_flags.contains(FeatureFlag::TEST_BOOT_FAIL) {
         outputln!("Simulating boot failure");
@@ -64,60 +115,31 @@ pub(crate) async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFla
     liveliness_checker::spawn_thread_alive_checker();
     let launcher = crate::cli_common::boot();
 
-    let app_matches = match cli().get_matches_safe() {
-        Ok(matches) => matches,
-        Err(err) => {
-            let out = io::stdout();
-            writeln!(&mut out.lock(), "{}", err.message).expect("Error writing Error to stdout");
-            match launcher {
-                Some(_) => process::exit(ERR_NO_RETRY_EXCODE),
-                // If we weren't started by a launcher, exit 0 for
-                // help and version
-                None => {
-                    match err.kind {
-                        clap::ErrorKind::HelpDisplayed => process::exit(0),
-                        clap::ErrorKind::VersionDisplayed => process::exit(0),
-                        _ => process::exit(ERR_NO_RETRY_EXCODE),
-                    }
-                }
+    let hab_sup = HabSup::try_parse();
+
+    let hab_sup = match hab_sup {
+        Ok(hab_sup) => hab_sup,
+        Err(e) => {
+            if launcher.is_some() {
+                let exit_code = if e.use_stderr() {
+                    let mut writer = io::stderr().lock();
+                    write!(&mut writer, "{}", e).expect("Error writing to stderr");
+                    OK_NO_RETRY_EXCODE
+                } else {
+                    let mut writer = io::stdout().lock();
+                    write!(&mut writer, "{}", e).expect("Error writing to stderr");
+                    ERR_NO_RETRY_EXCODE
+                };
+                process::exit(exit_code);
+            } else {
+                let mut writer = io::stdout().lock();
+                write!(&mut writer, "{}", e).expect("Error writing to stderr");
+                process::exit(1);
             }
         }
     };
-    match app_matches.subcommand() {
-        #[cfg(any(all(target_os = "linux",
-                      any(target_arch = "x86_64", target_arch = "aarch64")),
-                  all(target_os = "windows", target_arch = "x86_64"),))]
-        ("bash", Some(_)) => crate::cli_common::sub_bash().await,
-        ("run", Some(_)) => {
-            // TODO (DM): This is a little hacky. Essentially, for `hab sup run` we switch to using
-            // structopt/configopt instead of querying clap `ArgMatches` directly. We skip the first
-            // arg ("sup") to construct a `SupRun`. Eventually, when we switch to exclusivly using
-            // structopt/configopt this will go away and everything will be much cleaner.
-            let sup_run = match SupRun::try_from_iter_with_configopt(env::args().skip(1)) {
-                Ok(sup) => sup,
-                Err(err) => {
-                    if launcher.is_some() {
-                        let exit_code = if err.use_stderr() {
-                            ERR_NO_RETRY_EXCODE
-                        } else {
-                            OK_NO_RETRY_EXCODE
-                        };
-                        err.exit_with_codes(exit_code, exit_code);
-                    } else {
-                        err.exit();
-                    }
-                }
-            };
-            let launcher = launcher.ok_or(Error::NoLauncher)?;
-            sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run, launcher, feature_flags).await
-        }
-        #[cfg(any(all(target_os = "linux",
-                      any(target_arch = "x86_64", target_arch = "aarch64")),
-                  all(target_os = "windows", target_arch = "x86_64"),))]
-        ("sh", Some(_)) => crate::cli_common::sub_sh().await,
-        ("term", Some(_)) => crate::cli_common::sub_term(),
-        _ => unreachable!(),
-    }
+
+    hab_sup.do_command(launcher, feature_flags).await
 }
 
 /// # Locking (see locking.md)
@@ -128,22 +150,13 @@ pub(crate) async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFla
 /// * `Server::member` (write)
 /// * `RumorHeat::inner` (write)
 /// * `ManagerServices::inner` (write)
-pub(crate) async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run: SupRun,
+pub(crate) async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run: SupRunOptions,
                                                          launcher: LauncherCli,
                                                          feature_flags: FeatureFlag)
                                                          -> Result<()> {
     set_supervisor_logging_options(&sup_run);
 
-    let mut svc_load_msgs = if feature_flags.contains(FeatureFlag::SERVICE_CONFIG_FILES) {
-        svc::svc_loads_from_paths(&sup_run.svc_config_paths)?.into_iter()
-                                                             .map(|svc_load| {
-                                                                 Ok(svc_load.try_into()?)
-                                                             })
-                                                             .collect::<Result<Vec<_>>>()?
-    } else {
-        vec![]
-    };
-
+    let mut svc_load_msgs = vec![];
     let (manager_cfg, maybe_svc_load_msg) = split_apart_sup_run(sup_run, feature_flags).await?;
     if let Some(svc_load_msg) = maybe_svc_load_msg {
         svc_load_msgs.push(svc_load_msg);
@@ -156,7 +169,7 @@ pub(crate) async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run: SupRun,
 // Internal Implementation Details
 ////////////////////////////////////////////////////////////////////////
 pub(crate) async fn split_apart_sup_run(
-    sup_run: SupRun,
+    sup_run: SupRunOptions,
     feature_flags: FeatureFlag)
     -> Result<(ManagerConfig, Option<sup_proto::ctl::SvcLoad>)> {
     let ring_key = get_ring_key(&sup_run)?;
@@ -279,7 +292,7 @@ pub(crate) async fn split_apart_sup_run(
         // Always force - running with a package ident is a "do what I mean" operation. You don't
         // care if a service was loaded previously or not and with what options. You want one loaded
         // right now and in this way.
-        Some(svc::shared_load_cli_to_ctl(ident, shared_load, true)?)
+        Some(shared_load_cli_to_ctl(ident, shared_load, true)?)
     } else {
         None
     };
@@ -290,7 +303,7 @@ pub(crate) async fn split_apart_sup_run(
 // Various CLI Parsing Functions
 ////////////////////////////////////////////////////////////////////////
 
-fn get_ring_key(sup_run: &SupRun) -> Result<Option<RingKey>> {
+fn get_ring_key(sup_run: &SupRunOptions) -> Result<Option<RingKey>> {
     let cache_key_path = &sup_run.cache_key_path.cache_key_path;
     let cache = KeyCache::new(cache_key_path);
     cache.setup()?;
@@ -316,7 +329,7 @@ fn get_ring_key(sup_run: &SupRun) -> Result<Option<RingKey>> {
 // ServiceSpec Modification Functions
 ////////////////////////////////////////////////////////////////////////
 
-fn set_supervisor_logging_options(sup_run: &SupRun) {
+fn set_supervisor_logging_options(sup_run: &SupRunOptions) {
     if sup_run.verbose {
         output::set_verbosity(OutputVerbosity::Verbose);
     }

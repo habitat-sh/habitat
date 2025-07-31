@@ -92,7 +92,7 @@ impl OriginSecretCommand {
             // Token → String
             let token = auth_token.resolve()?;
             // Origin → Origin newtype
-            let origin = origin_param_or_env(&origin_opt)?;
+            let origin = origin_param_or_env(origin_opt)?;
             Ok((url, token, origin))
         }
 
