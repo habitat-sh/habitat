@@ -46,3 +46,24 @@ Describe "hab pkg export tar core/nginx --no-hab-bin" {
         Get-Ident chef/hab-launcher $tar | Should -Not -Be $null
     }
 }
+
+Context "hab pkg export tar core/nginx --no-hab-sup" {
+    hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+    $tar = Get-Item core-nginx-*.tar.gz
+    It "Creates tarball" {
+        $tar | Should -Not -Be $null
+    }
+    It "Includes nginx" {
+        Get-Ident core/nginx $tar | Should -Not -Be $null
+    }
+    It "Includes hab binary directory" {
+        $habBinDir = tar --list --file $tar | Where-Object { $_ -like "hab/bin/*" }
+        $habBinDir | Should -Not -Be $null
+    }
+    It "Does not include supervisor" {
+        Get-Ident chef/hab-sup $tar | Should -Be $null
+    }
+    It "Does not include launcher" {
+        Get-Ident chef/hab-launcher $tar | Should -Be $null
+    }
+}

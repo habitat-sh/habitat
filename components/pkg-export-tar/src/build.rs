@@ -164,7 +164,7 @@ impl<'a> BuildSpec<'a> {
 
     async fn install_base_pkgs(&self, ui: &mut UI, rootfs: &Path) -> Result<BasePkgIdents> {
         let hab = self.install_base_pkg(ui, self.hab, rootfs).await?;
-        
+
         let (sup, launcher) = if self.no_hab_sup {
             (None, None)
         } else {
