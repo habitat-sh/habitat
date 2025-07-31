@@ -69,7 +69,7 @@ pub(crate) struct BuildSpec<'a> {
     /// Whether to exclude the hab bin directory from the final bundle
     pub(crate) no_hab_bin: bool,
 
-    /// Excludes supervisor and launcher packages (`chef/hab-sup` and `chef/hab-launcher`)
+    /// Excludes supervisor and launcher packages (`core/hab-sup` and `core/hab-launcher`)
     /// from the tar archive. These packages work together to provide service management.
     no_hab_sup: bool,
 }
