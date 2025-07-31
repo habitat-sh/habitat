@@ -65,6 +65,9 @@ pub(crate) struct BuildSpec<'a> {
 
     /// The Builder Auth Token to use in the request
     auth: Option<&'a str>,
+
+    /// Whether to exclude the hab bin directory from the final bundle
+    pub(crate) no_hab_bin: bool,
 }
 
 impl<'a> BuildSpec<'a> {
@@ -86,7 +89,9 @@ impl<'a> BuildSpec<'a> {
 
                     auth: cli.bldr_auth_token.as_deref(),
 
-                    ident_or_archive: cli.pkg_ident.as_str(), }
+                    ident_or_archive: cli.pkg_ident.as_str(),
+                    
+                    no_hab_bin: cli.no_hab_bin, }
     }
 
     /// Creates a `BuildRoot` for the given specification.
