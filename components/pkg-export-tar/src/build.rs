@@ -94,7 +94,7 @@ impl<'a> BuildSpec<'a> {
                     auth: cli.bldr_auth_token.as_deref(),
 
                     ident_or_archive: cli.pkg_ident.as_str(),
-                    
+
                     no_hab_bin: cli.no_hab_bin,
 
                     no_hab_sup: cli.no_hab_sup, }
