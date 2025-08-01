@@ -1698,7 +1698,6 @@ dependencies = [
  "rustls 0.23.31",
  "safer_owning_ref",
  "serde",
- "serde-transcode",
  "serde_json",
  "serde_yaml",
  "tempfile",
@@ -1879,7 +1878,6 @@ dependencies = [
  "rustls 0.23.31",
  "rustls-pemfile",
  "serde",
- "serde-transcode",
  "serde_derive",
  "serde_json",
  "serde_yaml",
@@ -3973,15 +3971,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5f0e2c6ed6606019b4e29e69dbaba95b11854410e5347d525002456dbbb786b6"
 dependencies = [
  "serde_derive",
-]
-
-[[package]]
-name = "serde-transcode"
-version = "1.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "590c0e25c2a5bb6e85bf5c1bce768ceb86b316e7a01bdf07d2cb4ec2271990e2"
-dependencies = [
- "serde",
 ]
 
 [[package]]

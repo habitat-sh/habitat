@@ -314,41 +314,23 @@ impl Cfg {
                 }
 
                 // We know we're not dealing with TOML, so we'll
-                // assume it's JSON. Since we're currently decoding to
-                // toml::value::Table, and there isn't really an easy
-                // way to directly go from a JSON string to that, we
-                // first transcode the JSON string into a TOML string,
-                // and then deserialize from THAT.
-                //
-                // Not the greatest, but it works.
-                let (as_toml, transcode_result) = {
-                    let mut buffer = String::new();
-                    let mut deserializer = serde_json::Deserializer::from_str(&config);
-                    let res = {
-                        let serializer = toml::Serializer::new(&mut buffer);
-                        serde_transcode::transcode(&mut deserializer, serializer)
-                    };
-                    (buffer, res)
-                };
-                match transcode_result {
-                    Ok(()) => {
-                        // it's TOML now, so turn it into a TOML table
-                        match toml::de::from_str(&as_toml) {
-                            Ok(toml) => {
-                                return Ok(Some(toml));
-                            }
-                            Err(err) => {
-                                // Note: it should be impossible to
-                                // get down here
-                                debug!("Attempted to reparse env config as toml and failed {}", err)
-                            }
-                        }
-                    }
-                    Err(err) => debug!("Attempted to parse env config as json and failed {}", err),
-                }
-
-                // It's neither TOML nor JSON, so bail out
-                Err(Error::BadEnvConfig(var_name))
+                // assume it's JSON
+                let json_value: serde_json::Value = serde_json::from_str(&config).map_err(|e| {
+                                                        debug!("Attempted to parse env config as \
+                                                                json and failed {}",
+                                                               e);
+                                                        Error::BadEnvConfig(var_name.clone())
+                                                    })?;
+                let toml_string = toml::to_string(&json_value).map_err(|e| {
+                                      debug!("Failed to convert JSON to TOML string: {}", e);
+                                      Error::BadEnvConfig(var_name.clone())
+                                  })?;
+                let toml_table = toml_string.parse().map_err(|e| {
+                                                         debug!("Failed to parse TOML string: {}",
+                                                                e);
+                                                         Error::BadEnvConfig(var_name)
+                                                     })?;
+                Ok(Some(toml_table))
             }
             Err(e) => {
                 debug!("Looking up environment variable {} failed: {:?}",
