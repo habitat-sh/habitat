@@ -77,8 +77,10 @@ impl clap_v4::builder::TypedValueParser for HabPackageInstallSourceValueParser {
 #[derive(Clone)]
 pub struct HabOriginValueParser;
 
+use habitat_core::origin::Origin;
+
 impl clap_v4::builder::TypedValueParser for HabOriginValueParser {
-    type Value = String;
+    type Value = Origin;
 
     fn parse_ref(&self,
                  cmd: &clap_v4::Command,
@@ -101,7 +103,7 @@ impl clap_v4::builder::TypedValueParser for HabOriginValueParser {
                                                                     result.err().unwrap(),)));
             Err(err)
         } else {
-            Ok(value.to_str().unwrap().to_string())
+            Ok(Origin::from_str(value.to_str().unwrap()).unwrap())
         }
     }
 }
