@@ -27,8 +27,7 @@ use std::{cmp::{Ordering,
           path::{Path,
                  PathBuf},
           str::FromStr};
-use toml::{self,
-           Value};
+use toml;
 
 pub const DEFAULT_CFG_FILE: &str = "default.toml";
 const PATH_KEY: &str = "PATH";
@@ -316,7 +315,7 @@ impl PackageInstall {
                 if file.read_to_string(&mut raw).is_err() {
                     return None;
                 };
-                match raw.parse::<Value>() {
+                match toml::from_str(&raw) {
                     Ok(v) => Some(v),
                     Err(e) => {
                         debug!("Failed to parse toml, error: {:?}", e);
