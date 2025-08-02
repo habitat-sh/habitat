@@ -464,6 +464,24 @@ pub struct ExternalCommandArgs {
     pub args: Vec<OsString>,
 }
 
+// For sending command and args to a sub command where args don't have to be preceeded by --
+// For example:
+// `hab pkg exec core/bash bash --login` instead of `hab pkg exec core/bash bash -- --login`
+#[derive(Clone, Debug, Args)]
+#[command(trailing_var_arg = true,
+          allow_hyphen_values = true,
+          disable_help_flag = true,
+          disable_help_subcommand = true,
+          disable_version_flag = true)]
+pub struct CommandAndArgs {
+    /// Command to execute (eg. ls)
+    pub cmd: PathBuf,
+
+    /// Arguments to the command
+    #[arg(value_name = "ARGS", value_parser = clap::builder::OsStringValueParser::new())]
+    pub args: Vec<OsString>,
+}
+
 #[allow(clippy::needless_pass_by_value)]
 pub(crate) fn valid_origin(val: &str) -> Result<String, String> {
     CoreOrigin::validate(val.to_string()).map(|()| val.to_string())

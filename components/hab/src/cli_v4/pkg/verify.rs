@@ -21,10 +21,9 @@ use crate::{cli_v4::utils::CacheKeyPath,
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgVerifyOptions {
-    // TODO: Move to semantic PathBuf once Clap-v2 is removed
     /// A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
     #[arg(name = "SOURCE", value_parser = FileExistsValueParser)]
-    source: String,
+    source: PathBuf,
 
     #[command(flatten)]
     cache_key_path: CacheKeyPath,
@@ -35,6 +34,6 @@ impl PkgVerifyOptions {
         crypto::init()?;
         let key_cache = KeyCache::new::<PathBuf>((&self.cache_key_path).into());
 
-        verify::start(ui, &Into::<PathBuf>::into(self.source.clone()), &key_cache)
+        verify::start(ui, &self.source, &key_cache)
     }
 }

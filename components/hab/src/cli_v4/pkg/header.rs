@@ -20,13 +20,13 @@ use crate::{command::pkg::header,
 pub(crate) struct PkgHeaderOptions {
     /// A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
     #[arg(name = "SOURCE", value_parser = FileExistsValueParser)]
-    source: String,
+    source: PathBuf,
 }
 
 impl PkgHeaderOptions {
     pub(super) fn do_header(&self, ui: &mut UI) -> HabResult<()> {
         crypto::init()?;
 
-        header::start(ui, &PathBuf::from(&self.source))
+        header::start(ui, &self.source)
     }
 }

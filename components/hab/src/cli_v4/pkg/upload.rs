@@ -50,7 +50,7 @@ pub(crate) struct PkgUploadOptions {
     /// One or more filepaths to a Habitat Artifact (ex:
     /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
     #[arg(name = "HART_FILE", required = true, value_parser = FileExistsValueParser)]
-    hart_file: Vec<String>,
+    hart_file: Vec<PathBuf>,
 
     #[command(flatten)]
     cache_key_path: CacheKeyPath,
@@ -73,7 +73,7 @@ impl PkgUploadOptions {
                           &self.bldr_url.to_string(),
                           &self.channel,
                           &auth_token,
-                          &Into::<PathBuf>::into(hart_file.clone()),
+                          hart_file,
                           self.force,
                           auto_build,
                           &key_cache).await?;
