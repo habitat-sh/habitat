@@ -43,6 +43,7 @@ services:
     image: ${SUPERVISOR_IMAGE}
     domainname: habitat.dev
     environment:
+      HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
       HAB_LICENSE: accept-no-persist
       HAB_NONINTERACTIVE: '1'
       TESTCASE: ${TESTCASE}

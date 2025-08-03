@@ -1,7 +1,17 @@
 Describe "hab file upload" {
 
-    $redisRelease = "core/redis/4.0.14/20200421191514"
-
+    $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
+    switch ($arch) {
+        'X64' {
+            $script:redisRelease="core/redis/4.0.14/20200421191514"
+        }
+        'Arm64' {
+            $script:redisRelease="core/redis/4.0.14/20230621153438"
+        }
+        Default {
+            throw "Unsupported architecture: $arch"
+        }
+    }
     Load-SupervisorService $redisRelease -Remote "alpha.habitat.dev"
     Wait-Release -Ident $redisRelease -Remote "alpha"
 

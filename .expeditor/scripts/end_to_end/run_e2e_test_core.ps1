@@ -289,7 +289,7 @@ Function Invoke-BuildAndInstall($PackageName, $RefreshChannel) {
 }
 
 function Stop-ComposeSupervisor($Remote) {
-    Invoke-NativeCommand docker exec "${env:COMPOSE_PROJECT_NAME}_${Remote}_1" hab sup term
+    Invoke-NativeCommand docker exec "${env:COMPOSE_PROJECT_NAME}-${Remote}-1" hab sup term
     Start-Sleep 5
 }
 
