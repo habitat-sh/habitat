@@ -58,7 +58,6 @@ serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = { version = "*", features = ["preserve_order"] }
 serde_yaml = "*"
-serde-transcode = "*"
 state = "*"
 tempfile = "*"
 termcolor = "*"

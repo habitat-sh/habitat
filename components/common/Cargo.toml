@@ -45,7 +45,6 @@ regex = "*"
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }
 serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*", features = ["preserve_order"] }
-serde-transcode = "*"
 serde_yaml = "*"
 tempfile = "*"
 thiserror = "*"
