@@ -57,7 +57,7 @@ impl Binlink {
 
     #[cfg(windows)]
     fn get_target_from_toml(toml: &str) -> Option<String> {
-        toml.parse()
+        toml::from_str(toml)
             .ok()
             .as_ref()
             .and_then(toml::value::Value::as_table)
