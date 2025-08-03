@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.183 -->
-## [2.0.183](https://github.com/habitat-sh/habitat/tree/2.0.183) (2025-08-01)
+<!-- latest_release 2.0.184 -->
+## [2.0.184](https://github.com/habitat-sh/habitat/tree/2.0.184) (2025-08-03)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.141 to 1.0.142 [#9793](https://github.com/habitat-sh/habitat/pull/9793) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump toml from 0.8.23 to 0.9.4 [#9789](https://github.com/habitat-sh/habitat/pull/9789) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump toml from 0.8.23 to 0.9.4 [#9789](https://github.com/habitat-sh/habitat/pull/9789) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.184 -->
 - Bump serde_json from 1.0.141 to 1.0.142 [#9793](https://github.com/habitat-sh/habitat/pull/9793) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.183 -->
 - Add Export Options to hab pkg export tar [#9791](https://github.com/habitat-sh/habitat/pull/9791) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.182 -->
 - Migrating the `hab-sup` binary to clap v4.  [#9781](https://github.com/habitat-sh/habitat/pull/9781) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.181 -->
