@@ -317,7 +317,7 @@ function Get-HabServicePID($PackageName) {
 ###################################################################################################
 
 # This pin to 4.10.1 is a temporary measure until the latest base-2025 pester is fixed
-Import-Module (Join-Path -Path $(hab pkg path core/pester/4.10.1) module Pester.psd1)
+Import-Module (Join-Path -Path $(hab pkg path core/pester/5.5.0) module Pester.psd1)
 
 if(Test-Path $TestName) {
     $testPath = $TestName
