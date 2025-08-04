@@ -33,17 +33,17 @@ Describe "hab pkg export tar core/nginx --no-hab-bin" {
         $tar | Should -Not -Be $null
     }
     It "Includes nginx" {
-        Get-Ident core/nginx $tar | Should -Not -Be $null
+        Get-Ident nginx $tar | Should -Not -Be $null
     }
     It "Does not include hab binary directory" {
         $habBinDir = tar --list --file $tar | Where-Object { $_ -like "hab/bin/*" }
         $habBinDir | Should -Be $null
     }
     It "Includes supervisor" {
-        Get-Ident core/hab-sup $tar | Should -Not -Be $null
+        Get-Ident hab-sup $tar | Should -Not -Be $null
     }
     It "Includes launcher" {
-        Get-Ident core/hab-launcher $tar | Should -Not -Be $null
+        Get-Ident hab-launcher $tar | Should -Not -Be $null
     }
 }
 
@@ -54,16 +54,16 @@ Context "hab pkg export tar core/nginx --no-hab-sup" {
         $tar | Should -Not -Be $null
     }
     It "Includes nginx" {
-        Get-Ident core/nginx $tar | Should -Not -Be $null
+        Get-Ident nginx $tar | Should -Not -Be $null
     }
     It "Includes hab binary directory" {
         $habBinDir = tar --list --file $tar | Where-Object { $_ -like "hab/bin/*" }
         $habBinDir | Should -Not -Be $null
     }
     It "Does not include supervisor" {
-        Get-Ident core/hab-sup $tar | Should -Be $null
+        Get-Ident hab-sup $tar | Should -Be $null
     }
     It "Does not include launcher" {
-        Get-Ident core/hab-launcher $tar | Should -Be $null
+        Get-Ident hab-launcher $tar | Should -Be $null
     }
 }
