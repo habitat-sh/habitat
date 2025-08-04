@@ -76,6 +76,7 @@ services:
       HAB_NONINTERACTIVE: '1'
       TESTCASE: ${TESTCASE}
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
     build:
       context: ${TESTCASE_DIR}
     volumes:
