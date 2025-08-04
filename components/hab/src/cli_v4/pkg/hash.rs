@@ -2,7 +2,8 @@
 
 use clap_v4 as clap;
 
-use std::io::BufRead;
+use std::{io::BufRead,
+          path::PathBuf};
 
 use clap::Parser;
 
@@ -13,14 +14,12 @@ use crate::command::pkg::hash;
 use crate::error::Result as HabResult;
 
 #[derive(Debug, Clone, Parser)]
-#[command(arg_required_else_help = true,
-          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+#[command(help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgHashOptions {
     /// Filepath to the Habitat Package file
     #[arg(name = "SOURCE", value_parser = FileExistsValueParser)]
-    source: Option<String>, /* TODO: Convert it to more semantic `PathBuf`, when we get rid of
-                             * `clap-v2` functionality, revisit `command::pkg::hash` */
+    source: Option<PathBuf>,
 }
 
 impl PkgHashOptions {
@@ -28,7 +27,7 @@ impl PkgHashOptions {
         match &self.source {
             Some(source) => {
                 // hash single file
-                hash::start(source.as_str())
+                hash::start(source.to_str().expect("Not a valud UTF-8 filename."))
             }
             None => {
                 // read files from stdin

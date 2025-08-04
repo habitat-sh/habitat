@@ -2,16 +2,14 @@
 
 use clap_v4 as clap;
 
-use std::{ffi::OsString,
-          path::PathBuf};
-
 use clap::Parser;
 
 use habitat_common::cli::clap_validators::HabPkgIdentValueParser;
 
 use habitat_core::package::PackageIdent;
 
-use crate::{command::pkg::exec,
+use crate::{cli_v4::utils::CommandAndArgs,
+            command::pkg::exec,
             error::Result as HabResult};
 
 #[derive(Debug, Clone, Parser)]
@@ -23,13 +21,8 @@ pub(crate) struct PkgExecOptions {
     #[arg(name = "PKG_IDENT", value_parser = HabPkgIdentValueParser::simple())]
     pkg_ident: PackageIdent,
 
-    /// The command to execute (ex: ls)
-    #[arg(name = "CMD")]
-    cmd: PathBuf,
-
-    /// Arguments to be passed to the command
-    #[arg(name = "ARGS")]
-    args: Vec<String>,
+    #[command(flatten)]
+    cmd: CommandAndArgs,
 }
 
 impl PkgExecOptions {
@@ -37,7 +30,6 @@ impl PkgExecOptions {
         // Required to convert to OsStr
         // TODO: This should be internal implementation detail later on and move to actual command
         // implementation when `v2` is removed
-        let args = self.args.iter().map(Into::into).collect::<Vec<OsString>>();
-        exec::start(&self.pkg_ident, &self.cmd, &args)
+        exec::start(&self.pkg_ident, &self.cmd.cmd, &self.cmd.args)
     }
 }
