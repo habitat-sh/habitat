@@ -1,4 +1,5 @@
-use crate::{cli_v4::utils::AuthToken,
+use crate::{cli_v4::utils::{origin_param_or_env,
+                            AuthToken},
             command::bldr::channel::promote::start,
             error::Result as HabResult};
 use clap::Parser;
@@ -32,17 +33,18 @@ pub(crate) struct PromoteOpts {
     url: String,
 
     /// Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN' or cli.toml
-    #[arg(short = 'o', long, value_name = "ORIGIN", env = "HAB_ORIGIN", value_parser = clap::value_parser!(Origin))]
-    origin: Origin,
+    #[arg(short = 'o', long, value_name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+    origin: Option<Origin>,
 }
 
 impl PromoteOpts {
     pub(crate) async fn do_promote(&self, ui: &mut UI) -> HabResult<()> {
+        let origin = origin_param_or_env(&self.origin)?;
         let token = self.token.from_cli_or_config()?;
         start(ui,
               &self.url,
               &token,
-              &self.origin,
+              &origin,
               &self.source_channel,
               &self.target_channel).await
     }

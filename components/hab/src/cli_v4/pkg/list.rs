@@ -4,9 +4,8 @@ use clap_v4 as clap;
 
 use clap::Parser;
 
-use habitat_core::package::PackageIdent;
-
-use habitat_common::cli::clap_validators::HabOriginValueParser;
+use habitat_core::{origin::Origin,
+                   package::PackageIdent};
 
 use crate::{command::pkg::{list,
                            list::ListingType},
@@ -24,8 +23,8 @@ pub(crate) struct PkgListOptions {
 
     // TODO : Validations
     /// An origin to list
-    #[arg(name = "ORIGIN", short = 'o', long = "origin", value_parser = HabOriginValueParser)]
-    origin: Option<String>,
+    #[arg(name = "ORIGIN", short = 'o', long = "origin", value_parser = clap::value_parser!(Origin))]
+    origin: Option<Origin>,
 
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
     #[arg(name = "PKG_IDENT")]
@@ -41,7 +40,7 @@ impl From<&PkgListOptions> for ListingType {
         if opts.all {
             ListingType::AllPackages
         } else if let Some(origin) = &opts.origin {
-            ListingType::Origin(origin.clone())
+            ListingType::Origin(origin.to_string())
         } else if let Some(ident) = &opts.pkg_ident {
             ListingType::Ident(ident.clone())
         } else {

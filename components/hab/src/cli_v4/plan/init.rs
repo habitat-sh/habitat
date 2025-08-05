@@ -7,12 +7,12 @@ use clap::Parser;
 
 use habitat_common::{cli::clap_validators::HabPkgIdentValueParser,
                      ui::UI};
-use habitat_core::package::PackageIdent;
+use habitat_core::{origin::Origin,
+                   package::PackageIdent};
 
 use crate::error::Result as HabResult;
 
-use crate::cli_v4::utils::{origin_param_or_env,
-                           valid_origin};
+use crate::cli_v4::utils::origin_param_or_env;
 
 #[derive(Debug, Clone, Parser)]
 #[command(rename_all = "kebab-case",
@@ -24,8 +24,8 @@ pub(crate) struct PlanInit {
     pkg_name: Option<String>,
 
     /// Origin for the new app
-    #[arg(name = "ORIGIN", short = 'o', long = "origin", value_parser = valid_origin)]
-    origin: Option<String>,
+    #[arg(name = "ORIGIN", short = 'o', long = "origin", value_parser = clap::value_parser!(Origin))]
+    origin: Option<Origin>,
 
     /// Create a minimal plan file
     #[arg(name = "MIN", short = 'm', long = "min")]

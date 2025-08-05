@@ -4,14 +4,16 @@ use clap_v4 as clap;
 
 use crate::{api_client::{self,
                          Client},
-            cli_v4::utils::{valid_origin,
-                            AuthToken,
+            cli_v4::utils::{AuthToken,
                             BldrUrl},
             error::{Error,
                     Result as HabResult},
             PRODUCT,
             VERSION};
 use clap::Parser;
+
+use habitat_core::origin::Origin;
+
 use habitat_common::ui::{Status,
                          UIWriter,
                          UI};
@@ -23,8 +25,8 @@ use reqwest::StatusCode;
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct OriginCreateOptions {
     /// The origin to be created
-    #[arg(name = "ORIGIN", value_parser = valid_origin)]
-    origin: String,
+    #[arg(name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+    origin: Origin,
 
     #[command(flatten)]
     bldr_url: BldrUrl,
@@ -49,7 +51,7 @@ impl OriginCreateOptions {
         ui.status(Status::Creating, format!("origin {}.", self.origin))?;
 
         // Call create_origin with &str for both args
-        match api_client.create_origin(&self.origin, &token).await {
+        match api_client.create_origin(self.origin.as_ref(), &token).await {
             Ok(_) => {
                 ui.status(Status::Created, format!("origin {}.", self.origin))?;
                 Ok(())

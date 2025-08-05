@@ -2,8 +2,7 @@
 
 use clap_v4 as clap;
 
-use crate::{cli_v4::utils::{valid_origin,
-                            AuthToken,
+use crate::{cli_v4::utils::{AuthToken,
                             BldrUrl},
             command::origin::invitations,
             error::{Error,
@@ -11,6 +10,8 @@ use crate::{cli_v4::utils::{valid_origin,
 use clap::Parser;
 
 use habitat_common::ui::UI;
+
+use habitat_core::origin::Origin;
 
 #[derive(Debug, Clone, Parser)]
 #[command(disable_version_flag = true,
@@ -20,8 +21,8 @@ pub(crate) enum OriginInvitationsCommand {
     /// Accept an origin member invitation
     Accept {
         /// The origin name the invitation applies to
-        #[arg(name = "ORIGIN", value_parser = valid_origin)]
-        origin: String,
+        #[arg(name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+        origin: Origin,
 
         /// The id of the invitation to accept
         #[arg(name = "INVITATION_ID")]
@@ -37,8 +38,8 @@ pub(crate) enum OriginInvitationsCommand {
     /// Ignore an origin member invitation
     Ignore {
         /// The origin name the invitation applies to
-        #[arg(name = "ORIGIN", value_parser = valid_origin)]
-        origin: String,
+        #[arg(name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+        origin: Origin,
 
         /// The id of the invitation to ignore
         #[arg(name = "INVITATION_ID")]
@@ -63,8 +64,8 @@ pub(crate) enum OriginInvitationsCommand {
     /// List pending invitations for a particular origin. Requires that you are the origin owner
     Pending {
         /// The name of the origin you wish to list invitations for
-        #[arg(name = "ORIGIN", value_parser = valid_origin)]
-        origin: String,
+        #[arg(name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+        origin: Origin,
 
         #[command(flatten)]
         bldr_url: BldrUrl,
@@ -76,8 +77,8 @@ pub(crate) enum OriginInvitationsCommand {
     /// Rescind an existing origin member invitation
     Rescind {
         /// The origin name the invitation applies to
-        #[arg(name = "ORIGIN", value_parser = valid_origin)]
-        origin: String,
+        #[arg(name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+        origin: Origin,
 
         /// The id of the invitation to rescind
         #[arg(name = "INVITATION_ID")]
@@ -93,8 +94,8 @@ pub(crate) enum OriginInvitationsCommand {
     /// Send an origin member invitation
     Send {
         /// The origin name the invitation applies to
-        #[arg(name = "ORIGIN", value_parser = valid_origin)]
-        origin: String,
+        #[arg(name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+        origin: Origin,
 
         /// The account name to invite into the origin
         #[arg(name = "INVITEE_ACCOUNT")]
@@ -126,14 +127,14 @@ impl OriginInvitationsCommand {
                                                bldr_url,
                                                auth_token, } => {
                 let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
-                invitations::accept::start(ui, &url, origin, &token, *invitation_id).await
+                invitations::accept::start(ui, &url, origin.as_ref(), &token, *invitation_id).await
             }
             OriginInvitationsCommand::Ignore { origin,
                                                invitation_id,
                                                bldr_url,
                                                auth_token, } => {
                 let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
-                invitations::ignore::start(ui, &url, origin, &token, *invitation_id).await
+                invitations::ignore::start(ui, &url, origin.as_ref(), &token, *invitation_id).await
             }
             OriginInvitationsCommand::List { bldr_url,
                                              auth_token, } => {
@@ -144,21 +145,21 @@ impl OriginInvitationsCommand {
                                                 bldr_url,
                                                 auth_token, } => {
                 let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
-                invitations::list_pending_origin::start(ui, &url, origin, &token).await
+                invitations::list_pending_origin::start(ui, &url, origin.as_ref(), &token).await
             }
             OriginInvitationsCommand::Rescind { origin,
                                                 invitation_id,
                                                 bldr_url,
                                                 auth_token, } => {
                 let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
-                invitations::rescind::start(ui, &url, origin, &token, *invitation_id).await
+                invitations::rescind::start(ui, &url, origin.as_ref(), &token, *invitation_id).await
             }
             OriginInvitationsCommand::Send { origin,
                                              invitee_account,
                                              bldr_url,
                                              auth_token, } => {
                 let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
-                invitations::send::start(ui, &url, origin, &token, invitee_account).await
+                invitations::send::start(ui, &url, origin.as_ref(), &token, invitee_account).await
             }
         }
     }

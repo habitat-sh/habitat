@@ -1,4 +1,5 @@
-use crate::{cli_v4::utils::AuthToken,
+use crate::{cli_v4::utils::{origin_param_or_env,
+                            AuthToken},
             command::bldr::channel::destroy::start,
             error::Result as HabResult};
 use clap::Parser;
@@ -24,8 +25,8 @@ pub(crate) struct DestroyOpts {
     url: String,
 
     /// Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN' or cli.toml
-    #[arg(short = 'o', long, value_name = "ORIGIN", env = "HAB_ORIGIN", value_parser = clap::value_parser!(Origin))]
-    origin: Origin,
+    #[arg(short = 'o', long, value_name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+    origin: Option<Origin>,
 
     /// Authentication token for Builder
     #[command(flatten)]
@@ -34,7 +35,8 @@ pub(crate) struct DestroyOpts {
 
 impl DestroyOpts {
     pub(crate) async fn do_destroy(&self, ui: &mut UI) -> HabResult<()> {
+        let origin = origin_param_or_env(&self.origin)?;
         let token = self.token.from_cli_or_config()?;
-        start(ui, &self.url, &token, &self.origin, &self.channel).await
+        start(ui, &self.url, &token, &origin, &self.channel).await
     }
 }

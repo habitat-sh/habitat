@@ -1,7 +1,11 @@
-use crate::{command::bldr::channel::list::start,
-            error::Result as HabResult};
-use clap::Parser;
 use clap_v4 as clap;
+
+use clap::Parser;
+
+use crate::{cli_v4::utils::origin_param_or_env,
+            command::bldr::channel::list::start,
+            error::Result as HabResult};
+
 use habitat_common::ui::UI;
 use habitat_core::origin::Origin;
 
@@ -23,12 +27,13 @@ pub(crate) struct ListOpts {
     url: String,
 
     /// Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN' or cli.toml
-    #[arg(short = 'o', long, value_name = "ORIGIN", env = "HAB_ORIGIN", value_parser = clap::value_parser!(Origin))]
-    origin: Origin,
+    #[arg(short = 'o', long, value_name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+    origin: Option<Origin>,
 }
 
 impl ListOpts {
     pub(crate) async fn do_list(&self, ui: &mut UI) -> HabResult<()> {
-        start(ui, &self.url, &self.origin, self.sandbox).await
+        let origin = origin_param_or_env(&self.origin)?;
+        start(ui, &self.url, &origin, self.sandbox).await
     }
 }

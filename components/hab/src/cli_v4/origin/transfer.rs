@@ -4,8 +4,7 @@ use clap_v4 as clap;
 
 use crate::{api_client::{self,
                          Client},
-            cli_v4::utils::{valid_origin,
-                            AuthToken,
+            cli_v4::utils::{AuthToken,
                             BldrUrl},
             error::{Error,
                     Result as HabResult},
@@ -15,6 +14,8 @@ use clap::Parser;
 use habitat_common::ui::{Status,
                          UIWriter,
                          UI};
+use habitat_core::origin::Origin;
+
 use reqwest::StatusCode;
 
 #[derive(Debug, Clone, Parser)]
@@ -23,8 +24,8 @@ use reqwest::StatusCode;
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct OriginTransferOptions {
     /// The origin name
-    #[arg(name = "ORIGIN", value_parser = valid_origin)]
-    origin: String,
+    #[arg(name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+    origin: Origin,
 
     #[arg(name = "NEW_OWNER_ACCOUNT")]
     new_owner_account: String,
@@ -55,7 +56,9 @@ impl OriginTransferOptions {
                           self.origin, self.new_owner_account))?;
 
         // Call the transfer API and handle outcomes
-        match api_client.transfer_origin_ownership(&self.origin, &token, &self.new_owner_account)
+        match api_client.transfer_origin_ownership(self.origin.as_ref(),
+                                                   &token,
+                                                   &self.new_owner_account)
                         .await
         {
             Ok(_) => {
