@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.186 -->
-## [2.0.186](https://github.com/habitat-sh/habitat/tree/2.0.186) (2025-08-04)
+<!-- latest_release 2.0.187 -->
+## [2.0.187](https://github.com/habitat-sh/habitat/tree/2.0.187) (2025-08-05)
 
 #### Merged Pull Requests
-- Bump tokio-util from 0.7.15 to 0.7.16 [#9795](https://github.com/habitat-sh/habitat/pull/9795) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tokio from 1.47.0 to 1.47.1 [#9797](https://github.com/habitat-sh/habitat/pull/9797) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump tokio from 1.47.0 to 1.47.1 [#9797](https://github.com/habitat-sh/habitat/pull/9797) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.187 -->
 - Bump tokio-util from 0.7.15 to 0.7.16 [#9795](https://github.com/habitat-sh/habitat/pull/9795) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.186 -->
 - Bump cc from 1.2.30 to 1.2.31 [#9796](https://github.com/habitat-sh/habitat/pull/9796) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.186 -->
 - Fix release pipeline - multiple cli fixes [#9794](https://github.com/habitat-sh/habitat/pull/9794) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.185 -->
