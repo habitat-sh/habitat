@@ -65,13 +65,6 @@ pub(crate) struct BuildSpec<'a> {
 
     /// The Builder Auth Token to use in the request
     auth: Option<&'a str>,
-
-    /// Whether to exclude the hab bin directory from the final bundle
-    pub(crate) no_hab_bin: bool,
-
-    /// Excludes supervisor and launcher packages (`core/hab-sup` and `core/hab-launcher`)
-    /// from the tar archive. These packages work together to provide service management.
-    no_hab_sup: bool,
 }
 
 impl<'a> BuildSpec<'a> {
@@ -93,11 +86,7 @@ impl<'a> BuildSpec<'a> {
 
                     auth: cli.bldr_auth_token.as_deref(),
 
-                    ident_or_archive: cli.pkg_ident.as_str(),
-
-                    no_hab_bin: cli.no_hab_bin,
-
-                    no_hab_sup: cli.no_hab_sup, }
+                    ident_or_archive: cli.pkg_ident.as_str(), }
     }
 
     /// Creates a `BuildRoot` for the given specification.
@@ -164,14 +153,8 @@ impl<'a> BuildSpec<'a> {
 
     async fn install_base_pkgs(&self, ui: &mut UI, rootfs: &Path) -> Result<BasePkgIdents> {
         let hab = self.install_base_pkg(ui, self.hab, rootfs).await?;
-
-        let (sup, launcher) = if self.no_hab_sup {
-            (None, None)
-        } else {
-            let sup = self.install_base_pkg(ui, self.hab_sup, rootfs).await?;
-            let launcher = self.install_base_pkg(ui, self.hab_launcher, rootfs).await?;
-            (Some(sup), Some(launcher))
-        };
+        let sup = self.install_base_pkg(ui, self.hab_sup, rootfs).await?;
+        let launcher = self.install_base_pkg(ui, self.hab_launcher, rootfs).await?;
 
         // TODO (CM): at some point this should be considered as
         // something other than a "base" package... replacing busybox
@@ -283,9 +266,9 @@ struct BasePkgIdents {
     /// Installed package identifer for the Habitat CLI package.
     hab:      PackageIdent,
     /// Installed package identifer for the Supervisor package.
-    sup:      Option<PackageIdent>,
+    sup:      PackageIdent,
     /// Installed package identifer for the Launcher package.
-    launcher: Option<PackageIdent>,
+    launcher: PackageIdent,
     /// Installed package identifer for the Busybox package.
     busybox:  Option<PackageIdent>,
 }
