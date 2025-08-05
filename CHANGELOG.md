@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.187 -->
-## [2.0.187](https://github.com/habitat-sh/habitat/tree/2.0.187) (2025-08-05)
+<!-- latest_release 2.0.188 -->
+## [2.0.188](https://github.com/habitat-sh/habitat/tree/2.0.188) (2025-08-05)
 
 #### Merged Pull Requests
-- Bump tokio from 1.47.0 to 1.47.1 [#9797](https://github.com/habitat-sh/habitat/pull/9797) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump toml from 0.9.4 to 0.9.5 [#9800](https://github.com/habitat-sh/habitat/pull/9800) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump toml from 0.9.4 to 0.9.5 [#9800](https://github.com/habitat-sh/habitat/pull/9800) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.188 -->
 - Bump tokio from 1.47.0 to 1.47.1 [#9797](https://github.com/habitat-sh/habitat/pull/9797) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.187 -->
 - Bump tokio-util from 0.7.15 to 0.7.16 [#9795](https://github.com/habitat-sh/habitat/pull/9795) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.186 -->
 - Bump cc from 1.2.30 to 1.2.31 [#9796](https://github.com/habitat-sh/habitat/pull/9796) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.186 -->
