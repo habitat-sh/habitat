@@ -3,8 +3,7 @@
 use clap_v4 as clap;
 
 use crate::{api_client::Client,
-            cli_v4::utils::{valid_origin,
-                            AuthToken,
+            cli_v4::utils::{AuthToken,
                             BldrUrl},
             error::{Error,
                     Result as HabResult},
@@ -14,8 +13,9 @@ use clap::Parser;
 use habitat_common::ui::{Status,
                          UIWriter,
                          UI};
-use habitat_core::util::text_render::{PortableText,
-                                      TabularText};
+use habitat_core::{origin::Origin,
+                   util::text_render::{PortableText,
+                                       TabularText}};
 
 #[derive(Debug, Clone, Parser)]
 #[command(disable_version_flag = true,
@@ -23,8 +23,8 @@ use habitat_core::util::text_render::{PortableText,
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct OriginInfoOptions {
     /// The origin to be deleted
-    #[arg(name = "ORIGIN", value_parser = valid_origin)]
-    origin: String,
+    #[arg(name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+    origin: Origin,
 
     /// Output will be rendered in json
     #[arg(name = "TO_JSON", short = 'j', long = "json")]
@@ -51,7 +51,7 @@ impl OriginInfoOptions {
         let api_client = Client::new(endpoint, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
         // Fetch the origin info
-        match api_client.origin_info(&token, &self.origin).await {
+        match api_client.origin_info(&token, self.origin.as_ref()).await {
             Ok(resp) => {
                 if self.to_json {
                     // JSON output path

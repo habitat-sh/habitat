@@ -3,7 +3,6 @@
 use clap_v4 as clap;
 
 use crate::{cli_v4::utils::{origin_param_or_env,
-                            valid_origin,
                             AuthToken,
                             BldrUrl,
                             CacheKeyPath},
@@ -38,8 +37,8 @@ pub(crate) enum OriginSecretCommand {
 
         /// The origin for which the secret will be deleted. Default is from 'HAB_ORIGIN' or
         /// cli.toml
-        #[arg(name = "ORIGIN",short = 'o', long = "origin", value_parser = valid_origin)]
-        origin: Option<String>,
+        #[arg(name = "ORIGIN",short = 'o', long = "origin", value_parser = clap::value_parser!(Origin))]
+        origin: Option<Origin>,
     },
 
     /// List all secrets for your origin
@@ -51,8 +50,8 @@ pub(crate) enum OriginSecretCommand {
         auth_token: AuthToken,
 
         /// The origin for which secrets will be listed. Default is from 'HAB_ORIGIN' or cli.toml
-        #[arg(name = "ORIGIN",short = 'o', long = "origin", value_parser = valid_origin)]
-        origin: Option<String>,
+        #[arg(name = "ORIGIN",short = 'o', long = "origin", value_parser = clap::value_parser!(Origin))]
+        origin: Option<Origin>,
     },
 
     /// Create and upload a secret for your origin
@@ -73,8 +72,8 @@ pub(crate) enum OriginSecretCommand {
 
         /// The origin for which the secret will be uploaded. Default is from 'HAB_ORIGIN' or
         /// cli.toml
-        #[arg(name = "ORIGIN",short = 'o', long = "origin", value_parser = valid_origin)]
-        origin: Option<String>,
+        #[arg(name = "ORIGIN",short = 'o', long = "origin", value_parser = clap::value_parser!(Origin))]
+        origin: Option<Origin>,
 
         #[command(flatten)]
         cache_key_path: CacheKeyPath,
@@ -85,7 +84,7 @@ impl OriginSecretCommand {
     pub(super) async fn execute(&self, ui: &mut UI) -> HabResult<()> {
         fn get_args(bldr_url: &BldrUrl,
                     auth_token: &AuthToken,
-                    origin_opt: &Option<String>)
+                    origin_opt: &Option<Origin>)
                     -> Result<(String, String, Origin), Error> {
             // URL → String
             let url = bldr_url.resolve()?.to_string();

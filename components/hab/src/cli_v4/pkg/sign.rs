@@ -10,15 +10,13 @@ use habitat_core::{crypto,
                    crypto::keys::KeyCache,
                    origin::Origin};
 
-use habitat_common::{cli::clap_validators::{FileExistsValueParser,
-                                            HabOriginValueParser},
-                     cli_config::CliConfig,
+use habitat_common::{cli::clap_validators::FileExistsValueParser,
                      ui::UI};
 
-use crate::{cli_v4::utils::CacheKeyPath,
+use crate::{cli_v4::utils::{origin_param_or_env,
+                            CacheKeyPath},
             command::pkg::sign,
-            error::{Error as HabError,
-                    Result as HabResult}};
+            error::Result as HabResult};
 
 #[derive(Debug, Clone, Parser)]
 #[command(arg_required_else_help = true,
@@ -26,7 +24,7 @@ use crate::{cli_v4::utils::CacheKeyPath,
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgSignOptions {
     /// Origin key used to create signature
-    #[arg(name = "ORIGIN", long = "origin", env=crate::ORIGIN_ENVVAR, value_parser = HabOriginValueParser)]
+    #[arg(name = "ORIGIN", long = "origin", value_parser = clap::value_parser!(Origin))]
     origin: Option<Origin>,
 
     /// A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
@@ -44,14 +42,7 @@ pub(crate) struct PkgSignOptions {
 
 impl PkgSignOptions {
     pub(crate) fn do_sign(&self, ui: &mut UI) -> HabResult<()> {
-        let origin = match &self.origin {
-            Some(origin) => origin.clone(),
-            None => {
-                CliConfig::load()?.origin.ok_or_else(|| {
-                                              HabError::CryptoCLI("No origin specified".to_string())
-                                          })?
-            }
-        };
+        let origin = origin_param_or_env(&self.origin)?;
 
         crypto::init()?;
         let key_cache = KeyCache::new::<PathBuf>((&self.cache_key_path).into());

@@ -436,8 +436,8 @@ pub struct SharedLoad {
 )]
 pub(crate) struct UploadGroup {
     /// The origin name
-    #[arg(value_name = "ORIGIN", value_parser = valid_origin, group = "upload")]
-    pub origin: Option<String>,
+    #[arg(value_name = "ORIGIN", value_parser = clap::value_parser!(CoreOrigin), group = "upload")]
+    pub origin: Option<CoreOrigin>,
 
     /// Path to a local public origin key file on disk
     #[arg(value_name = "PUBLIC_FILE", long = "pubfile", group = "upload")]
@@ -482,17 +482,12 @@ pub struct CommandAndArgs {
     pub args: Vec<OsString>,
 }
 
-#[allow(clippy::needless_pass_by_value)]
-pub(crate) fn valid_origin(val: &str) -> Result<String, String> {
-    CoreOrigin::validate(val.to_string()).map(|()| val.to_string())
-}
-
 // Resolve an optional origin (from `--origin <ORIGIN>` or `-o`) into `Origin`,
 // falling back to HAB_ORIGIN envvar or the `cli.toml` config if none was supplied.
-pub(crate) fn origin_param_or_env(opt: &Option<String>) -> Result<CoreOrigin, Error> {
+pub(crate) fn origin_param_or_env(opt: &Option<CoreOrigin>) -> Result<CoreOrigin, Error> {
     if let Some(o) = opt {
         // User passed `--origin foo`
-        Ok(CoreOrigin::from_str(o).map_err(Error::from)?)
+        Ok(o.clone())
     } else if let Ok(env_val) = hcore_env::var(ORIGIN_ENVVAR) {
         // Fallback to HAB_ORIGIN env var
         Ok(CoreOrigin::from_str(&env_val).map_err(Error::from)?)

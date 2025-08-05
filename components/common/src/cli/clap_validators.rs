@@ -71,43 +71,6 @@ impl clap_v4::builder::TypedValueParser for HabPackageInstallSourceValueParser {
     }
 }
 
-/// Struct implementing validator for Habitat Origin
-///
-/// Validates with `habitat_core::origin::Origin::validate` function.
-#[derive(Clone)]
-pub struct HabOriginValueParser;
-
-use habitat_core::origin::Origin;
-
-impl clap_v4::builder::TypedValueParser for HabOriginValueParser {
-    type Value = Origin;
-
-    fn parse_ref(&self,
-                 cmd: &clap_v4::Command,
-                 arg: Option<&clap_v4::Arg>,
-                 value: &std::ffi::OsStr)
-                 -> Result<Self::Value, clap_v4::Error> {
-        let val = value.to_str().unwrap().to_string();
-
-        let result = habitat_core::origin::Origin::validate(val);
-        if result.is_err() {
-            let mut err =
-                clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
-            if let Some(arg) = arg {
-                err.insert(clap_v4::error::ContextKind::InvalidArg,
-                           clap_v4::error::ContextValue::String(arg.to_string()));
-            }
-            err.insert(clap_v4::error::ContextKind::InvalidValue,
-                       clap_v4::error::ContextValue::String(format!("`{}`: {}",
-                                                                    value.to_string_lossy(),
-                                                                    result.err().unwrap(),)));
-            Err(err)
-        } else {
-            Ok(Origin::from_str(value.to_str().unwrap()).unwrap())
-        }
-    }
-}
-
 /// Struct implimenting validator that validates the value is a valid path
 #[derive(Clone)]
 pub struct FileExistsValueParser;

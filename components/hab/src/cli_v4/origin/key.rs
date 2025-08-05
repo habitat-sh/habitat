@@ -2,7 +2,7 @@
 
 use clap_v4 as clap;
 
-use crate::{cli_v4::utils::{valid_origin,
+use crate::{cli_v4::utils::{origin_param_or_env,
                             AuthToken,
                             BldrUrl,
                             CacheKeyPath,
@@ -33,8 +33,8 @@ pub(crate) enum OriginKeyCommand {
         cache_key_path: CacheKeyPath,
 
         /// The origin name
-        #[arg(name = "ORIGIN", value_parser = valid_origin)]
-        origin: String,
+        #[arg(name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+        origin: Origin,
 
         /// The origin key revision
         #[arg(name = "REVISION")]
@@ -58,8 +58,8 @@ pub(crate) enum OriginKeyCommand {
     /// Outputs the latest origin key contents to stdout
     Export {
         /// The origin name
-        #[arg(name = "ORIGIN", value_parser = valid_origin)]
-        origin: String,
+        #[arg(name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+        origin: Origin,
 
         /// Export either the 'public' or 'secret' key. The 'secret' key is the origin private key
         #[arg(name = "KEY_TYPE", short = 't', long = "type")]
@@ -72,8 +72,8 @@ pub(crate) enum OriginKeyCommand {
     /// Generates a Habitat origin key pair
     Generate {
         /// The origin name
-        #[arg(name = "ORIGIN", value_parser = valid_origin)]
-        origin: Option<String>,
+        #[arg(name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+        origin: Option<Origin>,
 
         #[command(flatten)]
         cache_key_path: CacheKeyPath,
@@ -125,13 +125,12 @@ impl OriginKeyCommand {
                                          with_encryption, } => {
                 let endpoint = bldr_url.to_string();
                 let token = auth_token.try_from_cli_or_config();
-                let origin_obj: Origin = origin.parse().map_err(Error::from)?;
                 let cache_dir: PathBuf = cache_key_path.cache_key_path.clone();
                 let key_cache = KeyCache::new(cache_dir);
                 key_cache.setup().map_err(Error::from)?;
                 key::download::start(ui,
                                      &endpoint,
-                                     &origin_obj,
+                                     origin,
                                      revision.as_deref(),
                                      *with_secret,
                                      *with_encryption,
@@ -146,8 +145,7 @@ impl OriginKeyCommand {
                 let key_cache = KeyCache::new(cache_dir);
                 key_cache.setup().map_err(Error::from)?;
                 let kt = (*key_type).unwrap_or(KeyType::Public);
-                let origin_obj: Origin = origin.parse().map_err(Error::from)?;
-                key::export::start(&origin_obj, kt, &key_cache)?;
+                key::export::start(origin, kt, &key_cache)?;
                 Ok(())
             }
 
@@ -157,14 +155,9 @@ impl OriginKeyCommand {
                 let key_cache = KeyCache::new(cache_dir);
                 key_cache.setup().map_err(Error::from)?;
                 // Make sure we actually got an origin on the CLI:
-                let origin_str: &str =
-                    origin.as_deref()
-                          .ok_or_else(|| Error::ArgumentError("ORIGIN is required".into()))?;
+                let origin = origin_param_or_env(origin)?;
 
-                // Parse it into your Origin newtype
-                let origin_obj: Origin = origin_str.parse().map_err(Error::from)?;
-
-                key::generate::start(ui, &origin_obj, &key_cache)?;
+                key::generate::start(ui, &origin, &key_cache)?;
                 Ok(())
             }
 
@@ -191,13 +184,11 @@ impl OriginKeyCommand {
                 let key_cache = KeyCache::new(cache_dir);
                 key_cache.setup().map_err(Error::from)?;
 
-                if let Some(orig) = &upload.origin {
-                    let origin_obj: Origin = orig.parse().map_err(Error::from)?;
-                    // upload latest
+                if let Some(origin) = &upload.origin {
                     key::upload_latest::start(ui,
                                               &endpoint,
                                               &token,
-                                              &origin_obj,
+                                              origin,
                                               *with_secret,
                                               &key_cache).await
                 } else {
