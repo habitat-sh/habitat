@@ -40,17 +40,16 @@ async fn export_for_cli_matches(ui: &mut UI, cli: &cli::Cli) -> Result<()> {
 
 async fn export(ui: &mut UI, build_spec: BuildSpec<'_>) -> Result<()> {
     let hab_pkg = build_spec.hab;
-    let no_hab_bin = build_spec.no_hab_bin;
     let build_result = build_spec.create(ui).await.unwrap();
     let builder_dir_path = build_result.0.path();
     let pkg_ident = build_result.1;
 
-    tar_command(builder_dir_path, pkg_ident, hab_pkg, no_hab_bin);
+    tar_command(builder_dir_path, pkg_ident, hab_pkg);
     Ok(())
 }
 
 #[allow(unused_must_use)]
-fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, hab_pkg: &str, no_hab_bin: bool) {
+fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, hab_pkg: &str) {
     let tarball_name = format_tar_name(pkg_ident);
 
     let tarball = File::create(tarball_name).unwrap();
@@ -71,15 +70,12 @@ fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, hab_pkg: &str, no_
     // that is returned by this command -NSH
     tar_builder.append_dir_all("hab", hab_pkgs_path);
 
-    // Conditionally include the hab binary if not excluded
-    if !no_hab_bin {
-        // Find the path to the hab binary
-        let mut hab_pkg_binary_path = hab_install_path(&hab_package_ident(hab_pkg), &root_fs);
-        hab_pkg_binary_path.push("bin");
+    // Find the path to the hab binary
+    let mut hab_pkg_binary_path = hab_install_path(&hab_package_ident(hab_pkg), &root_fs);
+    hab_pkg_binary_path.push("bin");
 
-        // Append the hab binary to the tar ball
-        tar_builder.append_dir_all("hab/bin", hab_pkg_binary_path);
-    }
+    // Append the hab binary to the tar ball
+    tar_builder.append_dir_all("hab/bin", hab_pkg_binary_path);
 }
 
 fn format_tar_name(ident: PackageIdent) -> String {
