@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.188 -->
-## [2.0.188](https://github.com/habitat-sh/habitat/tree/2.0.188) (2025-08-05)
+<!-- latest_release 2.0.189 -->
+## [2.0.189](https://github.com/habitat-sh/habitat/tree/2.0.189) (2025-08-05)
 
 #### Merged Pull Requests
-- Bump toml from 0.9.4 to 0.9.5 [#9800](https://github.com/habitat-sh/habitat/pull/9800) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Harmonizing `Origin` usage across different CLI [#9799](https://github.com/habitat-sh/habitat/pull/9799) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Harmonizing `Origin` usage across different CLI [#9799](https://github.com/habitat-sh/habitat/pull/9799) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.189 -->
 - Bump toml from 0.9.4 to 0.9.5 [#9800](https://github.com/habitat-sh/habitat/pull/9800) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.188 -->
 - Bump tokio from 1.47.0 to 1.47.1 [#9797](https://github.com/habitat-sh/habitat/pull/9797) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.187 -->
 - Bump tokio-util from 0.7.15 to 0.7.16 [#9795](https://github.com/habitat-sh/habitat/pull/9795) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.186 -->
