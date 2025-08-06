@@ -1,14 +1,22 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1243 -->
+<!-- latest_release 1.6.1244 -->
 
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.1243-->
-### Changes since 1.6.1243 release
+<!-- release_rollup since=1.6.1244-->
+### Changes since 1.6.1244 release
 <!-- release_rollup -->
 
-<!-- latest_stable_release 1.6.1243 -->
+<!-- latest_stable_release 1.6.1244 -->
+
+## [1.6.1244](https://github.com/habitat-sh/habitat/tree/1.6.1244) (2025-08-05)
+
+### Merged Pull Requests
+
+- Cherry Pick umask changes from PRs 9645 and 9674 [#9746](https://github.com/habitat-sh/habitat/pull/9746) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1244 -->
+- Backport NO_INSTALL_DEPS fix to v1.6 [#9646](https://github.com/habitat-sh/habitat/pull/9646) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1244 -->
+- fixes unknown studio command in hab pkg build -D [#9617](https://github.com/habitat-sh/habitat/pull/9617) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1244 -->
 
 ## [1.6.1243](https://github.com/habitat-sh/habitat/tree/1.6.1243) (2025-01-09)
 
@@ -85,9 +93,9 @@
 - Reverts PR #9447: fix e2e ssl cert file tests when not set [51ab6cc7c](https://github.com/habitat-sh/habitat/commit/51ab6cc7c) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->
 - Reverts PR #9429: fix broken stdlib linking [07a59d6d8](https://github.com/habitat-sh/habitat/commit/07a59d6d8) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1243 -->t
 
-<!-- These two cancel each other out 
+<!-- These two cancel each other out
 - Partially Reverts PR #9282: Studio can build against downgraded channels
-- Revert "Partially Reverts PR #9282: Studio can build against downgraded channels" [e40282dc0](https://github.com/habitat-sh/habitat/commit/e40282dc0) ([jasonheath](https://github.com/jasonheath)) 
+- Revert "Partially Reverts PR #9282: Studio can build against downgraded channels" [e40282dc0](https://github.com/habitat-sh/habitat/commit/e40282dc0) ([jasonheath](https://github.com/jasonheath))
 -->
 
 ### Merged Commits
