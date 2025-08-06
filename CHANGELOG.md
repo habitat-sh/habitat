@@ -14,8 +14,6 @@
 
 ### Merged Pull Requests
 
-- fix e2e tar exporter test [#9798](https://github.com/habitat-sh/habitat/pull/9798) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1244 -->
-- Port hab pkg export tar improvements to v1.6 [#9792](https://github.com/habitat-sh/habitat/pull/9792) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1244 -->
 - Cherry Pick umask changes from PRs 9645 and 9674 [#9746](https://github.com/habitat-sh/habitat/pull/9746) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1244 -->
 - Backport NO_INSTALL_DEPS fix to v1.6 [#9646](https://github.com/habitat-sh/habitat/pull/9646) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1244 -->
 - fixes unknown studio command in hab pkg build -D [#9617](https://github.com/habitat-sh/habitat/pull/9617) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1244 -->
