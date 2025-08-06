@@ -22,9 +22,6 @@ services:
     build:
       context: ${TESTCASE_DIR}
     depends_on:
-      bastion:
-        condition: service_started
-      alpha:
-        condition: service_started
-      beta:
-        condition: service_started
+      - bastion
+      - alpha
+      - beta
