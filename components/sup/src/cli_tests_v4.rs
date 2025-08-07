@@ -78,6 +78,9 @@ mod manager_config {
 
     locked_env_var!(HAB_CACHE_KEY_PATH, lock_var);
 
+    #[cfg(windows)]
+    use habitat_core::crypto::dpapi::decrypt;
+
     fn no_feature_flags() -> FeatureFlag { FeatureFlag::empty() }
 
     fn sup_run_from_cmd_str(cmd: &str) -> SupRunOptions {
