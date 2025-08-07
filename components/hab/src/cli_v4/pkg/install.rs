@@ -113,7 +113,7 @@ impl PkgInstallOptions {
             LocalPackageUsage::default()
         };
 
-        let install_hook_mode = if !self.ignore_install_hook {
+        let install_hook_mode = if self.ignore_install_hook {
             InstallHookMode::Ignore
         } else {
             InstallHookMode::default()
