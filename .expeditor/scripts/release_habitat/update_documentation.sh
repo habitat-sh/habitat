@@ -41,6 +41,9 @@ echo "--- :hammer_and_pick: Generating CLI docs"
 docs_dir="generated-documentation"
 mkdir "${docs_dir}"
 
+# We do not want to leak this in the documentation
+unset HAB_AUTH_TOKEN
+
 # TODO: can't currently use `hab pkg exec core/node node ...` for
 # this because that blows away $PATH for the command, making it
 # impossible to find `hab` :(
