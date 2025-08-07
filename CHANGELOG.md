@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.190 -->
-## [2.0.190](https://github.com/habitat-sh/habitat/tree/2.0.190) (2025-08-07)
+<!-- latest_release 2.0.191 -->
+## [2.0.191](https://github.com/habitat-sh/habitat/tree/2.0.191) (2025-08-07)
 
 #### Merged Pull Requests
-- Rustfmt and Nightly Rust Bump to nightly-2025-08-06 [#9805](https://github.com/habitat-sh/habitat/pull/9805) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+- fix impropper use of install_hook_mode in package install [#9807](https://github.com/habitat-sh/habitat/pull/9807) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- fix impropper use of install_hook_mode in package install [#9807](https://github.com/habitat-sh/habitat/pull/9807) ([mwrock](https://github.com/mwrock)) <!-- 2.0.191 -->
 - Rustfmt and Nightly Rust Bump to nightly-2025-08-06 [#9805](https://github.com/habitat-sh/habitat/pull/9805) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 2.0.190 -->
 - Harmonizing `Origin` usage across different CLI [#9799](https://github.com/habitat-sh/habitat/pull/9799) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.189 -->
 - Bump toml from 0.9.4 to 0.9.5 [#9800](https://github.com/habitat-sh/habitat/pull/9800) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.188 -->
