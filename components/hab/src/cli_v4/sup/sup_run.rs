@@ -344,6 +344,9 @@ impl SupRunOptions {
             other.config_files.drain(..).collect::<Vec<PathBuf>>()
         };
 
+        // We take the reverse order because the changes from the *latest* config files should
+        // remain. This is a bit of a quirk of the `merge` implementation. Because once
+        // *non-default* value is set, it is not changed.
         for config_file in config_files.into_iter().rev() {
             if is_toml_file(config_file.as_os_str().to_str().unwrap()) {
                 let inner_object: Self =
@@ -359,6 +362,7 @@ impl SupRunOptions {
         Ok(other)
     }
 
+    #[allow(clippy::cognitive_complexity)]
     fn merge(&mut self, other: Self) {
         if self.listen_gossip == GossipListenAddr::default() {
             self.listen_gossip = other.listen_gossip;
