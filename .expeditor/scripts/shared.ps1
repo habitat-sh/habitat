@@ -10,7 +10,7 @@ function Invoke-NativeCommand() {
         throw "Must supply arguments."
     }
 
-    Write-Host $args[0]
+    Write-Debug $args[0]
 
     $command = $args[0]
     $commandArgs = @()
@@ -18,9 +18,9 @@ function Invoke-NativeCommand() {
         $commandArgs = $args[1..($args.Count - 1)]
     }
 
-    Write-Host $command
-    Write-Host $commandArgs
-    Write-Host $command $commandArgs
+    Write-Debug $command
+    Write-Debug $commandArgs
+    Write-Debug $command $commandArgs
 
     & $command $commandArgs
     $result = $LASTEXITCODE
