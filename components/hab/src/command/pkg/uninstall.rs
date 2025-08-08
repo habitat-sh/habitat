@@ -27,20 +27,6 @@ impl From<Option<usize>> for UninstallMode {
     }
 }
 
-// TODO: Remove after feature `v2` is removed
-#[cfg(feature = "v2")]
-use clap::ArgMatches;
-
-#[cfg(feature = "v2")]
-impl<'a> From<&'a ArgMatches<'a>> for UninstallMode {
-    fn from(m: &ArgMatches) -> Self {
-        m.value_of("KEEP_LATEST")
-         .and_then(|s| s.parse().ok())
-         .map(Self::KeepLatest)
-         .unwrap_or(Self::Single)
-    }
-}
-
 #[allow(clippy::too_many_arguments)]
 pub async fn start(ui: &mut UI,
                    ident: &PackageIdent,
