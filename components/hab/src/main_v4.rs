@@ -8,6 +8,7 @@ use hab::cli_driver;
 
 #[cfg(feature = "v4")]
 pub(crate) async fn main_v4() {
+    env_logger::init();
     let mut ui = UI::default_with_env();
     let features = FeatureFlag::from_env(&mut ui);
     if let Err(e) = cli_driver(&mut ui, features).await {
