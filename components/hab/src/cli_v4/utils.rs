@@ -65,13 +65,22 @@ impl GROUP_DEFAULT {
     fn get() -> String { GROUP_DEFAULT.clone() }
 }
 
-#[derive(Debug, Clone, Parser)]
+#[derive(PartialEq, Debug, Clone, Parser, Deserialize)]
 pub struct CacheKeyPath {
     /// Cache for creating and searching for encryption keys
     #[arg(long = "cache-key-path",
                 env = CACHE_KEY_PATH_ENV_VAR,
                 default_value = &*CACHE_KEY_PATH_DEFAULT)]
+    #[serde(default = "CacheKeyPath::default_cache_key_path")]
     pub cache_key_path: PathBuf,
+}
+
+impl CacheKeyPath {
+    pub fn default_cache_key_path() -> PathBuf { CACHE_KEY_PATH.clone() }
+}
+
+impl Default for CacheKeyPath {
+    fn default() -> Self { Self { cache_key_path: CACHE_KEY_PATH.clone(), } }
 }
 
 impl From<PathBuf> for CacheKeyPath {
@@ -80,6 +89,12 @@ impl From<PathBuf> for CacheKeyPath {
 
 impl From<&CacheKeyPath> for PathBuf {
     fn from(cache_key_path: &CacheKeyPath) -> PathBuf { cache_key_path.cache_key_path.clone() }
+}
+
+impl FromStr for CacheKeyPath {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(Self { cache_key_path: s.into(), }) }
 }
 
 #[derive(Debug, Clone, Parser)]
@@ -211,12 +226,23 @@ impl RemoteSup {
     pub fn inner(&self) -> Option<&ResolvedListenCtlAddr> { self.remote_sup.as_ref() }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(from = "u64", into = "u64")]
 pub struct DurationProxy(Duration);
 
 impl From<DurationProxy> for u64 {
     fn from(d: DurationProxy) -> Self { d.0.as_secs() }
+}
+
+impl DurationProxy {
+    /// Create a default 60 secs duration, used by `serde(default)`
+    pub fn from_60() -> Self { Self(Duration::from_secs(60)) }
+
+    /// Create a default 0 secs duration, used by `serde(default)`
+    pub fn from_0() -> Self { Self(Duration::from_secs(0)) }
+
+    /// Create a default 300 secs duration, used by `serde(default)`
+    pub fn from_300() -> Self { Self(Duration::from_secs(300)) }
 }
 
 impl From<u64> for DurationProxy {
@@ -329,7 +355,7 @@ habitat_core::impl_try_from_string_and_into_string!(SubjectAlternativeName);
 
 fn health_check_interval_default() -> u64 { 30 }
 
-#[derive(Debug, Clone, Parser, Deserialize, Serialize)]
+#[derive(PartialEq, Debug, Clone, Parser, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[command(disable_version_flag = true, rename_all = "screamingsnake")]
 pub struct SharedLoad {
@@ -374,7 +400,7 @@ pub struct SharedLoad {
     update_condition: UpdateCondition,
 
     /// One or more service groups to bind to a configuration
-    #[arg(long = "bind")]
+    #[arg(long = "bind", num_args = 1.., value_delimiter = ' ')]
     #[serde(default)]
     bind: Vec<ServiceBind>,
 
@@ -423,6 +449,26 @@ pub struct SharedLoad {
     /// Use the package config from this path rather than the package itself
     #[arg(long = "config-from")]
     config_from: Option<PathBuf>,
+}
+
+impl Default for SharedLoad {
+    fn default() -> Self {
+        Self { channel:                  None,
+               bldr_url:                 None,
+               group:                    GROUP_DEFAULT::get(),
+               topology:                 None,
+               strategy:                 habitat_sup_protocol::types::UpdateStrategy::None,
+               update_condition:         UpdateCondition::Latest,
+               bind:                     vec![],
+               binding_mode:             habitat_sup_protocol::types::BindingMode::Strict,
+               health_check_interval:    30,
+               shutdown_timeout:         None,
+               #[cfg(windows)]
+               password:                 None,
+               application:              vec![],
+               environment:              vec![],
+               config_from:              None, }
+    }
 }
 
 #[derive(Serialize, Clone, Parser, Debug)]

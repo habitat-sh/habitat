@@ -170,10 +170,11 @@ impl fmt::Display for EventStreamToken {
 }
 
 /// The event stream connection method.
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Default, Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(from = "u64", into = "u64")]
 pub enum EventStreamConnectMethod {
     /// Immediately start the supervisor regardless of the event stream status.
+    #[default]
     Immediate,
     /// Before starting the supervisor, wait the timeout for an event stream connection.
     /// If after the timeout there is no connection, exit the supervisor.
@@ -185,6 +186,8 @@ impl EventStreamConnectMethod {
     pub const ARG_NAME: &'static str = "EVENT_STREAM_CONNECT_TIMEOUT";
     /// The environment variable to set this value.
     pub const ENVVAR: &'static str = "HAB_EVENT_STREAM_CONNECT_TIMEOUT";
+
+    pub fn from_0() -> Self { Self::Timeout { secs: 0 } }
 }
 
 impl FromStr for EventStreamConnectMethod {
@@ -317,7 +320,7 @@ impl PartialEq<EventStreamServerCertificate> for EventStreamServerCertificate {
 
 /// A wrapper around `ListenCtlAddr` that keeps track of the domain the socket address was resolved
 /// from. Ideally this would be done by `env_config_socketaddr`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(PartialEq, Clone, Debug, Deserialize, Serialize)]
 #[serde(try_from = "String", into = "String")]
 pub struct ResolvedListenCtlAddr {
     domain: String,
