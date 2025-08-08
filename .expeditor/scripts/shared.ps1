@@ -6,9 +6,6 @@ $env:PathSeparator = if ($IsWindows -Or !$IsCoreCLR) {
 
 # Run a command, and automatically throw an error if the exit code is non-zero.
 function Invoke-NativeCommand() {
-
-    Set-PSDebug -Trace 2
-
     if ($args.Count -eq 0) {
         throw "Must supply arguments."
     }
@@ -21,15 +18,16 @@ function Invoke-NativeCommand() {
         $commandArgs = $args[1..($args.Count - 1)]
     }
 
+    Write-Host $command
+    Write-Host $commandArgs
     Write-Host $command $commandArgs
+
     & $command $commandArgs
     $result = $LASTEXITCODE
 
     if ($result -ne 0) {
         throw "$command $commandArgs exited with code $result."
     }
-
-    Set-PSDebug -Off
 }
 
 function Get-RustfmtToolchain {
