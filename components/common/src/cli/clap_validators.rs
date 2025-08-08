@@ -89,8 +89,7 @@ impl clap_v4::builder::TypedValueParser for FileExistsValueParser {
     }
 }
 
-// TODO: This will be used by `hab config`. This implements the functionality of
-// `file_exists_or_stdin` validator in Clap v2.
+// This validator will be used by `hab config`
 /// Struct implementing validator that validates the valie is a valid 'file' or 'stdin'
 #[derive(Clone)]
 pub struct FileExistsOrStdinValueParser;

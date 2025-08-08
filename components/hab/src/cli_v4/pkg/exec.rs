@@ -27,9 +27,6 @@ pub(crate) struct PkgExecOptions {
 
 impl PkgExecOptions {
     pub(super) fn do_exec(&self) -> HabResult<()> {
-        // Required to convert to OsStr
-        // TODO: This should be internal implementation detail later on and move to actual command
-        // implementation when `v2` is removed
         exec::start(&self.pkg_ident, &self.cmd.cmd, &self.cmd.args)
     }
 }

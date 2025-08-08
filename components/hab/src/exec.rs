@@ -1,7 +1,3 @@
-#[cfg(feature = "v2")]
-use crate::cli::hab::util::maybe_bldr_auth_token_from_args_or_load;
-
-#[cfg(feature = "v4")]
 use crate::cli_v4::utils::maybe_bldr_auth_token_from_args_or_load;
 
 use crate::{common::{self,

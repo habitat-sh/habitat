@@ -4,12 +4,6 @@ use crate::{error::Result,
                     package::{list,
                               PackageIdent}}};
 
-#[cfg(feature = "v2")]
-use clap::ArgMatches;
-
-#[cfg(feature = "v2")]
-use std::str::FromStr;
-
 /// There are three options for what we can list:
 ///   - All packages (no prefix supplied)
 ///   - All packages in an origin (string with no '/')
@@ -20,31 +14,6 @@ pub enum ListingType {
     AllPackages,
     Origin(String),
     Ident(PackageIdent),
-}
-
-#[cfg(feature = "v2")]
-/// Convert a set of command line options into a ListingType
-impl<'a> From<&'a ArgMatches<'a>> for ListingType {
-    /// Convert clap options into a listing type.
-    ///
-    /// We assume that the arguments have been validated during CLI parsing i.e.
-    /// ORIGIN and PKG_IDENT are a valid origin and package identifier
-    fn from(m: &ArgMatches<'_>) -> Self {
-        if m.is_present("ALL") {
-            return ListingType::AllPackages;
-        }
-
-        if m.is_present("ORIGIN") {
-            let origin = m.value_of("ORIGIN").unwrap(); // Required by clap
-            return ListingType::Origin(origin.to_string());
-        }
-
-        let p = m.value_of("PKG_IDENT").unwrap(); // Required by clap
-        match PackageIdent::from_str(p) {
-            Ok(ident) => ListingType::Ident(ident),
-            Err(_) => unreachable!("We've already validated PackageIdent {}", &p),
-        }
-    }
 }
 
 impl From<PackageIdent> for ListingType {

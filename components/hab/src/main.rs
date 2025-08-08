@@ -1,14 +1,16 @@
-#[cfg(feature = "v2")]
-mod main_v2;
+use habitat_common::{ui::{UIWriter,
+                          UI},
+                     FeatureFlag};
 
-mod main_v4;
+use hab::cli_driver;
 
 #[tokio::main]
 async fn main() {
-    if cfg!(feature = "v4") {
-        main_v4::main_v4().await
-    } else {
-        #[cfg(feature = "v2")]
-        main_v2::main_v2().await
+    let mut ui = UI::default_with_env();
+    let features = FeatureFlag::from_env(&mut ui);
+    if let Err(e) = cli_driver(&mut ui, features).await {
+        let exit_code = e.exit_code();
+        ui.fatal(e).unwrap();
+        std::process::exit(exit_code)
     }
 }
