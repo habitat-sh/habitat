@@ -6,24 +6,32 @@ $env:PathSeparator = if ($IsWindows -Or !$IsCoreCLR) {
 
 # Run a command, and automatically throw an error if the exit code is non-zero.
 function Invoke-NativeCommand() {
-    if ($args.Count -eq 0) {
+    param(
+        [Parameter(ValueFromRemainingArguments=$true)]
+        $Args
+    )
+
+    if ($Args.Count -eq 0) {
         throw "Must supply arguments."
     }
 
-    Write-Host $($args -join ' ')
+    # Write-Host $($Args -join ' ')
 
-    $command = $args[0]
+    $command = $Args[0]
     $commandArgs = @()
-    if ($args.Count -gt 1) {
-        $commandArgs = $args[1..($args.Count - 1)]
+    if ($Args.Count -gt 1) {
+        $commandArgs = $Args[1..($Args.Count - 1)]
     }
 
-    Write-Host "Command: $command"
-    Write-Host "Args: $($commandArgs -join ' ')"
-    Write-Host "Full: $command $($commandArgs -join ' ')"
+    # Write-Host "Command: $command"
+    # Write-Host "Args: $($commandArgs -join ' ')"
+    # Write-Host "Full: $command $($commandArgs -join ' ')"
+    # Write-Host "Hai"
 
     & $command $commandArgs
+    # Write-Host "k"
     $result = $LASTEXITCODE
+    # Write-Host "thx"
 
     if ($result -ne 0) {
         throw "$command $commandArgs exited with code $result."
