@@ -17,6 +17,9 @@ Describe "ctl gateway TLS" {
 
     It "ctl gateway key and certificate generation" {
         Invoke-NativeCommand @('hab', 'sup', 'secret', 'generate-tls', '--subject-alternative-name', 'localhost')
+        # Invoke-NativeCommand @('hab', 'sup', 'secret', 'generate-tls', '--', '--subject-alternative-name', 'localhost')
+        # Invoke-NativeCommand 'hab' 'sup secret generate-tls -- --subject-alternative-name localhost'
+        # Invoke-NativeCommand 'hab' @('sup', 'secret', 'generate-tls', '--subject-alternative-name', 'localhost')
     }
 
     It "ctl gateway TLS connection fails without TLS enabled client" {

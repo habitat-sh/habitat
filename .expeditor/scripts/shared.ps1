@@ -23,15 +23,15 @@ function Invoke-NativeCommand() {
         $commandArgs = $Args[1..($Args.Count - 1)]
     }
 
-    # Write-Host "Command: $command"
-    # Write-Host "Args: $($commandArgs -join ' ')"
-    # Write-Host "Full: $command $($commandArgs -join ' ')"
-    # Write-Host "Hai"
+    Write-Host "Command: $command"
+    Write-Host "Args: $($commandArgs -join ' ')"
+    Write-Host "Full: $command $($commandArgs -join ' ')"
 
+    Write-Host "hai"
     & $command $commandArgs
-    # Write-Host "k"
+    Write-Host "thx"
     $result = $LASTEXITCODE
-    # Write-Host "thx"
+    Write-Host "bye"
 
     if ($result -ne 0) {
         throw "$command $commandArgs exited with code $result."
