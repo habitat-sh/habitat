@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.191 -->
-## [2.0.191](https://github.com/habitat-sh/habitat/tree/2.0.191) (2025-08-07)
+<!-- latest_release 2.0.192 -->
+## [2.0.192](https://github.com/habitat-sh/habitat/tree/2.0.192) (2025-08-08)
 
 #### Merged Pull Requests
-- fix impropper use of install_hook_mode in package install [#9807](https://github.com/habitat-sh/habitat/pull/9807) ([mwrock](https://github.com/mwrock))
+- fix tar exporter e2e test [#9801](https://github.com/habitat-sh/habitat/pull/9801) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- fix tar exporter e2e test [#9801](https://github.com/habitat-sh/habitat/pull/9801) ([mwrock](https://github.com/mwrock)) <!-- 2.0.192 -->
+- unset auth token before generating docs [#9809](https://github.com/habitat-sh/habitat/pull/9809) ([mwrock](https://github.com/mwrock)) <!-- 2.0.192 -->
 - fix impropper use of install_hook_mode in package install [#9807](https://github.com/habitat-sh/habitat/pull/9807) ([mwrock](https://github.com/mwrock)) <!-- 2.0.191 -->
 - Rustfmt and Nightly Rust Bump to nightly-2025-08-06 [#9805](https://github.com/habitat-sh/habitat/pull/9805) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 2.0.190 -->
 - Harmonizing `Origin` usage across different CLI [#9799](https://github.com/habitat-sh/habitat/pull/9799) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.189 -->
