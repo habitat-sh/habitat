@@ -32,7 +32,7 @@ pub enum SupSecretOptions {
     /// Control Gateway TLS connection
     GenerateTls {
         /// The DNS name to use in the certificates subject alternative name extension
-        #[arg(name = "subject-alternative-name")]
+        #[arg(long = "subject-alternative-name")]
         subject_alternative_name: SubjectAlternativeName,
 
         /// The directory to store the generated private key and certificate
