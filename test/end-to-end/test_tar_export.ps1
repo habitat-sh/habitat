@@ -2,7 +2,9 @@ Remove-Item *.tar.gz
 
 function Get-Ident($pkg, $tar) {
     $ident = tar --list --file $tar | Where-Object { $_ -like "hab/pkgs/$pkg/**/IDENT" }
-    tar --extract --to-stdout --file $tar $ident
+    if ($null -ne $ident) {
+        tar --extract --to-stdout --file $tar $ident
+    }
 }
 
 Describe "hab pkg export tar core/nginx" {
