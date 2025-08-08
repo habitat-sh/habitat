@@ -46,7 +46,6 @@ pub(crate) struct PkgUploadOptions {
     #[arg(name = "NO_BUILD", long = "no-build", action = ArgAction::SetTrue)]
     no_build: bool,
 
-    // TODO: Move to semantic PathBuf after CLAP-v2 support is removed kept due to Clap V2 quirk
     /// One or more filepaths to a Habitat Artifact (ex:
     /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
     #[arg(name = "HART_FILE", required = true, value_parser = FileExistsValueParser)]
