@@ -16,7 +16,9 @@ Describe "ctl gateway TLS" {
     }
 
     It "ctl gateway key and certificate generation" {
+        Set-PSDebug -Trace 2
         Invoke-NativeCommand hab sup secret generate-tls -- --subject-alternative-name localhost
+        Set-PSDebug -Off
     }
 
     It "ctl gateway TLS connection fails without TLS enabled client" {
@@ -110,10 +112,8 @@ Describe "ctl gateway TLS" {
         $oldCrt = Get-ChildItem "$ctlTlsPath/*.crt.pem" | Select-Object -Last 1
         $oldKey = Get-ChildItem "$ctlTlsPath/*.key.pem" | Select-Object -Last 1
 
-        Set-PSDebug -Trace 2
         # Generate a new certificate and private key
         Invoke-NativeCommand hab sup secret generate-tls -- --subject-alternative-name localhost
-        Set-PSDebug -Off
 
 
         # Fails when using the new key and certificate
