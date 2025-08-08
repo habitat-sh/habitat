@@ -13,12 +13,15 @@ function Invoke-NativeCommand() {
         throw "Must supply arguments."
     }
 
+    Write-Host $args[0]
+
     $command = $args[0]
     $commandArgs = @()
     if ($args.Count -gt 1) {
         $commandArgs = $args[1..($args.Count - 1)]
     }
 
+    Write-Host $command $commandArgs
     & $command $commandArgs
     $result = $LASTEXITCODE
 
