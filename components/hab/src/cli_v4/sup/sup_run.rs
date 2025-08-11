@@ -344,9 +344,16 @@ impl SupRunOptions {
             other.config_files.drain(..).collect::<Vec<PathBuf>>()
         };
 
-        // We take the reverse order because the changes from the *latest* config files should
-        // remain. This is a bit of a quirk of the `merge` implementation. Because once
-        // *non-default* value is set, it is not changed.
+        // We iterate in reverse order so that values from the *last* config file in the list
+        // take precedence. This is necessary because the `merge` implementation only sets a field
+        // if it is currently at its default value; once a field is set to a non-default value, it
+        // will not be overwritten by subsequent merges. For example, if you have two config files:
+        //   - config1.toml: { port = 8080 }
+        //   - config2.toml: { port = 9090 }
+        // and you specify them as [config1.toml, config2.toml], iterating in reverse means
+        // config2.toml is merged first, setting port to 9090, and then config1.toml is merged,
+        // but since port is already set (non-default), it is not overwritten. Thus, the value from
+        // the last file in the list is preserved, matching user expectations for "last one wins".
         for config_file in config_files.into_iter().rev() {
             if is_toml_file(config_file.as_os_str().to_str().unwrap()) {
                 let inner_object: Self =
