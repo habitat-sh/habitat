@@ -10,24 +10,23 @@ use habitat_common::ui::UI;
 use habitat_core::origin::Origin;
 
 #[derive(Debug, Clone, Parser)]
-#[command(override_usage = "hab bldr channel list [FLAGS] [OPTIONS] <ORIGIN>",
-          help_template = "{name} {version} {author-section} \
+#[command(help_template = "{name} {version} {author-section} \
                            {about-section}\n{usage-heading}\n{usage}\n\n{all-args}\n")]
 pub(crate) struct ListOpts {
     /// Include sandbox channels for the origin
-    #[arg(short = 's', long = "sandbox")]
+    #[arg(name = "SANDBOX", short = 's', long = "sandbox")]
     sandbox: bool,
 
-    /// Specify an alternate Builder endpoint [env: HAB_BLDR_URL] [default: https://bldr.habitat.sh]
+    /// Specify an alternate Builder endpoint
     #[arg(short = 'u',
-          long = "auth",
+          long = "url",
           value_name = "BLDR_URL",
           env = "HAB_BLDR_URL",
           default_value = "https://bldr.habitat.sh")]
     url: String,
 
     /// Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN' or cli.toml
-    #[arg(short = 'o', long, value_name = "ORIGIN", value_parser = clap::value_parser!(Origin))]
+    #[arg(value_name = "ORIGIN", index=1, value_parser = clap::value_parser!(Origin))]
     origin: Option<Origin>,
 }
 
