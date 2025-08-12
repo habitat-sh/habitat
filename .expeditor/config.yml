@@ -70,7 +70,7 @@ subscriptions:
           always_run: true
           post_commit: true
 
-  # Make sure we unlock to allow later builds if one fails.
+  # Make sure we unlock to allow later builds if one fails....
   - workload: buildkite_build_failed:{{agent_id}}:release_habitat:*
     actions:
       - unlock_staging_area:release_staging:
