@@ -16,9 +16,7 @@ use crate::{command::pkg::export,
 #[derive(Debug, Clone, Args)]
 #[command(trailing_var_arg = true,
           allow_hyphen_values = true,
-          disable_help_flag = true,
-          disable_help_subcommand = true,
-          disable_version_flag = true)]
+          disable_help_subcommand = true)]
 pub(crate) struct PkgExportCommandOptions {
     /// Arguments to be passed to the command
     #[arg(name = "ARGS")]
