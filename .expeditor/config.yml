@@ -33,11 +33,9 @@ pipelines:
   - finish_release:
       description: Tasks to be performed after a release has been promoted to stable
 
-# release_branches:
-#   - main:
-#       version_constraint: 2.*
-#   - v1.6:
-#       version_constraint: 1.*
+release_branches:
+  - main:
+      version_constraint: 2.*
 
 staging_areas:
   - release_staging:
