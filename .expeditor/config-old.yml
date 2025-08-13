@@ -5,7 +5,7 @@ project:
 
 github:
   # The file where the MAJOR.MINOR.PATCH version is kept. The version in this file
-  # is bumped automatically via the `built_in:bump_version` merge_action.
+  # is bumped automatically via the `built_in:bump_version` merge_action....
   version_file: "VERSION"
   version_tag_format: '{{version}}'
   # The file where our CHANGELOG is kept. This file is updated automatically with
