@@ -49,9 +49,9 @@ Describe "Rolling Update after leader is removed and quorum is not lost" {
         $script:killed = $leader.Name
         $script:survivors = $all | Where-Object { $_ -ne $killed }
         $script:survivor1 = $survivors[0]
-        $script:survivor2 = $survivors[1] 
-        
-        BeforeAll {     
+        $script:survivor2 = $survivors[1]
+
+        BeforeAll {
             Stop-ComposeSupervisor $killed
             hab pkg promote $release2 $testChannel
         }

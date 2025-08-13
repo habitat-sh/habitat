@@ -37,10 +37,10 @@ Describe "Rolling Update after a follower is removed and quorum is not lost" {
     Load-SupervisorService "habitat-testing/nginx" -Remote "alpha.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel
     Load-SupervisorService "habitat-testing/nginx" -Remote "beta.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel
 
-    It "loads initial release on alpha" { 
-        Wait-Release -Ident $release1 -Remote "alpha" 
+    It "loads initial release on alpha" {
+        Wait-Release -Ident $release1 -Remote "alpha"
     }
-    It "loads initial release on beta" { 
+    It "loads initial release on beta" {
         Wait-Release -Ident $release1 -Remote "beta"
     }
 
@@ -63,7 +63,7 @@ Describe "Rolling Update after a follower is removed and quorum is not lost" {
             $script:targets = @($survivor, 'gamma')
             $script:target1 = $targets[0]
             $script:target2 = $targets[1]
-            
+
             BeforeAll {
                 Stop-ComposeSupervisor $killed
                 docker exec "${env:COMPOSE_PROJECT_NAME}-gamma-1" hab pkg install $release1
