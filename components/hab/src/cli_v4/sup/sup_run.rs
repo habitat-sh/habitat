@@ -8,13 +8,16 @@ use crate::{cli_v4::utils::{CacheKeyPath,
                             DurationProxy,
                             SharedLoad,
                             SocketAddrProxy},
-            error::Result as HabResult};
+            error::{Error as HabError,
+                    Result as HabResult}};
 
 use habitat_core::tls::rustls_wrapper::{CertificateChainCli,
                                         PrivateKeyCli,
                                         RootCertificateStoreCli};
 
-use habitat_common::{cli::{RING_ENVVAR,
+use habitat_common::{cli::{clap_validators::FileExistsValueParser,
+                           is_toml_file,
+                           RING_ENVVAR,
                            RING_KEY_ENVVAR},
                      command::package::install::InstallSource,
                      types::{EventStreamConnectMethod,
@@ -34,8 +37,10 @@ use serde::{Deserialize,
             Serialize};
 
 use std::{fmt,
+          fs,
           net::IpAddr,
-          path::PathBuf,
+          path::{Path,
+                 PathBuf},
           str::FromStr};
 
 use habitat_core::{env::Config,
@@ -68,7 +73,7 @@ impl From<EventStreamAddress> for NatsAddress {
     fn from(address: EventStreamAddress) -> Self { address.0 }
 }
 
-#[derive(Debug, Clone, Args)]
+#[derive(Debug, Clone, Args, Deserialize)]
 #[command(disable_version_flag = true,
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
@@ -77,10 +82,12 @@ pub struct SupRunOptions {
     #[arg(long = "listen-gossip",
         env = GossipListenAddr::ENVVAR,
         default_value = GossipListenAddr::default_as_str())]
+    #[serde(default)]
     pub listen_gossip: GossipListenAddr,
 
     /// Initial peer addresses (IP[:PORT]).
-    #[arg(long = "peer")]
+    #[arg(long = "peer", value_delimiter = ' ', num_args = 1..)]
+    #[serde(default)]
     pub peer: Vec<SocketAddrProxy>,
 
     /// File to watch for connecting to the ring.
@@ -90,22 +97,26 @@ pub struct SupRunOptions {
     /// Start in local gossip mode.
     #[arg(long = "local-gossip-mode",
         conflicts_with_all = &["listen_gossip", "peer", "peer_watch_file"])]
+    #[serde(default)]
     pub local_gossip_mode: bool,
 
     /// The listen address for the HTTP Gateway.
     #[arg(long = "listen-http",
         env = HttpListenAddr::ENVVAR,
         default_value = HttpListenAddr::default_as_str())]
+    #[serde(default)]
     pub listen_http: HttpListenAddr,
 
     /// Disable the HTTP Gateway.
     #[arg(long = "http-disable", short = 'D')]
+    #[serde(default)]
     pub http_disable: bool,
 
     /// The listen address for the Control Gateway.
     #[arg(long = "listen-ctl",
         env = ListenCtlAddr::ENVVAR,
         default_value = ListenCtlAddr::default_as_str())]
+    #[serde(default)]
     pub listen_ctl: ResolvedListenCtlAddr,
 
     /// The control gateway server’s TLS certificate.
@@ -126,10 +137,13 @@ pub struct SupRunOptions {
 
     /// Mark the Supervisor as a permanent peer.
     #[arg(long = "permanent-peer", short = 'I')]
+    #[serde(default)]
     pub permanent_peer: bool,
 
     /// Flattened cache key configuration.
     #[command(flatten)]
+    #[serde(flatten)]
+    #[serde(default)]
     pub cache_key_path: CacheKeyPath,
 
     /// The contents of the ring key when running with wire encryption
@@ -148,29 +162,35 @@ pub struct SupRunOptions {
 
     /// Enable automatic updates for the Supervisor itself
     #[arg(long = "auto-update", short = 'A')]
+    #[serde(default)]
     pub auto_update: bool,
 
     /// Time (seconds) between Supervisor update checks.
     #[arg(long = "auto-update-period", default_value = "60")]
+    #[serde(default = "DurationProxy::from_60")]
     pub auto_update_period: DurationProxy,
 
     /// Time (seconds) between service update checks.
     #[arg(long = "service-update-period", default_value = "60")]
+    #[serde(default = "DurationProxy::from_60")]
     pub service_update_period: DurationProxy,
 
     /// The minimum period of time in seconds to wait before attempting to restart a service
     /// that failed to start up
     #[arg(long = "service-min-backoff-period", default_value = "0")]
+    #[serde(default = "DurationProxy::from_0")]
     pub service_min_backoff_period: DurationProxy,
 
     /// The maximum period of time in seconds to wait before attempting to restart a service
     /// that failed to start up
     #[arg(long = "service-max-backoff-period", default_value = "0")]
+    #[serde(default = "DurationProxy::from_0")]
     pub service_max_backoff_period: DurationProxy,
 
     /// The period of time in seconds to wait before assuming that a service started up
     /// successfully after a restart
     #[arg(long = "service-restart-cooldown-period", default_value = "300")]
+    #[serde(default = "DurationProxy::from_300")]
     pub service_restart_cooldown_period: DurationProxy,
 
     /// The private key for HTTP Gateway TLS encryption
@@ -203,16 +223,19 @@ pub struct SupRunOptions {
 
     /// Verbose output showing file and line/column numbers
     #[arg(short = 'v')]
+    #[serde(default)]
     pub verbose: bool,
 
     /// Disable ANSI color.
     #[arg(long = "no-color")]
+    #[serde(default)]
     pub no_color: bool,
 
     /// Use structured JSON logging for the Supervisor
     ///
     /// This option also sets NO_COLOR.
     #[arg(long = "json-logging")]
+    #[serde(default)]
     pub json_logging: bool,
 
     /// The IPv4 address to use as the `sys.ip` template variable
@@ -239,6 +262,7 @@ pub struct SupRunOptions {
     /// Set to '0' to immediately start the Supervisor and continue running regardless of the
     /// initial connection status.
     #[arg(long = "event-stream-connect-timeout", env = EventStreamConnectMethod::ENVVAR, default_value = "0")]
+    #[serde(default = "EventStreamConnectMethod::from_0")]
     pub event_stream_connect_timeout: EventStreamConnectMethod,
 
     /// The authentication token for connecting the event stream to Chef Automate
@@ -260,7 +284,8 @@ pub struct SupRunOptions {
     pub event_stream_site: Option<String>,
 
     /// An arbitrary key-value pair to add to each event generated by this Supervisor
-    #[arg(long = "event-meta")]
+    #[arg(long = "event-meta", value_delimiter = ' ', num_args = 1..)]
+    #[serde(default)]
     pub event_meta: Vec<EventStreamMetaPair>,
 
     //// The path to Chef Automate's event stream certificate used to establish a TLS connection
@@ -276,7 +301,13 @@ pub struct SupRunOptions {
     #[arg(long = "keep-latest-packages", env = "HAB_KEEP_LATEST_PACKAGES")]
     pub keep_latest_packages: Option<usize>,
 
+    /// Config Files
+    #[arg(hide = true, long = "config-files", value_delimiter=' ', num_args = 1.., value_parser = FileExistsValueParser)]
+    #[serde(skip)]
+    pub config_files: Vec<PathBuf>,
+
     #[command(flatten)]
+    #[serde(flatten)]
     pub shared_load: SharedLoad,
 }
 
@@ -291,4 +322,193 @@ impl SupRunOptions {
 
     #[cfg(target_os = "macos")]
     pub(crate) async fn do_run(&self, _ui: &mut UI) -> HabResult<()> { Ok(()) }
+}
+
+impl SupRunOptions {
+    /// Merge all the possible configurations
+    ///
+    /// If the `config-files is non-empty, use those. If the config-files is empty, try to see if
+    /// the default config file "/hab/sup/default/config/sup.toml" exists. If that is missing too,
+    /// just return the passed 'other' as it is after cleaning the 'config-files' value if any.
+    pub fn maybe_merge_from_config_files(mut other: Self) -> HabResult<Self> {
+        let config_files = if other.config_files.is_empty() {
+            let default_config_path = Path::new("/hab/sup/default/config/sup.toml");
+            if default_config_path.exists() && default_config_path.is_file() {
+                vec!["/hab/sup/default/config/sup.toml"].into_iter()
+                                                        .map(Into::<PathBuf>::into)
+                                                        .collect::<Vec<PathBuf>>()
+            } else {
+                vec![]
+            }
+        } else {
+            other.config_files.drain(..).collect::<Vec<PathBuf>>()
+        };
+
+        // We iterate in reverse order so that values from the *last* config file in the list
+        // take precedence. This is necessary because the `merge` implementation only sets a field
+        // if it is currently at its default value; once a field is set to a non-default value, it
+        // will not be overwritten by subsequent merges. For example, if you have two config files:
+        //   - config1.toml: { port = 8080 }
+        //   - config2.toml: { port = 9090 }
+        // and you specify them as [config1.toml, config2.toml], iterating in reverse means
+        // config2.toml is merged first, setting port to 9090, and then config1.toml is merged,
+        // but since port is already set (non-default), it is not overwritten. Thus, the value from
+        // the last file in the list is preserved, matching user expectations for "last one wins".
+        for config_file in config_files.into_iter().rev() {
+            if is_toml_file(config_file.as_os_str().to_str().unwrap()) {
+                let inner_object: Self =
+                    toml::from_str(&fs::read_to_string(config_file).expect("File cannot be read"))?;
+                other.merge(inner_object);
+            } else {
+                return Err(HabError::ArgumentError(format!("'{}' is not a valid \
+                                                            toml config file.",
+                                                           config_file.display())));
+            }
+        }
+
+        Ok(other)
+    }
+
+    #[allow(clippy::cognitive_complexity)]
+    fn merge(&mut self, other: Self) {
+        if self.listen_gossip == GossipListenAddr::default() {
+            self.listen_gossip = other.listen_gossip;
+        }
+        if self.peer.is_empty() {
+            self.peer.extend_from_slice(&other.peer);
+        }
+        if self.peer_watch_file.is_none() {
+            self.peer_watch_file = other.peer_watch_file;
+        }
+
+        self.local_gossip_mode |= other.local_gossip_mode;
+
+        if self.listen_http == HttpListenAddr::default() {
+            self.listen_http = other.listen_http;
+        }
+        self.http_disable |= other.http_disable;
+
+        if self.listen_ctl == ResolvedListenCtlAddr::default() {
+            self.listen_ctl = other.listen_ctl;
+        }
+
+        if self.ctl_server_certificate.is_none() {
+            self.ctl_server_certificate = other.ctl_server_certificate;
+        }
+
+        if self.ctl_server_key.is_none() {
+            self.ctl_server_key = other.ctl_server_key;
+        }
+
+        if self.ctl_client_ca_certificate.is_none() {
+            self.ctl_client_ca_certificate = other.ctl_client_ca_certificate;
+        }
+
+        if self.organization.is_none() {
+            self.organization = other.organization;
+        }
+        self.permanent_peer |= other.permanent_peer;
+
+        if self.cache_key_path == CacheKeyPath::default() {
+            self.cache_key_path = other.cache_key_path;
+        }
+
+        if self.ring_key.is_none() {
+            self.ring_key = other.ring_key;
+        }
+
+        if self.ring.is_none() {
+            self.ring = other.ring;
+        }
+
+        self.auto_update |= other.auto_update;
+
+        if self.auto_update_period == 60_u64.into() {
+            self.auto_update_period = other.auto_update_period;
+        }
+
+        if self.service_update_period == 60_u64.into() {
+            self.service_update_period = other.service_update_period;
+        }
+
+        if self.service_min_backoff_period == 0_u64.into() {
+            self.service_min_backoff_period = other.service_min_backoff_period;
+        }
+
+        if self.service_max_backoff_period == 0_u64.into() {
+            self.service_max_backoff_period = other.service_max_backoff_period;
+        }
+
+        if self.service_restart_cooldown_period == 300_u64.into() {
+            self.service_restart_cooldown_period = other.service_restart_cooldown_period;
+        }
+
+        if self.key_file.is_none() {
+            self.key_file = other.key_file;
+        }
+
+        if self.cert_file.is_none() {
+            self.cert_file = other.cert_file;
+        }
+
+        if self.ca_cert_file.is_none() {
+            self.ca_cert_file = other.ca_cert_file;
+        }
+
+        if self.pkg_ident_or_artifact.is_none() {
+            self.pkg_ident_or_artifact = other.pkg_ident_or_artifact;
+        }
+
+        self.verbose |= other.verbose;
+
+        self.no_color |= other.no_color;
+
+        self.json_logging |= other.json_logging;
+
+        if self.sys_ip_address.is_none() {
+            self.sys_ip_address = other.sys_ip_address;
+        }
+
+        if self.event_stream_application.is_none() {
+            self.event_stream_application = other.event_stream_application;
+        }
+
+        if self.event_stream_token.is_none() {
+            self.event_stream_token = other.event_stream_token;
+        }
+
+        if self.event_stream_environment.is_none() {
+            self.event_stream_environment = other.event_stream_environment;
+        }
+
+        if self.event_stream_connect_timeout == 0_u64.into() {
+            self.event_stream_connect_timeout = other.event_stream_connect_timeout;
+        }
+
+        if self.event_stream_url.is_none() {
+            self.event_stream_url = other.event_stream_url;
+        }
+
+        if self.event_stream_site.is_none() {
+            self.event_stream_site = other.event_stream_site;
+        }
+
+        if self.event_meta.is_empty() {
+            self.event_meta.extend_from_slice(&other.event_meta);
+        }
+
+        if self.event_stream_server_certificate.is_none() {
+            self.event_stream_server_certificate = other.event_stream_server_certificate;
+        }
+
+        if self.keep_latest_packages.is_none() {
+            self.keep_latest_packages = other.keep_latest_packages;
+        }
+
+        self.config_files.clear();
+
+        if self.shared_load == SharedLoad::default() {
+            self.shared_load = other.shared_load;
+        }
+    }
 }
