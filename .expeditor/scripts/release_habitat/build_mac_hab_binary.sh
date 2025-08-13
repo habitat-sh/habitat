@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/bash
 
 set -euo pipefail
 
@@ -20,7 +20,7 @@ echo "--- Channel: $channel - bldr url: $HAB_BLDR_URL"
 
 macos_install_bootstrap_package
 
-declare -g hab_binary
+hab_binary=""
 curlbash_hab "x86_64-darwin"
 import_keys
 
