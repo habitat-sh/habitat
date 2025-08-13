@@ -27,9 +27,9 @@ lazy_static = "*"
 linked-hash-map = "*"
 log = "0.4"
 # TODO: Move this to `aws-sdk-rust`
-rusoto_core = "*"
-rusoto_credential = "*"
-rusoto_ecr = "*"
+aws-config = "*"
+aws-sdk-ecr = "*"
+aws-credential-types = "*"
 serde = { version = "*", features = ["rc"] }
 serde_json = { version = "*", features = [ "preserve_order" ] }
 tempfile = "*"
