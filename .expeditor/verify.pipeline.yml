@@ -332,6 +332,7 @@ steps:
   - label: "[unit] :darwin: install script"
     env:
       HAB_LICENSE: "accept-no-persist"
+      HOMEBREW_NO_AUTO_UPDATE: 1
     command:
       - .expeditor/scripts/verify/test_install_script.sh
     expeditor:
@@ -955,8 +956,6 @@ steps:
 #######################################################################
   - label: "[build] :mac: x86_64 hab"
     command:
-      # We need to install bash 4+ so we are able to use all the modern capabilities.
-      - brew install bash
       - .expeditor/scripts/verify/build_mac_package.sh components/hab
     env:
       HAB_LICENSE: "accept-no-persist"
@@ -975,8 +974,6 @@ steps:
 
   - label: "[build] :mac: aarch64 hab"
     command:
-      # We need to install bash 4+ so we are able to use all the modern capabilities.
-      - brew install bash
       - .expeditor/scripts/verify/build_mac_package.sh components/hab
     env:
       HAB_LICENSE: "accept-no-persist"

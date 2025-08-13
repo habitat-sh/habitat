@@ -60,8 +60,6 @@ steps:
 
   - label: "[:mac: x86_64 build hab]"
     command:
-      # We need to install bash 4+ so we are able to use all the modern capabilities.
-      - brew install bash
       - .expeditor/scripts/release_habitat/build_mac_hab_binary.sh
     env:
       BUILD_PKG_TARGET: "x86_64-darwin"
@@ -79,8 +77,6 @@ steps:
 
   - label: "[:mac: aarch64 build hab]"
     command:
-      # We need to install bash 4+ so we are able to use all the modern capabilities.
-      - brew install bash
       - .expeditor/scripts/release_habitat/build_mac_hab_binary.sh
     env:
       BUILD_PKG_TARGET: "aarch64-darwin"
