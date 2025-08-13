@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.192 -->
-## [2.0.192](https://github.com/habitat-sh/habitat/tree/2.0.192) (2025-08-08)
+<!-- latest_release 2.0.193 -->
+## [2.0.193](https://github.com/habitat-sh/habitat/tree/2.0.193) (2025-08-13)
 
 #### Merged Pull Requests
-- fix tar exporter e2e test [#9801](https://github.com/habitat-sh/habitat/pull/9801) ([mwrock](https://github.com/mwrock))
+- just use the bash v3 on the mac builders to avoid a long brew install [#9835](https://github.com/habitat-sh/habitat/pull/9835) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- just use the bash v3 on the mac builders to avoid a long brew install [#9835](https://github.com/habitat-sh/habitat/pull/9835) ([mwrock](https://github.com/mwrock)) <!-- 2.0.193 -->
 - fix tar exporter e2e test [#9801](https://github.com/habitat-sh/habitat/pull/9801) ([mwrock](https://github.com/mwrock)) <!-- 2.0.192 -->
 - unset auth token before generating docs [#9809](https://github.com/habitat-sh/habitat/pull/9809) ([mwrock](https://github.com/mwrock)) <!-- 2.0.192 -->
 - fix impropper use of install_hook_mode in package install [#9807](https://github.com/habitat-sh/habitat/pull/9807) ([mwrock](https://github.com/mwrock)) <!-- 2.0.191 -->
@@ -270,4 +271,3 @@
 - update environment variable doc to reflect HAB_REFRESH_CHANNEL [#9475](https://github.com/habitat-sh/habitat/pull/9475) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1217 -->
 - update changelog for hab 1.6.1215 [#9479](https://github.com/habitat-sh/habitat/pull/9479) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1216 -->
 <!-- release_rollup -->
-
