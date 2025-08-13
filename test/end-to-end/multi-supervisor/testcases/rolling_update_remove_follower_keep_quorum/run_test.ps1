@@ -72,7 +72,7 @@ Describe "Rolling Update after a follower is removed and quorum is not lost" {
             BeforeAll {
                 hab pkg promote $release3 $testChannel
             }
-            
+
             It "updates to $release3 on $survivor1" {
                 Wait-Release -Ident $release3 -Remote $survivor1
             }
