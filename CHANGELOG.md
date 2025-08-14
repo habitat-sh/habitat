@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.194 -->
-## [2.0.194](https://github.com/habitat-sh/habitat/tree/2.0.194) (2025-08-14)
+<!-- latest_release 2.0.195 -->
+## [2.0.195](https://github.com/habitat-sh/habitat/tree/2.0.195) (2025-08-14)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.31 to 1.2.32 [#9814](https://github.com/habitat-sh/habitat/pull/9814) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump glob from 0.3.2 to 0.3.3 [#9818](https://github.com/habitat-sh/habitat/pull/9818) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump glob from 0.3.2 to 0.3.3 [#9818](https://github.com/habitat-sh/habitat/pull/9818) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.195 -->
+- Bump anyhow from 1.0.98 to 1.0.99 [#9821](https://github.com/habitat-sh/habitat/pull/9821) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.195 -->
+- Bump actions/checkout from 4 to 5 [#9823](https://github.com/habitat-sh/habitat/pull/9823) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.195 -->
+- Bump thiserror from 2.0.12 to 2.0.14 [#9833](https://github.com/habitat-sh/habitat/pull/9833) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.195 -->
+- Bump clap_complete from 4.5.55 to 4.5.57 [#9820](https://github.com/habitat-sh/habitat/pull/9820) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.195 -->
 - Bump cc from 1.2.31 to 1.2.32 [#9814](https://github.com/habitat-sh/habitat/pull/9814) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.194 -->
 - just use the bash v3 on the mac builders to avoid a long brew install [#9835](https://github.com/habitat-sh/habitat/pull/9835) ([mwrock](https://github.com/mwrock)) <!-- 2.0.193 -->
 - fix tar exporter e2e test [#9801](https://github.com/habitat-sh/habitat/pull/9801) ([mwrock](https://github.com/mwrock)) <!-- 2.0.192 -->
