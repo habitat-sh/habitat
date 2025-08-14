@@ -85,34 +85,29 @@ impl PackageSetFile {
     // Get Package Sets from the `toml` data. Following validations are performed -
     // format_version is 1
     pub(crate) fn to_package_sets(&self) -> Result<Vec<PackageSet>> {
-        match self.format_version {
-            Some(version) => {
-                if version != 1 {
-                    Err(Error::PackageSetParseError(format!("format_version \
-                                                             invalid, only \
-                                                             version 1 allowed \
-                                                             ({} provided",
-                                                            self.format_version
-                                                                .unwrap())))
-                } else {
-                    let mut sets = vec![];
-                    for (target, pkg_sets) in &self.targets {
-                        for pkg_set in pkg_sets {
-                            let mut idents = vec![];
-                            for package in &pkg_set.packages {
-                                let ident = PackageIdent::from_str(package).map_err(Error::from)?;
-                                idents.push(ident);
-                            }
-                            sets.push(PackageSet { target: *target,
-                                                   channel: pkg_set.channel.clone(),
-                                                   idents });
-                        }
-                    }
-                    Ok(sets)
-                }
+        if let Some(version) = self.format_version {
+            if version != 1 {
+                return Err(Error::PackageSetParseError(format!("format_version \
+                                                                invalid, only \
+                                                                version 1 allowed \
+                                                                ({} provided",
+                                                               version)));
             }
-            None => Err(Error::PackageSetParseError("format_version missing!".to_string())),
         }
+        let mut sets = vec![];
+        for (target, pkg_sets) in &self.targets {
+            for pkg_set in pkg_sets {
+                let mut idents = vec![];
+                for package in &pkg_set.packages {
+                    let ident = PackageIdent::from_str(package).map_err(Error::from)?;
+                    idents.push(ident);
+                }
+                sets.push(PackageSet { target: *target,
+                                       channel: pkg_set.channel.clone(),
+                                       idents });
+            }
+        }
+        Ok(sets)
     }
 }
 

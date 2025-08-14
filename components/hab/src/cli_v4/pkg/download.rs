@@ -179,7 +179,7 @@ mod tests {
         toml_files_map.insert("bad_header.toml".to_string(), false);
         toml_files_map.insert("bad_ident.toml".to_string(), false);
         toml_files_map.insert("bad_target.toml".to_string(), false);
-        toml_files_map.insert("no_header.toml".to_string(), false);
+        toml_files_map.insert("no_header.toml".to_string(), true);
         toml_files_map.insert("no_target.toml".to_string(), true);
         toml_files_map.insert("happy_path.toml".to_string(), true);
 
@@ -200,11 +200,7 @@ mod tests {
                 let pkg_download = result.unwrap();
                 let result = pkg_download.idents_from_file_matches(PackageTarget::active_target());
                 let should_be_ok = toml_files_map[&key];
-                assert_eq!(result.is_ok(),
-                           should_be_ok,
-                           "{}: {:#?}",
-                           key,
-                           result.err().unwrap());
+                assert_eq!(result.is_ok(), should_be_ok, "{}: {:#?}", key, result.err());
             }
         }
     }
