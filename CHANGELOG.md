@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.195 -->
-## [2.0.195](https://github.com/habitat-sh/habitat/tree/2.0.195) (2025-08-14)
+<!-- latest_release 2.0.196 -->
+## [2.0.196](https://github.com/habitat-sh/habitat/tree/2.0.196) (2025-08-14)
 
 #### Merged Pull Requests
-- Bump glob from 0.3.2 to 0.3.3 [#9818](https://github.com/habitat-sh/habitat/pull/9818) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- fixes some clap v4 regressions [#9815](https://github.com/habitat-sh/habitat/pull/9815) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- fixes some clap v4 regressions [#9815](https://github.com/habitat-sh/habitat/pull/9815) ([mwrock](https://github.com/mwrock)) <!-- 2.0.196 -->
 - Bump glob from 0.3.2 to 0.3.3 [#9818](https://github.com/habitat-sh/habitat/pull/9818) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.195 -->
 - Bump anyhow from 1.0.98 to 1.0.99 [#9821](https://github.com/habitat-sh/habitat/pull/9821) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.195 -->
 - Bump actions/checkout from 4 to 5 [#9823](https://github.com/habitat-sh/habitat/pull/9823) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.195 -->
