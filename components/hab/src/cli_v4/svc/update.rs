@@ -76,7 +76,7 @@ pub(crate) struct UpdateCommand {
     update_condition: UpdateCondition,
 
     /// One or more service groups to bind to a configuration
-    #[arg(long = "bind")]
+    #[arg(long = "bind", num_args = 0..)]
     bind: Option<Vec<ServiceBind>>,
 
     /// Governs how the presence or absence of binds affects service startup
