@@ -10,7 +10,7 @@ Describe "license" {
         hab -V
         $LastExitCode | Should -Be 0
 
-        hab svc load --version
+        hab sup --version
         $LastExitCode | Should -Be 0
 
         hab sup -V

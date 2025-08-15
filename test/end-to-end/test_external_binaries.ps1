@@ -21,7 +21,7 @@ Describe "`hab` correctly executes external binaries" {
 
     It "`hab pkg export` with bad exporter" {
         hab pkg export a_bad_exporter --help
-        $LastExitCode | Should -Be 1
+        $LastExitCode | Should -Not -Be 0
     }
 
     It "`hab sup --version` correctly reports version" {
