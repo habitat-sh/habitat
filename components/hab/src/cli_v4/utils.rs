@@ -516,9 +516,7 @@ pub struct ExternalCommandArgs {
 #[derive(Clone, Debug, Args)]
 #[command(trailing_var_arg = true,
           allow_hyphen_values = true,
-          disable_help_flag = true,
-          disable_help_subcommand = true,
-          disable_version_flag = true)]
+          disable_help_subcommand = true)]
 pub struct CommandAndArgs {
     /// Command to execute (eg. ls)
     pub cmd: PathBuf,
