@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.198 -->
-## [2.0.198](https://github.com/habitat-sh/habitat/tree/2.0.198) (2025-08-14)
+<!-- latest_release 2.0.199 -->
+## [2.0.199](https://github.com/habitat-sh/habitat/tree/2.0.199) (2025-08-15)
 
 #### Merged Pull Requests
-- adding back v1.6 to the release_branches list [#9838](https://github.com/habitat-sh/habitat/pull/9838) ([muthuja](https://github.com/muthuja))
+- Bump async-trait from 0.1.88 to 0.1.89 [#9841](https://github.com/habitat-sh/habitat/pull/9841) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.88 to 0.1.89 [#9841](https://github.com/habitat-sh/habitat/pull/9841) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.199 -->
 - adding back v1.6 to the release_branches list [#9838](https://github.com/habitat-sh/habitat/pull/9838) ([muthuja](https://github.com/muthuja)) <!-- 2.0.198 -->
 - Bump libc from 0.2.174 to 0.2.175 [#9837](https://github.com/habitat-sh/habitat/pull/9837) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.198 -->
 - Bump reqwest from 0.12.22 to 0.12.23 [#9836](https://github.com/habitat-sh/habitat/pull/9836) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.197 -->
