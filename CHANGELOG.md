@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.200 -->
-## [2.0.200](https://github.com/habitat-sh/habitat/tree/2.0.200) (2025-08-15)
+<!-- latest_release 2.0.201 -->
+## [2.0.201](https://github.com/habitat-sh/habitat/tree/2.0.201) (2025-08-18)
 
 #### Merged Pull Requests
-- Fixes 3 e2e test [#9839](https://github.com/habitat-sh/habitat/pull/9839) ([jasonheath](https://github.com/jasonheath))
+- Bump thiserror from 2.0.14 to 2.0.15 [#9842](https://github.com/habitat-sh/habitat/pull/9842) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump thiserror from 2.0.14 to 2.0.15 [#9842](https://github.com/habitat-sh/habitat/pull/9842) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.201 -->
 - Fixes 3 e2e test [#9839](https://github.com/habitat-sh/habitat/pull/9839) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.200 -->
 - Bump async-trait from 0.1.88 to 0.1.89 [#9841](https://github.com/habitat-sh/habitat/pull/9841) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.199 -->
 - adding back v1.6 to the release_branches list [#9838](https://github.com/habitat-sh/habitat/pull/9838) ([muthuja](https://github.com/muthuja)) <!-- 2.0.198 -->
