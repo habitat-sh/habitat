@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.201 -->
-## [2.0.201](https://github.com/habitat-sh/habitat/tree/2.0.201) (2025-08-18)
+<!-- latest_release 2.0.202 -->
+## [2.0.202](https://github.com/habitat-sh/habitat/tree/2.0.202) (2025-08-18)
 
 #### Merged Pull Requests
-- Bump thiserror from 2.0.14 to 2.0.15 [#9842](https://github.com/habitat-sh/habitat/pull/9842) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump bitflags from 2.9.1 to 2.9.2 [#9843](https://github.com/habitat-sh/habitat/pull/9843) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump bitflags from 2.9.1 to 2.9.2 [#9843](https://github.com/habitat-sh/habitat/pull/9843) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.202 -->
+- Bump cc from 1.2.32 to 1.2.33 [#9844](https://github.com/habitat-sh/habitat/pull/9844) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.202 -->
 - Bump thiserror from 2.0.14 to 2.0.15 [#9842](https://github.com/habitat-sh/habitat/pull/9842) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.201 -->
 - Fixes 3 e2e test [#9839](https://github.com/habitat-sh/habitat/pull/9839) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.200 -->
 - Bump async-trait from 0.1.88 to 0.1.89 [#9841](https://github.com/habitat-sh/habitat/pull/9841) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.199 -->
