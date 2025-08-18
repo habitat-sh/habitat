@@ -11,9 +11,10 @@ use crate::{cli_v4::utils::{CacheKeyPath,
             error::{Error as HabError,
                     Result as HabResult}};
 
-use habitat_core::tls::rustls_wrapper::{CertificateChainCli,
-                                        PrivateKeyCli,
-                                        RootCertificateStoreCli};
+use habitat_core::{fs::HAB_CTL_KEYS_CACHE,
+                   tls::rustls_wrapper::{CertificateChainCli,
+                                         PrivateKeyCli,
+                                         RootCertificateStoreCli}};
 
 use habitat_common::{cli::{clap_validators::FileExistsValueParser,
                            is_toml_file,
@@ -120,15 +121,15 @@ pub struct SupRunOptions {
     pub listen_ctl: ResolvedListenCtlAddr,
 
     /// The control gateway server’s TLS certificate.
-    #[arg(long = "ctl-server-certificate")]
+    #[arg(long = "ctl-server-certificate", default_missing_value = HAB_CTL_KEYS_CACHE, num_args = 0..)]
     pub ctl_server_certificate: Option<CertificateChainCli>,
 
     /// The control gateway server’s private key.
-    #[arg(long = "ctl-server-key")]
+    #[arg(long = "ctl-server-key", default_missing_value = HAB_CTL_KEYS_CACHE, num_args = 0..)]
     pub ctl_server_key: Option<PrivateKeyCli>,
 
     /// The client CA certificate.
-    #[arg(long = "ctl-client-ca-certificate")]
+    #[arg(long = "ctl-client-ca-certificate", default_missing_value = HAB_CTL_KEYS_CACHE, num_args = 0..)]
     pub ctl_client_ca_certificate: Option<RootCertificateStoreCli>,
 
     /// Organization the Supervisor belongs to.
