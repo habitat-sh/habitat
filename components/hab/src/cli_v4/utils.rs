@@ -218,7 +218,7 @@ pub(crate) struct RemoteSup {
     #[arg(name = "REMOTE_SUP",
                 long = "remote-sup",
                 short = 'r',
-                default_value = ListenCtlAddr::default_as_str())]
+                default_missing_value = ListenCtlAddr::default_as_str())]
     remote_sup: Option<ResolvedListenCtlAddr>,
 }
 
