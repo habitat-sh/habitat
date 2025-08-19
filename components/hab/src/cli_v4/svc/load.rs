@@ -2,16 +2,16 @@ use clap_v4 as clap;
 
 use std::convert::TryFrom;
 
-use clap::Parser;
+use clap::{value_parser,
+           Parser};
+
 use serde::{Deserialize,
             Serialize};
-
-use habitat_common::cli::clap_validators::HabPkgIdentValueParser;
-use habitat_core::package::PackageIdent;
 
 use hab_common_derive::GenConfig;
 
 use crate::{cli_v4::utils::{shared_load_cli_to_ctl,
+                            PkgIdent,
                             RemoteSup,
                             SharedLoad},
             error::{Error as HabError,
@@ -28,8 +28,8 @@ use crate::{cli_v4::utils::{shared_load_cli_to_ctl,
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct LoadCommand {
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
-    #[arg(name = "PKG_IDENT", value_parser = HabPkgIdentValueParser::simple(), required_unless_present("generate_config"))]
-    pkg_ident: Option<PackageIdent>,
+    #[arg(name = "PKG_IDENT", value_parser = value_parser!(PkgIdent),  required_unless_present("generate_config"))]
+    pkg_ident: Option<PkgIdent>,
 
     /// Load or reload an already loaded service. If the service was previously loaded and
     /// running this operation will also restart the service
@@ -50,7 +50,9 @@ impl TryFrom<LoadCommand> for habitat_sup_protocol::ctl::SvcLoad {
     type Error = HabError;
 
     fn try_from(cmd: LoadCommand) -> HabResult<Self> {
-        shared_load_cli_to_ctl(cmd.pkg_ident.unwrap(), cmd.shared_load, cmd.force)
+        shared_load_cli_to_ctl(cmd.pkg_ident.unwrap().pkg_ident(),
+                               cmd.shared_load,
+                               cmd.force)
     }
 }
 

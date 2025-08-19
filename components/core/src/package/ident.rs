@@ -19,7 +19,6 @@ lazy_static::lazy_static! {
 }
 
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
-#[serde(try_from = "String", into = "String")]
 pub struct PackageIdent {
     pub origin:  String,
     pub name:    String,

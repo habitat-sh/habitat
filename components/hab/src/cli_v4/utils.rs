@@ -551,6 +551,50 @@ pub(crate) fn origin_param_or_env(opt: &Option<CoreOrigin>) -> Result<CoreOrigin
     }
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(try_from = "String", into = "String")]
+struct PkgIdentStringySerde(PackageIdent);
+
+impl FromStr for PkgIdentStringySerde {
+    type Err = habitat_core::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(Self(s.parse()?)) }
+}
+
+impl std::convert::TryFrom<String> for PkgIdentStringySerde {
+    type Error = habitat_core::Error;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> { Self::from_str(&s) }
+}
+
+impl std::fmt::Display for PkgIdentStringySerde {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result { write!(f, "{}", self.0) }
+}
+
+impl From<PkgIdentStringySerde> for String {
+    fn from(pkg_ident: PkgIdentStringySerde) -> Self { pkg_ident.to_string() }
+}
+
+#[derive(Clone, Debug, Args, Deserialize, Serialize)]
+#[serde(transparent)]
+pub struct PkgIdent {
+    /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+    #[arg(name = "PKG_IDENT")]
+    pkg_ident: PkgIdentStringySerde,
+}
+
+impl PkgIdent {
+    pub(crate) fn pkg_ident(self) -> PackageIdent { self.pkg_ident.0 }
+}
+
+impl FromStr for PkgIdent {
+    type Err = habitat_core::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self { pkg_ident: PkgIdentStringySerde(s.parse()?), })
+    }
+}
+
 pub fn shared_load_cli_to_ctl(ident: PackageIdent,
                               shared_load: SharedLoad,
                               force: bool)
