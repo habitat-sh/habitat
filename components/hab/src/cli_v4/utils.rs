@@ -215,7 +215,8 @@ impl AuthToken {
     }
 }
 
-#[derive(Debug, Clone, Parser)]
+#[derive(GenConfig)]
+#[derive(Debug, Clone, Parser, Serialize, Deserialize)]
 pub(crate) struct RemoteSup {
     /// Address to a remote Supervisor's Control Gateway
     #[arg(name = "REMOTE_SUP",

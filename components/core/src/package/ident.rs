@@ -19,6 +19,7 @@ lazy_static::lazy_static! {
 }
 
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
+#[serde(try_from = "String", into = "String")]
 pub struct PackageIdent {
     pub origin:  String,
     pub name:    String,
@@ -228,6 +229,10 @@ impl From<String> for PackageIdent {
     fn from(ident: String) -> Self {
         Self::from_str(ident.as_str()).expect("Invalid Package Identifier")
     }
+}
+
+impl From<PackageIdent> for String {
+    fn from(pkg_ident: PackageIdent) -> Self { pkg_ident.to_string() }
 }
 
 impl PartialOrd for PackageIdent {
