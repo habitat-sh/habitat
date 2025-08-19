@@ -33,6 +33,8 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    ChannelIdent,
                    AUTH_TOKEN_ENVVAR};
 
+use hab_common_derive::GenConfig;
+
 use habitat_sup_protocol::types::UpdateCondition;
 
 use crate::error::{Error as HabError,
@@ -65,7 +67,8 @@ impl GROUP_DEFAULT {
     fn get() -> String { GROUP_DEFAULT.clone() }
 }
 
-#[derive(PartialEq, Debug, Clone, Parser, Deserialize)]
+#[derive(GenConfig)]
+#[derive(PartialEq, Debug, Clone, Parser, Serialize, Deserialize)]
 pub struct CacheKeyPath {
     /// Cache for creating and searching for encryption keys
     #[arg(long = "cache-key-path",
@@ -355,8 +358,8 @@ habitat_core::impl_try_from_string_and_into_string!(SubjectAlternativeName);
 
 fn health_check_interval_default() -> u64 { 30 }
 
+#[derive(GenConfig)]
 #[derive(PartialEq, Debug, Clone, Parser, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
 #[command(disable_version_flag = true, rename_all = "screamingsnake")]
 pub struct SharedLoad {
     /// Receive updates from the specified release channel
@@ -425,6 +428,7 @@ pub struct SharedLoad {
     ///
     /// The default value can be set in the packages plan file.
     #[arg(long = "shutdown-timeout")]
+    #[serde(default)]
     shutdown_timeout: Option<ShutdownTimeout>,
 
     #[cfg(target_os = "windows")]
@@ -632,6 +636,8 @@ pub(crate) fn bldr_auth_token_from_args_env_or_load(opt: Option<String>) -> Resu
 pub(crate) fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Option<String> {
     bldr_auth_token_from_args_env_or_load(opt).ok()
 }
+
+pub(crate) fn is_default<T: Default + PartialEq>(val: &T) -> bool { val == &T::default() }
 
 #[cfg(test)]
 mod tests {

@@ -10,7 +10,7 @@ debug = true
 members = [
   "components/builder-api-client",
   "components/butterfly",
-  "components/common",
+  "components/common", "components/common-derive",
   "components/core",
   "components/hab",
   "components/http-client",

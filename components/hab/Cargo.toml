@@ -26,6 +26,7 @@ habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
 habitat-sup-client = { path = "../sup-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
+hab-common-derive = { path = "../common-derive" }
 # We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.
 handlebars = { version = "*", default-features = false }
 lazy_static = "*"

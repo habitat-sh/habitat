@@ -4,7 +4,8 @@ use clap_v4 as clap;
 
 use clap::Args;
 
-use crate::{cli_v4::utils::{CacheKeyPath,
+use crate::{cli_v4::utils::{is_default,
+                            CacheKeyPath,
                             DurationProxy,
                             SharedLoad,
                             SocketAddrProxy},
@@ -30,6 +31,8 @@ use habitat_common::{cli::{clap_validators::FileExistsValueParser,
                              ListenCtlAddr,
                              ResolvedListenCtlAddr},
                      ui::UI};
+
+use hab_common_derive::GenConfig;
 
 use rants::{error::Error as RantsError,
             Address as NatsAddress};
@@ -74,16 +77,17 @@ impl From<EventStreamAddress> for NatsAddress {
     fn from(address: EventStreamAddress) -> Self { address.0 }
 }
 
-#[derive(Debug, Clone, Args, Deserialize)]
+#[derive(GenConfig)]
+#[derive(Debug, Clone, Args, Serialize, Deserialize)]
 #[command(disable_version_flag = true,
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
 pub struct SupRunOptions {
     /// The listen address for the Gossip Gateway.
     #[arg(long = "listen-gossip",
-        env = GossipListenAddr::ENVVAR,
-        default_value = GossipListenAddr::default_as_str())]
-    #[serde(default)]
+          env = GossipListenAddr::ENVVAR,
+          default_value = GossipListenAddr::default_as_str())]
+    #[serde(default, skip_serializing_if = "is_default")]
     pub listen_gossip: GossipListenAddr,
 
     /// Initial peer addresses (IP[:PORT]).
@@ -93,6 +97,7 @@ pub struct SupRunOptions {
 
     /// File to watch for connecting to the ring.
     #[arg(long = "peer-watch-file", conflicts_with = "peer")]
+    #[serde(default)]
     pub peer_watch_file: Option<PathBuf>,
 
     /// Start in local gossip mode.
@@ -219,7 +224,7 @@ pub struct SupRunOptions {
     /// Load a Habitat package as part of the Supervisor startup
     ///
     /// The package can be specified by a package identifier (ex: core/redis) or filepath to a
-    /// Habitat artifact (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).    #[arg()]
+    /// Habitat artifact (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).
     pub pkg_ident_or_artifact: Option<InstallSource>,
 
     /// Verbose output showing file and line/column numbers
@@ -292,6 +297,7 @@ pub struct SupRunOptions {
     //// The path to Chef Automate's event stream certificate used to establish a TLS connection
     /// The certificate should be in PEM format.
     #[arg(long = "event-stream-server-certificate")]
+    #[serde(default)]
     pub event_stream_server_certificate: Option<EventStreamServerCertificate>,
 
     /// Automatically cleanup old packages
@@ -306,6 +312,11 @@ pub struct SupRunOptions {
     #[arg(hide = true, long = "config-files", value_delimiter=' ', num_args = 1.., value_parser = FileExistsValueParser)]
     #[serde(skip)]
     pub config_files: Vec<PathBuf>,
+
+    /// Config Files
+    #[arg(hide = true, long = "generate-config")]
+    #[serde(skip)]
+    pub generate_config: bool,
 
     #[command(flatten)]
     #[serde(flatten)]
