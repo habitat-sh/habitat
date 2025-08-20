@@ -5,6 +5,8 @@ use clap::Parser;
 use habitat_common::{ui::UI,
                      FeatureFlag};
 
+use crate::command::sup::start;
+
 use crate::{error::Result as HabResult,
             VERSION};
 
@@ -191,8 +193,20 @@ pub(crate) struct SvcStartCommand;
 pub(crate) struct SvcStopCommand;
 
 pub async fn cli_driver(ui: &mut UI, feature_flags: FeatureFlag) -> HabResult<()> {
-    // Skip license check if user is just asking for help or version
     let args: Vec<String> = std::env::args().collect();
+
+    // We must manually detect a supervisor version check and call the `hab-sup` binary to get the
+    // true Supervisor version.
+    if args.len() >= 3
+       && args.get(1).map_or(false, |arg| arg == "sup")
+       && args.get(2)
+              .map_or(false, |arg| arg == "--version" || arg == "-V")
+    {
+        let os_args: Vec<std::ffi::OsString> = std::env::args_os().skip(2).collect();
+        return start(ui, &os_args).await;
+    }
+
+    // Skip license check if user is just asking for help or version
     let skip_license_check =
         args.iter()
             .any(|arg| arg == "--help" || arg == "-h" || arg == "--version" || arg == "-V");
