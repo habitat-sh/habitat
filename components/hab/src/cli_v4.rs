@@ -198,9 +198,9 @@ pub async fn cli_driver(ui: &mut UI, feature_flags: FeatureFlag) -> HabResult<()
     // We must manually detect a supervisor version check and call the `hab-sup` binary to get the
     // true Supervisor version.
     if args.len() >= 3
-       && args.get(1).map_or(false, |arg| arg == "sup")
+       && args.get(1).is_some_and(|arg| arg == "sup")
        && args.get(2)
-              .map_or(false, |arg| arg == "--version" || arg == "-V")
+              .is_some_and(|arg| arg == "--version" || arg == "-V")
     {
         let os_args: Vec<std::ffi::OsString> = std::env::args_os().skip(2).collect();
         return start(ui, &os_args).await;
