@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.205 -->
-## [2.0.205](https://github.com/habitat-sh/habitat/tree/2.0.205) (2025-08-20)
+<!-- latest_release 2.0.206 -->
+## [2.0.206](https://github.com/habitat-sh/habitat/tree/2.0.206) (2025-08-20)
 
 #### Merged Pull Requests
-- fix file upload and license check [#9849](https://github.com/habitat-sh/habitat/pull/9849) ([mwrock](https://github.com/mwrock))
+- Remove unmaintained crate - paste [#9819](https://github.com/habitat-sh/habitat/pull/9819) ([dikshagupta1](https://github.com/dikshagupta1))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Remove unmaintained crate - paste [#9819](https://github.com/habitat-sh/habitat/pull/9819) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.206 -->
 - fix file upload and license check [#9849](https://github.com/habitat-sh/habitat/pull/9849) ([mwrock](https://github.com/mwrock)) <!-- 2.0.205 -->
 - remote-sup should default to default.toml if no arg is given [#9845](https://github.com/habitat-sh/habitat/pull/9845) ([mwrock](https://github.com/mwrock)) <!-- 2.0.204 -->
 - default hab sup run ctl based settings to HAB_CTL_KEYS_CACHE [#9840](https://github.com/habitat-sh/habitat/pull/9840) ([mwrock](https://github.com/mwrock)) <!-- 2.0.203 -->
