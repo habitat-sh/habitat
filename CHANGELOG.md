@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.207 -->
-## [2.0.207](https://github.com/habitat-sh/habitat/tree/2.0.207) (2025-08-20)
+<!-- latest_release 2.0.208 -->
+## [2.0.208](https://github.com/habitat-sh/habitat/tree/2.0.208) (2025-08-20)
 
 #### Merged Pull Requests
-- fix hab sup --version when another binary is set in HAB_SUP_BINARY [#9852](https://github.com/habitat-sh/habitat/pull/9852) ([mwrock](https://github.com/mwrock))
+- Bump tempfile from 3.20.0 to 3.21.0 [#9851](https://github.com/habitat-sh/habitat/pull/9851) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump tempfile from 3.20.0 to 3.21.0 [#9851](https://github.com/habitat-sh/habitat/pull/9851) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.208 -->
 - fix hab sup --version when another binary is set in HAB_SUP_BINARY [#9852](https://github.com/habitat-sh/habitat/pull/9852) ([mwrock](https://github.com/mwrock)) <!-- 2.0.207 -->
 - Remove unmaintained crate - paste [#9819](https://github.com/habitat-sh/habitat/pull/9819) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.206 -->
 - fix file upload and license check [#9849](https://github.com/habitat-sh/habitat/pull/9849) ([mwrock](https://github.com/mwrock)) <!-- 2.0.205 -->
