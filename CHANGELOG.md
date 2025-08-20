@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.204 -->
-## [2.0.204](https://github.com/habitat-sh/habitat/tree/2.0.204) (2025-08-19)
+<!-- latest_release 2.0.205 -->
+## [2.0.205](https://github.com/habitat-sh/habitat/tree/2.0.205) (2025-08-20)
 
 #### Merged Pull Requests
-- remote-sup should default to default.toml if no arg is given [#9845](https://github.com/habitat-sh/habitat/pull/9845) ([mwrock](https://github.com/mwrock))
+- fix file upload and license check [#9849](https://github.com/habitat-sh/habitat/pull/9849) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- fix file upload and license check [#9849](https://github.com/habitat-sh/habitat/pull/9849) ([mwrock](https://github.com/mwrock)) <!-- 2.0.205 -->
 - remote-sup should default to default.toml if no arg is given [#9845](https://github.com/habitat-sh/habitat/pull/9845) ([mwrock](https://github.com/mwrock)) <!-- 2.0.204 -->
 - default hab sup run ctl based settings to HAB_CTL_KEYS_CACHE [#9840](https://github.com/habitat-sh/habitat/pull/9840) ([mwrock](https://github.com/mwrock)) <!-- 2.0.203 -->
 - Bump bitflags from 2.9.1 to 2.9.2 [#9843](https://github.com/habitat-sh/habitat/pull/9843) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.202 -->
