@@ -8,6 +8,8 @@ use habitat_common::{ui::UI,
 use crate::{error::Result as HabResult,
             VERSION};
 
+use crate::license::check_for_license_acceptance_and_prompt;
+
 mod bldr;
 use bldr::BldrCommand;
 
@@ -189,6 +191,16 @@ pub(crate) struct SvcStartCommand;
 pub(crate) struct SvcStopCommand;
 
 pub async fn cli_driver(ui: &mut UI, feature_flags: FeatureFlag) -> HabResult<()> {
+    // Skip license check if user is just asking for help or version
+    let args: Vec<String> = std::env::args().collect();
+    let skip_license_check =
+        args.iter()
+            .any(|arg| arg == "--help" || arg == "-h" || arg == "--version" || arg == "-V");
+
+    if !skip_license_check {
+        check_for_license_acceptance_and_prompt(ui)?;
+    }
+
     let cli = Hab::parse();
     cli.do_cli_command(ui, feature_flags).await
 }

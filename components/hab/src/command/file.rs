@@ -5,7 +5,6 @@ use habitat_common::{types::ResolvedListenCtlAddr,
                           UIWriter}};
 use habitat_core::{crypto::keys::{Key,
                                   KeyCache},
-                   fs::cache_key_path,
                    service::ServiceGroup};
 use habitat_sup_client::{SrvClient,
                          SrvClientError};
@@ -31,7 +30,7 @@ pub(crate) async fn sub_file_put<U>(service_group: &str,
 {
     let grp = service_group.parse::<ServiceGroup>()?;
 
-    let remote_sup_addr = remote_sup.expect("RemoteSup must be provided");
+    let remote_sup_addr = SrvClient::ctl_addr(remote_sup.as_ref())?;
 
     let mut msg = sup_proto::ctl::SvcFilePut { service_group: Some(grp.clone().into()),
                                                version: Some(version),
@@ -46,7 +45,7 @@ pub(crate) async fn sub_file_put<U>(service_group: &str,
 
     msg.filename = Some(file.file_name().unwrap().to_string_lossy().into_owned());
 
-    let key_cache = KeyCache::new(cache_key_path(key_path));
+    let key_cache = KeyCache::new(key_path);
     key_cache.setup()?;
 
     ui.begin(format!("Uploading file {} to {} incarnation {}",
