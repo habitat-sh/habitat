@@ -164,7 +164,6 @@ mod tests {
                               ServiceSecretEncryptionKey,
                               UserPublicEncryptionKey,
                               UserSecretEncryptionKey};
-    use paste::paste;
 
     /// Validate the FromStr implementations
     mod from_str {
@@ -227,41 +226,50 @@ mod tests {
             use crate::crypto::test_support::fixture_as_string;
 
             macro_rules! parse {
-                ($key:ty, $fixture_path:expr) => {
-                    paste! {
-                        #[test]
-                        fn [<$key:snake:lower>]() {
-                            let content = fixture_as_string($fixture_path);
-                            let parsed = content.parse::<$key>();
-                            assert!(parsed.is_ok(),
-                                    "Could not parse '{}' as a {}: {:?}",
-                                    $fixture_path,
-                                    stringify!($key),
-                                    parsed);
-                        }
+                ($name:ident, $key:ty, $fixture_path:expr) => {
+                    #[test]
+                    fn $name() {
+                        let content = fixture_as_string($fixture_path);
+                        let parsed = content.parse::<$key>();
+                        assert!(parsed.is_ok(),
+                                "Could not parse '{}' as a {}: {:?}",
+                                $fixture_path,
+                                stringify!($key),
+                                parsed);
                     }
                 };
             }
 
-            parse!(RingKey, "keys/ring-key-valid-20160504220722.sym.key");
+            parse!(ring_key,
+                   RingKey,
+                   "keys/ring-key-valid-20160504220722.sym.key");
 
-            parse!(PublicOriginSigningKey,
+            parse!(public_origin_signing_key,
+                   PublicOriginSigningKey,
                    "keys/origin-key-valid-20160509190508.pub");
-            parse!(SecretOriginSigningKey,
+            parse!(secret_origin_signing_key,
+                   SecretOriginSigningKey,
                    "keys/origin-key-valid-20160509190508.sig.key");
 
-            parse!(ServicePublicEncryptionKey,
+            parse!(service_public_encryption_key,
+                   ServicePublicEncryptionKey,
                    "keys/service-key-valid.default@acme-20160509181736.pub");
-            parse!(ServiceSecretEncryptionKey,
+            parse!(service_secret_encryption_key,
+                   ServiceSecretEncryptionKey,
                    "keys/service-key-valid.default@acme-20160509181736.box.key");
 
-            parse!(UserPublicEncryptionKey, "keys/ruby-rhod-20200813204159.pub");
-            parse!(UserSecretEncryptionKey,
+            parse!(user_public_encryption_key,
+                   UserPublicEncryptionKey,
+                   "keys/ruby-rhod-20200813204159.pub");
+            parse!(user_secret_encryption_key,
+                   UserSecretEncryptionKey,
                    "keys/ruby-rhod-20200813204159.box.key");
 
-            parse!(OriginPublicEncryptionKey,
+            parse!(origin_public_encryption_key,
+                   OriginPublicEncryptionKey,
                    "keys/fhloston-paradise-20200813211603.pub");
-            parse!(OriginSecretEncryptionKey,
+            parse!(origin_secret_encryption_key,
+                   OriginSecretEncryptionKey,
                    "keys/fhloston-paradise-20200813211603.box.key");
 
             /// While each of the three kinds of encryption keys
@@ -492,77 +500,91 @@ mod tests {
             use super::*;
 
             macro_rules! extension {
-                ($key:ty, $extension:expr) => {
-                    paste! {
-                        #[test]
-                        fn [<$key:snake:lower>]() {
-                            let actual = <$key>::extension();
-                            assert_eq!(actual,
-                                       $extension,
-                                       "Expected {} to have extension '{}', but it was '{}'",
-                                       stringify!($key),
-                                       $extension,
-                                       actual);
-                        }
+                ($name:ident, $key:ty, $extension:expr) => {
+                    #[test]
+                    fn $name() {
+                        let actual = <$key>::extension();
+                        assert_eq!(actual,
+                                   $extension,
+                                   "Expected {} to have extension '{}', but it was '{}'",
+                                   stringify!($key),
+                                   $extension,
+                                   actual);
                     }
                 };
             }
 
-            extension!(RingKey, "sym.key");
+            extension!(ring_key, RingKey, "sym.key");
 
-            extension!(PublicOriginSigningKey, "pub");
-            extension!(SecretOriginSigningKey, "sig.key");
+            extension!(public_origin_signing_key, PublicOriginSigningKey, "pub");
+            extension!(secret_origin_signing_key, SecretOriginSigningKey, "sig.key");
 
-            extension!(OriginPublicEncryptionKey, "pub");
-            extension!(OriginSecretEncryptionKey, "box.key");
+            extension!(origin_public_encryption_key,
+                       OriginPublicEncryptionKey,
+                       "pub");
+            extension!(origin_secret_encryption_key,
+                       OriginSecretEncryptionKey,
+                       "box.key");
 
-            extension!(ServicePublicEncryptionKey, "pub");
-            extension!(ServiceSecretEncryptionKey, "box.key");
+            extension!(service_public_encryption_key,
+                       ServicePublicEncryptionKey,
+                       "pub");
+            extension!(service_secret_encryption_key,
+                       ServiceSecretEncryptionKey,
+                       "box.key");
 
-            extension!(UserPublicEncryptionKey, "pub");
-            extension!(UserSecretEncryptionKey, "box.key");
+            extension!(user_public_encryption_key, UserPublicEncryptionKey, "pub");
+            extension!(user_secret_encryption_key,
+                       UserSecretEncryptionKey,
+                       "box.key");
         }
 
         mod permissions {
             use super::*;
 
             macro_rules! permissions {
-                ($key:ty, $permission:expr) => {
-                    paste! {
-                        #[test]
-                        fn [<$key:snake:lower>]() {
-                            let actual = <$key>::permissions();
-                            assert_eq!(actual,
-                                       $permission,
-                                       "Expected {} to have permission '{:?}', but it was '{:?}'",
-                                       stringify!($key),
-                                       $permission,
-                                       actual);
-                        }
+                ($name:ident, $key:ty, $permission:expr) => {
+                    #[test]
+                    fn $name() {
+                        let actual = <$key>::permissions();
+                        assert_eq!(actual,
+                                   $permission,
+                                   "Expected {} to have permission '{:?}', but it was '{:?}'",
+                                   stringify!($key),
+                                   $permission,
+                                   actual);
                     }
                 };
             }
 
-            permissions!(RingKey, crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS);
+            permissions!(ring_key, RingKey, crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS);
 
-            permissions!(UserPublicEncryptionKey,
+            permissions!(user_public_encryption_key,
+                         UserPublicEncryptionKey,
                          crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS);
-            permissions!(UserSecretEncryptionKey,
+            permissions!(user_secret_encryption_key,
+                         UserSecretEncryptionKey,
                          crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS);
 
-            permissions!(OriginPublicEncryptionKey,
+            permissions!(origin_public_encryption_key,
+                         OriginPublicEncryptionKey,
                          crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS);
-            permissions!(OriginSecretEncryptionKey,
+            permissions!(origin_secret_encryption_key,
+                         OriginSecretEncryptionKey,
                          crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS);
 
-            permissions!(ServicePublicEncryptionKey,
+            permissions!(service_public_encryption_key,
+                         ServicePublicEncryptionKey,
                          crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS);
-            permissions!(ServiceSecretEncryptionKey,
+            permissions!(service_secret_encryption_key,
+                         ServiceSecretEncryptionKey,
                          crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS);
 
-            permissions!(PublicOriginSigningKey,
+            permissions!(public_origin_signing_key,
+                         PublicOriginSigningKey,
                          crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS);
-            permissions!(SecretOriginSigningKey,
+            permissions!(secret_origin_signing_key,
+                         SecretOriginSigningKey,
                          crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS);
         }
 
@@ -570,35 +592,49 @@ mod tests {
             use super::*;
 
             macro_rules! version {
-                ($key:ty, $version:expr) => {
-                    paste! {
-                        #[test]
-                        fn [<$key:snake:lower>]() {
-                            let actual = <$key>::version();
-                            assert_eq!(actual,
-                                       $version,
-                                       "Expected {} to have version '{:?}', but it was '{:?}'",
-                                       stringify!($key),
-                                       $version,
-                                       actual);
-                        }
+                ($name:ident, $key:ty, $version:expr) => {
+                    #[test]
+                    fn $name() {
+                        let actual = <$key>::version();
+                        assert_eq!(actual,
+                                   $version,
+                                   "Expected {} to have version '{:?}', but it was '{:?}'",
+                                   stringify!($key),
+                                   $version,
+                                   actual);
                     }
                 };
             }
 
-            version!(RingKey, "SYM-SEC-1");
+            version!(ring_key, RingKey, "SYM-SEC-1");
 
-            version!(PublicOriginSigningKey, "SIG-PUB-1");
-            version!(SecretOriginSigningKey, "SIG-SEC-1");
+            version!(public_origin_signing_key,
+                     PublicOriginSigningKey,
+                     "SIG-PUB-1");
+            version!(secret_origin_signing_key,
+                     SecretOriginSigningKey,
+                     "SIG-SEC-1");
 
-            version!(OriginPublicEncryptionKey, "BOX-PUB-1");
-            version!(OriginSecretEncryptionKey, "BOX-SEC-1");
+            version!(origin_public_encryption_key,
+                     OriginPublicEncryptionKey,
+                     "BOX-PUB-1");
+            version!(origin_secret_encryption_key,
+                     OriginSecretEncryptionKey,
+                     "BOX-SEC-1");
 
-            version!(ServicePublicEncryptionKey, "BOX-PUB-1");
-            version!(ServiceSecretEncryptionKey, "BOX-SEC-1");
+            version!(service_public_encryption_key,
+                     ServicePublicEncryptionKey,
+                     "BOX-PUB-1");
+            version!(service_secret_encryption_key,
+                     ServiceSecretEncryptionKey,
+                     "BOX-SEC-1");
 
-            version!(UserPublicEncryptionKey, "BOX-PUB-1");
-            version!(UserSecretEncryptionKey, "BOX-SEC-1");
+            version!(user_public_encryption_key,
+                     UserPublicEncryptionKey,
+                     "BOX-PUB-1");
+            version!(user_secret_encryption_key,
+                     UserSecretEncryptionKey,
+                     "BOX-SEC-1");
         }
     }
 }
