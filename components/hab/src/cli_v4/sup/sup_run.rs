@@ -267,7 +267,7 @@ pub struct SupRunOptions {
     pub event_stream_connect_timeout: EventStreamConnectMethod,
 
     /// The authentication token for connecting the event stream to Chef Automate
-    #[arg(long = "event-stream-token", env = EventStreamToken::ENVVAR)]
+    #[arg(long = "event-stream-token", env = EventStreamToken::ENVVAR, hide_env_values = true)]
     pub event_stream_token: Option<EventStreamToken>,
 
     /// The event stream connection url used to send events to Chef Automate

@@ -6,13 +6,14 @@ function getHelp(command, sub) {
 
   function render(data) {
     parsed = parseOutput(command, data.replace(/`/g, ''));
-    console.log(markdownForCommand(parsed, sub));
 
     // `hab pkg export` subcommands shell out to external packages which must be downloaded
     // separately and have inconsistent CLI arguments
     if (parsed.command === "hab pkg export") {
       return;
     }
+
+    console.log(markdownForCommand(parsed, sub));
 
     parsed.subcommands.forEach(item => {
       getHelp(`${item.parent} ${item.command}`, item.parent !== 'hab');
@@ -54,11 +55,11 @@ function parseOutput(command, output) {
     name: result.name,
     description: result.description,
     aliases: result.ALIASES || [],
-    args: result.ARGS || [],
+    args: result.Arguments || [],
     flags: result.FLAGS || [],
-    options: result.OPTIONS || [],
-    subcommands_body: result.SUBCOMMANDS || [],
-    subcommands: (result.SUBCOMMANDS || [])
+    options: result.Options || [],
+    subcommands_body: result.Commands || [],
+    subcommands: (result.Commands || [])
       .filter(line => !line.match(/help/))
       .map(line => {
         const matched = line.match(/^([^ ]+) (.+)$/);
@@ -68,7 +69,7 @@ function parseOutput(command, output) {
           description: matched ? matched[2].trim() : ''
         };
     }),
-    usage: result.USAGE || [],
+    usage: result.Usage || [],
   };
 }
 
@@ -112,7 +113,7 @@ ${parsed.description}
 ${markdownForSubsection('Usage', parsed.usage.join('\n').replace(/^hab-/, 'hab ').replace(/hab butterfly/, 'hab').trim())}
 ${markdownForSubsection('Flags', parsed.flags.join('\n').trim())}
 ${markdownForSubsection('Options', parsed.options.join('\n').trim())}
-${markdownForSubsection('Args', parsed.args.join('\n').trim())}
+${markdownForSubsection('Arguments', parsed.args.join('\n').trim())}
 ${markdownForSubsection('Aliases', parsed.aliases.join('\n').trim())}
 ${markdownForSubcommands(parsed.subcommands)}
 ---
