@@ -33,6 +33,8 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    ChannelIdent,
                    AUTH_TOKEN_ENVVAR};
 
+use hab_common_derive::GenConfig;
+
 use habitat_sup_protocol::types::UpdateCondition;
 
 use crate::error::{Error as HabError,
@@ -65,7 +67,8 @@ impl GROUP_DEFAULT {
     fn get() -> String { GROUP_DEFAULT.clone() }
 }
 
-#[derive(PartialEq, Debug, Clone, Parser, Deserialize)]
+#[derive(GenConfig)]
+#[derive(PartialEq, Debug, Clone, Parser, Serialize, Deserialize)]
 pub struct CacheKeyPath {
     /// Cache for creating and searching for encryption keys
     #[arg(long = "cache-key-path",
@@ -212,7 +215,8 @@ impl AuthToken {
     }
 }
 
-#[derive(Debug, Clone, Parser)]
+#[derive(GenConfig)]
+#[derive(Debug, Clone, Parser, Serialize, Deserialize)]
 pub(crate) struct RemoteSup {
     /// Address to a remote Supervisor's Control Gateway
     #[arg(name = "REMOTE_SUP",
@@ -355,8 +359,8 @@ habitat_core::impl_try_from_string_and_into_string!(SubjectAlternativeName);
 
 fn health_check_interval_default() -> u64 { 30 }
 
+#[derive(GenConfig)]
 #[derive(PartialEq, Debug, Clone, Parser, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
 #[command(disable_version_flag = true, rename_all = "screamingsnake")]
 pub struct SharedLoad {
     /// Receive updates from the specified release channel
@@ -425,6 +429,7 @@ pub struct SharedLoad {
     ///
     /// The default value can be set in the packages plan file.
     #[arg(long = "shutdown-timeout")]
+    #[serde(default)]
     shutdown_timeout: Option<ShutdownTimeout>,
 
     #[cfg(target_os = "windows")]
@@ -546,6 +551,50 @@ pub(crate) fn origin_param_or_env(opt: &Option<CoreOrigin>) -> Result<CoreOrigin
     }
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(try_from = "String", into = "String")]
+struct PkgIdentStringySerde(PackageIdent);
+
+impl FromStr for PkgIdentStringySerde {
+    type Err = habitat_core::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(Self(s.parse()?)) }
+}
+
+impl std::convert::TryFrom<String> for PkgIdentStringySerde {
+    type Error = habitat_core::Error;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> { Self::from_str(&s) }
+}
+
+impl std::fmt::Display for PkgIdentStringySerde {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result { write!(f, "{}", self.0) }
+}
+
+impl From<PkgIdentStringySerde> for String {
+    fn from(pkg_ident: PkgIdentStringySerde) -> Self { pkg_ident.to_string() }
+}
+
+#[derive(Clone, Debug, Args, Deserialize, Serialize)]
+#[serde(transparent)]
+pub struct PkgIdent {
+    /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+    #[arg(name = "PKG_IDENT")]
+    pkg_ident: PkgIdentStringySerde,
+}
+
+impl PkgIdent {
+    pub(crate) fn pkg_ident(self) -> PackageIdent { self.pkg_ident.0 }
+}
+
+impl FromStr for PkgIdent {
+    type Err = habitat_core::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self { pkg_ident: PkgIdentStringySerde(s.parse()?), })
+    }
+}
+
 pub fn shared_load_cli_to_ctl(ident: PackageIdent,
                               shared_load: SharedLoad,
                               force: bool)
@@ -632,6 +681,8 @@ pub(crate) fn bldr_auth_token_from_args_env_or_load(opt: Option<String>) -> Resu
 pub(crate) fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Option<String> {
     bldr_auth_token_from_args_env_or_load(opt).ok()
 }
+
+pub(crate) fn is_default<T: Default + PartialEq>(val: &T) -> bool { val == &T::default() }
 
 #[cfg(test)]
 mod tests {

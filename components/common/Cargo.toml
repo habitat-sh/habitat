@@ -59,6 +59,9 @@ uuid = { version = "*", features = ["v4"] }
 valico = "*"
 url = { version = "*" }
 
+syn = "*"
+proc-macro2 = "*"
+
 [target.'cfg(not(windows))'.dependencies]
 nix = { version = "*", features = ["signal", "user"] }
 

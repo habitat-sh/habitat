@@ -230,6 +230,10 @@ impl From<String> for PackageIdent {
     }
 }
 
+impl From<PackageIdent> for String {
+    fn from(pkg_ident: PackageIdent) -> Self { pkg_ident.to_string() }
+}
+
 impl PartialOrd for PackageIdent {
     /// Packages can be compared according to the following:
     ///
