@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.209 -->
-## [2.0.209](https://github.com/habitat-sh/habitat/tree/2.0.209) (2025-08-21)
+<!-- latest_release 2.0.210 -->
+## [2.0.210](https://github.com/habitat-sh/habitat/tree/2.0.210) (2025-08-21)
 
 #### Merged Pull Requests
-- Bump hyper from 1.6.0 to 1.7.0 [#9847](https://github.com/habitat-sh/habitat/pull/9847) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Fixes to CLI doc generate for clap v4 [#9817](https://github.com/habitat-sh/habitat/pull/9817) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Fixes to CLI doc generate for clap v4 [#9817](https://github.com/habitat-sh/habitat/pull/9817) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.210 -->
 - Bump hyper from 1.6.0 to 1.7.0 [#9847](https://github.com/habitat-sh/habitat/pull/9847) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.209 -->
 - Bump thiserror from 2.0.15 to 2.0.16 [#9850](https://github.com/habitat-sh/habitat/pull/9850) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.209 -->
 - Bump tempfile from 3.20.0 to 3.21.0 [#9851](https://github.com/habitat-sh/habitat/pull/9851) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.208 -->
