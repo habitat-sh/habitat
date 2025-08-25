@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.213 -->
-## [2.0.213](https://github.com/habitat-sh/habitat/tree/2.0.213) (2025-08-25)
+<!-- latest_release 2.0.214 -->
+## [2.0.214](https://github.com/habitat-sh/habitat/tree/2.0.214) (2025-08-25)
 
 #### Merged Pull Requests
-- End to end tests fixes [#9862](https://github.com/habitat-sh/habitat/pull/9862) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump cc from 1.2.33 to 1.2.34 [#9853](https://github.com/habitat-sh/habitat/pull/9853) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.33 to 1.2.34 [#9853](https://github.com/habitat-sh/habitat/pull/9853) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.214 -->
 - End to end tests fixes [#9862](https://github.com/habitat-sh/habitat/pull/9862) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.213 -->
 - Bump serde_json from 1.0.142 to 1.0.143 [#9848](https://github.com/habitat-sh/habitat/pull/9848) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.212 -->
 - Agadgil/fix generate config [#9846](https://github.com/habitat-sh/habitat/pull/9846) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.211 -->
