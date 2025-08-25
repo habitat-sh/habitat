@@ -47,7 +47,7 @@ Describe "Rolling Update demotes a package in the middle of an update" {
 
     Context "Promote Package" {
         BeforeAll {
-            $leader = Get-Leader "bastion" "nginx.default"
+            $script:leader = Get-Leader "bastion" "nginx.default"
             hab pkg promote $release2 $testChannel
         }
 

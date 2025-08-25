@@ -57,7 +57,7 @@ Describe "Rolling Update after leader is removed and quorum is not lost" {
         }
 
         It "updates to $release2 on $survivor1" {
-        Wait-Release -Ident $release2 -Remote $survivor1
+            Wait-Release -Ident $release2 -Remote $survivor1
         }
         It "updates to $release2 on $survivor2" {
             Wait-Release -Ident $release2 -Remote $survivor2

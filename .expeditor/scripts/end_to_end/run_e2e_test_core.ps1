@@ -316,7 +316,7 @@ function Get-HabServicePID($PackageName) {
 
 ###################################################################################################
 
-Import-Module (Join-Path -Path $(hab pkg path core/pester/5.5.0) module Pester.psd1)
+Import-Module (Join-Path -Path $(hab pkg path core/pester) module Pester.psd1)
 
 if(Test-Path $TestName) {
     $testPath = $TestName
