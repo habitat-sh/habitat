@@ -73,6 +73,7 @@ use std::{collections::VecDeque,
 
 pub const RETRIES: usize = 5;
 pub const RETRY_WAIT: Duration = Duration::from_millis(3000);
+pub const DEFAULT_RENAME_TIMEOUT_SECS: u64 = 5;
 
 /// Represents a locally-available `.hart` file for package
 /// installation purposes only.
@@ -682,14 +683,49 @@ impl<'a> InstallTask<'a> {
                 let temp_install_path = &pkg_install_path(ident, Some(temp_dir.path()));
                 artifact.unpack(Some(temp_dir.path()))?;
 
-                if let Err(e) = fs::rename(temp_install_path, real_install_path) {
-                    // The rename might fail if the real_install_path
-                    // was created while we were unpacking. If the
-                    // package now exists, ignore the failure.
-                    debug!("rename failed with {:?}, checking for installed package", e);
-                    if PackageInstall::load(ident, Some(self.fs_root_path)).is_err() {
-                        return Err(Error::from(e));
+                // Attempt to rename with retries if it fails
+                // On windows, antivurus software may lock files in the temp directory
+                // causing the rename to fail. We will retry for a limited time before
+                // giving up.
+                let start_time = std::time::Instant::now();
+                let timeout = std::time::Duration::from_secs(
+                    std::env::var("HAB_PKG_INSTALL_RENAME_TIMEOUT_SECS")
+                        .ok()
+                        .and_then(|v| v.parse::<u64>().ok())
+                        .unwrap_or(DEFAULT_RENAME_TIMEOUT_SECS)
+                );
+                let retry_delay = std::time::Duration::from_millis(500);
+                let mut rename_success = false;
+
+                while start_time.elapsed() < timeout && !rename_success {
+                    match fs::rename(temp_install_path, real_install_path) {
+                        Ok(_) => {
+                            rename_success = true;
+                        }
+                        Err(e) => {
+                            // The rename might fail if the real_install_path
+                            // was created while we were unpacking. If the
+                            // package now exists, ignore the failure.
+                            debug!("rename failed with {:?}, checking for installed package", e);
+                            if PackageInstall::load(ident, Some(self.fs_root_path)).is_ok() {
+                                rename_success = true;
+                            } else {
+                                // Wait before retrying
+                                std::thread::sleep(retry_delay);
+                            }
+                        }
                     }
+                }
+
+                // If rename still failed after retries, return an error
+                if !rename_success {
+                    return Err(Error::from(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        format!("Failed to rename {} to {} after retrying for {} seconds", 
+                            temp_install_path.display(),
+                            real_install_path.display(),
+                            timeout.as_secs())
+                    )));
                 }
 
                 if cfg!(unix) {
