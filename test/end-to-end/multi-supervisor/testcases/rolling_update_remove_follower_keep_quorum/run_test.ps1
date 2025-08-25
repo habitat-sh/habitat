@@ -49,8 +49,8 @@ Describe "Rolling Update after a follower is removed and quorum is not lost" {
             $leader = Get-Leader "bastion" "nginx.default"
             $follower = ($all | Where-Object { $_ -ne $leader.Name })[0]
             $survivors = $all | Where-Object { $_ -ne $follower }
-            $survivor1 = $survivors[0]
-            $survivor2 = $survivors[1]
+            $script:survivor1 = $survivors[0]
+            $script:survivor2 = $survivors[1]
 
             Stop-ComposeSupervisor $follower
             hab pkg promote $release2 $testChannel
