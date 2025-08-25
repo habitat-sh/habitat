@@ -1739,7 +1739,7 @@ dependencies = [
  "widestring 1.2.0",
  "winapi",
  "windows-acl",
- "windows-sys 0.52.0",
+ "windows-sys 0.60.2",
  "xz2",
 ]
 
