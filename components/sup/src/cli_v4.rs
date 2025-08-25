@@ -102,8 +102,13 @@ impl HabSup {
             Self::Run(run_opts) => {
                 let run_opts = SupRunOptions::maybe_merge_from_config_files(run_opts)?;
                 if run_opts.generate_config {
-                    print!("{}", run_opts.gen_config());
-                    Ok(())
+                    let gen_config_string = run_opts.gen_config();
+                    print!("{}", gen_config_string);
+                    if launcher.is_some() {
+                        process::exit(OK_NO_RETRY_EXCODE);
+                    } else {
+                        Ok(())
+                    }
                 } else {
                     let launcher = launcher.ok_or(Error::NoLauncher)?;
                     sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(run_opts, launcher, feature_flags).await
@@ -140,7 +145,11 @@ pub(crate) async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFla
             } else {
                 let mut writer = io::stdout().lock();
                 write!(&mut writer, "{}", e).expect("Error writing to stderr");
-                process::exit(1);
+                if e.kind() == clap::error::ErrorKind::DisplayVersion {
+                    process::exit(0);
+                } else {
+                    process::exit(1);
+                }
             }
         }
     };

@@ -14,9 +14,7 @@ use crate::{command::pkg::export,
             error::Result as HabResult};
 
 #[derive(Debug, Clone, Args)]
-#[command(trailing_var_arg = true,
-          allow_hyphen_values = true,
-          disable_help_subcommand = true)]
+#[command(trailing_var_arg = true, allow_hyphen_values = true)]
 pub(crate) struct PkgExportCommandOptions {
     /// Arguments to be passed to the command
     #[arg(name = "ARGS")]
@@ -30,6 +28,7 @@ pub(crate) struct PkgExportCommandOptions {
 pub(crate) enum PkgExportCommand {
     /// Container Exporter
     #[cfg(any(target_os = "linux", target_os = "windows"))]
+    #[command(disable_help_flag = true)]
     Container(PkgExportCommandOptions),
 
     #[cfg(any(target_os = "linux", target_os = "windows"))]
@@ -38,6 +37,7 @@ pub(crate) enum PkgExportCommand {
 
     /// Tar Exporter
     #[cfg(any(target_os = "linux", target_os = "windows"))]
+    #[command(disable_help_flag = true)]
     Tar(PkgExportCommandOptions),
 }
 

@@ -170,6 +170,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     // 1. Handle all `hab sup` subcommands with the `hab-sup` binary
     // 2. Have a dedicated subcommand for commands handled by the `hab-sup` binary
     let mut args = env::args();
+
     if matches!((args.next().unwrap_or_default().as_str(),
                  args.next().unwrap_or_default().as_str(),
                  args.next().unwrap_or_default().as_str()),
