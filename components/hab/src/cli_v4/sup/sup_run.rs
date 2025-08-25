@@ -83,24 +83,24 @@ impl From<EventStreamAddress> for NatsAddress {
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
 pub struct SupRunOptions {
-    /// The listen address for the Gossip Gateway.
+    /// The listen address for the Gossip Gateway
     #[arg(long = "listen-gossip",
           env = GossipListenAddr::ENVVAR,
           default_value = GossipListenAddr::default_as_str())]
     #[serde(default, skip_serializing_if = "is_default")]
     pub listen_gossip: GossipListenAddr,
 
-    /// Initial peer addresses (IP[:PORT]).
+    /// Initial peer addresses (IP[:PORT])
     #[arg(long = "peer", value_delimiter = ' ', num_args = 1..)]
     #[serde(default)]
     pub peer: Vec<SocketAddrProxy>,
 
-    /// File to watch for connecting to the ring.
+    /// File to watch for connecting to the ring
     #[arg(long = "peer-watch-file", conflicts_with = "peer")]
     #[serde(default)]
     pub peer_watch_file: Option<PathBuf>,
 
-    /// Start in local gossip mode.
+    /// Start in local gossip mode
     #[arg(long = "local-gossip-mode",
         conflicts_with_all = &["listen_gossip", "peer", "peer_watch_file"])]
     #[serde(default)]

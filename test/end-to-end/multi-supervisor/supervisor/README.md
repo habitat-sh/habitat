@@ -3,7 +3,7 @@ Minimal Supervisor Image
 
 This `Dockerfile` defines a minimal Docker image containing only what
 is needed to run a Supervisor. It does not contain any services, as
-would happen with an image created using `hab pkg export docker`.
+would happen with an image created using `hab pkg export container`.
 
 # Building
 
