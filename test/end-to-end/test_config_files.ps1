@@ -20,7 +20,7 @@ Describe "reading from supervisor and service config files" {
         $out = hab sup run --generate-config
         $out = hab sup run --generate-config
         Set-Content -Path $supConfig -Force -Value $out
-        Get-Content -Path $supConfig | Should -Contain "### The listen address for the Gossip Gateway"
+        Get-Content -Path $supConfig | Should -Contain "###  The listen address for the Gossip Gateway."
         $supLog = New-SupervisorLogFile("supervisor_starts_with_output_of_hab_sup_run_--generate-config")
         Start-Supervisor -LogFile $supLog -Timeout 45
     }
@@ -59,7 +59,7 @@ Describe "reading from supervisor and service config files" {
     It "service does not start without ident" {
         $out = hab svc load --generate-config
         Set-Content -Path $svcConfig -Force -Value $out
-        Get-Content -Path $svcConfig | Should -Contain "# pkg_ident ="
+        Get-Content -Path $svcConfig | Should -Contain "# pkg_ident = "
 
         {
             Invoke-NativeCommand hab svc load
@@ -67,7 +67,7 @@ Describe "reading from supervisor and service config files" {
     }
 
     It "service does start with ident" {
-        ((Get-Content -Path $svcConfig -Raw) -replace "# pkg_ident =", "pkg_ident = '$pkgName'") | Set-Content -Path $svcConfig
+        ((Get-Content -Path $svcConfig -Raw) -replace "# pkg_ident = ", "pkg_ident = '$pkgName'") | Set-Content -Path $svcConfig
 
         Invoke-NativeCommand hab svc load
         Wait-SupervisorService $svcName
