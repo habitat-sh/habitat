@@ -9,7 +9,7 @@ export HAB_LICENSE="accept-no-persist"
 export DOCKER_BUILDKIT=0
 export COMPOSE_DOCKER_CLI_BUILD=0
 
-docker compose version
+docker-compose version
 
 # TODO (CM): Pass the name of a single test case to run
 

@@ -49,11 +49,11 @@ export TESTCASE="${testcase}"
 export TESTCASE_DIR="./testcases/${testcase}"
 
 echo "Validating configuration..."
-docker compose config
+docker-compose config
 echo "Valid!"
 
 echo "Checking for presence of '${test_service_name}' service"
-if docker compose config --services | grep "${test_service_name}"; then
+if docker-compose config --services | grep "${test_service_name}"; then
     echo "'${test_service_name}' service found!"
 else
     echo "No service named '$test_service_name' is defined in any of the following files: ${COMPOSE_FILE}!"
@@ -63,16 +63,16 @@ fi
 cleanup () {
     # TODO (CM): export logs on a per-service basis, taking into account
     # everything that is currently running for a given test case
-    docker compose logs
-    docker compose down
+    docker-compose logs
+    docker-compose down
 }
 
 # The testing service is assumed to be something that needs to be
 # built, as it is custom to a specific set of tests
-docker compose build "${test_service_name}"
+docker-compose build "${test_service_name}"
 
 # TODO (CM): capture the log output into a separate file
-if docker compose run "${test_service_name}"; then
+if docker-compose run "${test_service_name}"; then
     cleanup
 else
     echo "OMG FAILURE!"
