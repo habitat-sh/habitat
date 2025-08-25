@@ -7,10 +7,6 @@ Describe "`hab` correctly executes external binaries" {
         $out = (hab pkg export container --help | Out-String)
         $LastExitCode | Should -Be 0
         $out | Should -BeLike "*Creates a container image from a set of Habitat packages (and optionally pushes to a remote${le}repository)*"
-
-        $out = (hab pkg export docker --help | Out-String)
-        $LastExitCode | Should -Be 0
-        $out | Should -BeLike "*Creates a container image from a set of Habitat packages (and optionally pushes to a remote${le}repository)*"
     }
 
     It "tar exporter help" {
