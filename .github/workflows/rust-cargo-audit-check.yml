@@ -6,8 +6,8 @@ jobs:
   security_audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@1.85.0
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.89.0
         id: toolchain
       - run: rustup override set ${{steps.toolchain.outputs.name}}
       - uses: ClementTsang/cargo-action@v0.0.6
