@@ -182,10 +182,10 @@ pub(crate) mod sync {
         }
 
         #[must_use]
-        pub fn lock_smr(&self) -> MyselfReadGuard { MyselfReadGuard::new(&self.inner) }
+        pub fn lock_smr(&self) -> MyselfReadGuard<'_> { MyselfReadGuard::new(&self.inner) }
 
         #[must_use]
-        pub fn lock_smw(&self) -> MyselfWriteGuard { MyselfWriteGuard::new(&self.inner) }
+        pub fn lock_smw(&self) -> MyselfWriteGuard<'_> { MyselfWriteGuard::new(&self.inner) }
     }
 
     #[derive(Debug)]

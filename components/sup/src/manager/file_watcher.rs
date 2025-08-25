@@ -40,12 +40,7 @@ impl WatchedFile {
 
     pub fn read_mtime(&self) -> Option<SystemTime> {
         match std::fs::metadata(&self.path) {
-            Ok(metadata) => {
-                match metadata.modified() {
-                    Ok(n) => Some(n),
-                    Err(_) => None,
-                }
-            }
+            Ok(metadata) => metadata.modified().ok(),
             Err(_) => None,
         }
     }
@@ -132,7 +127,7 @@ impl<C: Callbacks> FileWatcher<C> {
         let prev_existence = self.watched_file.exists;
         let next_existence = self.watched_file.assess_existence();
 
-        match (prev_existence, &next_existence) {
+        match (prev_existence, next_existence) {
             (true, true) => {
                 let mtime = self.watched_file.read_mtime();
                 if mtime != self.watched_file.mtime {
@@ -1123,24 +1118,17 @@ mod tests {
         }
 
         fn all_callbacks_count(&self) -> usize {
-            #[allow(unused_variables)] // k isn't used below
-            self.type_occurrences
-                .iter_all()
-                .fold(0, |acc, (k, v)| acc + v.len())
+            self.type_occurrences.iter_all().map(|(_, v)| v.len()).sum()
         }
 
-        fn callback_type_count(&self, callback_type: CallbackType) -> usize {
-            match self.type_occurrences.get_vec(&callback_type) {
-                Some(v) => v.len(),
-                None => 0,
-            }
+        fn callback_type_count(&self, t: CallbackType) -> usize {
+            self.type_occurrences.get_vec(&t).map_or(0, Vec::len)
         }
 
         fn path_instance_count(&self, path: &Path) -> usize {
-            match self.path_occurrences.get_vec(&path.to_path_buf()) {
-                Some(v) => v.len(),
-                None => 0,
-            }
+            self.path_occurrences
+                .get_vec(&path.to_path_buf())
+                .map_or(0, Vec::len)
         }
     }
 
@@ -1220,7 +1208,7 @@ mod tests {
                 Ok(())
             } else {
                 let s = format!("mv {:?} {:?} failed", from, to);
-                Err(io::Error::new(io::ErrorKind::Other, s))
+                Err(io::Error::other(s))
             }
         }
 

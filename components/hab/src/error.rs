@@ -50,7 +50,7 @@ pub enum Error {
     ExecCommandNotFound(PathBuf),
     FFINulError(ffi::NulError),
     FileNotFound(String),
-    HabitatCommon(common::Error),
+    HabitatCommon(Box<common::Error>),
     HabitatCore(hcore::Error),
     // Boxed due to clippy::large_enum_variant
     HandlebarsRenderError(Box<handlebars::RenderError>),
@@ -167,7 +167,7 @@ impl fmt::Display for Error {
             Error::HabitatCommon(ref e) => e.to_string(),
             Error::HabitatCore(ref e) => e.to_string(),
             Error::InvalidDnsName(ref e) => format!("Invalid DNS name: {}", e),
-            Error::HandlebarsRenderError(ref e) => e.to_string(),
+            Error::HandlebarsRenderError(ref e) => e.as_ref().to_string(),
             Error::IO(ref err) => format!("{}", err),
             Error::JobGroupPromoteOrDemoteUnprocessable(true) => {
                 "Failed to promote job group, the build job is still in progress".to_string()
@@ -234,7 +234,7 @@ impl From<api_client::Error> for Error {
 }
 
 impl From<common::Error> for Error {
-    fn from(err: common::Error) -> Error { Error::HabitatCommon(err) }
+    fn from(err: common::Error) -> Error { Error::HabitatCommon(Box::new(err)) }
 }
 
 impl From<cli_config::Error> for Error {

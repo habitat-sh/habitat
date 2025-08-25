@@ -44,7 +44,6 @@ use serde::{ser::SerializeMap,
             Serializer};
 use std::{borrow::Cow,
           collections::BTreeMap,
-          path::PathBuf,
           result};
 
 /// The context of a rendering call, exposing information on the
@@ -91,24 +90,24 @@ impl<'a> RenderContext<'a> {
 #[derive(Clone, Debug)]
 struct Package<'a> {
     ident:                   Cow<'a, FullyQualifiedPackageIdent>,
-    deps:                    Cow<'a, Vec<PackageIdent>>,
+    deps:                    Cow<'a, [PackageIdent]>,
     env:                     Cow<'a, Env>,
     // TODO (CM): Ideally, this would be Vec<u16>, since they're ports.
-    exposes:                 Cow<'a, Vec<String>>,
+    exposes:                 Cow<'a, [String]>,
     exports:                 Cow<'a, BTreeMap<String, String>>,
     // TODO (CM): Maybe Path instead of Cow<'a PathBuf>?
-    path:                    Cow<'a, PathBuf>,
-    svc_path:                Cow<'a, PathBuf>,
-    svc_config_path:         Cow<'a, PathBuf>,
-    svc_config_install_path: Cow<'a, PathBuf>,
-    svc_data_path:           Cow<'a, PathBuf>,
-    svc_files_path:          Cow<'a, PathBuf>,
-    svc_static_path:         Cow<'a, PathBuf>,
-    svc_var_path:            Cow<'a, PathBuf>,
-    svc_pid_file:            Cow<'a, PathBuf>,
-    svc_run:                 Cow<'a, PathBuf>,
-    svc_user:                Cow<'a, String>,
-    svc_group:               Cow<'a, String>,
+    path:                    Cow<'a, std::path::Path>,
+    svc_path:                Cow<'a, std::path::Path>,
+    svc_config_path:         Cow<'a, std::path::Path>,
+    svc_config_install_path: Cow<'a, std::path::Path>,
+    svc_data_path:           Cow<'a, std::path::Path>,
+    svc_files_path:          Cow<'a, std::path::Path>,
+    svc_static_path:         Cow<'a, std::path::Path>,
+    svc_var_path:            Cow<'a, std::path::Path>,
+    svc_pid_file:            Cow<'a, std::path::Path>,
+    svc_run:                 Cow<'a, std::path::Path>,
+    svc_user:                Cow<'a, str>,
+    svc_group:               Cow<'a, str>,
 }
 
 impl<'a> Package<'a> {

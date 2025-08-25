@@ -232,7 +232,7 @@ pub mod sync {
         /// and writers.
         ///
         /// See https://github.com/habitat-sh/habitat/issues/6435
-        pub fn read(&self) -> ReadGuard<T> {
+        pub fn read(&self) -> ReadGuard<'_, T> {
             #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
             {
                 self.inner.read_recursive()
@@ -243,7 +243,7 @@ pub mod sync {
             }
         }
 
-        pub fn try_read_for(&self, timeout: Duration) -> Option<ReadGuard<T>> {
+        pub fn try_read_for(&self, timeout: Duration) -> Option<ReadGuard<'_, T>> {
             #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
             {
                 self.inner.try_read_recursive_for(timeout)
@@ -254,7 +254,7 @@ pub mod sync {
             }
         }
 
-        pub fn write(&self) -> WriteGuard<T> {
+        pub fn write(&self) -> WriteGuard<'_, T> {
             #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
             {
                 self.inner.write()

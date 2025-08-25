@@ -170,7 +170,7 @@ pub fn spawn_thread_alive_checker() {
 fn spawn_thread_alive_checker_impl(delay: Duration) {
     let executable = std::env::current_exe().ok()
                                             .and_then(|exe_path| {
-                                                exe_path.components().last().map(|basename| {
+                                                exe_path.components().next_back().map(|basename| {
                                                                                 basename.as_os_str()
                                                                                  .to_string_lossy()
                                                                                  .into_owned()
@@ -252,7 +252,7 @@ fn threads_missing_heartbeat(statuses: &ThreadStatusMap,
             .collect::<Vec<_>>()
 }
 
-fn threads_exited_with_error(statuses: &ThreadStatusMap) -> Vec<NameAndErrorExitTimeAndReason> {
+fn threads_exited_with_error(statuses: &ThreadStatusMap) -> Vec<NameAndErrorExitTimeAndReason<'_>> {
     statuses.iter()
             .filter_map(|(thread_id, (thread_name, status))| {
                 match status {

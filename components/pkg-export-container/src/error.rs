@@ -9,7 +9,7 @@ pub(crate) enum Error {
     #[error("No ECR Tokens returned")]
     NoECRTokensReturned,
     #[error(transparent)]
-    TokenFetchFailed(SdkError<GetAuthorizationTokenError>),
+    TokenFetchFailed(Box<SdkError<GetAuthorizationTokenError>>),
     #[error("A primary service package could not be determined from: {0:?}. At least one \
              package with a run hook must be provided.")]
     PrimaryServicePackageNotFound(Vec<String>),

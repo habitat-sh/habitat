@@ -280,7 +280,7 @@ mod test {
         let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let packages = vec![empty_package_deps(a.clone()),
-                            package_deps(b.clone(), &[a.clone()]),];
+                            package_deps(b.clone(), std::slice::from_ref(&a)),];
 
         let graph = build(&packages);
         assert!(graph.has_package(&a));
@@ -311,7 +311,7 @@ mod test {
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![empty_package_deps(a.clone()),
-                            package_deps(b.clone(), &[a.clone()]),
+                            package_deps(b.clone(), std::slice::from_ref(&a)),
                             package_deps(c.clone(), &[a]),
                             package_deps(d, &[b, c]),];
 
@@ -331,8 +331,8 @@ mod test {
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![empty_package_deps(a.clone()),
-                            package_deps(b.clone(), &[a.clone()]),
-                            package_deps(c.clone(), &[a.clone()]),
+                            package_deps(b.clone(), std::slice::from_ref(&a)),
+                            package_deps(c.clone(), std::slice::from_ref(&a)),
                             package_deps(d.clone(), &[b.clone(), c.clone()]),];
 
         let graph = build(&packages);
@@ -352,8 +352,8 @@ mod test {
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![empty_package_deps(a.clone()),
-                            package_deps(b.clone(), &[a.clone()]),
-                            package_deps(c.clone(), &[a.clone()]),
+                            package_deps(b.clone(), std::slice::from_ref(&a)),
+                            package_deps(c.clone(), std::slice::from_ref(&a)),
                             package_deps(d.clone(), &[b.clone(), c.clone()]),];
 
         let graph = build(&packages);
@@ -375,8 +375,8 @@ mod test {
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![empty_package_deps(a.clone()),
-                            package_deps(b.clone(), &[a.clone()]),
-                            package_deps(c.clone(), &[a.clone()]),
+                            package_deps(b.clone(), std::slice::from_ref(&a)),
+                            package_deps(c.clone(), std::slice::from_ref(&a)),
                             package_deps(d.clone(), &[b.clone(), c.clone()]),];
 
         let graph = build(&packages);
@@ -396,8 +396,8 @@ mod test {
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![empty_package_deps(a.clone()),
-                            package_deps(b.clone(), &[a.clone()]),
-                            package_deps(c.clone(), &[a.clone()]),
+                            package_deps(b.clone(), std::slice::from_ref(&a)),
+                            package_deps(c.clone(), std::slice::from_ref(&a)),
                             package_deps(d.clone(), &[b.clone(), c.clone()]),];
 
         let graph = build(&packages);
@@ -419,7 +419,7 @@ mod test {
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![empty_package_deps(a.clone()),
-                            package_deps(b.clone(), &[a.clone()]),
+                            package_deps(b.clone(), std::slice::from_ref(&a)),
                             package_deps(c.clone(), &[a]),
                             package_deps(d.clone(), &[b.clone(), c.clone()]),];
 
@@ -443,7 +443,8 @@ mod test {
     fn cant_remove_package_with_rdeps() {
         let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
-        let packages = vec![empty_package_deps(a.clone()), package_deps(b, &[a.clone()]),];
+        let packages = vec![empty_package_deps(a.clone()),
+                            package_deps(b, std::slice::from_ref(&a))];
 
         let mut graph = build(&packages);
         assert_eq!(graph.node_count(), 2);
@@ -475,7 +476,7 @@ mod test {
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![empty_package_deps(a.clone()),
-                            package_deps(b.clone(), &[a.clone()]),
+                            package_deps(b.clone(), std::slice::from_ref(&a)),
                             package_deps(c.clone(), &[a]),
                             package_deps(d, &[b, c]),];
 
@@ -495,9 +496,9 @@ mod test {
         let c = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/baz/1.0/20180704142805").unwrap();
         let packages = vec![empty_package_deps(a.clone()),
-                            package_deps(b.clone(), &[a.clone()]),
-                            package_deps(c.clone(), &[b.clone()]),
-                            package_deps(d.clone(), &[c.clone()]),];
+                            package_deps(b.clone(), std::slice::from_ref(&a)),
+                            package_deps(c.clone(), std::slice::from_ref(&b)),
+                            package_deps(d.clone(), std::slice::from_ref(&c)),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
@@ -515,9 +516,9 @@ mod test {
         let c = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/baz/1.0/20180704142805").unwrap();
         let packages = vec![empty_package_deps(a.clone()),
-                            package_deps(b.clone(), &[a.clone()]),
-                            package_deps(c.clone(), &[b.clone()]),
-                            package_deps(d.clone(), &[c.clone()]),];
+                            package_deps(b.clone(), std::slice::from_ref(&a)),
+                            package_deps(c.clone(), std::slice::from_ref(&b)),
+                            package_deps(d.clone(), std::slice::from_ref(&c)),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
@@ -547,9 +548,9 @@ mod test {
         let c = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/baz/1.0/20180704142805").unwrap();
         let packages = vec![empty_package_deps(a.clone()),
-                            package_deps(b.clone(), &[a.clone()]),
-                            package_deps(c.clone(), &[b.clone()]),
-                            package_deps(d.clone(), &[c.clone()]),];
+                            package_deps(b.clone(), std::slice::from_ref(&a)),
+                            package_deps(c.clone(), std::slice::from_ref(&b)),
+                            package_deps(d.clone(), std::slice::from_ref(&c)),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);

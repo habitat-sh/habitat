@@ -52,7 +52,7 @@ use serde::{ser::SerializeMap,
 use std::{borrow::Cow,
           collections::BTreeMap,
           net::IpAddr,
-          path::PathBuf,
+          path::Path,
           result};
 
 type SvcMember<'a> = CensusMemberProxy<'a>;
@@ -121,10 +121,10 @@ impl<'a> RenderContext<'a> {
 /// information specific to the running Supervisor.
 #[derive(Clone, Debug, Serialize)]
 struct SystemInfo<'a> {
-    version:           Cow<'a, String>,
-    member_id:         Cow<'a, String>,
+    version:           Cow<'a, str>,
+    member_id:         Cow<'a, str>,
     ip:                Cow<'a, IpAddr>,
-    hostname:          Cow<'a, String>,
+    hostname:          Cow<'a, str>,
     gossip_ip:         Cow<'a, IpAddr>,
     gossip_port:       Cow<'a, u16>,
     http_gateway_ip:   Cow<'a, IpAddr>,
@@ -136,10 +136,10 @@ struct SystemInfo<'a> {
 
 impl<'a> SystemInfo<'a> {
     fn from_sys(sys: &'a Sys) -> Self {
-        SystemInfo { version:           Cow::Borrowed(&sys.version),
-                     member_id:         Cow::Borrowed(&sys.member_id),
+        SystemInfo { version:           Cow::Borrowed(sys.version.as_str()),
+                     member_id:         Cow::Borrowed(sys.member_id.as_str()),
                      ip:                Cow::Borrowed(&sys.ip),
-                     hostname:          Cow::Borrowed(&sys.hostname),
+                     hostname:          Cow::Borrowed(sys.hostname.as_str()),
                      gossip_ip:         Cow::Borrowed(&sys.gossip_ip),
                      gossip_port:       Cow::Borrowed(&sys.gossip_port),
                      http_gateway_ip:   Cow::Borrowed(&sys.http_gateway_ip),
@@ -158,43 +158,43 @@ impl<'a> SystemInfo<'a> {
 #[derive(Clone, Debug)]
 struct Package<'a> {
     ident:           Cow<'a, FullyQualifiedPackageIdent>,
-    deps:            Cow<'a, Vec<PackageIdent>>,
+    deps:            Cow<'a, [PackageIdent]>,
     env:             Cow<'a, Env>,
     // TODO (CM): Ideally, this would be Vec<u16>, since they're ports.
-    exposes:         Cow<'a, Vec<String>>,
+    exposes:         Cow<'a, [String]>,
     exports:         Cow<'a, BTreeMap<String, String>>,
     // TODO (CM): Maybe Path instead of Cow<'a PathBuf>?
-    path:            Cow<'a, PathBuf>,
-    svc_path:        Cow<'a, PathBuf>,
-    svc_config_path: Cow<'a, PathBuf>,
-    svc_data_path:   Cow<'a, PathBuf>,
-    svc_files_path:  Cow<'a, PathBuf>,
-    svc_static_path: Cow<'a, PathBuf>,
-    svc_var_path:    Cow<'a, PathBuf>,
-    svc_pid_file:    Cow<'a, PathBuf>,
-    svc_run:         Cow<'a, PathBuf>,
-    svc_user:        Cow<'a, String>,
-    svc_group:       Cow<'a, String>,
+    path:            Cow<'a, Path>,
+    svc_path:        Cow<'a, Path>,
+    svc_config_path: Cow<'a, Path>,
+    svc_data_path:   Cow<'a, Path>,
+    svc_files_path:  Cow<'a, Path>,
+    svc_static_path: Cow<'a, Path>,
+    svc_var_path:    Cow<'a, Path>,
+    svc_pid_file:    Cow<'a, Path>,
+    svc_run:         Cow<'a, Path>,
+    svc_user:        Cow<'a, str>,
+    svc_group:       Cow<'a, str>,
 }
 
 impl<'a> Package<'a> {
     fn from_pkg(pkg: &'a Pkg) -> Self {
         Package { ident:           Cow::Borrowed(&pkg.ident),
-                  deps:            Cow::Borrowed(&pkg.deps),
+                  deps:            Cow::Borrowed(&pkg.deps[..]),
                   env:             Cow::Borrowed(&pkg.env),
-                  exposes:         Cow::Borrowed(&pkg.exposes),
+                  exposes:         Cow::Borrowed(&pkg.exposes[..]),
                   exports:         Cow::Borrowed(&pkg.exports),
-                  path:            Cow::Borrowed(&pkg.path),
-                  svc_path:        Cow::Borrowed(&pkg.svc_path),
-                  svc_config_path: Cow::Borrowed(&pkg.svc_config_path),
-                  svc_data_path:   Cow::Borrowed(&pkg.svc_data_path),
-                  svc_files_path:  Cow::Borrowed(&pkg.svc_files_path),
-                  svc_static_path: Cow::Borrowed(&pkg.svc_static_path),
-                  svc_var_path:    Cow::Borrowed(&pkg.svc_var_path),
-                  svc_pid_file:    Cow::Borrowed(&pkg.svc_pid_file),
-                  svc_run:         Cow::Borrowed(&pkg.svc_run),
-                  svc_user:        Cow::Borrowed(&pkg.svc_user),
-                  svc_group:       Cow::Borrowed(&pkg.svc_group), }
+                  path:            Cow::Borrowed(pkg.path.as_path()),
+                  svc_path:        Cow::Borrowed(pkg.svc_path.as_path()),
+                  svc_config_path: Cow::Borrowed(pkg.svc_config_path.as_path()),
+                  svc_data_path:   Cow::Borrowed(pkg.svc_data_path.as_path()),
+                  svc_files_path:  Cow::Borrowed(pkg.svc_files_path.as_path()),
+                  svc_static_path: Cow::Borrowed(pkg.svc_static_path.as_path()),
+                  svc_var_path:    Cow::Borrowed(pkg.svc_var_path.as_path()),
+                  svc_pid_file:    Cow::Borrowed(pkg.svc_pid_file.as_path()),
+                  svc_run:         Cow::Borrowed(pkg.svc_run.as_path()),
+                  svc_user:        Cow::Borrowed(pkg.svc_user.as_str()),
+                  svc_group:       Cow::Borrowed(pkg.svc_group.as_str()), }
     }
 }
 

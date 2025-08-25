@@ -184,10 +184,10 @@ pub(crate) mod sync {
 
     impl RumorHeat {
         #[must_use]
-        pub fn lock_rhr(&self) -> RumorHeatReadGuard { RumorHeatReadGuard::new(&self.inner) }
+        pub fn lock_rhr(&self) -> RumorHeatReadGuard<'_> { RumorHeatReadGuard::new(&self.inner) }
 
         #[must_use]
-        pub fn lock_rhw(&self) -> RumorHeatWriteGuard { RumorHeatWriteGuard::new(&self.inner) }
+        pub fn lock_rhw(&self) -> RumorHeatWriteGuard<'_> { RumorHeatWriteGuard::new(&self.inner) }
     }
 
     #[cfg(test)]
@@ -472,7 +472,7 @@ mod tests {
         let member_id = "test_member";
         let rumor = FakeRumor::default();
         let rumor_key = RumorKey::from(&rumor);
-        let rumor_keys = &[rumor_key.clone()];
+        let rumor_keys = std::slice::from_ref(&rumor_key);
 
         heat.lock_rhw().start_hot_rumor(&rumor);
 
@@ -570,7 +570,8 @@ mod tests {
         cool_rumor_completely_rhw(&heat, member, &cold_rumor);
 
         // Cool this one off just a little bit
-        heat.lock_rhw().cool_rumors(member, &[warm_key.clone()]);
+        heat.lock_rhw()
+            .cool_rumors(member, std::slice::from_ref(&warm_key));
 
         // cold_rumor should be completely out, and the cooler
         // rumor sorts before the hotter one.

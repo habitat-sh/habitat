@@ -131,7 +131,7 @@ impl Credentials {
                 let token = client.get_authorization_token()
                                   .send()
                                   .await
-                                  .map_err(Error::TokenFetchFailed)
+                                  .map_err(|e| Error::TokenFetchFailed(Box::new(e)))
                                   .and_then(|resp| {
                                       resp.authorization_data
                                           .ok_or(Error::NoECRTokensReturned)
