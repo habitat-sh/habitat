@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.216 -->
-## [2.0.216](https://github.com/habitat-sh/habitat/tree/2.0.216) (2025-08-25)
+<!-- latest_release 2.0.217 -->
+## [2.0.217](https://github.com/habitat-sh/habitat/tree/2.0.217) (2025-08-25)
 
 #### Merged Pull Requests
-- add retry logic to the temp dir rename in hab pkg install [#9863](https://github.com/habitat-sh/habitat/pull/9863) ([agadgil-progress](https://github.com/agadgil-progress))
+- Fix external_binaries and config_files tests [#9864](https://github.com/habitat-sh/habitat/pull/9864) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Fix external_binaries and config_files tests [#9864](https://github.com/habitat-sh/habitat/pull/9864) ([mwrock](https://github.com/mwrock)) <!-- 2.0.217 -->
 - add retry logic to the temp dir rename in hab pkg install [#9863](https://github.com/habitat-sh/habitat/pull/9863) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.216 -->
 - Bump url from 2.5.4 to 2.5.7 [#9861](https://github.com/habitat-sh/habitat/pull/9861) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.215 -->
 - Bump percent-encoding from 2.3.1 to 2.3.2 [#9855](https://github.com/habitat-sh/habitat/pull/9855) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.215 -->
