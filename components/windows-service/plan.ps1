@@ -1,6 +1,6 @@
 $pkg_name="windows-service"
 $pkg_origin="core"
-$pkg_version="0.6.1"
+$pkg_version="0.7.0"
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license=@('Apache-2.0')
 $pkg_description="A Windows Service for runnung the Habitat Supervisor"
@@ -8,7 +8,7 @@ $pkg_deps=@(
     "core/hab-launcher",
     "core/powershell/$(Get-Content "$PLAN_CONTEXT/../../POWERSHELL_VERSION")"
 )
-$pkg_build_deps=@("core/dotnet-core-sdk")
+$pkg_build_deps=@("core/dotnet-core-sdk/8.0.303/20250708090906")
 $pkg_bin_dirs=@("bin")
 
 function Invoke-Build {
