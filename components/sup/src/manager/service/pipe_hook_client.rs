@@ -1,3 +1,4 @@
+#![allow(clippy::result_large_err)]
 use habitat_common::{error::{Error,
                              Result},
                      liveliness_checker,

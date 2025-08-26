@@ -2081,10 +2081,7 @@ fn get_fd_count() -> std::io::Result<usize> {
             // these are ints here because GetProcessHandleCount returns a BOOL which is actually
             // an i32
             1 => Ok(count as usize),
-            _ => {
-                Err(std::io::Error::new(std::io::ErrorKind::Other,
-                                        "error getting file descriptor count"))
-            }
+            _ => Err(std::io::Error::other("error getting file descriptor count")),
         }
     }
 }
