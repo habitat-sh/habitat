@@ -7,8 +7,7 @@ use clap_v4 as clap;
 use clap::{Args,
            Subcommand};
 
-use habitat_common::ui::{UIWriter,
-                         UI};
+use habitat_common::ui::UI;
 
 use crate::{command::pkg::export,
             error::Result as HabResult};
