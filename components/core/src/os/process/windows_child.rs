@@ -993,8 +993,11 @@ fn create_user_environment(token: HANDLE,
     unsafe {
         let mut new_env: Vec<u16> = Vec::new();
         let mut block = ptr::null_mut();
+        // clippy sees this cast an unnecessary but the compiler disagrees
+        // In the fight between clippy and the compiler, back the compiler
+        #[allow(clippy::unnecessary_cast)]
         cvt(Environment::CreateEnvironmentBlock(&mut block,
-                                                token as isize,
+                                                token as *mut std::ffi::c_void,
                                                 FALSE))?;
         let mut tail: u32 = MAXDWORD;
         let mut offset = 0;
