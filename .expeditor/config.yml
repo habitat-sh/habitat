@@ -37,8 +37,6 @@ pipelines:
 release_branches:
   - main:
       version_constraint: 2.*
-  - v1.6:
-      version_constraint: 1.*
 
 staging_areas:
   - release_staging:
