@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.220 -->
-## [2.0.220](https://github.com/habitat-sh/habitat/tree/2.0.220) (2025-08-27)
+<!-- latest_release 2.0.221 -->
+## [2.0.221](https://github.com/habitat-sh/habitat/tree/2.0.221) (2025-08-28)
 
 #### Merged Pull Requests
-- Bump windows-sys from 0.52.0 to 0.60.2 [#9856](https://github.com/habitat-sh/habitat/pull/9856) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- remove v1.6 from the release_branch so that it will be added back again [#9872](https://github.com/habitat-sh/habitat/pull/9872) ([muthuja](https://github.com/muthuja))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- remove v1.6 from the release_branch so that it will be added back again [#9872](https://github.com/habitat-sh/habitat/pull/9872) ([muthuja](https://github.com/muthuja)) <!-- 2.0.221 -->
 - Bump windows-sys from 0.52.0 to 0.60.2 [#9856](https://github.com/habitat-sh/habitat/pull/9856) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.220 -->
 - Bump regex from 1.11.1 to 1.11.2 [#9868](https://github.com/habitat-sh/habitat/pull/9868) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.219 -->
 - Bump dns-lookup from 2.1.0 to 3.0.0 [#9867](https://github.com/habitat-sh/habitat/pull/9867) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.218 -->
