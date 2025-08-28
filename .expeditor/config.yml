@@ -13,7 +13,7 @@ github:
   changelog_file: "CHANGELOG.md"
   delete_branch_on_merge: true
 
-# Slack channel in Chef Software slack to send notifications about Expeditor actions
+# Slack channel in Chef Software slack to send notifications about Expeditor actions...
 slack:
   notify_channel: habitat-notify
 
