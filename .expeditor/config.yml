@@ -25,13 +25,13 @@ changelog:
 
 pipelines:
   - verify:
-      description: Pull Request validation tests
+      description: Pull Request validation tests.
   - release_habitat:
-      description: Habitat release process
+      description: Habitat release process.
   - end_to_end:
-      description: Habitat long running end to end tests - always runs on DEV environment
+      description: Habitat long running end to end tests - always runs on DEV environment.
   - finish_release:
-      description: Tasks to be performed after a release has been promoted to stable
+      description: Tasks to be performed after a release has been promoted to stable.
 
 release_branches:
   - main:
@@ -90,7 +90,7 @@ subscriptions:
           post_commit: true
 
   # Promotion Workloads
-  ########################################################################
+  ##########################################################################
   # Only allow promotion actions from acceptance->staging,
   # staging->current, and current->stable; other promotions are
   # handled automatically by the pipeline.
