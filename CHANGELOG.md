@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.223 -->
-## [2.0.223](https://github.com/habitat-sh/habitat/tree/2.0.223) (2025-08-29)
+<!-- latest_release 2.0.224 -->
+## [2.0.224](https://github.com/habitat-sh/habitat/tree/2.0.224) (2025-08-29)
 
 #### Merged Pull Requests
-- rename v1.6 to v1_6 for release branch [#9879](https://github.com/habitat-sh/habitat/pull/9879) ([muthuja](https://github.com/muthuja))
+- fix default channel for hab svc load and service spec creation [#9881](https://github.com/habitat-sh/habitat/pull/9881) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- fix default channel for hab svc load and service spec creation [#9881](https://github.com/habitat-sh/habitat/pull/9881) ([mwrock](https://github.com/mwrock)) <!-- 2.0.224 -->
 - rename v1.6 to v1_6 for release branch [#9879](https://github.com/habitat-sh/habitat/pull/9879) ([muthuja](https://github.com/muthuja)) <!-- 2.0.223 -->
 - adding v1.6 release branch [#9873](https://github.com/habitat-sh/habitat/pull/9873) ([muthuja](https://github.com/muthuja)) <!-- 2.0.222 -->
 - remove v1.6 from the release_branch so that it will be added back again [#9872](https://github.com/habitat-sh/habitat/pull/9872) ([muthuja](https://github.com/muthuja)) <!-- 2.0.221 -->
