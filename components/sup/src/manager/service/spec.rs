@@ -112,10 +112,16 @@ pub struct ServiceSpec {
 
 impl ServiceSpec {
     pub fn new(ident: PackageIdent) -> Self {
+        let channel = if ident.origin == "core" {
+            ChannelIdent::base()
+        } else {
+            ChannelIdent::stable()
+        };
+
         Self { ident,
                group: DEFAULT_GROUP.to_string(),
                bldr_url: DEFAULT_BLDR_URL.to_string(),
-               channel: ChannelIdent::stable(),
+               channel,
                topology: Topology::default(),
                update_strategy: UpdateStrategy::default(),
                update_condition: UpdateCondition::default(),
@@ -231,6 +237,13 @@ impl ServiceSpec {
         }
         if let Some(channel) = svc_load.bldr_channel {
             self.channel = channel.into();
+        } else {
+            // Set the appropriate default channel based on origin
+            self.channel = if self.ident.origin == "core" {
+                ChannelIdent::base()
+            } else {
+                ChannelIdent::stable()
+            };
         }
         if let Some(topology) = svc_load.topology {
             if let Ok(topology) = Topology::try_from(topology) {
@@ -568,6 +581,9 @@ mod test {
 
     use super::*;
     use crate::error::Error::*;
+
+    use habitat_sup_protocol::ctl::SvcLoad;
+    use std::convert::TryFrom;
 
     fn file_from_str<P: AsRef<Path>>(path: P, content: &str) {
         fs::create_dir_all(
@@ -1044,6 +1060,89 @@ mod test {
                    Some(PathBuf::from("/only/for/development")));
         assert_eq!(spec.health_check_interval,
                    HealthCheckInterval::from_str("5").unwrap());
+    }
+
+    #[test]
+    fn test_try_from_svc_load_with_core_origin_and_no_channel() {
+        let mut svc_load = SvcLoad::default();
+
+        // Set a core origin package identifier
+        let ident: PackageIdent = "core/redis/1.0.0/20180701125610".parse().unwrap();
+        svc_load.ident = Some(ident.into());
+
+        // Don't set channel, let it use default
+
+        // Convert SvcLoad to ServiceSpec using TryFrom
+        let spec =
+            ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
+
+        // The key assertion - core origin with no channel should default to the 'base' channel
+        assert_eq!(spec.channel, ChannelIdent::base());
+        assert_eq!(spec.ident.origin, "core");
+        assert_eq!(spec.ident.name, "redis");
+    }
+
+    #[test]
+    fn test_try_from_svc_load_with_howdy_origin_and_no_channel() {
+        let mut svc_load = SvcLoad::default();
+
+        // Set a howdy origin package identifier
+        let ident: PackageIdent = "howdy/web-app/1.0.0/20180701125610".parse().unwrap();
+        svc_load.ident = Some(ident.into());
+
+        // Don't set channel, let it use default
+
+        // Convert SvcLoad to ServiceSpec using TryFrom
+        let spec =
+            ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
+
+        // The key assertion - non-core origin with no channel should default to the 'stable'
+        // channel
+        assert_eq!(spec.channel, ChannelIdent::stable());
+        assert_eq!(spec.ident.origin, "howdy");
+        assert_eq!(spec.ident.name, "web-app");
+    }
+
+    #[test]
+    fn test_try_from_svc_load_with_howdy_origin_and_custom_channel() {
+        let mut svc_load = SvcLoad::default();
+
+        // Set a howdy origin package identifier
+        let ident: PackageIdent = "howdy/web-app/1.0.0/20180701125610".parse().unwrap();
+        svc_load.ident = Some(ident.into());
+
+        // Set channel to mychannel
+        svc_load.bldr_channel = Some("mychannel".to_string());
+
+        // Convert SvcLoad to ServiceSpec using TryFrom
+        let spec =
+            ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
+
+        // The key assertion - should use the explicitly specified channel
+        assert_eq!(spec.channel, ChannelIdent::from("mychannel"));
+        assert_eq!(spec.ident.origin, "howdy");
+        assert_eq!(spec.ident.name, "web-app");
+    }
+
+    #[test]
+    fn test_try_from_svc_load_with_core_origin_and_custom_channel() {
+        let mut svc_load = SvcLoad::default();
+
+        // Set a core origin package identifier
+        let ident: PackageIdent = "core/redis/1.0.0/20180701125610".parse().unwrap();
+        svc_load.ident = Some(ident.into());
+
+        // Set channel to mychannel
+        svc_load.bldr_channel = Some("mychannel".to_string());
+
+        // Convert SvcLoad to ServiceSpec using TryFrom
+        let spec =
+            ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
+
+        // The key assertion - should use the explicitly specified channel, not base channel
+        assert_eq!(spec.channel, ChannelIdent::from("mychannel"));
+        assert_eq!(spec.ident.origin, "core");
+        assert_eq!(spec.ident.name, "redis");
     }
 
     mod reconcile {
