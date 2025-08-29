@@ -75,7 +75,7 @@ pub enum Error {
     HookFailed {
         package_ident: FullyQualifiedPackageIdent,
         hook:          &'static str,
-        error:         CommandExecutionError,
+        error:         Box<CommandExecutionError>,
     },
     InvalidEventStreamToken(String),
     /// Occurs when making lower level IO calls.
@@ -126,7 +126,7 @@ impl Error {
                           -> Self {
         Self::HookFailed { package_ident,
                            hook,
-                           error: CommandExecutionError::run_error(error) }
+                           error: Box::new(CommandExecutionError::run_error(error)) }
     }
 
     pub fn hook_exit_status(package_ident: FullyQualifiedPackageIdent,
@@ -135,7 +135,7 @@ impl Error {
                             -> Self {
         Self::HookFailed { package_ident,
                            hook,
-                           error: CommandExecutionError::exit_status(exit_status) }
+                           error: Box::new(CommandExecutionError::exit_status(exit_status)) }
     }
 }
 

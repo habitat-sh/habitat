@@ -491,10 +491,12 @@ pub(crate) mod sync {
 
     impl GatewayState {
         #[must_use]
-        pub fn lock_gsr(&self) -> GatewayStateReadGuard { GatewayStateReadGuard::new(&self.inner) }
+        pub fn lock_gsr(&self) -> GatewayStateReadGuard<'_> {
+            GatewayStateReadGuard::new(&self.inner)
+        }
 
         #[must_use]
-        pub fn lock_gsw(&self) -> GatewayStateWriteGuard {
+        pub fn lock_gsw(&self) -> GatewayStateWriteGuard<'_> {
             GatewayStateWriteGuard::new(&self.inner)
         }
     }
@@ -583,12 +585,12 @@ pub(crate) mod sync {
 
     impl ManagerServices {
         #[must_use]
-        pub fn lock_msr(&self) -> ManagerServicesReadGuard {
+        pub fn lock_msr(&self) -> ManagerServicesReadGuard<'_> {
             ManagerServicesReadGuard::new(&self.inner)
         }
 
         #[must_use]
-        pub fn lock_msw(&self) -> ManagerServicesWriteGuard {
+        pub fn lock_msw(&self) -> ManagerServicesWriteGuard<'_> {
             ManagerServicesWriteGuard::new(&self.inner)
         }
     }
@@ -2079,10 +2081,7 @@ fn get_fd_count() -> std::io::Result<usize> {
             // these are ints here because GetProcessHandleCount returns a BOOL which is actually
             // an i32
             1 => Ok(count as usize),
-            _ => {
-                Err(std::io::Error::new(std::io::ErrorKind::Other,
-                                        "error getting file descriptor count"))
-            }
+            _ => Err(std::io::Error::other("error getting file descriptor count")),
         }
     }
 }

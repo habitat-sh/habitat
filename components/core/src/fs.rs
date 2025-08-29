@@ -831,8 +831,8 @@ impl AtomicWriter {
             let permissions = *permissions;
 
             set_permissions(self.tempfile.path(), permissions).map_err(|e| {
-                io::Error::new(io::ErrorKind::Other, e.to_string())
-            })?;
+                                                                  io::Error::other(e.to_string())
+                                                              })?;
         }
         self.tempfile.as_file().sync_all()?;
 

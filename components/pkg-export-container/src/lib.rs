@@ -7,16 +7,14 @@ use crate::{build::BuildSpec,
             naming::Naming};
 
 use anyhow::Result;
+use aws_config::BehaviorVersion;
+use aws_credential_types::{provider::SharedCredentialsProvider,
+                           Credentials as AwsCredentials};
+use aws_sdk_ecr as ecr;
 use habitat_common::ui::{Status,
                          UIWriter,
                          UI};
 use log::debug;
-use rusoto_core::{request::HttpClient,
-                  Region};
-use rusoto_credential::StaticProvider;
-use rusoto_ecr::{Ecr,
-                 EcrClient,
-                 GetAuthorizationTokenRequest};
 use serde_json::json;
 use std::{convert::TryFrom,
           env,
@@ -51,6 +49,8 @@ const BUSYBOX_IDENT: &str = "core/busybox-static";
 
 /// The Habitat Package Identifier string for SSL certificate authorities (CA) certificates package.
 const CACERTS_IDENT: &str = "core/cacerts";
+
+const DEFAULT_AWS_REGION: &str = "us-west-2";
 
 // Default values of parameters
 #[cfg(unix)]
@@ -116,13 +116,22 @@ impl Credentials {
             RegistryType::Amazon => {
                 // The username and password should be valid IAM credentials
                 let provider =
-                    StaticProvider::new_minimal(username.to_string(), password.to_string());
+                    SharedCredentialsProvider::new(AwsCredentials::new(username.to_string(),
+                                                                       password.to_string(),
+                                                                       None,
+                                                                       None,
+                                                                       "static"));
                 // TODO TED: Make the region configurable
-                let client = EcrClient::new_with(HttpClient::new()?, provider, Region::UsWest2);
-                let auth_token_req = GetAuthorizationTokenRequest {};
-                let token = client.get_authorization_token(auth_token_req)
+                let loader = aws_config::defaults(BehaviorVersion::latest())
+                    .region(ecr::config::Region::new(DEFAULT_AWS_REGION.to_string()))
+                    .credentials_provider(provider.clone());
+                let cfg = loader.load().await;
+                let client = ecr::Client::new(&cfg);
+
+                let token = client.get_authorization_token()
+                                  .send()
                                   .await
-                                  .map_err(Error::TokenFetchFailed)
+                                  .map_err(|e| Error::TokenFetchFailed(Box::new(e)))
                                   .and_then(|resp| {
                                       resp.authorization_data
                                           .ok_or(Error::NoECRTokensReturned)

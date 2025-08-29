@@ -718,13 +718,12 @@ impl InstallTask<'_> {
 
                 // If rename still failed after retries, return an error
                 if !rename_success {
-                    return Err(Error::from(std::io::Error::new(
-                        std::io::ErrorKind::Other,
-                        format!("Failed to rename {} to {} after retrying for {} seconds", 
-                            temp_install_path.display(),
-                            real_install_path.display(),
-                            timeout.as_secs())
-                    )));
+                    return Err(Error::from(std::io::Error::other(format!(
+                        "Failed to rename {} to {} after retrying for {} seconds",
+                        temp_install_path.display(),
+                        real_install_path.display(),
+                        timeout.as_secs()
+                    ))));
                 }
 
                 if cfg!(unix) {

@@ -1666,7 +1666,7 @@ mod tests {
         let client = BuilderAPIClient::new("http://test.com", "", "", None).expect("valid client");
 
         let count = 100_000;
-        let sample_data = std::iter::repeat("test").take(count).collect::<Vec<_>>();
+        let sample_data = std::iter::repeat_n("test", count).collect::<Vec<_>>();
 
         let searcher = seach_generator(sample_data.as_slice(), 50);
         let r = client.search_package_impl("test", count, None, searcher)

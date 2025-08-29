@@ -45,9 +45,9 @@ pub enum Error {
     FileNotFound(String),
     FileWatcherFileIsRoot,
     GroupNotFound(String),
-    Hab(hab::error::Error),
-    HabitatCommon(habitat_common::Error),
-    HabitatCore(habitat_core::Error),
+    Hab(Box<hab::error::Error>),
+    HabitatCommon(Box<habitat_common::Error>),
+    HabitatCore(Box<habitat_core::Error>),
     InvalidBinds(Vec<String>),
     InvalidCertFile(PathBuf),
     InvalidHealthCheckResult(i32),
@@ -324,11 +324,11 @@ impl From<habitat_butterfly::error::Error> for Error {
 }
 
 impl From<hab::error::Error> for Error {
-    fn from(err: hab::error::Error) -> Error { Error::Hab(err) }
+    fn from(err: hab::error::Error) -> Error { Error::Hab(Box::new(err)) }
 }
 
 impl From<habitat_common::Error> for Error {
-    fn from(err: habitat_common::Error) -> Error { Error::HabitatCommon(err) }
+    fn from(err: habitat_common::Error) -> Error { Error::HabitatCommon(Box::new(err)) }
 }
 
 impl From<glob::PatternError> for Error {
@@ -336,7 +336,7 @@ impl From<glob::PatternError> for Error {
 }
 
 impl From<habitat_core::Error> for Error {
-    fn from(err: habitat_core::Error) -> Error { Error::HabitatCore(err) }
+    fn from(err: habitat_core::Error) -> Error { Error::HabitatCore(Box::new(err)) }
 }
 
 impl From<ffi::NulError> for Error {

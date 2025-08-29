@@ -205,7 +205,7 @@ mod storage {
 
         /// Allows iterator access to the rumors in to the `RumorMap` for a particular service group
         /// while holding its lock.
-        pub fn service_group(&self, service_group: &str) -> ServiceGroupRumors<T> {
+        pub fn service_group(&self, service_group: &str) -> ServiceGroupRumors<'_, T> {
             ServiceGroupRumors(self.get(service_group))
         }
 
@@ -301,7 +301,7 @@ mod storage {
         ///   held until the `IterableGuard` goes out of scope. In general, it's best to avoid
         ///   binding the return of `lock_rsr` in favor of using it as the first link in a chain of
         ///   functions that will be consumed by an iterator adapter or `for` loop.
-        pub fn lock_rsr(&self) -> IterableGuard<RumorMap<T>> { IterableGuard::read(&self.list) }
+        pub fn lock_rsr(&self) -> IterableGuard<'_, RumorMap<T>> { IterableGuard::read(&self.list) }
 
         /// # Locking (see locking.md)
         /// * `RumorStore::list` (write)

@@ -10,12 +10,7 @@ extern "C" {
 
 fn get_sid_by_name(name: &str) -> Option<String> {
     match Account::from_name(name) {
-        Some(acct) => {
-            match acct.sid.to_string() {
-                Ok(username) => Some(username),
-                Err(_) => None,
-            }
-        }
+        Some(acct) => acct.sid.to_string().ok(),
         None => None,
     }
 }

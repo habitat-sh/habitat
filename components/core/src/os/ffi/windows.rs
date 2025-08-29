@@ -20,6 +20,7 @@ impl OsStrExt3 for OsStr {
 
 #[doc(hidden)]
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 pub struct OsSplit<'a> {
     sep: u8,
     val: &'a [u8],

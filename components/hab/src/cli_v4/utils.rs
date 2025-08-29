@@ -188,12 +188,7 @@ impl AuthToken {
 
     // This function returns an `Option`, so if there is any "error" reading from config or env is
     // not set simply returns a None.
-    pub(crate) fn try_from_cli_or_config(&self) -> Option<String> {
-        match self.from_cli_or_config() {
-            Ok(v) => Some(v),
-            Err(_) => None,
-        }
-    }
+    pub(crate) fn try_from_cli_or_config(&self) -> Option<String> { self.from_cli_or_config().ok() }
 
     /// Return the token from CLI, ENV, or config, or `Err(Error::ArgumentError)`.
     pub fn resolve(&self) -> Result<String, Error> {
@@ -350,7 +345,7 @@ impl std::fmt::Display for SubjectAlternativeName {
 }
 
 impl SubjectAlternativeName {
-    pub fn dns_name(&self) -> Result<DnsName, Error> {
+    pub fn dns_name(&self) -> Result<DnsName<'_>, Error> {
         DnsName::try_from(self.0.to_owned()).map_err(|_| Error::InvalidDnsName(self.0.to_owned()))
     }
 }

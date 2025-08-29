@@ -47,13 +47,13 @@ pub fn start(ui: &mut UI,
             ("habitat".into(),
              canonicalize(".").ok()
                               .and_then(|path| {
-                                  path.components().last().and_then(|val| {
-                                                              // Type gymnastics!
-                                                              val.as_os_str()
-                                                                 .to_os_string()
-                                                                 .into_string()
-                                                                 .ok()
-                                                          })
+                                  path.components().next_back().and_then(|val| {
+                                                                   // Type gymnastics!
+                                                                   val.as_os_str()
+                                                                      .to_os_string()
+                                                                      .into_string()
+                                                                      .ok()
+                                                               })
                               })
                               .unwrap_or_else(|| "unnamed".into()))
         }
