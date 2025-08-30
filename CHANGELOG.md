@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.225 -->
-## [2.0.225](https://github.com/habitat-sh/habitat/tree/2.0.225) (2025-08-29)
+<!-- latest_release 2.0.226 -->
+## [2.0.226](https://github.com/habitat-sh/habitat/tree/2.0.226) (2025-08-30)
 
 #### Merged Pull Requests
-- use .net 8 framework and update nuget packages to avoid CVEs [#9883](https://github.com/habitat-sh/habitat/pull/9883) ([mwrock](https://github.com/mwrock))
+- Replaced rusoto with aws-sdk and rust update to 1.89 [#9816](https://github.com/habitat-sh/habitat/pull/9816) ([sougata-progress](https://github.com/sougata-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Replaced rusoto with aws-sdk and rust update to 1.89 [#9816](https://github.com/habitat-sh/habitat/pull/9816) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.226 -->
 - use .net 8 framework and update nuget packages to avoid CVEs [#9883](https://github.com/habitat-sh/habitat/pull/9883) ([mwrock](https://github.com/mwrock)) <!-- 2.0.225 -->
 - fix default channel for hab svc load and service spec creation [#9881](https://github.com/habitat-sh/habitat/pull/9881) ([mwrock](https://github.com/mwrock)) <!-- 2.0.224 -->
 - rename v1.6 to v1_6 for release branch [#9879](https://github.com/habitat-sh/habitat/pull/9879) ([muthuja](https://github.com/muthuja)) <!-- 2.0.223 -->
