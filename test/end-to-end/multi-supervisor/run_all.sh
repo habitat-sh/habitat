@@ -3,13 +3,13 @@
 set -euo pipefail
 
 export HAB_LICENSE="accept-no-persist"
-# We need this version of docker compose. Later versions do not support the
-# extends keyword.
-sudo -E hab pkg install core/docker-compose/1.29.2/20220312064236
-sudo rm -f /bin/docker-compose
-sudo -E hab pkg binlink core/docker-compose docker-compose --force
 
-docker-compose --version
+# Force Docker Compose to use the default builder instead of docker-container
+# This ensures that locally built images are accessible during builds
+export DOCKER_BUILDKIT=0
+export COMPOSE_DOCKER_CLI_BUILD=0
+
+docker-compose version
 
 # TODO (CM): Pass the name of a single test case to run
 
@@ -21,12 +21,8 @@ rm -Rf "${output_dir}"
 mkdir "${output_dir}"
 
 # Ensure the requisite images are present.
-echo "$HAB_AUTH_TOKEN" > hab_auth_token.txt
-trap 'rm -f hab_auth_token.txt' INT TERM EXIT
-(
-    make habitat_integration_base CHANNEL="${channel}"
-    make supervisor_image CHANNEL="${channel}" IMAGE_NAME="${image_name}"
-)
+make habitat_integration_base CHANNEL="${channel}" HAB_AUTH_TOKEN="${HAB_AUTH_TOKEN}"
+make supervisor_image CHANNEL="${channel}" IMAGE_NAME="${image_name}" HAB_AUTH_TOKEN="${HAB_AUTH_TOKEN}"
 
 # Assume success until told otherwise; the first failure will set this
 # to non-zero.
