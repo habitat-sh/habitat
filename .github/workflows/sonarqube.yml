@@ -41,7 +41,7 @@ jobs:
           sleep 30
 
       - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@v5.3.0
+        uses: sonarsource/sonarqube-scan-action@v5.3.1
         continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
