@@ -12,7 +12,6 @@
 #
 # advisory IDs to ignore e.g. ["RUSTSEC-2019-0001", ...]
 ignore = [
-    "RUSTSEC-2021-0137", # Unmaintained: sodiumoxide
     "RUSTSEC-2021-0139", # Unmaintained: ansi_term
     "RUSTSEC-2021-0145", # Unsound, Unmaintained: atty
     "RUSTSEC-2022-0071", # Unmaintained: rusoto
@@ -51,15 +50,6 @@ show_tree = true # Show inverse dependency trees along with advisories (default:
 enabled = true      # Warn for yanked crates in Cargo.lock (default: true)
 update_index = true # Auto-update the crates.io index (default: true)
 
-#-------------------------------------------------------------------------------
-# "RUSTSEC-2021-0137",    # Unmaintained: sodiumoxide
-#-------------------------------------------------------------------------------
-#
-# Requires selection of replacement cryptography crate
-#
-# sodiumoxide 0.2.7
-# └── habitat_core 0.0.0
-#
 #-------------------------------------------------------------------------------
 # "RUSTSEC-2021-0139",    # Unmaintained: ansi_term
 # "RUSTSEC-2021-0145",    # Unsound, Unmaintained: atty

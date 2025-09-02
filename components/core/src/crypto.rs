@@ -211,6 +211,8 @@
 //! <symkey_base64>
 //! ```
 
+use std::ffi::c_void;
+
 use crate::error::{Error,
                    Result};
 
@@ -246,7 +248,12 @@ pub mod keys;
 
 pub use hash::Blake2bHash;
 
-pub fn init() -> Result<()> { sodiumoxide::init().map_err(|_| Error::SodiumInitFailed) }
+pub fn init() -> Result<()> {
+    if (unsafe { libsodium_sys::sodium_init() } > 0) {
+        return Err(Error::SodiumInitFailed);
+    }
+    Ok(())
+}
 
 /// A comparison function that takes a consistent amount of time to compare
 /// values of a given number of bytes so as to be resistant to timing attacks.
@@ -256,7 +263,14 @@ pub fn secure_eq<T, U>(t: T, u: U) -> bool
     where T: AsRef<[u8]>,
           U: AsRef<[u8]>
 {
-    sodiumoxide::utils::memcmp(t.as_ref(), u.as_ref())
+    let t_ref = t.as_ref();
+    let u_ref = u.as_ref();
+    unsafe {
+        libsodium_sys::sodium_memcmp(t_ref.as_ptr() as *const c_void,
+                                     u_ref.as_ptr() as *const c_void,
+                                     t_ref.len())
+        == 0
+    }
 }
 
 #[cfg(test)]
