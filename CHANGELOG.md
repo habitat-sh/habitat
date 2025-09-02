@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.227 -->
-## [2.0.227](https://github.com/habitat-sh/habitat/tree/2.0.227) (2025-09-02)
+<!-- latest_release 2.0.228 -->
+## [2.0.228](https://github.com/habitat-sh/habitat/tree/2.0.228) (2025-09-02)
 
 #### Merged Pull Requests
-- Bump aws-sdk-ecr from 1.90.0 to 1.91.0 [#9887](https://github.com/habitat-sh/habitat/pull/9887) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump aws-config from 1.8.5 to 1.8.6 [#9890](https://github.com/habitat-sh/habitat/pull/9890) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump aws-config from 1.8.5 to 1.8.6 [#9890](https://github.com/habitat-sh/habitat/pull/9890) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.228 -->
+- Bump actix-rt from 2.10.0 to 2.11.0 [#9888](https://github.com/habitat-sh/habitat/pull/9888) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.228 -->
+- Bump aws-credential-types from 1.2.5 to 1.2.6 [#9889](https://github.com/habitat-sh/habitat/pull/9889) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.228 -->
+- Bump sonarsource/sonarqube-scan-action from 5.3.0 to 5.3.1 [#9885](https://github.com/habitat-sh/habitat/pull/9885) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.228 -->
+- Bump actions/checkout from 4 to 5 [#9886](https://github.com/habitat-sh/habitat/pull/9886) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.228 -->
 - Bump aws-sdk-ecr from 1.90.0 to 1.91.0 [#9887](https://github.com/habitat-sh/habitat/pull/9887) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.227 -->
 - Replaced rusoto with aws-sdk and rust update to 1.89 [#9816](https://github.com/habitat-sh/habitat/pull/9816) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.226 -->
 - use .net 8 framework and update nuget packages to avoid CVEs [#9883](https://github.com/habitat-sh/habitat/pull/9883) ([mwrock](https://github.com/mwrock)) <!-- 2.0.225 -->
