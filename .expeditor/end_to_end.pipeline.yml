@@ -32,6 +32,17 @@ steps:
     artifact_paths:
       - "test/end-to-end/multi-supervisor/habitat_integration_output/**"
 
+  - label: ":docker: Docker End-to-End Supervisor Tests Aarch64"
+    command:
+      - cd test/end-to-end/multi-supervisor
+      - ./run_all.sh dev
+    agents:
+      queue: default-privileged-aarch64
+    env:
+      DOCKER_BUILDKIT: "1"
+    artifact_paths:
+      - "test/end-to-end/multi-supervisor/habitat_integration_output/**"
+
   - label: "[:linux: test_hab_help_doesnt_install_hab_sup]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_hab_help_doesnt_install_hab_sup

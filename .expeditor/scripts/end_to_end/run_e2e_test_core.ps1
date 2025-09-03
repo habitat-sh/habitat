@@ -289,7 +289,7 @@ Function Invoke-BuildAndInstall($PackageName, $RefreshChannel) {
 }
 
 function Stop-ComposeSupervisor($Remote) {
-    Invoke-NativeCommand docker exec "${env:COMPOSE_PROJECT_NAME}_${Remote}_1" hab sup term
+    Invoke-NativeCommand docker exec "${env:COMPOSE_PROJECT_NAME}-${Remote}-1" hab sup term
     Start-Sleep 5
 }
 
@@ -316,8 +316,7 @@ function Get-HabServicePID($PackageName) {
 
 ###################################################################################################
 
-# This pin to 4.10.1 is a temporary measure until the latest base-2025 pester is fixed
-Import-Module (Join-Path -Path $(hab pkg path core/pester/4.10.1) module Pester.psd1)
+Import-Module (Join-Path -Path $(hab pkg path core/pester) module Pester.psd1)
 
 if(Test-Path $TestName) {
     $testPath = $TestName

@@ -47,25 +47,25 @@ up: build CTL_SECRET ## Build and start the network
 	@echo "$(GREEN)Building Docker image...$(RESET)"
 	docker build -t $(DOCKER_IMAGE_NAME) .
 	@echo "$(GREEN)Starting network with $(HAB_SUP_TEST_NETWORK_SIZE) rando instances...$(RESET)"
-	docker compose up -d --scale rando=$(HAB_SUP_TEST_NETWORK_SIZE)
+	docker-compose up -d --scale rando=$(HAB_SUP_TEST_NETWORK_SIZE)
 
 down: ## Stop and remove containers, networks, and secrets
 	@echo "$(YELLOW)Stopping network...$(RESET)"
-	docker compose down --volumes --remove-orphans || true
+	docker-compose down --volumes --remove-orphans || true
 	-rm -f CTL_SECRET
 	@echo "$(GREEN)Network stopped and cleaned up$(RESET)"
 
 start: ## Start existing containers
-	docker compose start
+	docker-compose start
 
 stop: ## Stop running containers without removing them
-	docker compose stop
+	docker-compose stop
 
 restart: stop start ## Restart all containers
 
 # Utility targets
 logs-for: ## Follow logs for specified service (default: rando)
-	docker compose logs -f $(HAB_SUP_TEST_NETWORK_LOG_SERVICE)
+	docker-compose logs -f $(HAB_SUP_TEST_NETWORK_LOG_SERVICE)
 
 console: ## Open bash shell in specified container
 	@CONTAINER_ID=$$(docker ps -qf name=$(HAB_SUP_TEST_NETWORK_PEER_NAME)); \
@@ -96,7 +96,7 @@ ip-addresses: ## Get IP addresses of all containers
 	column -t --table-columns Name,"IP Address"
 
 status: ## Show status of all containers
-	docker compose ps
+	docker-compose ps
 
 # Maintenance targets
 clean: down ## Clean up everything including volumes and images
@@ -111,7 +111,7 @@ all: build up ## Build everything and start
 
 # Development helpers
 logs: ## Follow logs for all services
-	docker compose logs -f
+	docker-compose logs -f
 
 shell: ## Open shell in bastion container
 	@CONTAINER_ID=$$(docker ps -qf name=sup-network-bastion-1); \
@@ -122,7 +122,7 @@ shell: ## Open shell in bastion container
 	docker exec -it $$CONTAINER_ID /bin/bash
 
 scale: ## Scale rando service (use: make scale SIZE=5)
-	docker compose up -d --scale rando=$(if $(SIZE),$(SIZE),$(HAB_SUP_TEST_NETWORK_SIZE))
+	docker-compose up -d --scale rando=$(if $(SIZE),$(SIZE),$(HAB_SUP_TEST_NETWORK_SIZE))
 
 # Debug target
 debug: ## Show configuration variables

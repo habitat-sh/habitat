@@ -1,10 +1,5 @@
-# This is the latest version with support for `extends`, which we use
-# to abstract some repetitive details. We could use more modern
-# versions, but then we'd have to do some YAML generation of our
-# own. It's not hard, but I'd rather avoid it if possible. (Of course,
-# depending on how this testing setup evolves, we may end up going the
-# generation route eventually, anyway.)
-version: '2.4'
+# Updated to use modern Docker Compose without extends
+version: '3.8'
 
 # The basic idea of all this is that we set up a self-contained
 # network of containers, each of which are running a Supervisor. At
@@ -22,82 +17,42 @@ version: '2.4'
 # basically be a straightforward script of Habitat commands and
 # verification steps. If the command exits successfully, then the test
 # has passed; if it exits with an error, the test has failed.
-services:
 
+# YAML anchors for reusable configurations
   # All services should ultimately derive from this definition. This
   # ensures that they're all in the same network, have the same shared
   # CTL_SECRET, and have additional metadata set appropriately.
-  base:
-    image: ${SUPERVISOR_IMAGE}
-    domainname: habitat.dev
-    environment:
-      HAB_LICENSE: accept-no-persist
-      HAB_NONINTERACTIVE: '1'
-      TESTCASE: ${TESTCASE}
-      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
-      HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
-    volumes:
-      - source: ./CTL_SECRET
-        target: /hab/sup/default/CTL_SECRET
-        type: bind
+x-base-config: &base-config
+  image: ${SUPERVISOR_IMAGE}
+  domainname: habitat.dev
+  environment:
+    HAB_LICENSE: accept-no-persist
+    HAB_NONINTERACTIVE: '1'
+    TESTCASE: ${TESTCASE}
+    COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+    HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
+  volumes:
+    - source: ./CTL_SECRET
+      target: /hab/sup/default/CTL_SECRET
+      type: bind
 
   # Defines a basic Supervisor service peered to our bastion
   # Supervisor. All Supervisors in the network will generally derive
   # from this definition in one way or another.
-  sup_base:
-    extends:
-      service: base
-    command:
-      - run
-      - --listen-ctl=0.0.0.0:9632
-      - --peer=bastion.habitat.dev
+x-sup-base-config: &sup-base-config
+  <<: *base-config
+  command:
+    - run
+    - --listen-ctl=0.0.0.0:9632
+    - --peer=bastion.habitat.dev
 
-  # THIS IS THE MAIN ENTRY POINT!
-  #
-  # Defines a testing container can communicate with all the
-  # Supervisors (because it's in the same network and has the same
-  # `CTL_SECRET` file mounted in it that all the other Supervisor
-  # containers do.)
-  #
-  # The container image is built to contain a test case, which is also
-  # its command.
-  #
-  # It should depend on all the Supervisor containers it interacts
-  # with, to ensure they are up before this container starts.
-  #
-  # This assumes you have a Dockerfile in the testcase directory, and
-  # that its command is set to run whatever test scenario you want to
-  # run.
-  test_base:
-    extends:
-      service: base
-    build:
-      context: ${TESTCASE_DIR}
-    image: ${TESTCASE}_image
-    volumes:
-      # This is for when your tests require access to the individual
-      # Supervisor "servers"' file systems. We need access to the
-      # Docker socket inside the container, so we can use `docker` to
-      # get into the other containers to check.
-      #
-      # Whenever possible, though, your tests should be as
-      # Docker-independent as they can.
-      #
-      # Yo dawg, I heard you like Docker....
-      - source: /var/run/docker.sock
-        target: /var/run/docker.sock
-        type: bind
-      - source: ../../../.expeditor/scripts
-        target: /scripts
-        type: bind
-
+services:
   # The Supervisor containers are defined below. They're often simply
   # clones of each other (with different hostnames), but they can be
   # modified as required by tests.
 
   bastion:
-    extends:
-      service: sup_base
+    <<: *base-config
     hostname: bastion
     command:
       # Note that we override the existing command to make this a
@@ -118,8 +73,7 @@ services:
   # testing container.
 
   alpha:
-    extends:
-      service: sup_base
+    <<: *sup-base-config
     hostname: alpha
     networks:
       default:
@@ -129,8 +83,7 @@ services:
       - bastion
 
   beta:
-    extends:
-      service: sup_base
+    <<: *sup-base-config
     hostname: beta
     networks:
       default:
