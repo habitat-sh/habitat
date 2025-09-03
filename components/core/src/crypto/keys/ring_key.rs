@@ -4,15 +4,16 @@ use crate::{crypto::{keys::NamedRevision,
                     Result},
             fs::Permissions};
 
+    use dryoc::constants::CRYPTO_SECRETBOX_MACBYTES;
+    use dryoc::classic::crypto_secretbox::Nonce;
+
 /// Private module to re-export the various sodiumoxide concepts we
 /// use, to keep them all consolidated and abstracted.
 mod primitives {
-    pub use sodiumoxide::crypto::secretbox::{gen_key,
-                                             gen_nonce,
-                                             open,
-                                             seal,
-                                             Key,
-                                             Nonce};
+    pub use dryoc::types::*;
+    pub use dryoc::classic::crypto_secretbox::{Key, Nonce,crypto_secretbox_keygen};
+    pub fn gen_nonce() -> Nonce { Nonce::gen() }
+    pub fn gen_key() -> Key { crypto_secretbox_keygen() }
 }
 
 gen_key!(
@@ -41,24 +42,22 @@ impl RingKey {
     /// The return is a tuple of `Vec<u8>`s, the first being a random
     /// nonce value and the second being the ciphertext. Both are
     /// needed to decrypt the message.
-    pub fn encrypt(&self, data: &[u8]) -> (Vec<u8>, Vec<u8>) {
+    pub fn encrypt(&self, data: &[u8]) -> (Nonce, Vec<u8>) {
         let nonce = primitives::gen_nonce();
-        (nonce.as_ref().to_vec(), primitives::seal(data, &nonce, &self.key))
+        let mut ciphertext = vec![0u8; data.len() + CRYPTO_SECRETBOX_MACBYTES];
+        dryoc::classic::crypto_secretbox::crypto_secretbox_easy(ciphertext.as_mut_slice(), data, &nonce, &self.key);
+        (nonce, ciphertext)
     }
 
     /// Decrypts a ciphertext using a given nonce value.
     ///
     /// The returns the original unencrypted bytes.
-    pub fn decrypt(&self, nonce: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
-        let nonce = primitives::Nonce::from_slice(nonce).ok_or_else(|| {
-                                                            Error::CryptoError("Invalid size of \
-                                                                                nonce"
-                                                                                      .to_string())
-                                                        })?;
-
-        primitives::open(ciphertext, &nonce, &self.key).map_err(|_| {
+    pub fn decrypt(&self, nonce: &Nonce, ciphertext: &[u8]) -> Result<Vec<u8>> {
+        let mut decrypted = vec![0u8; ciphertext.len() - CRYPTO_SECRETBOX_MACBYTES];
+        dryoc::classic::crypto_secretbox::crypto_secretbox_open_easy(decrypted.as_mut_slice(), ciphertext, nonce, &self.key).map_err(|_| {
             Error::CryptoError("Secret key and nonce could not decrypt ciphertext".to_string())
-        })
+        });
+        Ok(decrypted)
     }
 }
 
@@ -119,13 +118,14 @@ mod tests {
         assert_eq!(decrypted_message, "Ringonit");
     }
 
-    #[test]
-    #[should_panic(expected = "Invalid size of nonce")]
-    fn decrypt_invalid_nonce_length() {
-        let key = RingKey::new("beyonce");
-        let (_, ciphertext) = key.encrypt(b"Ringonit");
-        key.decrypt(b"crazyinlove", &ciphertext).unwrap();
-    }
+    // JAH: Does this test become irrelevant given the type changes?
+    // #[test]
+    // #[should_panic(expected = "Invalid size of nonce")]
+    // fn decrypt_invalid_nonce_length() {
+    //     let key = RingKey::new("beyonce");
+    //     let (_, ciphertext) = key.encrypt(b"Ringonit");
+    //     key.decrypt(b"crazyinlove", &ciphertext).unwrap();
+    // }
 
     #[test]
     #[should_panic(expected = "Secret key and nonce could not decrypt ciphertext")]
