@@ -15,10 +15,8 @@ use habitat_core::{crypto,
                    origin::Origin};
 
 use crate::{command::pkg::build,
-            error::Result as HabResult};
-
-#[cfg(target_os = "linux")]
-use crate::error::Error as HabError;
+            error::{Error as HabError,
+                    Result as HabResult}};
 
 use crate::cli_v4::utils::CacheKeyPath;
 
@@ -53,9 +51,9 @@ pub(crate) struct PkgBuildOptions {
     #[command(flatten)]
     cache_key_path: CacheKeyPath,
 
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     /// Build a native package on the host system without a studio
-    #[arg(name = "NATIVE_PACKAGE", short = 'N', long = "native-package", conflicts_with_all = &["REUSE", "DOCKER"])]
+    #[arg(name = "NATIVE_PACKAGE", short = 'N', long = "native-package")]
     native_package: bool,
 
     #[cfg(any(target_os = "linux", target_os = "windows"))]
@@ -83,6 +81,17 @@ impl PkgBuildOptions {
     // Required because of lot of `cfg`...
     #[allow(unused_variables)]
     pub(super) async fn do_build(&self, ui: &mut UI, feature_flags: FeatureFlag) -> HabResult<()> {
+        // Validate conflicts between native package and studio options
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
+        if self.native_package {
+            #[cfg(target_os = "linux")]
+            if self.reuse || self.docker {
+                return Err(HabError::ArgumentError(String::from(
+                    "--native-package conflicts with --reuse and --docker"
+                )));
+            }
+        }
+
         if !self.hab_origin_keys.is_empty() {
             crypto::init()?;
             let key_cache = KeyCache::new::<PathBuf>((&self.cache_key_path).into());
@@ -113,7 +122,7 @@ impl PkgBuildOptions {
                      self.refresh_channel.as_deref()).await
     }
 
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     fn should_build_native_package(&self, feature_flags: FeatureFlag) -> HabResult<bool> {
         if self.native_package {
             if !feature_flags.contains(FeatureFlag::NATIVE_PACKAGE_SUPPORT) {
@@ -128,6 +137,6 @@ impl PkgBuildOptions {
         }
     }
 
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     fn should_build_native_package(&self, _: FeatureFlag) -> HabResult<bool> { Ok(false) }
 }
