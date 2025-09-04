@@ -86,9 +86,10 @@ impl PkgBuildOptions {
         if self.native_package {
             #[cfg(target_os = "linux")]
             if self.reuse || self.docker {
-                return Err(HabError::ArgumentError(String::from(
-                    "--native-package conflicts with --reuse and --docker"
-                )));
+                return Err(HabError::ArgumentError(String::from("--native-package \
+                                                                 conflicts with \
+                                                                 --reuse and \
+                                                                 --docker")));
             }
         }
 
