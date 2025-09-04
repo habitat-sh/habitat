@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.231 -->
-## [2.0.231](https://github.com/habitat-sh/habitat/tree/2.0.231) (2025-09-04)
+<!-- latest_release 2.0.232 -->
+## [2.0.232](https://github.com/habitat-sh/habitat/tree/2.0.232) (2025-09-04)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.34 to 1.2.35 [#9893](https://github.com/habitat-sh/habitat/pull/9893) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump log from 0.4.27 to 0.4.28 [#9898](https://github.com/habitat-sh/habitat/pull/9898) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump log from 0.4.27 to 0.4.28 [#9898](https://github.com/habitat-sh/habitat/pull/9898) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.232 -->
+- Bump actions/labeler from 5.0.0 to 6.0.0 [#9897](https://github.com/habitat-sh/habitat/pull/9897) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.232 -->
+- Bump aws-sdk-ecr from 1.91.0 to 1.92.0 [#9895](https://github.com/habitat-sh/habitat/pull/9895) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.232 -->
 - Bump cc from 1.2.34 to 1.2.35 [#9893](https://github.com/habitat-sh/habitat/pull/9893) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.231 -->
 - Bump tracing-subscriber from 0.3.19 to 0.3.20 [#9882](https://github.com/habitat-sh/habitat/pull/9882) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.230 -->
 - Bump bitflags from 2.9.3 to 2.9.4 [#9894](https://github.com/habitat-sh/habitat/pull/9894) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.229 -->
