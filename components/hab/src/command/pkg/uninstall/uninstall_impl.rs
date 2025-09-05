@@ -121,15 +121,15 @@ pub async fn uninstall_all_but_latest<U>(ui: &mut U,
 ///
 /// `excludes` is a list of user-supplied `PackageIdent`s.
 #[allow(clippy::too_many_arguments)]
-pub async fn uninstall_many<U>(ui: &mut U,
-                               idents: &mut [impl AsRef<PackageIdent>],
-                               fs_root_path: &Path,
-                               execution_strategy: ExecutionStrategy,
-                               scope: Scope,
-                               excludes: &[PackageIdent],
-                               uninstall_hook_mode: UninstallHookMode,
-                               safety: UninstallSafety)
-                               -> Result<()>
+async fn uninstall_many<U>(ui: &mut U,
+                           idents: &mut [impl AsRef<PackageIdent>],
+                           fs_root_path: &Path,
+                           execution_strategy: ExecutionStrategy,
+                           scope: Scope,
+                           excludes: &[PackageIdent],
+                           uninstall_hook_mode: UninstallHookMode,
+                           safety: UninstallSafety)
+                           -> Result<()>
     where U: UIWriter
 {
     // 1.
@@ -180,14 +180,16 @@ pub async fn uninstall_many<U>(ui: &mut U,
                                 &ident))?;
             }
             Some(0) => {
-                maybe_delete(ui,
-                             fs_root_path,
-                             &pkg_install,
-                             execution_strategy,
-                             excludes,
-                             uninstall_hook_mode,
-                             safety).await?;
-                graph.remove(ident);
+                if maybe_delete(ui,
+                                fs_root_path,
+                                &pkg_install,
+                                execution_strategy,
+                                excludes,
+                                uninstall_hook_mode,
+                                safety).await?
+                {
+                    graph.remove(ident);
+                }
             }
             Some(c) => {
                 return Err(Error::CannotRemovePackage(ident.clone(), c));
@@ -217,16 +219,17 @@ pub async fn uninstall_many<U>(ui: &mut U,
                         }
                         Some(0) => {
                             let install = PackageInstall::load(p, Some(fs_root_path))?;
-                            maybe_delete(ui,
-                                         fs_root_path,
-                                         &install,
-                                         execution_strategy,
-                                         excludes,
-                                         uninstall_hook_mode,
-                                         dependency_safety).await?;
-
-                            graph.remove(p);
-                            count += 1;
+                            if maybe_delete(ui,
+                                            fs_root_path,
+                                            &install,
+                                            execution_strategy,
+                                            excludes,
+                                            uninstall_hook_mode,
+                                            dependency_safety).await?
+                            {
+                                graph.remove(p);
+                                count += 1;
+                            }
                         }
                         Some(c) => {
                             ui.status(Status::Skipping,
@@ -351,7 +354,7 @@ async fn maybe_delete<U>(ui: &mut U,
     match strategy {
         ExecutionStrategy::DryRun => {
             ui.status(Status::DryRunDeleting, ident)?;
-            Ok(false)
+            Ok(true)
         }
         ExecutionStrategy::Run => {
             ui.status(Status::Deleting, ident)?;

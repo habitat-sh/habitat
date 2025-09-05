@@ -11,7 +11,12 @@ $pkgs = @(
     "$pkg/4.0.14/20200319184753",
     "$pkg/4.0.14/20200319200053"
 )
+$nginxPkg = "core/nginx"
 $env:HAB_NOCOLORING="true"
+
+# Start the supervisor and load nginx
+$job = Start-Job { hab sup run }
+Wait-Supervisor -Timeout 120
 
 Describe "pkg uninstall" {
     It "installs core/redis" {
@@ -53,12 +58,45 @@ Describe "pkg uninstall" {
         hab pkg list "$pkg" | Should -BeExactly $pkgs[6..8]
     }
 
+    It "cannot uninstall a package loaded by the supervisor or any of its dependencies" {
+        # Install nginx
+        hab pkg install $nginxPkg --channel stable
+
+        # Get list of nginx dependencies before loading
+        $initialDeps = @(hab pkg dependencies $nginxPkg --transitive)
+
+        # Load nginx service
+        hab svc load $nginxPkg
+        Wait-SupervisorService nginx -Timeout 20
+
+        # Attempt to uninstall nginx
+        hab pkg uninstall $nginxPkg
+
+        # Verify nginx is still installed
+        hab pkg list $nginxPkg | Should -Not -BeNullOrEmpty
+
+        # Verify all nginx dependencies are still installed
+        foreach($dep in $initialDeps) {
+            hab pkg list $dep | Should -Not -BeNullOrEmpty
+        }
+    }
+
     It "uninstall all" {
         hab pkg uninstall --keep-latest=0 "$pkg"
         hab pkg list "$pkg" | Should -BeExactly @()
+        hab svc unload $nginxPkg
+        Wait-SupervisorServiceUnload nginx -Timeout 20
+        hab pkg uninstall --keep-latest=0 "$nginxPkg"
+        hab pkg list "$nginxPkg" | Should -BeExactly @()
+        # we know this is a dep of nginx and no other reverse dependencies
+        hab pkg list "core/libedit" | Should -BeExactly @()
     }
 
     AfterAll {
+        Stop-Job -Job $job
+        Remove-Job -Job $job
+
         hab pkg uninstall --keep-latest=0 "$pkg"
+        hab pkg uninstall --keep-latest=0 "$nginxPkg"
     }
 }
