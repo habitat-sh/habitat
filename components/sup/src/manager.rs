@@ -46,7 +46,6 @@ use crate::{census::{CensusRing,
             util::pkg,
             VERSION};
 use cpu_time::ProcessTime;
-use derivative::Derivative;
 use futures::{channel::{mpsc as fut_mpsc,
                         oneshot},
               future,
@@ -304,8 +303,7 @@ impl Clone for CloneablePkcs8PrivKey {
     fn clone(&self) -> Self { Self(self.0.clone_key()) }
 }
 
-#[derive(Clone, Debug, Derivative)]
-#[derivative(PartialEq)]
+#[derive(Clone, Debug)]
 pub struct ManagerConfig {
     pub auto_update:                bool,
     pub auto_update_period:         Duration,
@@ -319,7 +317,6 @@ pub struct ManagerConfig {
     pub ctl_listen:                 ListenCtlAddr,
     pub ctl_server_certificates:    Option<Vec<CertificateDer<'static>>>,
     pub ctl_server_key:             Option<CloneablePkcs8PrivKey>,
-    #[derivative(PartialEq = "ignore")]
     pub ctl_client_ca_certificates: Option<RootCertStore>,
     pub http_listen:                HttpListenAddr,
     pub http_disable:               bool,
@@ -367,6 +364,36 @@ impl ManagerConfig {
         // JC: This mimics the logic from when we had composites.  But
         // should we check for Err ?
         ServiceSpec::from_file(spec_file).ok()
+    }
+}
+
+impl PartialEq for ManagerConfig {
+    fn eq(&self, other: &Self) -> bool {
+        self.auto_update == other.auto_update
+            && self.auto_update_period == other.auto_update_period
+            && self.service_update_period == other.service_update_period
+            && self.service_restart_config == other.service_restart_config
+            && self.custom_state_path == other.custom_state_path
+            && self.key_cache == other.key_cache
+            && self.update_url == other.update_url
+            && self.update_channel == other.update_channel
+            && self.gossip_listen == other.gossip_listen
+            && self.ctl_listen == other.ctl_listen
+            && self.ctl_server_certificates == other.ctl_server_certificates
+            && self.ctl_server_key == other.ctl_server_key
+            // Explicitly excluding ctl_client_ca_certificates from comparison
+            && self.http_listen == other.http_listen
+            && self.http_disable == other.http_disable
+            && self.gossip_peers == other.gossip_peers
+            && self.gossip_permanent == other.gossip_permanent
+            && self.ring_key == other.ring_key
+            && self.organization == other.organization
+            && self.watch_peer_file == other.watch_peer_file
+            && self.tls_config == other.tls_config
+            && self.feature_flags == other.feature_flags
+            && self.event_stream_config == other.event_stream_config
+            && self.keep_latest_packages == other.keep_latest_packages
+            && self.sys_ip == other.sys_ip
     }
 }
 

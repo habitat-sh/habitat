@@ -23,7 +23,6 @@ actix-http = { version = "3", features = [ "rustls-0_23" ]}
 actix-rt = "*"
 byteorder = "*"
 cpu-time = "*"
-derivative = "*"
 fs2 = "*"
 futures = "*"
 glob = "*"
