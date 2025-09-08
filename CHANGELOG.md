@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.234 -->
-## [2.0.234](https://github.com/habitat-sh/habitat/tree/2.0.234) (2025-09-05)
+<!-- latest_release 2.0.235 -->
+## [2.0.235](https://github.com/habitat-sh/habitat/tree/2.0.235) (2025-09-08)
 
 #### Merged Pull Requests
-- Bump actions/labeler from 6.0.0 to 6.0.1 [#9901](https://github.com/habitat-sh/habitat/pull/9901) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump ctrlc from 3.4.7 to 3.5.0 [#9902](https://github.com/habitat-sh/habitat/pull/9902) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump ctrlc from 3.4.7 to 3.5.0 [#9902](https://github.com/habitat-sh/habitat/pull/9902) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.235 -->
 - Bump actions/labeler from 6.0.0 to 6.0.1 [#9901](https://github.com/habitat-sh/habitat/pull/9901) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.234 -->
 - Bump windows-sys from 0.60.2 to 0.61.0 [#9900](https://github.com/habitat-sh/habitat/pull/9900) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.233 -->
 - Bump log from 0.4.27 to 0.4.28 [#9898](https://github.com/habitat-sh/habitat/pull/9898) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.232 -->
