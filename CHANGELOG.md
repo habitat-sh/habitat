@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.236 -->
-## [2.0.236](https://github.com/habitat-sh/habitat/tree/2.0.236) (2025-09-08)
+<!-- latest_release 2.0.237 -->
+## [2.0.237](https://github.com/habitat-sh/habitat/tree/2.0.237) (2025-09-09)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.35 to 1.2.36 [#9904](https://github.com/habitat-sh/habitat/pull/9904) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- e2e fixes and run on aarch64 [#9884](https://github.com/habitat-sh/habitat/pull/9884) ([sougata-progress](https://github.com/sougata-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- e2e fixes and run on aarch64 [#9884](https://github.com/habitat-sh/habitat/pull/9884) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.237 -->
 - Bump cc from 1.2.35 to 1.2.36 [#9904](https://github.com/habitat-sh/habitat/pull/9904) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.236 -->
 - Bump log4rs from 1.3.0 to 1.4.0 [#9903](https://github.com/habitat-sh/habitat/pull/9903) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.236 -->
 - Bump ctrlc from 3.4.7 to 3.5.0 [#9902](https://github.com/habitat-sh/habitat/pull/9902) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.235 -->
