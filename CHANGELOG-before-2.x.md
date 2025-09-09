@@ -1,6 +1,17 @@
 # Habitat CHANGELOG
 
-### Changes since 1.6.1244 release
+## [1.6.1245](https://github.com/habitat-sh/habitat/tree/1.6.1245) (2025-09-09)
+
+### Merged Pull Requests
+
+- Do not uninstall deps of any package skipped in uninstall [#9899](https://github.com/habitat-sh/habitat/pull/9899) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1245 -->
+- Update vulnerable nuget packages in windows-service [#9878](https://github.com/habitat-sh/habitat/pull/9878) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1245 -->
+- Port hab pkg export tar improvements to v1.6 [#9871](https://github.com/habitat-sh/habitat/pull/9871) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1245 -->
+- Make sure to include runtime files in windows service application [#9870](https://github.com/habitat-sh/habitat/pull/9870) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1245 -->
+- Update windows-service csproj to build under .net 8 [#9869](https://github.com/habitat-sh/habitat/pull/9869) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1245 -->
+- Bump powershell to 7.2.24 and build windows-service with dotnet 8 [#9866](https://github.com/habitat-sh/habitat/pull/9866) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1245 -->
+- Add retry logic to the temp dir rename in hab pkg install [#9857](https://github.com/habitat-sh/habitat/pull/9857) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1245 -->
+- Unset HAB_AUTH_TOKEN before generating cli docs [#9808](https://github.com/habitat-sh/habitat/pull/9808) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1245 -->
 
 ## [1.6.1244](https://github.com/habitat-sh/habitat/tree/1.6.1244) (2025-08-05)
 
