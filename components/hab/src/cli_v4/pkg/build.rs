@@ -15,8 +15,10 @@ use habitat_core::{crypto,
                    origin::Origin};
 
 use crate::{command::pkg::build,
-            error::{Error as HabError,
-                    Result as HabResult}};
+            error::Result as HabResult};
+
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+use crate::error::Error as HabError;
 
 use crate::cli_v4::utils::CacheKeyPath;
 
