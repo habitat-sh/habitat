@@ -8,51 +8,76 @@
 # perform another update which should succeed if the leader is ignoring dead
 # members as it should.
 
-$testChannel = "rolling-$([DateTime]::Now.Ticks)"
+$arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
+switch ($arch) {
+    'X64' {
+        $script:release1="habitat-testing/nginx/1.17.4/20191115184838"
+        $script:release2="habitat-testing/nginx/1.17.4/20191115185517"
+        $script:release3="habitat-testing/nginx/1.17.4/20191115185900"
+    }
+    'Arm64' {
+        $script:release1="habitat-testing/nginx/1.25.4/20250731123138"
+        $script:release2="habitat-testing/nginx/1.25.4/20250731123657"
+        $script:release3="habitat-testing/nginx/1.25.4/20250731123956"
+    }
+    Default {
+        throw "Unsupported architecture: $arch"
+    }
+}
+
+$script:testChannel = "rolling-$([DateTime]::Now.Ticks)"
 
 Describe "Rolling Update after a follower is removed and quorum is not lost" {
-    $release1="habitat-testing/nginx/1.17.4/20191115184838"
-    $release2="habitat-testing/nginx/1.17.4/20191115185517"
-    $release3="habitat-testing/nginx/1.17.4/20191115185900"
     hab pkg promote $release1 $testChannel
     Load-SupervisorService "habitat-testing/nginx" -Remote "alpha.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel
     Load-SupervisorService "habitat-testing/nginx" -Remote "beta.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel
     Load-SupervisorService "habitat-testing/nginx" -Remote "gamma.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel
 
-    @("alpha", "beta", "gamma") | ForEach-Object {
-        It "loads initial release on $_" {
-            Wait-Release -Ident $release1 -Remote $_
-        }
+    It "loads initial release on alpha" {
+        Wait-Release -Ident $release1 -Remote "alpha"
+    }
+    It "loads initial release on beta" {
+        Wait-Release -Ident $release1 -Remote "beta"
+    }
+    It "loads initial release on gamma" {
+        Wait-Release -Ident $release1 -Remote "gamma"
     }
 
     Context "Remove first follower" {
-        $leader = Get-Leader "bastion" "nginx.default"
-        $follower=$null
-        @("alpha", "beta", "gamma") | ForEach-Object {
-            if($_ -ne $leader.Name -and !$follower) {
-                $follower = $_
-            }
+        BeforeAll {
+            $all = 'alpha','beta','gamma'
+            $leader = Get-Leader "bastion" "nginx.default"
+            $follower = ($all | Where-Object { $_ -ne $leader.Name })[0]
+            $survivors = $all | Where-Object { $_ -ne $follower }
+            $script:survivor1 = $survivors[0]
+            $script:survivor2 = $survivors[1]
+
+            Stop-ComposeSupervisor $follower
+            hab pkg promote $release2 $testChannel
         }
-        Stop-ComposeSupervisor $follower
-        hab pkg promote $release2 $testChannel
 
         # we expect everyone to be updated now but prior to
         # https://github.com/habitat-sh/habitat/pull/7167 the leader will
         # indefinitely wait for the dead followers to update
-        @("alpha", "beta", "gamma") | Where-Object { $_ -ne $follower } | ForEach-Object {
-            It "updates to $release2 on $_" {
-                Wait-Release -Ident $release2 -Remote $_
-            }
+        It "updates to $release2 on $survivor1" {
+            Wait-Release -Ident $release2 -Remote $survivor1
+        }
+        It "updates to $release2 on $survivor2" {
+            Wait-Release -Ident $release2 -Remote $survivor2
         }
 
         Context "update again" {
             # if the leader is not stuck waiting for dead members for the previous update,
             # this update should succeed
-            hab pkg promote $release3 $testChannel
-            @("alpha", "beta", "gamma") | Where-Object { $_ -ne $follower } | ForEach-Object {
-                It "updates to $release3 on $_" {
-                    Wait-Release -Ident $release3 -Remote $_
-                }
+            BeforeAll {
+                hab pkg promote $release3 $testChannel
+            }
+
+            It "updates to $release3 on $survivor1" {
+                Wait-Release -Ident $release3 -Remote $survivor1
+            }
+            It "updates to $release3 on $survivor2" {
+                Wait-Release -Ident $release3 -Remote $survivor2
             }
         }
     }

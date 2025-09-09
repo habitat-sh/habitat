@@ -1,4 +1,4 @@
-version: '2.4'
+version: '3.8'
 services:
 
   # The repetition of the additional volume mounts as well as the
@@ -40,8 +40,14 @@ services:
   # access to any user keys. As such, it shouldn't be able to decrypt
   # any encrypted messages.
   gamma:
-    extends:
-      service: sup_base
+    image: ${SUPERVISOR_IMAGE}
+    domainname: habitat.dev
+    environment:
+      HAB_LICENSE: accept-no-persist
+      HAB_NONINTERACTIVE: '1'
+      TESTCASE: ${TESTCASE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
     hostname: gamma
     networks:
       default:
@@ -53,6 +59,9 @@ services:
       - --org=e2e
       - --peer=bastion.habitat.dev
     volumes:
+      - source: ./CTL_SECRET
+        target: /hab/sup/default/CTL_SECRET
+        type: bind
       - source: ${TESTCASE_DIR}/cache_keys_no_user
         target: /hab/cache/keys
         type: bind
@@ -60,9 +69,26 @@ services:
       - bastion
 
   tester:
-    extends:
-      service: test_base
+    image: ${TESTCASE}_image
+    domainname: habitat.dev
+    environment:
+      HAB_LICENSE: accept-no-persist
+      HAB_NONINTERACTIVE: '1'
+      TESTCASE: ${TESTCASE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
+    build:
+      context: ${TESTCASE_DIR}
     volumes:
+      - source: ./CTL_SECRET
+        target: /hab/sup/default/CTL_SECRET
+        type: bind
+      - source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        type: bind
+      - source: ../../../.expeditor/scripts
+        target: /scripts
+        type: bind
       # Strictly speaking, this container would only need access to
       # private user keys and public service keys (well, by the same
       # token, the others would strictly only need access to public

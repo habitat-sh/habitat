@@ -6,11 +6,24 @@
 # reset to 0 and causing nodes to get stuck and not update or roll back.
 # Note: we set HAB_UPDATE_STRATEGY_FREQUENCY_MS to 3000 in the docker-compose.override.yml.
 
-$testChannel = "rolling-$([DateTime]::Now.Ticks)"
+$arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
+switch ($arch) {
+    'X64' {
+        $script:initialRelease = 'habitat-testing/force-kill/0.1.0/20230214152940'
+        $script:updatedRelease = 'habitat-testing/force-kill/0.1.0/20230214154036'
+    }
+    'Arm64' {
+        $script:initialRelease = 'habitat-testing/force-kill/0.1.0/20250730230943'
+        $script:updatedRelease = 'habitat-testing/force-kill/0.1.0/20250730231035'
+    }
+    Default {
+        throw "Unsupported architecture: $arch"
+    }
+}
+
+$script:testChannel = "rolling-$([DateTime]::Now.Ticks)"
 
 Describe "Rolling Update and Rollback" {
-    $initialRelease="habitat-testing/force-kill/0.1.0/20230214152940"
-    $updatedRelease="habitat-testing/force-kill/0.1.0/20230214154036"
     hab pkg promote $initialRelease $testChannel
     Load-SupervisorService "habitat-testing/force-kill" -Remote "alpha.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
     Load-SupervisorService "habitat-testing/force-kill" -Remote "beta.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
@@ -18,29 +31,64 @@ Describe "Rolling Update and Rollback" {
     Load-SupervisorService "habitat-testing/force-kill" -Remote "gamma2.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
     Load-SupervisorService "habitat-testing/force-kill" -Remote "gamma3.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
 
-    @("alpha", "beta", "gamma1", "gamma2", "gamma3") | ForEach-Object {
-        It "loads initial release on $_" {
-            Wait-Release -Ident $initialRelease -Remote $_
-        }
+    It "loads initial release on alpha" {
+        Wait-Release -Ident $initialRelease -Remote "alpha"
+    }
+    It "loads initial release on beta" {
+        Wait-Release -Ident $initialRelease -Remote "beta"
+    }
+    It "loads initial release on gamma1" {
+        Wait-Release -Ident $initialRelease -Remote "gamma1"
+    }
+    It "loads initial release on gamma2" {
+        Wait-Release -Ident $initialRelease -Remote "gamma2"
+    }
+    It "loads initial release on gamma3" {
+        Wait-Release -Ident $initialRelease -Remote "gamma3"
     }
 
     Context "promote update" {
-        hab pkg promote $updatedRelease $testChannel
+        BeforeAll {
+            Write-Host "[$(Get-Date -Format o)] Promoting updatedRelease to $testChannel"
+            hab pkg promote $updatedRelease $testChannel
+        }
 
-        @("alpha", "beta", "gamma1", "gamma2", "gamma3") | ForEach-Object {
-            It "updates release on $_" {
-                Wait-Release -Ident $updatedRelease -Remote $_
-            }
+        It "updates release on alpha" {
+            Wait-Release -Ident $updatedRelease -Remote "alpha"
+        }
+        It "updates release on beta" {
+            Wait-Release -Ident $updatedRelease -Remote "beta"
+        }
+        It "updates release on gamma1" {
+            Wait-Release -Ident $updatedRelease -Remote "gamma1"
+        }
+        It "updates release on gamma2" {
+            Wait-Release -Ident $updatedRelease -Remote "gamma2"
+        }
+        It "updates release on gamma3" {
+            Wait-Release -Ident $updatedRelease -Remote "gamma3"
         }
     }
 
     Context "demote update" {
-        hab pkg demote $updatedRelease $testChannel
+        BeforeAll {
+            hab pkg demote $updatedRelease $testChannel
+        }
 
-        @("alpha", "beta", "gamma1", "gamma2", "gamma3") | ForEach-Object {
-            It "rollback release on $_" {
-                Wait-Release -Ident $initialRelease -Remote $_
-            }
+        It "rolls back release on alpha" {
+            Wait-Release -Ident $initialRelease -Remote "alpha"
+        }
+        It "rolls back release on beta" {
+            Wait-Release -Ident $initialRelease -Remote "beta"
+        }
+        It "rolls back release on gamma1" {
+            Wait-Release -Ident $initialRelease -Remote "gamma1"
+        }
+        It "rolls back release on gamma2" {
+            Wait-Release -Ident $initialRelease -Remote "gamma2"
+        }
+        It "rolls back release on gamma3" {
+            Wait-Release -Ident $initialRelease -Remote "gamma3"
         }
     }
 

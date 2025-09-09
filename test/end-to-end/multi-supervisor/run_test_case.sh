@@ -2,6 +2,11 @@
 
 set -euo pipefail
 
+# Force Docker Compose to use the default builder instead of docker-container
+# This ensures that locally built images are accessible during builds
+export DOCKER_BUILDKIT=0
+export COMPOSE_DOCKER_CLI_BUILD=0
+
 # Every test case MUST define a docker-compose service with this
 # name. This is the entrypoint for ALL tests.
 test_service_name="tester"
@@ -29,6 +34,9 @@ if [ -f "${testcase_dir}/docker-compose.override.yml" ]; then
 fi
 # TODO (CM): Is it an error to NOT define a test-specific override
 # file? I think probably so...
+
+# Export HAB_AUTH_TOKEN for Docker Compose
+export HAB_AUTH_TOKEN="${HAB_AUTH_TOKEN}"
 
 # These are all standard docker-compose environment variables
 export COMPOSE_PROJECT_NAME="habitat_integration_${testcase}"

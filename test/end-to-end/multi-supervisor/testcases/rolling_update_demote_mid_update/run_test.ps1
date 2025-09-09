@@ -10,26 +10,46 @@
 # new leader is elected would never occur because the new leader would continue
 # to behave like a follower and wait for instructions to update.
 
-$testChannel = "rolling-$([DateTime]::Now.Ticks)"
+$arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
+switch ($arch) {
+    'X64' {
+        $script:release1="habitat-testing/nginx/1.17.4/20191115184838"
+        $script:release2="habitat-testing/nginx/1.17.4/20191115185517"
+        $script:release3="habitat-testing/nginx/1.17.4/20191115185900"
+    }
+    'Arm64' {
+        $script:release1="habitat-testing/nginx/1.25.4/20250731123138"
+        $script:release2="habitat-testing/nginx/1.25.4/20250731123657"
+        $script:release3="habitat-testing/nginx/1.25.4/20250731123956"
+    }
+    Default {
+        throw "Unsupported architecture: $arch"
+    }
+}
+
+$script:testChannel = "rolling-$([DateTime]::Now.Ticks)"
 
 Describe "Rolling Update demotes a package in the middle of an update" {
-    $release1="habitat-testing/nginx/1.17.4/20191115184838"
-    $release2="habitat-testing/nginx/1.17.4/20191115185517"
-    $release3="habitat-testing/nginx/1.17.4/20191115185900"
     hab pkg promote $release1 $testChannel
     Load-SupervisorService "habitat-testing/nginx" -Remote "alpha.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel -UpdateCondition track-channel
     Load-SupervisorService "habitat-testing/nginx" -Remote "beta.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel -UpdateCondition track-channel
     Load-SupervisorService "habitat-testing/nginx" -Remote "gamma.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel -UpdateCondition track-channel
 
-    @("alpha", "beta", "gamma") | ForEach-Object {
-        It "loads initial release on $_" {
-            Wait-Release -Ident $release1 -Remote $_
-        }
+    It "loads initial release on alpha" {
+        Wait-Release -Ident $release1 -Remote "alpha"
+    }
+    It "loads initial release on beta" {
+        Wait-Release -Ident $release1 -Remote "beta"
+    }
+    It "loads initial release on gamma" {
+        Wait-Release -Ident $release1 -Remote "gamma"
     }
 
     Context "Promote Package" {
-        $leader = Get-Leader "bastion" "nginx.default"
-        hab pkg promote $release2 $testChannel
+        BeforeAll {
+            $script:leader = Get-Leader "bastion" "nginx.default"
+            hab pkg promote $release2 $testChannel
+        }
 
         It "updates $($leader.Name) to $release2" {
             Wait-Release -Ident $release2 -Remote $leader.Name
@@ -37,22 +57,34 @@ Describe "Rolling Update demotes a package in the middle of an update" {
     }
 
     Context "Demote Package" {
-        hab pkg demote $release2 $testChannel
+        BeforeAll {
+            hab pkg demote $release2 $testChannel
+        }
 
-        @("alpha", "beta", "gamma") | ForEach-Object {
-            It "updates to $release1 on $_" {
-                Wait-Release -Ident $release1 -Remote $_
-            }
+        It "reverts alpha to $release1" {
+            Wait-Release -Ident $release1 -Remote "alpha"
+        }
+        It "reverts beta to $release1" {
+            Wait-Release -Ident $release1 -Remote "beta"
+        }
+        It "reverts gamma to $release1" {
+            Wait-Release -Ident $release1 -Remote "gamma"
         }
     }
 
     Context "Promote Package after demote" {
-        hab pkg promote $release3 $testChannel
+        BeforeAll {
+            hab pkg promote $release3 $testChannel
+        }
 
-        @("alpha", "beta", "gamma") | ForEach-Object {
-            It "updates to $release3 on $_" {
-                Wait-Release -Ident $release3 -Remote $_ -Timeout 30
-            }
+        It "updates alpha to $release3" {
+            Wait-Release -Ident $release3 -Remote "alpha" -Timeout 30
+        }
+        It "updates beta to $release3" {
+            Wait-Release -Ident $release3 -Remote "beta" -Timeout 30
+        }
+        It "updates gamma to $release3" {
+            Wait-Release -Ident $release3 -Remote "gamma" -Timeout 30
         }
     }
 

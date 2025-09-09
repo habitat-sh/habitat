@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM alpine as build_image
 
 # All Supervisor-related packages will be downloaded from this channel
@@ -11,22 +12,24 @@ ENV HAB_LICENSE=accept-no-persist
 # out the /hab directory. The `hab` binary isn't necessarily the one
 # that we want in the final image.
 RUN --mount=type=secret,id=hab_auth_token \
-export HAB_AUTH_TOKEN=$(cat /run/secrets/hab_auth_token) \
-  && apk add bash wget \
-  && wget https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh \
-  && bash install.sh -c acceptance -o chef \
-  && mv /hab/pkgs/chef/hab/*/*/bin/hab /bin/ \
-  && rm -Rf /hab
+    export HAB_AUTH_TOKEN="$(cat /run/secrets/hab_auth_token)" \
+    && apk add bash wget \
+    && wget https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh \
+    && bash install.sh -c acceptance -o chef \
+    && mv /hab/pkgs/chef/hab/*/*/bin/hab /bin/ \
+    && rm -Rf /hab \
+    && unset HAB_AUTH_TOKEN
 
 # Install only what's needed to run the Supervisor
 # TODO: need a way to parameterize busybox
 RUN --mount=type=secret,id=hab_auth_token \
-export HAB_AUTH_TOKEN=$(cat /run/secrets/hab_auth_token) \
-  &&  hab pkg install --channel="${CHANNEL}" chef/hab \
-  && hab pkg install --channel="${CHANNEL}" chef/hab-sup \
-  && hab pkg install --channel="${CHANNEL}" chef/hab-launcher \
-  && hab pkg install --channel="stable" core/busybox \
-  && hab pkg binlink chef/hab -d /hab/bin
+    export HAB_AUTH_TOKEN="$(cat /run/secrets/hab_auth_token)" \
+    && hab pkg install --channel="${CHANNEL}" chef/hab \
+    && hab pkg install --channel="${CHANNEL}" chef/hab-sup \
+    && hab pkg install --channel="${CHANNEL}" chef/hab-launcher \
+    && hab pkg install --channel="base-2025" core/busybox \
+    && hab pkg binlink chef/hab -d /hab/bin \
+    && unset HAB_AUTH_TOKEN
 
 # Create enough of a filesystem for the Supervisor to operate. We
 # can't do this in a `FROM scratch` image because there's no shell to
@@ -41,7 +44,10 @@ RUN mkdir tmp \
 # This is important because the Supervisor relies on busybox being
 # present for some functionality. Without these present, some packages
 # with auto-generated run hooks won't work.
-RUN hab pkg binlink core/busybox --dest=/tmp/rootfs/bin
+RUN --mount=type=secret,id=hab_auth_token \
+    export HAB_AUTH_TOKEN="$(cat /run/secrets/hab_auth_token)" \
+    && hab pkg binlink core/busybox --dest=/tmp/rootfs/bin \
+    && unset HAB_AUTH_TOKEN
 
 ########################################################################
 
