@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.238 -->
-## [2.0.238](https://github.com/habitat-sh/habitat/tree/2.0.238) (2025-09-10)
+<!-- latest_release 2.0.239 -->
+## [2.0.239](https://github.com/habitat-sh/habitat/tree/2.0.239) (2025-09-10)
 
 #### Merged Pull Requests
-- fix cache key path location [#9911](https://github.com/habitat-sh/habitat/pull/9911) ([mwrock](https://github.com/mwrock))
+- Fixes native build option on macos [#9896](https://github.com/habitat-sh/habitat/pull/9896) ([sajjaphani](https://github.com/sajjaphani))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Fixes native build option on macos [#9896](https://github.com/habitat-sh/habitat/pull/9896) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.239 -->
 - fix cache key path location [#9911](https://github.com/habitat-sh/habitat/pull/9911) ([mwrock](https://github.com/mwrock)) <!-- 2.0.238 -->
 - Bump chrono from 0.4.41 to 0.4.42 [#9908](https://github.com/habitat-sh/habitat/pull/9908) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.238 -->
 - add changelog ntry for 1.6.1245 [#9910](https://github.com/habitat-sh/habitat/pull/9910) ([mwrock](https://github.com/mwrock)) <!-- 2.0.238 -->
