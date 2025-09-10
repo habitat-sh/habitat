@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.237 -->
-## [2.0.237](https://github.com/habitat-sh/habitat/tree/2.0.237) (2025-09-09)
+<!-- latest_release 2.0.238 -->
+## [2.0.238](https://github.com/habitat-sh/habitat/tree/2.0.238) (2025-09-10)
 
 #### Merged Pull Requests
-- e2e fixes and run on aarch64 [#9884](https://github.com/habitat-sh/habitat/pull/9884) ([sougata-progress](https://github.com/sougata-progress))
+- fix cache key path location [#9911](https://github.com/habitat-sh/habitat/pull/9911) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- fix cache key path location [#9911](https://github.com/habitat-sh/habitat/pull/9911) ([mwrock](https://github.com/mwrock)) <!-- 2.0.238 -->
+- Bump chrono from 0.4.41 to 0.4.42 [#9908](https://github.com/habitat-sh/habitat/pull/9908) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.238 -->
+- add changelog ntry for 1.6.1245 [#9910](https://github.com/habitat-sh/habitat/pull/9910) ([mwrock](https://github.com/mwrock)) <!-- 2.0.238 -->
+- Add GitHub Security Actions Workflow [#9858](https://github.com/habitat-sh/habitat/pull/9858) ([sean-sype-simmons](https://github.com/sean-sype-simmons)) <!-- 2.0.238 -->
+- Rustfmt and Nightly Rust Bump to nightly-2025-09-09 [#9909](https://github.com/habitat-sh/habitat/pull/9909) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 2.0.238 -->
 - e2e fixes and run on aarch64 [#9884](https://github.com/habitat-sh/habitat/pull/9884) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.237 -->
 - Bump cc from 1.2.35 to 1.2.36 [#9904](https://github.com/habitat-sh/habitat/pull/9904) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.236 -->
 - Bump log4rs from 1.3.0 to 1.4.0 [#9903](https://github.com/habitat-sh/habitat/pull/9903) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.236 -->
