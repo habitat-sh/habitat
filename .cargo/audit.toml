@@ -15,11 +15,8 @@ ignore = [
     "RUSTSEC-2021-0137", # Unmaintained: sodiumoxide
     "RUSTSEC-2021-0139", # Unmaintained: ansi_term
     "RUSTSEC-2021-0145", # Unsound, Unmaintained: atty
-    "RUSTSEC-2022-0071", # Unmaintained: rusoto
     "RUSTSEC-2024-0370", # Unmaintained: proc-macro-error (used by structopt)
     "RUSTSEC-2024-0375", # Unmaintained: atty (used by clap v2)
-    "RUSTSEC-2024-0388", # Unmaintained: derivative (used by log4rs)
-    "RUSTSEC-2025-0014", # Unmaintained: humantime (used by log4rs)
 ]
 informational_warnings = [
     "notice",
@@ -83,18 +80,3 @@ update_index = true # Auto-update the crates.io index (default: true)
 #     ├── habitat_common 0.0.0
 #     ├── habitat-rst-reader 0.0.0
 #     └── hab 0.0.0
-#
-#-------------------------------------------------------------------------------
-# "RUSTSEC-2022-0071"     # Unmaintained: rusoto
-#-------------------------------------------------------------------------------
-#
-# Requires selection of new "AWS crate"
-#
-# rusoto_credential 0.48.0
-# ├── rusoto_signature 0.48.0
-# │   └── rusoto_core 0.48.0
-# │       ├── rusoto_ecr 0.48.0
-# │       │   └── habitat_pkg_export_container 0.0.0
-# │       └── habitat_pkg_export_container 0.0.0
-# ├── rusoto_core 0.48.0
-# └── habitat_pkg_export_container 0.0.0
