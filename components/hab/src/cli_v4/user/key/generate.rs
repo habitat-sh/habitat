@@ -4,8 +4,7 @@ use clap::Parser;
 use clap_v4 as clap;
 use habitat_common::ui::UI;
 
-use habitat_core::{crypto::keys::KeyCache,
-                   fs::cache_key_path};
+use habitat_core::crypto::keys::KeyCache;
 use std::path::PathBuf;
 
 use crate::command::user::key::generate::start;
@@ -28,7 +27,7 @@ impl UserKeyGenerateOptions {
     pub(crate) async fn do_generate(&self, ui: &mut UI) -> HabResult<()> {
         let key_path: PathBuf = (&self.cache_key_path).into();
 
-        let key_cache = KeyCache::new(cache_key_path(key_path));
+        let key_cache = KeyCache::new(key_path);
         key_cache.setup()?;
 
         start(ui, &self.user, &key_cache)?;

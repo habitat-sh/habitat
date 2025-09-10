@@ -4,8 +4,7 @@ use crate::{cli_v4::utils::CacheKeyPath,
 use clap::Parser;
 use clap_v4 as clap;
 use habitat_common::ui::UI;
-use habitat_core::{crypto::keys::KeyCache,
-                   fs::cache_key_path};
+use habitat_core::crypto::keys::KeyCache;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Parser)]
@@ -21,7 +20,7 @@ impl CliSetupOptions {
     pub(crate) async fn do_setup(&self, ui: &mut UI) -> HabResult<()> {
         let key_path: PathBuf = (&self.cache_key_path).into();
 
-        let key_cache = KeyCache::new(cache_key_path(key_path));
+        let key_cache = KeyCache::new(key_path);
         key_cache.setup()?;
 
         start(ui, &key_cache)?;

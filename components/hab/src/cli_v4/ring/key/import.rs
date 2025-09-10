@@ -4,9 +4,8 @@ use crate::{cli_v4::utils::CacheKeyPath,
 use clap::Parser;
 use clap_v4 as clap;
 use habitat_common::ui::UI;
-use habitat_core::{crypto::{init,
-                            keys::KeyCache},
-                   fs::cache_key_path};
+use habitat_core::crypto::{init,
+                           keys::KeyCache};
 use std::{io::{self,
                Read},
           path::PathBuf};
@@ -24,7 +23,7 @@ impl RingKeyImportOpts {
         let mut content = String::new();
         io::stdin().read_to_string(&mut content)?;
         let key_path: PathBuf = (&self.cache_key_path).into();
-        let key_cache = KeyCache::new(cache_key_path(key_path));
+        let key_cache = KeyCache::new(key_path);
         key_cache.setup()?;
         init()?;
         start(ui, content.trim(), &key_cache)
