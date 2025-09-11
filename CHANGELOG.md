@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.239 -->
-## [2.0.239](https://github.com/habitat-sh/habitat/tree/2.0.239) (2025-09-10)
+<!-- latest_release 2.0.240 -->
+## [2.0.240](https://github.com/habitat-sh/habitat/tree/2.0.240) (2025-09-11)
 
 #### Merged Pull Requests
-- Fixes native build option on macos [#9896](https://github.com/habitat-sh/habitat/pull/9896) ([sajjaphani](https://github.com/sajjaphani))
+- Bump errno from 0.3.13 to 0.3.14 [#9913](https://github.com/habitat-sh/habitat/pull/9913) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump errno from 0.3.13 to 0.3.14 [#9913](https://github.com/habitat-sh/habitat/pull/9913) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.240 -->
+- Removes rusoto, derivative, &amp; humantime from audit.toml [#9906](https://github.com/habitat-sh/habitat/pull/9906) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.240 -->
+- Bump tempfile from 3.21.0 to 3.22.0 [#9912](https://github.com/habitat-sh/habitat/pull/9912) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.240 -->
 - Fixes native build option on macos [#9896](https://github.com/habitat-sh/habitat/pull/9896) ([sajjaphani](https://github.com/sajjaphani)) <!-- 2.0.239 -->
 - fix cache key path location [#9911](https://github.com/habitat-sh/habitat/pull/9911) ([mwrock](https://github.com/mwrock)) <!-- 2.0.238 -->
 - Bump chrono from 0.4.41 to 0.4.42 [#9908](https://github.com/habitat-sh/habitat/pull/9908) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.238 -->
