@@ -24,3 +24,7 @@ tmp/
 CTL_SECRET
 components/studio/libexec/hab
 components/studio/libexec/busybox
+package.json
+package-lock.json
+node_modules
+
