@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.240 -->
-## [2.0.240](https://github.com/habitat-sh/habitat/tree/2.0.240) (2025-09-11)
+<!-- latest_release 2.0.241 -->
+## [2.0.241](https://github.com/habitat-sh/habitat/tree/2.0.241) (2025-09-11)
 
 #### Merged Pull Requests
-- Bump errno from 0.3.13 to 0.3.14 [#9913](https://github.com/habitat-sh/habitat/pull/9913) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rcgen from 0.14.3 to 0.14.4 [#9915](https://github.com/habitat-sh/habitat/pull/9915) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump rcgen from 0.14.3 to 0.14.4 [#9915](https://github.com/habitat-sh/habitat/pull/9915) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.241 -->
 - Bump errno from 0.3.13 to 0.3.14 [#9913](https://github.com/habitat-sh/habitat/pull/9913) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.240 -->
 - Removes rusoto, derivative, &amp; humantime from audit.toml [#9906](https://github.com/habitat-sh/habitat/pull/9906) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.240 -->
 - Bump tempfile from 3.21.0 to 3.22.0 [#9912](https://github.com/habitat-sh/habitat/pull/9912) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.240 -->
