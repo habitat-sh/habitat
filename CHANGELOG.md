@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.243 -->
-## [2.0.243](https://github.com/habitat-sh/habitat/tree/2.0.243) (2025-09-12)
+<!-- latest_release 2.0.244 -->
+## [2.0.244](https://github.com/habitat-sh/habitat/tree/2.0.244) (2025-09-15)
 
 #### Merged Pull Requests
-- Bump rustls-webpki from 0.103.4 to 0.103.5 [#9916](https://github.com/habitat-sh/habitat/pull/9916) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.36 to 1.2.37 [#9918](https://github.com/habitat-sh/habitat/pull/9918) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.36 to 1.2.37 [#9918](https://github.com/habitat-sh/habitat/pull/9918) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.244 -->
 - Bump rustls-webpki from 0.103.4 to 0.103.5 [#9916](https://github.com/habitat-sh/habitat/pull/9916) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.243 -->
 - do not uninstall deps of any package skipped in uninstall [#9914](https://github.com/habitat-sh/habitat/pull/9914) ([mwrock](https://github.com/mwrock)) <!-- 2.0.242 -->
 - fix finish_release/update_api_docs.sh (CHEF-25029) [#9905](https://github.com/habitat-sh/habitat/pull/9905) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.242 -->
