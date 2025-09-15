@@ -162,10 +162,11 @@ impl CensusRing {
     /// * `RumorStore::list` (read)
     fn update_from_election_store_rsr(&mut self, election_rumors: &RumorStore<ElectionRumor>) {
         for (service_group, rumors) in election_rumors.lock_rsr().iter() {
-            let election = rumors.get(ElectionRumor::const_id()).unwrap();
-            if let Ok(sg) = service_group_from_str(service_group) {
-                if let Some(census_group) = self.census_groups.get_mut(&sg) {
-                    census_group.update_from_election_rumor(election);
+            if let Some(election) = rumors.get(ElectionRumor::const_id()) {
+                if let Ok(sg) = service_group_from_str(service_group) {
+                    if let Some(census_group) = self.census_groups.get_mut(&sg) {
+                        census_group.update_from_election_rumor(election);
+                    }
                 }
             }
         }
