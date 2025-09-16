@@ -1,16 +1,22 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.244 -->
-## [2.0.244](https://github.com/habitat-sh/habitat/tree/2.0.244) (2025-09-15)
+<!-- latest_release 2.0.245 -->
+## [2.0.245](https://github.com/habitat-sh/habitat/tree/2.0.245) (2025-09-16)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.36 to 1.2.37 [#9918](https://github.com/habitat-sh/habitat/pull/9918) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- remove some noisy debuging output [#9923](https://github.com/habitat-sh/habitat/pull/9923) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- remove some noisy debuging output [#9923](https://github.com/habitat-sh/habitat/pull/9923) ([mwrock](https://github.com/mwrock)) <!-- 2.0.245 -->
+- Bump serde_json from 1.0.143 to 1.0.145 [#9920](https://github.com/habitat-sh/habitat/pull/9920) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.245 -->
+- Bump serde from 1.0.219 to 1.0.223 [#9921](https://github.com/habitat-sh/habitat/pull/9921) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.245 -->
+- Bump semver from 1.0.26 to 1.0.27 [#9922](https://github.com/habitat-sh/habitat/pull/9922) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.245 -->
+- Bump aws-sdk-ecr from 1.92.0 to 1.93.0 [#9919](https://github.com/habitat-sh/habitat/pull/9919) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.245 -->
+- remove unwrap from election rumor retrieval [#9917](https://github.com/habitat-sh/habitat/pull/9917) ([mwrock](https://github.com/mwrock)) <!-- 2.0.245 -->
 - Bump cc from 1.2.36 to 1.2.37 [#9918](https://github.com/habitat-sh/habitat/pull/9918) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.244 -->
 - Bump rustls-webpki from 0.103.4 to 0.103.5 [#9916](https://github.com/habitat-sh/habitat/pull/9916) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.243 -->
 - do not uninstall deps of any package skipped in uninstall [#9914](https://github.com/habitat-sh/habitat/pull/9914) ([mwrock](https://github.com/mwrock)) <!-- 2.0.242 -->
