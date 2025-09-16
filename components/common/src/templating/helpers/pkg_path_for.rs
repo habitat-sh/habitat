@@ -29,7 +29,6 @@ impl HelperDef for PkgPathForHelper {
              .ok_or_else(|| {
                  RenderErrorReason::Other("Invalid package identifier for \"pkgPathFor\"".to_string())
              })?;
-        eprintln!("ctx: {:#?}", ctx.data());
         let deps =
             serde_json::from_value::<Vec<PackageIdent>>(ctx.data()["pkg"]["deps"].clone()).unwrap();
         let target_pkg =
