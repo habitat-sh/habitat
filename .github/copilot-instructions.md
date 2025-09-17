@@ -36,11 +36,15 @@ habitat/
 
 ### Critical File Modification Rules
 
+
 **🚨 NEVER MODIFY THESE FILES:**
-- `*.codegen.go` files (if present) - These are auto-generated
-- `VERSION` file - This is managed by the release process
 - `.expeditor/config.yml` - This controls the release pipeline
 - Files in `.expeditor/scripts/` unless specifically requested
+- `POWERSHELL_VERSION` file - This is managed by the release process
+- `RUST_NIGHTLY_VERSION` file - This is managed by the release process
+- `RUSTFORMAT_VERSION` file - This is managed by the release process
+- `VERSION` file - This is managed by the release process
+d
 
 ## Task Implementation Workflow
 
