@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.245 -->
-## [2.0.245](https://github.com/habitat-sh/habitat/tree/2.0.245) (2025-09-16)
+<!-- latest_release 2.0.246 -->
+## [2.0.246](https://github.com/habitat-sh/habitat/tree/2.0.246) (2025-09-17)
 
 #### Merged Pull Requests
-- remove some noisy debuging output [#9923](https://github.com/habitat-sh/habitat/pull/9923) ([mwrock](https://github.com/mwrock))
+- Bump toml from 0.9.5 to 0.9.6 [#9924](https://github.com/habitat-sh/habitat/pull/9924) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump toml from 0.9.5 to 0.9.6 [#9924](https://github.com/habitat-sh/habitat/pull/9924) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.246 -->
+- Bump rustls-webpki from 0.103.5 to 0.103.6 [#9925](https://github.com/habitat-sh/habitat/pull/9925) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.246 -->
 - remove some noisy debuging output [#9923](https://github.com/habitat-sh/habitat/pull/9923) ([mwrock](https://github.com/mwrock)) <!-- 2.0.245 -->
 - Bump serde_json from 1.0.143 to 1.0.145 [#9920](https://github.com/habitat-sh/habitat/pull/9920) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.245 -->
 - Bump serde from 1.0.219 to 1.0.223 [#9921](https://github.com/habitat-sh/habitat/pull/9921) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.245 -->
