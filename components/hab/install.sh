@@ -296,7 +296,7 @@ main() {
       bldrUrl="${OPTARG}"
       ;;
     b)
-      bldlChannel="${OPTARG}" # for temporary use
+      bldrChannel="${OPTARG}" # for temporary use
       ;;
     o)
       origin="${OPTARG}"
@@ -329,14 +329,14 @@ print_help() {
   _cmd="$(basename "${0}")"
   cat <<-HEREDOC
 		${_cmd}
-		
+
 		Authors: The Habitat Maintainers <humans@habitat.sh>
-		
+
 		Installs the Habitat 'hab' program.
-		
+
 		USAGE:
 		    ${_cmd} [FLAGS]
-		
+
 		FLAGS:
 		    -c    Specifies a channel [values: stable, unstable] [default: stable]
 		    -h    Prints help information
@@ -344,11 +344,11 @@ print_help() {
 		    -t    Specifies the ActiveTarget of the 'hab' program to download.
 		            [values: x86_64-linux, aarch64-linux] [default: x86_64-linux]
 		            This option is only valid on Linux platforms
-		
+
 		ENVIRONMENT VARIABLES:
 		     SSL_CERT_FILE   allows you to verify against a custom cert such as one
 		                     generated from a corporate firewall
-		
+
 	HEREDOC
 }
 
@@ -425,7 +425,7 @@ validate_target() {
     valid_targets+=("x86_64-linux-kernel2")
     ;;
   esac
-  
+
   if ! (_array_contains "${target}" "${valid_targets[@]}"); then
     local _vts
     printf -v _vts "%s, " "${valid_targets[@]}"
@@ -537,7 +537,7 @@ install_hab() {
       fi
       # The Habitat packages for macOS (aarch64) are not currently available in the SaaS Builder.
       # This is a temporary fix until they become available.
-      _channel="${bldlChannel:-$channel}"
+      _channel="${bldrChannel:-$channel}"
       "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
       ;;
     *)
