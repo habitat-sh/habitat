@@ -133,7 +133,7 @@ dependencies = [
  "rustls-pki-types",
  "tokio",
  "tokio-rustls 0.24.1",
- "tokio-rustls 0.26.2",
+ "tokio-rustls 0.26.3",
  "tokio-util",
  "tracing",
  "webpki-roots",
@@ -614,7 +614,7 @@ dependencies = [
  "rustls-native-certs 0.8.1",
  "rustls-pki-types",
  "tokio",
- "tokio-rustls 0.26.2",
+ "tokio-rustls 0.26.3",
  "tower",
  "tracing",
 ]
@@ -2058,7 +2058,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.16",
  "tokio",
- "tokio-rustls 0.26.2",
+ "tokio-rustls 0.26.3",
  "toml 0.9.6",
  "url",
  "widestring 1.2.0",
@@ -2191,7 +2191,7 @@ dependencies = [
  "termcolor",
  "thiserror 2.0.16",
  "tokio",
- "tokio-rustls 0.26.2",
+ "tokio-rustls 0.26.3",
  "tokio-util",
  "toml 0.9.6",
  "url",
@@ -2431,7 +2431,7 @@ dependencies = [
  "rustls-native-certs 0.8.1",
  "rustls-pki-types",
  "tokio",
- "tokio-rustls 0.26.2",
+ "tokio-rustls 0.26.3",
  "tower-service",
 ]
 
@@ -4741,9 +4741,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-rustls"
-version = "0.26.2"
+version = "0.26.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e727b36a1a0e8b74c376ac2211e40c2c8af09fb4013c60d910495810f008e9b"
+checksum = "05f63835928ca123f1bef57abbcd23bb2ba0ac9ae1235f1e65bda0d06e7786bd"
 dependencies = [
  "rustls 0.23.31",
  "tokio",
