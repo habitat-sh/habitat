@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.246 -->
-## [2.0.246](https://github.com/habitat-sh/habitat/tree/2.0.246) (2025-09-17)
+<!-- latest_release 2.0.247 -->
+## [2.0.247](https://github.com/habitat-sh/habitat/tree/2.0.247) (2025-09-18)
 
 #### Merged Pull Requests
-- Bump toml from 0.9.5 to 0.9.6 [#9924](https://github.com/habitat-sh/habitat/pull/9924) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tokio-rustls from 0.26.2 to 0.26.3 [#9929](https://github.com/habitat-sh/habitat/pull/9929) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump tokio-rustls from 0.26.2 to 0.26.3 [#9929](https://github.com/habitat-sh/habitat/pull/9929) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.247 -->
 - Bump toml from 0.9.5 to 0.9.6 [#9924](https://github.com/habitat-sh/habitat/pull/9924) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.246 -->
 - Bump rustls-webpki from 0.103.5 to 0.103.6 [#9925](https://github.com/habitat-sh/habitat/pull/9925) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.246 -->
 - remove some noisy debuging output [#9923](https://github.com/habitat-sh/habitat/pull/9923) ([mwrock](https://github.com/mwrock)) <!-- 2.0.245 -->
