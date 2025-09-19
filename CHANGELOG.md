@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.248 -->
-## [2.0.248](https://github.com/habitat-sh/habitat/tree/2.0.248) (2025-09-19)
+<!-- latest_release 2.0.249 -->
+## [2.0.249](https://github.com/habitat-sh/habitat/tree/2.0.249) (2025-09-19)
 
 #### Merged Pull Requests
-- Bump toml from 0.9.6 to 0.9.7 [#9933](https://github.com/habitat-sh/habitat/pull/9933) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Creates copilot-instructions.md [#9930](https://github.com/habitat-sh/habitat/pull/9930) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Creates copilot-instructions.md [#9930](https://github.com/habitat-sh/habitat/pull/9930) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.249 -->
 - Bump toml from 0.9.6 to 0.9.7 [#9933](https://github.com/habitat-sh/habitat/pull/9933) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.248 -->
 - Bump tokio-rustls from 0.26.2 to 0.26.3 [#9929](https://github.com/habitat-sh/habitat/pull/9929) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.247 -->
 - Bump toml from 0.9.5 to 0.9.6 [#9924](https://github.com/habitat-sh/habitat/pull/9924) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.246 -->
