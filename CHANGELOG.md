@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.250 -->
-## [2.0.250](https://github.com/habitat-sh/habitat/tree/2.0.250) (2025-09-22)
+<!-- latest_release 2.0.251 -->
+## [2.0.251](https://github.com/habitat-sh/habitat/tree/2.0.251) (2025-09-22)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.37 to 1.2.38 [#9934](https://github.com/habitat-sh/habitat/pull/9934) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rustls from 0.23.31 to 0.23.32 [#9937](https://github.com/habitat-sh/habitat/pull/9937) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump rustls from 0.23.31 to 0.23.32 [#9937](https://github.com/habitat-sh/habitat/pull/9937) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.251 -->
+- Bump serde from 1.0.225 to 1.0.226 [#9935](https://github.com/habitat-sh/habitat/pull/9935) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.251 -->
+- Bump anyhow from 1.0.99 to 1.0.100 [#9936](https://github.com/habitat-sh/habitat/pull/9936) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.251 -->
 - Bump cc from 1.2.37 to 1.2.38 [#9934](https://github.com/habitat-sh/habitat/pull/9934) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.250 -->
 - Creates copilot-instructions.md [#9930](https://github.com/habitat-sh/habitat/pull/9930) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.249 -->
 - Bump toml from 0.9.6 to 0.9.7 [#9933](https://github.com/habitat-sh/habitat/pull/9933) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.248 -->
