@@ -1,288 +1,256 @@
-{{~ #unless minimal ~}}
+{{~ #unless minimal }}
 # This file is the heart of your application's habitat.
-# See full docs at https://www.habitat.sh/docs/reference/plan-syntax/
-{{~ /unless ~}}
+# See Overview Docs at https://docs.chef.io/habitat/plan_contents/
 
+################################################################################
+# SETTINGS - https://docs.chef.io/habitat/plan_settings/
+################################################################################
 
-{{~ #unless minimal}}
-
-# Required.
+# REQUIRED
 # Sets the name of the package. This will be used along with `$pkg_origin`,
 # and `$pkg_version` to define the fully-qualified package name, which determines
 # where the package is installed to on disk, how it is referred to in package
 # metadata, and so on.
-{{/unless ~}}
+{{ /unless ~}}
 $pkg_name="{{ pkg_name }}"
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Required unless overridden by the `HAB_ORIGIN` environment variable.
+# REQUIRED (unless overridden by the `HAB_ORIGIN` environment variable)
 # The origin is used to denote a particular upstream of a package.
-{{~ /unless}}
+{{ /unless }}
 $pkg_origin="{{ pkg_origin }}"
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Required.
+# REQUIRED
 # Sets the version of the package
-{{~ /unless}}
-{{#if pkg_version ~}}
+{{ /unless }}
+{{ #if pkg_version }}
 $pkg_version="{{ pkg_version }}"
-{{~ else ~}}
+{{ else }}
 $pkg_version="0.1.0"
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Optional.
+# OPTIONAL
 # The name and email address of the package maintainer.
-{{~ /unless}}
-{{#if pkg_maintainer ~}}
+{{ /unless }}
+{{ #if pkg_maintainer }}
 $pkg_maintainer="{{ pkg_maintainer }}"
-{{~ else ~}}
+{{ else }}
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Optional.
+# OPTIONAL
 # An array of valid software licenses that relate to this package.
 # Please choose a license from http://spdx.org/licenses/
-{{~ /unless}}
-{{#if pkg_license ~}}
+{{ /unless }}
+{{ #if pkg_license }}
 $pkg_license="{{ pkg_license }}"
-{{~ else ~}}
+{{ else }}
 $pkg_license=@("Apache-2.0")
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Optional.
+# OPTIONAL
 # The scaffolding base for this plan.
-{{~ /unless}}
-{{#if scaffolding_ident ~}}
+{{ /unless }}
+{{ #if scaffolding_ident }}
 $pkg_scaffolding="{{ scaffolding_ident }}"
-{{~ else ~}}
+{{ else }}
 # $pkg_scaffolding="some/scaffolding"
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Optional.
+# OPTIONAL
 # A URL that specifies where to download the source from. Any valid wget url
 # will work. Typically, the relative path for the URL is partially constructed
 # from the pkg_name and pkg_version values; however, this convention is not
 # required.
-{{~ /unless}}
-{{#if pkg_source ~}}
+{{ /unless }}
+{{ #if pkg_source }}
 $pkg_source="{{ pkg_source }}"
-{{~ else ~}}
+{{ else }}
 # $pkg_source="http://some_source_url/releases/$pkg_name-$pkg_version.zip"
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Optional.
+# OPTIONAL
 # The resulting filename for the download, typically constructed from the
 # pkg_name and pkg_version values.
-{{~ /unless}}
-{{#if pkg_filename ~}}
+{{ /unless }}
+{{ #if pkg_filename }}
 $pkg_filename="{{ pkg_filename }}"
-{{~ else ~}}
+{{ else }}
 # $pkg_filename="$pkg_name-$pkg_version.zip"
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Required if a valid URL is provided for pkg_source or unless Invoke-Verify is overridden.
+# REQUIRED (if a valid URL is provided for pkg_source or unless Invoke-Verify is overridden)
 # The value for pkg_shasum is a sha-256 sum of the downloaded pkg_source. If you
 # do not have the checksum, you can easily generate it by downloading the source
 # and using Get-FileHash. Also, if you do not have
 # Invoke-Verify overridden, and you do not have the correct sha-256 sum, then the
 # expected value will be shown in the build output of your package.
-{{~ /unless}}
-{{#if pkg_shasum ~}}
+{{ /unless }}
+{{ #if pkg_shasum }}
 $pkg_shasum="{{ pkg_shasum }}"
-{{~ else ~}}
+{{ else }}
 $pkg_shasum="TODO"
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Optional.
+# OPTIONAL
 # An array of package dependencies needed at runtime. You can refer to packages
 # at three levels of specificity: `origin/package`, `origin/package/version`, or
 # `origin/package/version/release`.
-{{~ /unless}}
-{{#if pkg_deps ~}}
+{{ /unless }}
+{{ #if pkg_deps }}
 $pkg_deps={{ pkg_deps }}
-{{~ else ~}}
+{{ else }}
 $pkg_deps=@()
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Optional.
+# OPTIONAL
 # An array of the package dependencies needed only at build time.
-{{~ /unless}}
-{{#if pkg_build_deps ~}}
+{{ /unless }}
+{{ #if pkg_build_deps }}
 $pkg_build_deps={{ pkg_build_deps }}
-{{~ else ~}}
+{{ else }}
 $pkg_build_deps=@()
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Optional.
+# OPTIONAL
 # An array of paths, relative to the final install of the software, where
 # libraries can be found for native builds.
-{{~ /unless}}
-{{#if pkg_lib_dirs ~}}
+{{ /unless }}
+{{ #if pkg_lib_dirs }}
 $pkg_lib_dirs={{ pkg_lib_dirs }}
-{{~ else ~}}
+{{ else }}
 # $pkg_lib_dirs=@("lib")
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Optional.
+# OPTIONAL
 # An array of paths, relative to the final install of the software, where
 # headers can be found.
-{{~ /unless}}
-{{#if pkg_include_dirs ~}}
+{{ /unless }}
+{{ #if pkg_include_dirs }}
 $pkg_include_dirs={{ pkg_include_dirs }}
-{{~ else ~}}
+{{ else }}
 # $pkg_include_dirs=@("include")
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Optional.
+# OPTIONAL
 # An array of paths, relative to the final install of the software, where
 # binaries can be found. Used to populate $ENV:PATH for software that depends on
 # your package.
-{{~ /unless}}
-{{#if pkg_bin_dirs ~}}
+{{ /unless }}
+{{ #if pkg_bin_dirs }}
 $pkg_bin_dirs={{ pkg_bin_dirs }}
-{{~ else ~}}
+{{ else }}
 # $pkg_bin_dirs=@("bin")
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Optional.
+# OPTIONAL
 # The command for the Supervisor to execute when starting a service. You can
 # omit this setting if your package is not intended to be run directly by a
 # Supervisor of if your plan contains a run hook in hooks/run.
-{{#if pkg_svc_run ~}}
+{{ #if pkg_svc_run }}
 $pkg_svc_run="{{ pkg_svc_run }}"
-{{~ else ~}}
+{{ else }}
 # $pkg_svc_run="MyBinary.exe"
-{{~ /if}}
+{{ /if }}
 
-# Optional.
+# OPTIONAL
 # A hashtable representing configuration data which should be gossiped to peers. The keys
 # in this hashtable represent the name the value will be assigned and the values represent the toml path
 # to read the value.
-{{#if pkg_exports ~}}
+{{ #if pkg_exports }}
 $pkg_exports={{ pkg_exports }}
-{{~ else ~}}
+{{ else }}
 # $pkg_exports=@{
 #   host="srv.address"
 #   port="srv.port"
 #   ssl-port="srv.ssl.port"
 # }
-{{~ /if}}
+{{ /if }}
 
-# Optional.
+# OPTIONAL
 # An array of `$pkg_exports` keys containing default values for which ports that this package
 # exposes. These values are used as sensible defaults for other tools. For example, when exporting
 # a package to a container format.
-{{#if pkg_exposes ~}}
+{{ #if pkg_exposes }}
 $pkg_exposes={{ pkg_exposes }}
-{{~ else ~}}
+{{ else }}
 # $pkg_exposes=@("port," "ssl-port")
-{{~ /if}}
+{{ /if }}
 
-# Optional.
+# OPTIONAL
 # A hashtable representing services which you depend on and the configuration keys that
 # you expect the service to export (by their `$pkg_exports`). These binds *must* be set for the
 # Supervisor to load the service. The loaded service will wait to run until it's bind becomes
 # available. If the bind does not contain the expected keys, the service will not start
 # successfully.
-{{#if pkg_binds ~}}
+{{ #if pkg_binds }}
 $pkg_binds={{ pkg_binds }}
-{{~ else ~}}
+{{ else }}
 # $pkg_binds=@{
 #   database="port host"
 # }
-{{~ /if}}
+{{ /if }}
 
-# Optional.
+# OPTIONAL
 # Same as `$pkg_binds` but these represent optional services to connect to.
-{{#if pkg_binds_optional ~}}
+{{ #if pkg_binds_optional }}
 $pkg_binds_optional={{ pkg_binds_optional }}
-{{~ else ~}}
+{{ else }}
 # $pkg_binds_optional=@{
 #   storage="port host"
 # }
-{{~ /if}}
+{{ /if }}
 
-# Optional.
+# OPTIONAL
 # The number of seconds to wait for a service to shutdown. After this interval
 # the service will forcibly be killed. The default is 8.
-{{#if pkg_shutdown_timeout_sec ~}}
+{{ #if pkg_shutdown_timeout_sec }}
 $pkg_shutdown_timeout_sec={{ pkg_shutdown_timeout_sec }}
-{{~ else ~}}
+{{ else }}
 # $pkg_shutdown_timeout_sec=8
-{{~ /if}}
-{{~ /unless}}
+{{ /if }}
+{{ /unless }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Required for core plans, optional otherwise.
+# REQUIRED for core plans, OPTIONAL otherwise
 # A short description of the package. It can be a simple string, or you can
 # create a multi-line description using markdown to provide a rich description
 # of your package.
-{{~ /unless}}
-{{#if pkg_description ~}}
+{{ /unless }}
+{{ #if pkg_description }}
 $pkg_description="{{ pkg_description }}"
-{{~ else ~}}
+{{ else }}
 # $pkg_description="Some description."
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
-
-{{~ #unless minimal}}
-
-# Required for core plans, optional otherwise.
+# REQUIRED for core plans, OPTIONAL otherwise
 # The project home page for the package.
-{{~ /unless}}
-{{#if pkg_upstream_url ~}}
+{{ /unless }}
+{{ #if pkg_upstream_url }}
 $pkg_upstream_url="{{ pkg_upstream_url }}"
-{{~ else ~}}
+{{ else }}
 # $pkg_upstream_url="http://example.com/project-name"
-{{~ /if}}
+{{ /if }}
+{{ #unless minimal }}
 
+################################################################################
+# CALLBACKS - https://docs.chef.io/habitat/build_phase_callbacks/
+################################################################################
 
-{{~ #unless minimal}}
-
-# Callback Functions
-#
 # When defining your plan, you have the flexibility to override the default
 # behavior of Habitat in each part of the package building stage through a
 # series of callbacks. To define a callback, simply create a shell function
@@ -291,13 +259,9 @@ $pkg_upstream_url="{{ pkg_upstream_url }}"
 # with an empty implementation in the function definition.
 #
 # Callbacks are defined here with either their "Invoke-DefaultX", if they have a
-# default implementation, or empty if they have no default implementation. If callbacks do
-# nothing or do the same as the default implementation, they can be removed from
-# this template.
-#
-# The default implementations (the Invoke-Default* functions) are defined in the
-# plan build script:
-# https://github.com/habitat-sh/habitat/tree/master/components/plan-build-ps1/bin/hab-plan-build.ps1
+# default implementation, or empty if they have no default implementation. If
+# callbacks do nothing or do the same as the default implementation, they can be
+# removed from this template.
 
 # The default implmentation does nothing. You can use it to execute any
 # arbitrary commands before anything else happens.
@@ -371,7 +335,8 @@ function Invoke-Install {
 function Invoke-End {
   Invoke-DefaultEnd
 }
-{{~ else}}
+
+{{ else }}
 
 function Invoke-Build {
   Invoke-DefaultBuild
@@ -381,4 +346,4 @@ function Invoke-Install {
   Invoke-DefaultInstall
 }
 
-{{~ /unless}}
+{{ /unless }}
