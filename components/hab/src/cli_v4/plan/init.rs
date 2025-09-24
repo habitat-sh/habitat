@@ -1,13 +1,9 @@
-// Implementation of `hab plan init` subcommand
-use std::str::FromStr;
-
 use clap_v4 as clap;
 
 use clap::Parser;
 
 use habitat_common::ui::UI;
-use habitat_core::{origin::Origin,
-                   package::PackageIdent};
+use habitat_core::origin::Origin;
 
 use crate::error::Result as HabResult;
 
@@ -38,13 +34,9 @@ pub(crate) struct PlanInit {
 impl PlanInit {
     pub(crate) fn do_command(&self, ui: &mut UI) -> HabResult<()> {
         let origin = origin_param_or_env(&self.origin)?;
-        let scaffolding = if cfg!(windows) {
-            self.scaffolding
-                .as_deref()
-                .map(|s| PackageIdent::from_str(s).unwrap())
-        } else {
-            crate::scaffolding::scaffold_check(ui, self.scaffolding.as_deref())?
-        };
+
+        // Use scaffold_check for all platforms - it handles aliases and validation
+        let scaffolding = crate::scaffolding::scaffold_check(ui, self.scaffolding.as_deref())?;
 
         crate::command::plan::init::start(ui, &origin, self.min, scaffolding, self.pkg_name.clone())
     }
