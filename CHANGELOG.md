@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.253 -->
-## [2.0.253](https://github.com/habitat-sh/habitat/tree/2.0.253) (2025-09-23)
+<!-- latest_release 2.0.254 -->
+## [2.0.254](https://github.com/habitat-sh/habitat/tree/2.0.254) (2025-09-24)
 
 #### Merged Pull Requests
-- CODEOWNERS maintainence [#9931](https://github.com/habitat-sh/habitat/pull/9931) ([jasonheath](https://github.com/jasonheath))
+- Bump libc from 0.2.175 to 0.2.176 [#9938](https://github.com/habitat-sh/habitat/pull/9938) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.175 to 0.2.176 [#9938](https://github.com/habitat-sh/habitat/pull/9938) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.254 -->
 - CODEOWNERS maintainence [#9931](https://github.com/habitat-sh/habitat/pull/9931) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.253 -->
 - Fixes typo whitespace in install.sh [#9928](https://github.com/habitat-sh/habitat/pull/9928) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.252 -->
 - Bump rustls from 0.23.31 to 0.23.32 [#9937](https://github.com/habitat-sh/habitat/pull/9937) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.251 -->
