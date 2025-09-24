@@ -5,8 +5,7 @@ use clap_v4 as clap;
 
 use clap::Parser;
 
-use habitat_common::{cli::clap_validators::HabPkgIdentValueParser,
-                     ui::UI};
+use habitat_common::ui::UI;
 use habitat_core::{origin::Origin,
                    package::PackageIdent};
 
@@ -32,7 +31,7 @@ pub(crate) struct PlanInit {
     min: bool,
 
     /// Specify explicit Scaffolding for your app (ex: node, ruby)
-    #[arg(name = "SCAFFOLDING", short = 's', long = "scaffolding", value_parser = HabPkgIdentValueParser::simple())]
+    #[arg(name = "SCAFFOLDING", short = 's', long = "scaffolding")]
     scaffolding: Option<String>,
 }
 
