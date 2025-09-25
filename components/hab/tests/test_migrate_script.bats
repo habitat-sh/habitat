@@ -48,14 +48,14 @@ EOF
 
 # Setup function runs before each test
 setup() {
-  rm -f /bin/hab
-  rm -f /usr/bin/hab
-  rm -rf /hab/pkgs/core/hab
-  rm -rf /hab/pkgs/chef/hab
-  rm -rf /hab/pkgs/core/hab-sup
-  rm -rf /hab/pkgs/chef/hab-sup
-  rm -rf /hab/pkgs/core/hab-launcher
-  rm -rf /hab/pkgs/chef/hab-launcher
+  sudo rm -f /bin/hab
+  sudo rm -f /usr/bin/hab
+  sudo rm -rf /hab/pkgs/core/hab
+  sudo rm -rf /hab/pkgs/chef/hab
+  sudo rm -rf /hab/pkgs/core/hab-sup
+  sudo rm -rf /hab/pkgs/chef/hab-sup
+  sudo rm -rf /hab/pkgs/core/hab-launcher
+  sudo rm -rf /hab/pkgs/chef/hab-launcher
 }
 
 # Teardown function runs after each test
@@ -63,14 +63,14 @@ teardown() {
   # Stop any running Habitat services
   if systemctl is-active hab-sup.service &>/dev/null; then
     echo "Stopping hab-sup service"
-    systemctl stop hab-sup.service
+    sudo systemctl stop hab-sup.service
   fi
   
   # Remove systemd service file if it exists
   if [ -f /etc/systemd/system/hab-sup.service ]; then
     echo "Removing hab-sup service file"
     rm -f /etc/systemd/system/hab-sup.service
-    systemctl daemon-reload
+    sudo systemctl daemon-reload
   fi
   
   echo "Teardown complete"
@@ -78,23 +78,23 @@ teardown() {
 
 @test "Install core packages and prepare for migration" {
   # First install core packages
-  run components/hab/install.sh -c stable
+  sudo -E run components/hab/install.sh -c stable
   [ "$status" -eq 0 ]
   [ "$(installed_target)" == "x86_64-linux" ]
   
   # Install core/hab-sup
-  run hab pkg install core/hab-sup --channel stable
+  sudo -E run hab pkg install core/hab-sup --channel stable
   [ "$status" -eq 0 ]
   [ "$(get_hab_sup_version)" != "Not installed" ]
   
   # Install core/hab-launcher
-  run hab pkg install core/hab-launcher --channel stable
+  sudo -E run hab pkg install core/hab-launcher --channel stable
   [ "$status" -eq 0 ]
   [ "$(get_hab_launcher_version)" != "Not installed" ]
   
   # Create and start systemd service
   create_systemd_service
-  run systemctl start hab-sup.service
+  sudo run systemctl start hab-sup.service
   [ "$status" -eq 0 ]
   sleep 5  # Give time for the service to start
   
