@@ -9,7 +9,6 @@
 .secrets
 .tags*
 .vagrant/
-.vscode
 /target
 dump.rdb
 log/
