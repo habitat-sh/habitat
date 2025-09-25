@@ -10,10 +10,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.89.0
         id: toolchain
       - run: rustup override set ${{steps.toolchain.outputs.name}}
-      - uses: ClementTsang/cargo-action@v0.0.6
+      - uses: ClementTsang/cargo-action@v0.0.7
         with:
           command: install
           args: cargo-audit
-      - uses: ClementTsang/cargo-action@v0.0.6
+      - uses: ClementTsang/cargo-action@v0.0.7
         with:
           command: audit
