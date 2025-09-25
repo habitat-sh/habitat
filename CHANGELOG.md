@@ -1,11 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1245 -->
+<!-- latest_release 1.6.1246 -->
+## [1.6.1246](https://github.com/habitat-sh/habitat/tree/1.6.1246) (2025-09-25)
 
+#### Merged Pull Requests
+- add copilot instructions and mcp file [#9944](https://github.com/habitat-sh/habitat/pull/9944) ([dikshagupta1](https://github.com/dikshagupta1))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1245-->
 ### Changes since 1.6.1245 release
+
+#### Merged Pull Requests
+- add copilot instructions and mcp file [#9944](https://github.com/habitat-sh/habitat/pull/9944) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 1.6.1246 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.1245 -->
