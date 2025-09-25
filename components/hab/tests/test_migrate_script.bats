@@ -30,7 +30,7 @@ get_hab_launcher_version() {
 }
 
 create_systemd_service() {
-  cat > /etc/systemd/system/hab-sup.service <<EOF
+  sudo cat > /etc/systemd/system/hab-sup.service <<EOF
 [Unit]
 Description=Habitat Supervisor
 After=network.target
@@ -43,7 +43,7 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 EOF
-  systemctl daemon-reload
+  sudo systemctl daemon-reload
 }
 
 # Setup function runs before each test
@@ -69,7 +69,7 @@ teardown() {
   # Remove systemd service file if it exists
   if [ -f /etc/systemd/system/hab-sup.service ]; then
     echo "Removing hab-sup service file"
-    rm -f /etc/systemd/system/hab-sup.service
+    sudo rm -f /etc/systemd/system/hab-sup.service
     sudo systemctl daemon-reload
   fi
   
