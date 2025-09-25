@@ -9,6 +9,8 @@
 .secrets
 .tags*
 .vagrant/
+.vscode/*
+!.vscode/mcp.json
 /target
 dump.rdb
 log/
