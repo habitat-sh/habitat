@@ -30,7 +30,8 @@ get_hab_launcher_version() {
 }
 
 create_systemd_service() {
-  cat > sudo /etc/systemd/system/hab-sup.service <<EOF
+  sudo ls /etc/systemd
+  sudo cat > sudo /etc/systemd/system/hab-sup.service <<EOF
 [Unit]
 Description=Habitat Supervisor
 After=network.target
