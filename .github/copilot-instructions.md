@@ -44,7 +44,6 @@ habitat/
 - `RUST_NIGHTLY_VERSION` file - This is managed by the release process
 - `RUSTFORMAT_VERSION` file - This is managed by the release process
 - `VERSION` file - This is managed by the release process
-d
 
 ## Task Implementation Workflow
 
