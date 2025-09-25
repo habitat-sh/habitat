@@ -46,7 +46,6 @@ mod svc;
 use svc::SvcCommand;
 
 pub(crate) mod utils;
-use utils::CacheKeyPath;
 
 mod license;
 use license::LicenseCommand;
@@ -129,28 +128,6 @@ enum Hab {
     /// Commands relating to Habitat users
     #[clap(subcommand)]
     User(UserCommand),
-
-    // Aliases Below
-    #[clap(hide = true)]
-    Apply(ServiceConfigCommand),
-
-    #[clap(hide = true)]
-    Install(PkgInstallCommand),
-
-    #[clap(hide = true)]
-    Run(SupRunCommand),
-
-    #[clap(hide = true)]
-    Setup(CacheKeyPath),
-
-    #[clap(hide = true)]
-    Start(SvcStartCommand),
-
-    #[clap(hide = true)]
-    Stop(SvcStopCommand),
-
-    #[clap(hide = true)]
-    Term,
 }
 
 impl Hab {
@@ -172,7 +149,6 @@ impl Hab {
             Self::SupportBundle(support_bundle_command) => {
                 support_bundle_command.do_command(ui).await
             }
-            _ => todo!(),
         }
     }
 }
