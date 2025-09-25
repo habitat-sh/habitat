@@ -78,23 +78,23 @@ teardown() {
 
 @test "Install core packages and prepare for migration" {
   # First install core packages
-  sudo -E run components/hab/install.sh -c stable
+  run sudo -E components/hab/install.sh -c stable
   [ "$status" -eq 0 ]
   [ "$(installed_target)" == "x86_64-linux" ]
   
   # Install core/hab-sup
-  sudo -E run hab pkg install core/hab-sup --channel stable
+  run sudo -E hab pkg install core/hab-sup --channel stable
   [ "$status" -eq 0 ]
   [ "$(get_hab_sup_version)" != "Not installed" ]
   
   # Install core/hab-launcher
-  sudo -E run hab pkg install core/hab-launcher --channel stable
+  run sudo -E hab pkg install core/hab-launcher --channel stable
   [ "$status" -eq 0 ]
   [ "$(get_hab_launcher_version)" != "Not installed" ]
   
   # Create and start systemd service
   create_systemd_service
-  sudo run systemctl start hab-sup.service
+  run sudo systemctl start hab-sup.service
   [ "$status" -eq 0 ]
   sleep 5  # Give time for the service to start
   
