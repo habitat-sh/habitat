@@ -35,8 +35,12 @@ impl PlanInit {
     pub(crate) fn do_command(&self, ui: &mut UI) -> HabResult<()> {
         let origin = origin_param_or_env(&self.origin)?;
 
-        // Use scaffold_check for all platforms - it handles aliases and validation
-        let scaffolding = crate::scaffolding::scaffold_check(ui, self.scaffolding.as_deref())?;
+        // Only call scaffold_check if scaffolding was explicitly provided
+        let scaffolding = if self.scaffolding.is_some() {
+            crate::scaffolding::scaffold_check(ui, self.scaffolding.as_deref())?
+        } else {
+            None // Don't auto-detect if no scaffolding was specified
+        };
 
         crate::command::plan::init::start(ui, &origin, self.min, scaffolding, self.pkg_name.clone())
     }
