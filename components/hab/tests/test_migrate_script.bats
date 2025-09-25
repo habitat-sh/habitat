@@ -46,6 +46,36 @@ EOF
   systemctl daemon-reload
 }
 
+# Setup function runs before each test
+setup() {
+  rm -f /bin/hab
+  rm -f /usr/bin/hab
+  rm -rf /hab/pkgs/core/hab
+  rm -rf /hab/pkgs/chef/hab
+  rm -rf /hab/pkgs/core/hab-sup
+  rm -rf /hab/pkgs/chef/hab-sup
+  rm -rf /hab/pkgs/core/hab-launcher
+  rm -rf /hab/pkgs/chef/hab-launcher
+}
+
+# Teardown function runs after each test
+teardown() {
+  # Stop any running Habitat services
+  if systemctl is-active hab-sup.service &>/dev/null; then
+    echo "Stopping hab-sup service"
+    systemctl stop hab-sup.service
+  fi
+  
+  # Remove systemd service file if it exists
+  if [ -f /etc/systemd/system/hab-sup.service ]; then
+    echo "Removing hab-sup service file"
+    rm -f /etc/systemd/system/hab-sup.service
+    systemctl daemon-reload
+  fi
+  
+  echo "Teardown complete"
+}
+
 @test "Install core packages and prepare for migration" {
   # First install core packages
   run components/hab/install.sh -c stable
