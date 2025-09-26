@@ -41,14 +41,8 @@ KillMode=process
 
 [Install]
 WantedBy=default.target
-EOF
-  echo "cat"
-  sudo cat /etc/systemd/system/hab-sup.service
-  echo "ls"
-  ls -l /etc/systemd/system
   sudo systemctl daemon-reload
   sudo systemctl unmask hab-sup
-  ls -l /etc/systemd/system
 }
 
 # Setup function runs before each test
@@ -64,7 +58,7 @@ setup() {
 }
 
 # Teardown function runs after each test
-teardown() {
+teardown_file() {
   # Stop any running Habitat services
   if systemctl is-active hab-sup &>/dev/null; then
     echo "Stopping hab-sup service"
