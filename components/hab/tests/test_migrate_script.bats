@@ -43,6 +43,7 @@ KillMode=process
 [Install]
 WantedBy=default.target
 EOF
+  cat /etc/systemd/system/hab-sup.service
   ls -l /etc/systemd/system
   sudo systemctl daemon-reload
   sudo systemctl unmask hab-sup
