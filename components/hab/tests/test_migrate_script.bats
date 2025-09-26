@@ -95,11 +95,11 @@ teardown_file() {
   # Create and start systemd service
   create_systemd_service
   run sudo systemctl start hab-sup
-  echo "output of systemctl start hab-sup: $output"
   [ "$status" -eq 0 ]
   sleep 5  # Give time for the service to start
   
   run systemctl is-active hab-sup
+  echo "output of systemctl is-active hab-sup: $output"
   [ "$status" -eq 0 ]
 }
 
@@ -113,7 +113,7 @@ teardown_file() {
   echo "Initial hab-sup version: $initial_hab_sup_version"
   echo "Initial hab-launcher version: $initial_hab_launcher_version"
   
-  run components/hab/migrate.sh
+  run sudo -E components/hab/migrate.sh
   
   [ "$status" -eq 0 ]
   
