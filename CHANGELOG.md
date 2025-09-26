@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.257 -->
-## [2.0.257](https://github.com/habitat-sh/habitat/tree/2.0.257) (2025-09-26)
+<!-- latest_release 2.0.258 -->
+## [2.0.258](https://github.com/habitat-sh/habitat/tree/2.0.258) (2025-09-26)
 
 #### Merged Pull Requests
-- Bump ClementTsang/cargo-action from 0.0.6 to 0.0.7 [#9943](https://github.com/habitat-sh/habitat/pull/9943) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Add windows migration script [#9942](https://github.com/habitat-sh/habitat/pull/9942) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Add windows migration script [#9942](https://github.com/habitat-sh/habitat/pull/9942) ([mwrock](https://github.com/mwrock)) <!-- 2.0.258 -->
+- Bump regex from 1.11.2 to 1.11.3 [#9947](https://github.com/habitat-sh/habitat/pull/9947) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.258 -->
+- Bump windows-sys from 0.61.0 to 0.61.1 [#9948](https://github.com/habitat-sh/habitat/pull/9948) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.258 -->
+- Bump serde from 1.0.226 to 1.0.227 [#9946](https://github.com/habitat-sh/habitat/pull/9946) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.258 -->
+- Bump rcgen from 0.14.4 to 0.14.5 [#9949](https://github.com/habitat-sh/habitat/pull/9949) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.258 -->
 - Bump ClementTsang/cargo-action from 0.0.6 to 0.0.7 [#9943](https://github.com/habitat-sh/habitat/pull/9943) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.257 -->
 - add mcp.json file [#9945](https://github.com/habitat-sh/habitat/pull/9945) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.256 -->
 - Removed aliases from `hab` CLI [#9940](https://github.com/habitat-sh/habitat/pull/9940) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.255 -->
