@@ -810,6 +810,20 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :windows: migrate script"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+    command:
+      - powershell .expeditor/scripts/verify/test_migrate_script.ps1
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+    timeout_in_minutes: 5
+    retry:
+      automatic:
+        limit: 1
+
 #######################################################################
 # Things that have no tests but should be built to make sure they
 # still build. - Linux
