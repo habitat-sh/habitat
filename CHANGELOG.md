@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.256 -->
-## [2.0.256](https://github.com/habitat-sh/habitat/tree/2.0.256) (2025-09-25)
+<!-- latest_release 2.0.257 -->
+## [2.0.257](https://github.com/habitat-sh/habitat/tree/2.0.257) (2025-09-26)
 
 #### Merged Pull Requests
-- add mcp.json file [#9945](https://github.com/habitat-sh/habitat/pull/9945) ([dikshagupta1](https://github.com/dikshagupta1))
+- Bump ClementTsang/cargo-action from 0.0.6 to 0.0.7 [#9943](https://github.com/habitat-sh/habitat/pull/9943) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump ClementTsang/cargo-action from 0.0.6 to 0.0.7 [#9943](https://github.com/habitat-sh/habitat/pull/9943) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.257 -->
 - add mcp.json file [#9945](https://github.com/habitat-sh/habitat/pull/9945) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.256 -->
 - Removed aliases from `hab` CLI [#9940](https://github.com/habitat-sh/habitat/pull/9940) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.255 -->
 - Bump libc from 0.2.175 to 0.2.176 [#9938](https://github.com/habitat-sh/habitat/pull/9938) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.254 -->
