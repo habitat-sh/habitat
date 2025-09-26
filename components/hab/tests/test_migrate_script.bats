@@ -34,17 +34,17 @@ create_systemd_service() {
   sudo cat > sudo /etc/systemd/system/hab-sup.service <<EOF
 [Unit]
 Description=Habitat Supervisor
-After=network.target
 
 [Service]
-Type=simple
 ExecStart=/bin/hab sup run
-Restart=on-failure
+ExecStop=/bin/hab sup term
+KillMode=process
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
 EOF
   sudo systemctl daemon-reload
+  systemctl enable hab-sup
 }
 
 # Setup function runs before each test
@@ -96,6 +96,7 @@ teardown() {
   # Create and start systemd service
   create_systemd_service
   run sudo systemctl start hab-sup
+  echo "output of systemctl start hab-sup: $output"
   [ "$status" -eq 0 ]
   sleep 5  # Give time for the service to start
   
