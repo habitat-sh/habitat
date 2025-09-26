@@ -98,7 +98,7 @@ teardown_file() {
   [ "$status" -eq 0 ]
   sleep 5  # Give time for the service to start
   
-  run systemctl is-active hab-sup
+  run sudo systemctl is-active hab-sup
   echo "output of systemctl is-active hab-sup: $output"
   [ "$status" -eq 0 ]
 }
@@ -114,7 +114,7 @@ teardown_file() {
   echo "Initial hab-launcher version: $initial_hab_launcher_version"
   
   run sudo -E components/hab/migrate.sh
-  
+  echo "output of migrate: $output"
   [ "$status" -eq 0 ]
   
   # Check that chef packages are now installed
