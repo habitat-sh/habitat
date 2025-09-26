@@ -30,8 +30,7 @@ get_hab_launcher_version() {
 }
 
 create_systemd_service() {
-  sudo touch /etc/systemd/system/hab-sup.service
-  sudo cat <<EOF > sudo /etc/systemd/system/hab-sup.service
+  sudo tee -a /etc/systemd/system/hab-sup.service << 'EOF'
 [Unit]
 Description=Habitat Supervisor
 
