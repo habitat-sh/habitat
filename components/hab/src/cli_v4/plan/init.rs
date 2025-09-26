@@ -1,14 +1,9 @@
-// Implementation of `hab plan init` subcommand
-use std::str::FromStr;
-
 use clap_v4 as clap;
 
 use clap::Parser;
 
-use habitat_common::{cli::clap_validators::HabPkgIdentValueParser,
-                     ui::UI};
-use habitat_core::{origin::Origin,
-                   package::PackageIdent};
+use habitat_common::ui::UI;
+use habitat_core::origin::Origin;
 
 use crate::error::Result as HabResult;
 
@@ -32,19 +27,19 @@ pub(crate) struct PlanInit {
     min: bool,
 
     /// Specify explicit Scaffolding for your app (ex: node, ruby)
-    #[arg(name = "SCAFFOLDING", short = 's', long = "scaffolding", value_parser = HabPkgIdentValueParser::simple())]
+    #[arg(name = "SCAFFOLDING", short = 's', long = "scaffolding")]
     scaffolding: Option<String>,
 }
 
 impl PlanInit {
     pub(crate) fn do_command(&self, ui: &mut UI) -> HabResult<()> {
         let origin = origin_param_or_env(&self.origin)?;
-        let scaffolding = if cfg!(windows) {
-            self.scaffolding
-                .as_deref()
-                .map(|s| PackageIdent::from_str(s).unwrap())
-        } else {
+
+        // Only call scaffold_check if scaffolding was explicitly provided
+        let scaffolding = if self.scaffolding.is_some() {
             crate::scaffolding::scaffold_check(ui, self.scaffolding.as_deref())?
+        } else {
+            None // Don't auto-detect if no scaffolding was specified
         };
 
         crate::command::plan::init::start(ui, &origin, self.min, scaffolding, self.pkg_name.clone())
