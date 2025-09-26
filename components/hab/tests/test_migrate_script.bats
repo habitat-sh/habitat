@@ -44,9 +44,7 @@ KillMode=process
 WantedBy=default.target
 EOF
   sudo systemctl daemon-reload
-  echo "unmasking"
   sudo systemctl unmask hab-sup
-  echo "done"
 }
 
 # Setup function runs before each test
@@ -97,6 +95,7 @@ teardown() {
   
   # Create and start systemd service
   create_systemd_service
+  ls /etc/systemd/system
   run sudo systemctl start hab-sup
   echo "output of systemctl start hab-sup: $output"
   [ "$status" -eq 0 ]
