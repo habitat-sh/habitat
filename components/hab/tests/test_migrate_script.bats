@@ -44,7 +44,9 @@ KillMode=process
 WantedBy=default.target
 EOF
   sudo systemctl daemon-reload
+  echo "unmasking"
   sudo systemctl unmask hab-sup
+  echo "done"
 }
 
 # Setup function runs before each test
