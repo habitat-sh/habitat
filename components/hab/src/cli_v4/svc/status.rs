@@ -70,8 +70,6 @@ impl StatusCommand {
     }
 }
 
-// This code is a copy of the `print_svc_status` in the `main_v2`. Eventually there won't be
-// `main_v2` and this will be the only copy.
 fn print_svc_status<T>(out: &mut T,
                        reply: &SrvMessage,
                        print_header: bool)

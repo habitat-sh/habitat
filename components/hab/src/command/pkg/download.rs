@@ -79,7 +79,6 @@ pub struct PackageSetFile {
     pub targets: HashMap<PackageTarget, Vec<PackageSetValue>>,
 }
 
-// TODO: Remove this clippy allow once `v2` support is removed.
 #[allow(dead_code)]
 impl PackageSetFile {
     // Get Package Sets from the `toml` data. Following validations are performed -

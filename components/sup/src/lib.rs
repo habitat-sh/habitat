@@ -25,11 +25,6 @@
 //! * [The Habitat Command Line Reference](command)
 //! * [The Habitat Supervisor Sidecar; http interface to promises](sidecar)
 
-#[cfg(feature = "v2")]
-#[cfg(test)]
-#[macro_use]
-pub mod cli_test_helpers;
-
 pub mod census;
 pub mod command;
 pub mod ctl_gateway;
@@ -40,12 +35,10 @@ pub mod lock_file;
 pub mod logger; // must be pub if used in the `hab-sup` binary
 pub mod manager;
 mod sys;
-#[cfg(test)]
-pub mod test_helpers;
 pub mod util;
 
-#[cfg(feature = "v2")]
-pub mod cli_v2;
+#[cfg(test)]
+pub mod test_helpers;
 
 use std::env;
 

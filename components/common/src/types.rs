@@ -1,7 +1,5 @@
 use crate::{error::Error,
             util};
-#[cfg(feature = "v2")]
-use clap::ArgMatches;
 
 use native_tls::Certificate;
 use serde::{Deserialize,
@@ -141,18 +139,6 @@ impl EventStreamToken {
     }
 }
 
-#[cfg(feature = "v2")]
-impl<'a> From<&'a ArgMatches<'a>> for EventStreamToken {
-    /// Create an instance of `EventStreamToken` from validated
-    /// user input.
-    fn from(m: &ArgMatches) -> Self {
-        m.value_of(Self::ARG_NAME)
-         .expect("HAB_AUTOMATE_AUTH_TOKEN should be set")
-         .parse()
-         .expect("HAB_AUTOMATE_AUTH_TOKEN should be validated at this point")
-    }
-}
-
 impl FromStr for EventStreamToken {
     type Err = Error;
 
@@ -251,15 +237,6 @@ impl EventStreamServerCertificate {
     #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
     pub fn validate(value: String) -> result::Result<(), String> {
         value.parse::<Self>().map(|_| ()).map_err(|e| e.to_string())
-    }
-
-    #[cfg(feature = "v2")]
-    /// Create an instance of `EventStreamServerCertificate` from validated user input.
-    pub fn from_arg_matches(m: &ArgMatches) -> Option<Self> {
-        m.value_of(Self::ARG_NAME).map(|value| {
-                                      value.parse().expect("EVENT_STREAM_SERVER_CERTIFICATE \
-                                                            should be validated")
-                                  })
     }
 }
 

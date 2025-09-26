@@ -2,9 +2,6 @@
 //! for use in the clap layer of the application. This is not the final form for defaults.
 //! Eventually this will be composed of fully typed default values. But as a first step we
 //! need a spot to consolidate those values and help simplify some of the logic around them.
-#[cfg(feature = "v2")]
-use clap::{value_t,
-           ArgMatches};
 use habitat_core::{self,
                    os::process::{ShutdownSignal,
                                  ShutdownTimeout},
@@ -46,18 +43,6 @@ pub const DEFAULT_BINLINK_DIR: &str = "/hab/bin";
 pub const DEFAULT_BINLINK_DIR: &str = "/bin";
 #[cfg(target_os = "macos")]
 pub const DEFAULT_BINLINK_DIR: &str = "/usr/local/bin";
-
-#[cfg(feature = "v2")]
-pub fn key_cache_from_matches(matches: &ArgMatches<'_>)
-                              -> crate::error::Result<habitat_core::crypto::keys::KeyCache> {
-    use habitat_core::crypto::keys::KeyCache;
-    use std::path::PathBuf;
-
-    let path = value_t!(matches, "CACHE_KEY_PATH", PathBuf).expect("CACHE_KEY_PATH required");
-    let key_cache = KeyCache::new(path);
-    key_cache.setup()?;
-    Ok(key_cache)
-}
 
 pub fn is_toml_file(val: &str) -> bool {
     let extension = Path::new(&val).extension().and_then(OsStr::to_str);
