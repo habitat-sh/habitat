@@ -62,9 +62,9 @@ setup() {
 # Teardown function runs after each test
 teardown() {
   # Stop any running Habitat services
-  if systemctl is-active hab-sup.service &>/dev/null; then
+  if systemctl is-active hab-sup &>/dev/null; then
     echo "Stopping hab-sup service"
-    sudo systemctl stop hab-sup.service
+    sudo systemctl stop hab-sup
   fi
   
   # Remove systemd service file if it exists
@@ -95,11 +95,11 @@ teardown() {
   
   # Create and start systemd service
   create_systemd_service
-  run sudo systemctl start hab-sup.service
+  run sudo systemctl start hab-sup
   [ "$status" -eq 0 ]
   sleep 5  # Give time for the service to start
   
-  run systemctl is-active hab-sup.service
+  run systemctl is-active hab-sup
   [ "$status" -eq 0 ]
 }
 
@@ -123,7 +123,7 @@ teardown() {
   [ "$(get_hab_launcher_version chef)" != "Not installed" ]
   
   # Verify systemd service is still running
-  run systemctl is-active hab-sup.service
+  run systemctl is-active hab-sup
   [ "$status" -eq 0 ]
   
   # Check that we're now using chef packages, not core
