@@ -78,7 +78,7 @@ teardown_file() {
 
 @test "Install core packages and prepare for migration" {
   # First install core packages
-  run sudo -E components/hab/install.sh -c stable
+  run components/hab/install.sh -c stable
   [ "$status" -eq 0 ]
   [ "$(installed_target)" == "x86_64-linux" ]
   
@@ -99,6 +99,7 @@ teardown_file() {
   sleep 5  # Give time for the service to start
   
   run sudo systemctl is-active hab-sup
+  journalctl -u hab-sup
   echo "output of systemctl is-active hab-sup: $output"
   [ "$status" -eq 0 ]
 }
