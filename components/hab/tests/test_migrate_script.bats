@@ -79,6 +79,7 @@ teardown_file() {
 @test "Install core packages and prepare for migration" {
   # First install core packages
   run components/hab/install.sh -c stable
+  echo "output of install: $output"
   [ "$status" -eq 0 ]
   [ "$(installed_target)" == "x86_64-linux" ]
   
