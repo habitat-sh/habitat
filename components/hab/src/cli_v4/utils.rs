@@ -102,7 +102,8 @@ impl FromStr for CacheKeyPath {
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct BldrUrl {
     // TODO:agadgil: Use the Url Validator
-    /// Specify an alternate Builder endpoint.
+    /// Specify an alternate Builder endpoint. If not specified, the value will be taken from the
+    /// `HAB_BLDR_URL` environment variable or from the config file if specified.
     #[arg(name = "BLDR_URL", short = 'u', long = "url")]
     bldr_url: Option<Url>,
 }
@@ -159,7 +160,8 @@ fn bldr_url_from_env_load_or_default() -> String {
 #[derive(Debug, Clone, Parser)]
 pub(crate) struct AuthToken {
     // TODO: Add Validator for this?
-    /// Authentication token for Builder.
+    /// Authentication token for Builder. Uses value from the `HAB_AUTH_TOKEN` env variable if set
+    /// or from the config file if specified
     #[arg(name = "AUTH_TOKEN", short = 'z', long = "auth")]
     auth_token: Option<String>,
 }

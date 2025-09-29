@@ -44,7 +44,8 @@ pub(crate) struct PkgInstallOptions {
     #[command(flatten)]
     bldr_url: BldrUrl,
 
-    /// Install from the specified release channel
+    /// Install from the specified release channel. Uses default channel as 'base' for 'core'
+    /// origin packages and 'stable' for all other packages.
     #[arg(short = 'c',
                 long = "channel",
                 env = habitat_core::ChannelIdent::ENVVAR)]

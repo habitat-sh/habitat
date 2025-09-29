@@ -43,7 +43,7 @@ pub(crate) struct PkgUploadOptions {
     force: bool,
 
     /// Disable auto-build for all packages in this upload
-    #[arg(name = "NO_BUILD", long = "no-build", action = ArgAction::SetTrue)]
+    #[arg(name = "NO_BUILD", long = "no-build", hide = true, action = ArgAction::SetTrue)]
     no_build: bool,
 
     /// One or more filepaths to a Habitat Artifact (ex:

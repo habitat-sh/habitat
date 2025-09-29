@@ -43,7 +43,7 @@ pub(crate) struct PkgBulkUploadOptions {
 
     // TODO: This option is to be removed?
     /// Enable auto-build for all packages in this upload. Only applicable to SaaS Builder
-    #[arg(name = "AUTO_BUILD", long = "auto-build", action = ArgAction::SetTrue)]
+    #[arg(name = "AUTO_BUILD", long = "auto-build", hide = true, action = ArgAction::SetTrue)]
     auto_build: bool,
 
     /// Skip the confirmation prompt and automatically create origins that do not exist in the
