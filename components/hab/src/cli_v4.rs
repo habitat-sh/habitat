@@ -56,6 +56,9 @@ use studio::StudioOpts;
 mod plan;
 use plan::PlanCommand;
 
+mod welcome;
+use welcome::WelcomeOpts;
+
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, Parser)]
 #[command(name = "hab",
@@ -128,6 +131,10 @@ enum Hab {
     /// Commands relating to Habitat users
     #[clap(subcommand)]
     User(UserCommand),
+
+    /// Display a welcome message for Habitat
+    #[command(name = "welcome")]
+    Welcome(WelcomeOpts),
 }
 
 impl Hab {
@@ -149,6 +156,7 @@ impl Hab {
             Self::SupportBundle(support_bundle_command) => {
                 support_bundle_command.do_command(ui).await
             }
+            Self::Welcome(welcome_command) => welcome_command.do_command(ui).await,
         }
     }
 }
