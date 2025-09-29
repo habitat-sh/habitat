@@ -115,6 +115,8 @@ teardown_file() {
   echo "Initial hab-launcher version: $initial_hab_launcher_version"
   
   run sudo -E components/hab/migrate.sh
+  echo "Output from migration run:"
+  echo "$output"
   [ "$status" -eq 0 ]
   
   # Check that chef packages are now installed
@@ -145,9 +147,9 @@ teardown_file() {
   
   # Run migrate.sh again
   run sudo -E components/hab/migrate.sh
-  [ "$status" -eq 0 ]
   echo "Output from second migration run:"
   echo "$output"
+  [ "$status" -eq 0 ]
   
   # Check that hab-sup is still running
   run systemctl is-active hab-sup

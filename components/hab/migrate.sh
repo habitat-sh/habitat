@@ -163,9 +163,9 @@ if hab pkg list core/hab-sup 2>/dev/null | grep -q "core/hab-sup" || hab pkg lis
     echo "Current process info: $PROC_INFO"
     # Extract the path part that includes the version
     # Result would be like: /hab/pkgs/core/hab-sup/1.6.56/20220901123456/bin/hab-sup
-    HAB_SUP_PATH=$(echo "$PROC_INFO" | sed -E 's/^[0-9]+ //' | awk '{print $1}')
+    HAB_SUP_PATH=$(echo "$PROC_INFO" | sed 's/^[0-9][0-9]* //' | awk '{print $1}')
     # Extract just the version part from path
-    RUNNING_VERSION=$(echo "$HAB_SUP_PATH" | sed -E 's|/hab/pkgs/(core|chef)/hab-sup/([^/]+)/.*|\2|')
+    RUNNING_VERSION=$(echo "$HAB_SUP_PATH" | sed 's|/hab/pkgs/\(core\|chef\)/hab-sup/\([^/]*\)/.*|\2|')
     echo "Currently running hab-sup version: $RUNNING_VERSION"
   else
     RUNNING_VERSION="0.0.0"
