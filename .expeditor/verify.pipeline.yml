@@ -553,6 +553,22 @@ steps:
     retry:
       automatic:
         limit: 1
+
+  - label: "[unit] :linux: migrate script"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+    command:
+      - .expeditor/scripts/verify/test_migrate_script.sh
+    expeditor:
+      executor:
+        linux:
+          privileged: true
+          single-use: true
+    timeout_in_minutes: 5
+    retry:
+      automatic:
+        limit: 1
+
   ###############################################################
   # MacOS tests
   - label: "[unit] :darwin: install script"
