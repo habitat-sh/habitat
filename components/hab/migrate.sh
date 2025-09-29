@@ -165,7 +165,7 @@ if hab pkg list core/hab-sup 2>/dev/null | grep -q "core/hab-sup" || hab pkg lis
     # Result would be like: /hab/pkgs/core/hab-sup/1.6.56/20220901123456/bin/hab-sup
     HAB_SUP_PATH=$(echo "$PROC_INFO" | sed -E 's/^[0-9]+ //' | awk '{print $1}')
     # Extract just the version part from path
-    RUNNING_VERSION=$(echo "$HAB_SUP_PATH" | grep -oP '/hab/pkgs/(?:core|chef)/hab-sup/\K[^/]+')
+    RUNNING_VERSION=$(echo "$HAB_SUP_PATH" | sed -E 's|/hab/pkgs/(core|chef)/hab-sup/([^/]+)/.*|\2|')
     echo "Currently running hab-sup version: $RUNNING_VERSION"
   else
     RUNNING_VERSION="0.0.0"
@@ -179,7 +179,7 @@ if hab pkg list core/hab-sup 2>/dev/null | grep -q "core/hab-sup" || hab pkg lis
   sudo hab pkg install --channel="$CHANNEL" --auth="$AUTH_TOKEN" chef/hab-launcher
   
   # Get the newly installed version using find instead of ls for better handling of special characters
-  NEW_VERSION=$(find /hab/pkgs/chef/hab-sup/ -maxdepth 1 -mindepth 1 -type d -printf "%f\n" | sort -V | tail -1)
+  NEW_VERSION=$(find /hab/pkgs/chef/hab-sup/ -maxdepth 1 -mindepth 1 -type d | sed 's|.*/||' | sort -V | tail -1)
   
   # Check if hab-sup systemd service is running and restart it if needed
   if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet hab-sup; then
