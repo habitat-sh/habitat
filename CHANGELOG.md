@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.258 -->
-## [2.0.258](https://github.com/habitat-sh/habitat/tree/2.0.258) (2025-09-26)
+<!-- latest_release 2.0.259 -->
+## [2.0.259](https://github.com/habitat-sh/habitat/tree/2.0.259) (2025-09-30)
 
 #### Merged Pull Requests
-- Add windows migration script [#9942](https://github.com/habitat-sh/habitat/pull/9942) ([mwrock](https://github.com/mwrock))
+- pruned `clapv2` from habitat [#9811](https://github.com/habitat-sh/habitat/pull/9811) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- pruned `clapv2` from habitat [#9811](https://github.com/habitat-sh/habitat/pull/9811) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.259 -->
 - Add windows migration script [#9942](https://github.com/habitat-sh/habitat/pull/9942) ([mwrock](https://github.com/mwrock)) <!-- 2.0.258 -->
 - Bump regex from 1.11.2 to 1.11.3 [#9947](https://github.com/habitat-sh/habitat/pull/9947) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.258 -->
 - Bump windows-sys from 0.61.0 to 0.61.1 [#9948](https://github.com/habitat-sh/habitat/pull/9948) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.258 -->
