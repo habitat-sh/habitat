@@ -70,11 +70,7 @@ uuid = { version = "*", features = ["v4"] }
 url = "*"
 valico = "*"
 
-clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] , optional = true}
-configopt = { git = "https://github.com/habitat-sh/configopt.git" , optional = true}
-structopt = { git = "https://github.com/habitat-sh/structopt.git" , optional = true}
-
-clap_v4 = { version = "4", package = "clap", features = ["env", "derive", "string", "wrap_help"], optional = true }
+clap_v4 = { version = "4", package = "clap", features = ["env", "derive", "string", "wrap_help"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
@@ -101,9 +97,7 @@ serde_yaml = "*"
 serde_json = "*"
 
 [features]
-v2 = ["clap", "configopt", "structopt"]
-v4 = ["clap_v4"]
-default = ["v4"]
+default = []
 
 apidocs = []
 ignore_integration_tests = []

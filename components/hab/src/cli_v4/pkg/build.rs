@@ -27,14 +27,10 @@ use crate::cli_v4::utils::CacheKeyPath;
           help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
                            {usage}\n\n{all-args}\n")]
 pub(crate) struct PkgBuildOptions {
-    // TODO: Should multiple Origins be supported? The semantics looks like that but the original
-    // v2 code does not look like supporting.
     /// Installs secret origin keys (ex: "unicorn", "acme,other,acme-ops")
     #[arg(name = "HAB_ORIGIN_KEYS", short = 'k', long = "keys", action = ArgAction::Append)]
     hab_origin_keys: Vec<Origin>,
 
-    // TODO: Make it a more semantic `PathBuf` Currently not done due to limitation of
-    // `command::pkg::build`. Revisit it after removing `clap-v2`
     /// Sets the Studio root (default: /hab/studios/<DIR_NAME>)
     #[arg(name = "HAB_STUDIO_ROOT", short = 'r', long = "root")]
     hab_studio_root: Option<String>,

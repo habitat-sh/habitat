@@ -1,7 +1,6 @@
 // Utilities that are used by v4 macros
 //
 // Note we are duplicating this functionality because trivially using
-// `cfg_attr(feature = "v4"),...]` is not easy to make work with existing code. Eventually this
 // will be the only `util` left (hope so)
 
 use clap_v4 as clap;

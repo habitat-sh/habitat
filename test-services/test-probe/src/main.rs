@@ -2,19 +2,19 @@ use actix_web::{web::{self,
                       Data},
                 App as ActixApp,
                 HttpServer};
-use clap::{App,
-           Arg};
+use clap::{Arg,
+           Command};
 
 mod config;
 mod context;
 mod error;
 
-fn app<'a, 'b>() -> App<'a, 'b> {
-    App::new("test-probe").arg(Arg::with_name("config").short("c")
-                                                       .long("config")
-                                                       .value_name("CONFIG")
-                                                       .help("Sets a custom config file")
-                                                       .takes_value(true))
+fn app() -> Command {
+    Command::new("test-probe").arg(Arg::new("config").short('c')
+                                                     .long("config")
+                                                     .value_name("CONFIG")
+                                                     .help("Sets a custom config file")
+                                                     .num_args(1))
 }
 
 #[actix_rt::main]

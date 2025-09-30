@@ -26,7 +26,7 @@ impl Default for Config {
 }
 
 pub fn from_matches(args: &ArgMatches) -> Result<Config> {
-    if let Some(path) = args.value_of("config") {
+    if let Some(path) = args.get_one::<String>("config") {
         let contents = fs::read_to_string(path)?;
         toml::from_str(&contents).map_err(Error::Toml)
     } else {
