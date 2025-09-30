@@ -57,7 +57,8 @@ Function Get-Archive($channel, $version) {
 
         $hab_url="$url/habitat/${version}/hab-x86_64-windows.zip"
     }
-    $sha_url="$hab_url.sha256sum"
+    # add a random number to querystring to prevent caching issues
+    $sha_url="$hab_url.sha256sum?rand=$(Get-Random)"
     $hab_dest = (Join-Path ($workdir) "hab.zip")
     $sha_dest = (Join-Path ($workdir) "hab.zip.shasum256")
 
