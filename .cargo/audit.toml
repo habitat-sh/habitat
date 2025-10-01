@@ -13,10 +13,6 @@
 # advisory IDs to ignore e.g. ["RUSTSEC-2019-0001", ...]
 ignore = [
     "RUSTSEC-2021-0137", # Unmaintained: sodiumoxide
-    "RUSTSEC-2021-0139", # Unmaintained: ansi_term
-    "RUSTSEC-2021-0145", # Unsound, Unmaintained: atty
-    "RUSTSEC-2024-0370", # Unmaintained: proc-macro-error (used by structopt)
-    "RUSTSEC-2024-0375", # Unmaintained: atty (used by clap v2)
 ]
 informational_warnings = [
     "notice",
@@ -57,26 +53,3 @@ update_index = true # Auto-update the crates.io index (default: true)
 # sodiumoxide 0.2.7
 # └── habitat_core 0.0.0
 #
-#-------------------------------------------------------------------------------
-# "RUSTSEC-2021-0139",    # Unmaintained: ansi_term
-# "RUSTSEC-2021-0145",    # Unsound, Unmaintained: atty
-#-------------------------------------------------------------------------------
-#
-# Requires that we upgrade clap/structopt/configopt
-#
-# atty 0.2.14
-# ansi_term 0.11.0
-# └── clap 2.33.1
-#     ├── test-probe 0.1.0
-#     ├── structopt 0.3.15
-#     │   ├── habitat_sup 0.0.0
-#     │   ├── hab 0.0.0
-#     │   └── configopt 0.1.0
-#     │       ├── habitat_sup 0.0.0
-#     │       └── hab 0.0.0
-#     ├── habitat_sup 0.0.0
-#     ├── habitat_pkg_export_tar 0.0.0
-#     ├── habitat_pkg_export_container 0.0.0
-#     ├── habitat_common 0.0.0
-#     ├── habitat-rst-reader 0.0.0
-#     └── hab 0.0.0
