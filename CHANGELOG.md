@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.260 -->
-## [2.0.260](https://github.com/habitat-sh/habitat/tree/2.0.260) (2025-10-01)
+<!-- latest_release 2.0.261 -->
+## [2.0.261](https://github.com/habitat-sh/habitat/tree/2.0.261) (2025-10-01)
 
 #### Merged Pull Requests
-- Removes obsolete support/bash_completion.sh [#9950](https://github.com/habitat-sh/habitat/pull/9950) ([jasonheath](https://github.com/jasonheath))
+- removing some dead duplicate code from old clap split [#9959](https://github.com/habitat-sh/habitat/pull/9959) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- removing some dead duplicate code from old clap split [#9959](https://github.com/habitat-sh/habitat/pull/9959) ([mwrock](https://github.com/mwrock)) <!-- 2.0.261 -->
 - Removes obsolete support/bash_completion.sh [#9950](https://github.com/habitat-sh/habitat/pull/9950) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.260 -->
 - prevent caching issues downloading shasum [#9960](https://github.com/habitat-sh/habitat/pull/9960) ([mwrock](https://github.com/mwrock)) <!-- 2.0.260 -->
 - pruned `clapv2` from habitat [#9811](https://github.com/habitat-sh/habitat/pull/9811) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.259 -->
