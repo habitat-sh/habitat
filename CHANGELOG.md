@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.263 -->
-## [2.0.263](https://github.com/habitat-sh/habitat/tree/2.0.263) (2025-10-01)
+<!-- latest_release 2.0.264 -->
+## [2.0.264](https://github.com/habitat-sh/habitat/tree/2.0.264) (2025-10-02)
 
 #### Merged Pull Requests
-- Bump clap from 4.5.45 to 4.5.48 [#9962](https://github.com/habitat-sh/habitat/pull/9962) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- initialize env_logger [#9964](https://github.com/habitat-sh/habitat/pull/9964) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- initialize env_logger [#9964](https://github.com/habitat-sh/habitat/pull/9964) ([mwrock](https://github.com/mwrock)) <!-- 2.0.264 -->
 - Bump clap from 4.5.45 to 4.5.48 [#9962](https://github.com/habitat-sh/habitat/pull/9962) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.263 -->
 - Bump petgraph from 0.8.2 to 0.8.3 [#9963](https://github.com/habitat-sh/habitat/pull/9963) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.262 -->
 - removing some dead duplicate code from old clap split [#9959](https://github.com/habitat-sh/habitat/pull/9959) ([mwrock](https://github.com/mwrock)) <!-- 2.0.261 -->
