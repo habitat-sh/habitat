@@ -6,6 +6,7 @@ use hab::cli_driver;
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
     let mut ui = UI::default_with_env();
     let features = FeatureFlag::from_env(&mut ui);
     if let Err(e) = cli_driver(&mut ui, features).await {
