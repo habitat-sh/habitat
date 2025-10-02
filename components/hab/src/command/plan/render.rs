@@ -119,9 +119,9 @@ pub fn start(ui: &mut UI,
 }
 
 fn toml_to_json(cfg: &str) -> Result<Json> {
-    let toml_value = cfg.parse::<Value>()?;
-    let toml_string = serde_json::to_string(&toml_value)?;
-    let json = serde_json::from_str(&format!(r#"{{ "cfg": {} }}"#, &toml_string))?;
+    let toml_value: Value = toml::from_str(cfg).map_err(crate::error::Error::from)?;
+    let toml_string = serde_json::to_string(&toml_value).map_err(crate::error::Error::from)?;
+    let json = serde_json::from_str(&format!(r#"{{ "cfg": {} }}"#, &toml_string)).map_err(crate::error::Error::from)?;
     Ok(json)
 }
 
