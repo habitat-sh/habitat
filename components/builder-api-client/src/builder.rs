@@ -2,7 +2,6 @@ use crate::{error::{Error,
                     Result},
             hab_http::ApiClient,
             response,
-            BuildOnUpload,
             DisplayProgress,
             OriginInfoResponse,
             OriginKeyIdent,
@@ -1130,7 +1129,6 @@ impl BuilderAPIClient {
                                  pa: &'a PackageArchive,
                                  token: &'a str,
                                  force_upload: bool,
-                                 auto_build: BuildOnUpload,
                                  progress: Option<Box<dyn DisplayProgress>>)
                                  -> Result<()> {
         let checksum = pa.checksum()?;
@@ -1147,12 +1145,6 @@ impl BuilderAPIClient {
                .append_pair("checksum", &checksum)
                .append_pair("target", &target)
                .append_pair("forced", &force_upload.to_string());
-
-            // Builder uses presence of the `builder` param to disable builds.
-            // Only send the parameter when we the user requests builds be disabled.
-            if let BuildOnUpload::Disable = auto_build {
-                url.query_pairs_mut().append_pair("builder", "true");
-            }
         };
 
         debug!("Reading from {}", &pa.path.display());

@@ -318,12 +318,6 @@ pub struct ReverseDependencies {
     pub rdeps:  Vec<String>,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum BuildOnUpload {
-    PackageDefault,
-    Disable,
-}
-
 pub struct Client;
 
 impl Client {

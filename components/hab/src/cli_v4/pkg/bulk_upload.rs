@@ -13,8 +13,6 @@ use habitat_common::{cli::clap_validators::DirExistsValueParser,
 use habitat_core::{crypto::keys::KeyCache,
                    ChannelIdent};
 
-use habitat_api_client::BuildOnUpload;
-
 use crate::{cli_v4::utils::{AuthToken,
                             BldrUrl},
             command::pkg::bulkupload,
@@ -67,7 +65,6 @@ impl PkgBulkUploadOptions {
                           &auth_token,
                           &artifact_path,
                           self.force,
-                          BuildOnUpload::Disable,
                           self.auto_create_channels,
                           &key_cache).await
     }

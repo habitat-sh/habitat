@@ -13,8 +13,6 @@ use habitat_common::{cli::clap_validators::FileExistsValueParser,
 use habitat_core::{crypto::keys::KeyCache,
                    ChannelIdent};
 
-use habitat_api_client::BuildOnUpload;
-
 use crate::{cli_v4::utils::{AuthToken,
                             BldrUrl,
                             CacheKeyPath},
@@ -64,7 +62,6 @@ impl PkgUploadOptions {
                           &auth_token,
                           hart_file,
                           self.force,
-                          BuildOnUpload::Disable,
                           &key_cache).await?;
         }
         Ok(())
