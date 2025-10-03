@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.269 -->
-## [2.0.269](https://github.com/habitat-sh/habitat/tree/2.0.269) (2025-10-03)
+<!-- latest_release 2.0.270 -->
+## [2.0.270](https://github.com/habitat-sh/habitat/tree/2.0.270) (2025-10-03)
 
 #### Merged Pull Requests
-- Bump aws-sdk-ecr from 1.93.0 to 1.94.0 [#9968](https://github.com/habitat-sh/habitat/pull/9968) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump aws-credential-types from 1.2.6 to 1.2.7 [#9970](https://github.com/habitat-sh/habitat/pull/9970) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump aws-credential-types from 1.2.6 to 1.2.7 [#9970](https://github.com/habitat-sh/habitat/pull/9970) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.270 -->
+- Bump aws-config from 1.8.6 to 1.8.7 [#9969](https://github.com/habitat-sh/habitat/pull/9969) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.270 -->
 - Bump aws-sdk-ecr from 1.93.0 to 1.94.0 [#9968](https://github.com/habitat-sh/habitat/pull/9968) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.269 -->
 - Fixes `hab pkg ...` testing [#9958](https://github.com/habitat-sh/habitat/pull/9958) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.268 -->
 - Adds test_hab_plan_cli to e2e pipeline [#9967](https://github.com/habitat-sh/habitat/pull/9967) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.267 -->
