@@ -46,7 +46,6 @@ echo "--- :habicat: Uploading ${pkg_ident:?} (${pkg_target}) to ${HAB_BLDR_URL} 
 ${hab_binary} pkg upload \
               --channel="${channel}" \
               --auth="${HAB_AUTH_TOKEN}" \
-              --no-build \
               "results/${pkg_artifact:?}"
 
 echo "<br>* ${pkg_ident} (${pkg_target})" | buildkite-agent annotate --append --context "release-manifest"
