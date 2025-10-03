@@ -13,8 +13,6 @@ use habitat_common::{cli::clap_validators::FileExistsValueParser,
 use habitat_core::{crypto::keys::KeyCache,
                    ChannelIdent};
 
-use habitat_api_client::BuildOnUpload;
-
 use crate::{cli_v4::utils::{AuthToken,
                             BldrUrl,
                             CacheKeyPath},
@@ -42,10 +40,6 @@ pub(crate) struct PkgUploadOptions {
     #[arg(name = "FORCE", long = "force", action = ArgAction::SetTrue)]
     force: bool,
 
-    /// Disable auto-build for all packages in this upload
-    #[arg(name = "NO_BUILD", long = "no-build", action = ArgAction::SetTrue)]
-    no_build: bool,
-
     /// One or more filepaths to a Habitat Artifact (ex:
     /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
     #[arg(name = "HART_FILE", required = true, value_parser = FileExistsValueParser)]
@@ -59,12 +53,6 @@ impl PkgUploadOptions {
     pub(crate) async fn do_upload(&self, ui: &mut UI) -> HabResult<()> {
         let auth_token = self.auth_token.from_cli_or_config()?;
 
-        let auto_build = if self.no_build {
-            BuildOnUpload::Disable
-        } else {
-            BuildOnUpload::PackageDefault
-        };
-
         let key_cache = KeyCache::new::<PathBuf>((&self.cache_key_path).into());
 
         for hart_file in &self.hart_file {
@@ -74,7 +62,6 @@ impl PkgUploadOptions {
                           &auth_token,
                           hart_file,
                           self.force,
-                          auto_build,
                           &key_cache).await?;
         }
         Ok(())

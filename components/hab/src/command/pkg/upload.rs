@@ -14,7 +14,6 @@
 //! This should be extended to cover uploading specific packages, and finding them by ways more
 //! complex than just latest version.
 use crate::{api_client::{self,
-                         BuildOnUpload,
                          BuilderAPIClient,
                          Client},
             common::{command::package::install::{RETRIES,
@@ -54,7 +53,6 @@ pub async fn start(ui: &mut UI,
                    token: &str,
                    archive_path: &Path,
                    force_upload: bool,
-                   auto_build: BuildOnUpload,
                    key_cache: &KeyCache)
                    -> Result<()> {
     let mut archive = PackageArchive::new(PathBuf::from(archive_path))?;
@@ -120,7 +118,6 @@ pub async fn start(ui: &mut UI,
                                                          (&ident, target),
                                                          additional_release_channel,
                                                          force_upload,
-                                                         auto_build,
                                                          &mut archive)).await
             {
                 Ok(_) => trace!("upload_into_depot succeeded"),
@@ -149,12 +146,11 @@ async fn upload_into_depot(ui: &mut UI,
                            (ident, target): (&PackageIdent, PackageTarget),
                            additional_release_channel: &Option<ChannelIdent>,
                            force_upload: bool,
-                           auto_build: BuildOnUpload,
                            archive: &mut PackageArchive)
                            -> Result<()> {
     ui.status(Status::Uploading, archive.path.display())?;
     let package_exists_in_target =
-        match api_client.put_package(archive, token, force_upload, auto_build, ui.progress())
+        match api_client.put_package(archive, token, force_upload, ui.progress())
                         .await
         {
             Ok(_) => true,
@@ -243,7 +239,6 @@ async fn attempt_upload_dep(ui: &mut UI,
                           (ident, target),
                           additional_release_channel,
                           false,
-                          BuildOnUpload::Disable,
                           &mut archive).await
     } else {
         let archive_name = ident.archive_name_with_target(target).unwrap();

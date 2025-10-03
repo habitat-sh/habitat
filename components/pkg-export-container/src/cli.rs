@@ -60,8 +60,8 @@ fn add_base_packages_args(cmd: Command) -> Command {
             .default_value(DEFAULT_HAB_PKG_IDENT)
             .value_parser(HabPackageInstallSourceValueParser)
             .help(
-                "Habitat CLI package identifier (ex: acme/redis) or filepath to a Habitat \
-                         artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart) \
+                "Habitat CLI package identifier (ex: chef/hab) or filepath to a Habitat \
+                         artifact (ex: /home/chef-hab-2.0.100-20250416101002-x86_64-linux.hart) \
                          to install",
             ),
     )

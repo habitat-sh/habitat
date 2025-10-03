@@ -13,8 +13,6 @@ use habitat_common::{cli::clap_validators::DirExistsValueParser,
 use habitat_core::{crypto::keys::KeyCache,
                    ChannelIdent};
 
-use habitat_api_client::BuildOnUpload;
-
 use crate::{cli_v4::utils::{AuthToken,
                             BldrUrl},
             command::pkg::bulkupload,
@@ -41,11 +39,6 @@ pub(crate) struct PkgBulkUploadOptions {
     #[arg(name = "FORCE", long = "force", action = ArgAction::SetTrue)]
     force: bool,
 
-    // TODO: This option is to be removed?
-    /// Enable auto-build for all packages in this upload. Only applicable to SaaS Builder
-    #[arg(name = "AUTO_BUILD", long = "auto-build", action = ArgAction::SetTrue)]
-    auto_build: bool,
-
     /// Skip the confirmation prompt and automatically create origins that do not exist in the
     /// target Builder
     #[arg(name = "AUTO_CREATE_ORIGINS", long = "auto-create-origins", action = ArgAction::SetTrue)]
@@ -64,12 +57,6 @@ impl PkgBulkUploadOptions {
         let key_cache = KeyCache::new(key_path);
         key_cache.setup()?;
 
-        let auto_build = if self.auto_build {
-            BuildOnUpload::PackageDefault
-        } else {
-            BuildOnUpload::Disable
-        };
-
         let auth_token = self.auth_token.from_cli_or_config()?;
 
         bulkupload::start(ui,
@@ -78,7 +65,6 @@ impl PkgBulkUploadOptions {
                           &auth_token,
                           &artifact_path,
                           self.force,
-                          auto_build,
                           self.auto_create_channels,
                           &key_cache).await
     }

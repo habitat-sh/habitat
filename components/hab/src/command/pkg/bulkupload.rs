@@ -10,7 +10,6 @@
 //! Will upload all packages in cache to Builder.
 
 use crate::{api_client::{self,
-                         BuildOnUpload,
                          Client},
             command,
             common::ui::{Glyph,
@@ -48,7 +47,6 @@ pub async fn start(ui: &mut UI,
                    token: &str,
                    artifact_path: &Path,
                    force_upload: bool,
-                   auto_build: BuildOnUpload,
                    auto_create_origins: bool,
                    key_cache: &KeyCache)
                    -> Result<()> {
@@ -116,7 +114,6 @@ pub async fn start(ui: &mut UI,
                                     token,
                                     artifact_path,
                                     force_upload,
-                                    auto_build,
                                     key_cache).await?
     }
 

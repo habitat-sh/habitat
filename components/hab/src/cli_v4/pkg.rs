@@ -65,7 +65,7 @@ pub(super) enum PkgCommand {
     /// Builds a plan using Habitat Studio
     Build(build::PkgBuildOptions),
 
-    /// Bulk uploads Habitat artifacts from to a depot from a local directory
+    /// Bulk uploads Habitat artifacts to builder depot from a local directory
     Bulkupload(bulk_upload::PkgBulkUploadOptions),
 
     /// Find out what channels a package belongs to
