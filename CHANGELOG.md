@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.267 -->
-## [2.0.267](https://github.com/habitat-sh/habitat/tree/2.0.267) (2025-10-02)
+<!-- latest_release 2.0.268 -->
+## [2.0.268](https://github.com/habitat-sh/habitat/tree/2.0.268) (2025-10-03)
 
 #### Merged Pull Requests
-- Adds test_hab_plan_cli to e2e pipeline [#9967](https://github.com/habitat-sh/habitat/pull/9967) ([jasonheath](https://github.com/jasonheath))
+- Fixes `hab pkg ...` testing [#9958](https://github.com/habitat-sh/habitat/pull/9958) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Fixes `hab pkg ...` testing [#9958](https://github.com/habitat-sh/habitat/pull/9958) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.268 -->
 - Adds test_hab_plan_cli to e2e pipeline [#9967](https://github.com/habitat-sh/habitat/pull/9967) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.267 -->
 - hab plan CLI fixes [#9941](https://github.com/habitat-sh/habitat/pull/9941) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.266 -->
 - remove audit exceptions now that we are free from clapv2 [#9965](https://github.com/habitat-sh/habitat/pull/9965) ([mwrock](https://github.com/mwrock)) <!-- 2.0.265 -->
