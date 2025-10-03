@@ -3,6 +3,8 @@ param()
 
 Describe "Migrate habitat using migrate.ps1" {
     BeforeAll {
+        $policy = New-Object System.Net.Cache.HttpRequestCachePolicy([System.Net.Cache.HttpRequestCacheLevel]::NoCache)
+        [System.Net.HttpWebRequest]::DefaultCachePolicy = $policy
         # Install the core/hab package from stable channel
         Write-Host "Installing core/hab from stable channel..."
         Invoke-Expression "& { $(Invoke-RestMethod https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1) }" | Out-Null
