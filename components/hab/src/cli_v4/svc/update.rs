@@ -18,7 +18,11 @@ use habitat_sup_protocol::{ctl,
                                    UpdateCondition,
                                    UpdateStrategy}};
 
-use crate::{cli_v4::utils::{BldrUrl,
+use crate::{cli_v4::utils::{binding_mode_parser,
+                            strategy_parser,
+                            topology_parser,
+                            update_condition_parser,
+                            BldrUrl,
                             RemoteSup},
             error::{Error,
                     Result as HabResult},
@@ -55,11 +59,11 @@ pub(crate) struct UpdateCommand {
     group: Option<String>,
 
     /// Service topology
-    #[arg(long = "topology", short = 't')]
+    #[arg(long = "topology", short = 't', value_parser = topology_parser())]
     topology: Option<Topology>,
 
     /// The update strategy
-    #[arg(long = "strategy", short = 's')]
+    #[arg(long = "strategy", short = 's', value_parser = strategy_parser())]
     strategy: Option<UpdateStrategy>,
 
     /// The condition dictating when this service should update
@@ -72,7 +76,7 @@ pub(crate) struct UpdateCommand {
     /// an older version of the package. A ramification of enabling this condition is packages
     /// newer than the package at the head of the channel will be automatically uninstalled
     /// during a service rollback.
-    #[arg(long = "update-condition", default_value=UpdateCondition::Latest.as_str())]
+    #[arg(long = "update-condition", default_value=UpdateCondition::Latest.as_str(), value_parser = update_condition_parser())]
     update_condition: UpdateCondition,
 
     /// One or more service groups to bind to a configuration
@@ -82,7 +86,7 @@ pub(crate) struct UpdateCommand {
     /// Governs how the presence or absence of binds affects service startup
     ///
     /// strict: blocks startup until all binds are present.
-    #[arg(long = "binding-mode")]
+    #[arg(long = "binding-mode", value_parser = binding_mode_parser())]
     binding_mode: Option<BindingMode>,
 
     /// The interval in seconds on which to run health checks

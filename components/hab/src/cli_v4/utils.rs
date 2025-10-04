@@ -6,7 +6,9 @@
 use clap_v4 as clap;
 
 use crate::error::Error;
-use clap::{ArgGroup,
+use clap::{builder::{PossibleValuesParser,
+                     TypedValueParser},
+           ArgGroup,
            Args,
            Parser};
 use lazy_static::lazy_static;
@@ -218,6 +220,7 @@ pub(crate) struct RemoteSup {
     #[arg(name = "REMOTE_SUP",
                 long = "remote-sup",
                 short = 'r',
+                default_value = "127.0.0.1:9632",
                 default_missing_value = ListenCtlAddr::default_as_str())]
     remote_sup: Option<ResolvedListenCtlAddr>,
 }
@@ -360,7 +363,7 @@ fn health_check_interval_default() -> u64 { 30 }
 #[command(disable_version_flag = true, rename_all = "screamingsnake")]
 pub struct SharedLoad {
     /// Receive updates from the specified release channel
-    #[arg(long = "channel")]
+    #[arg(long = "channel", default_value = "stable")]
     pub channel: Option<ChannelIdent>,
 
     /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
@@ -376,11 +379,11 @@ pub struct SharedLoad {
     group: String,
 
     /// Service topology
-    #[arg(long = "topology", short = 't')]
+    #[arg(long = "topology", short = 't', value_parser = topology_parser())]
     topology: Option<habitat_sup_protocol::types::Topology>,
 
     /// The update strategy
-    #[arg(long = "strategy", short = 's', default_value = "none")]
+    #[arg(long = "strategy", short = 's', default_value = "none", value_parser = strategy_parser())]
     #[serde(default)]
     strategy: habitat_sup_protocol::types::UpdateStrategy,
 
@@ -395,7 +398,8 @@ pub struct SharedLoad {
     /// newer than the package at the head of the channel will be automatically uninstalled
     /// during a service rollback.
     #[arg(long = "update-condition",
-                default_value = UpdateCondition::Latest.as_str())]
+                default_value = UpdateCondition::Latest.as_str(),
+            value_parser = update_condition_parser())]
     #[serde(default)]
     update_condition: UpdateCondition,
 
@@ -407,7 +411,7 @@ pub struct SharedLoad {
     /// Governs how the presence or absence of binds affects service startup
     ///
     /// strict: blocks startup until all binds are present.
-    #[arg(long = "binding-mode", default_value = "strict")]
+    #[arg(long = "binding-mode", default_value = "strict", value_parser = binding_mode_parser())]
     #[serde(default)]
     binding_mode: habitat_sup_protocol::types::BindingMode,
 
@@ -679,6 +683,59 @@ pub(crate) fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Op
 }
 
 pub(crate) fn is_default<T: Default + PartialEq>(val: &T) -> bool { val == &T::default() }
+
+pub(crate) fn topology_parser(
+    )
+    -> impl TypedValueParser<Value = habitat_sup_protocol::types::Topology>
+{
+    PossibleValuesParser::new(["standalone", "leader"]).map(|s| {
+                                                           match s.as_str() {
+        "standalone" => habitat_sup_protocol::types::Topology::Standalone,
+        "leader"     => habitat_sup_protocol::types::Topology::Leader,
+        _ => unreachable!(),
+      }
+                                                       })
+}
+
+pub(crate) fn strategy_parser(
+    )
+    -> impl TypedValueParser<Value = habitat_sup_protocol::types::UpdateStrategy>
+{
+    PossibleValuesParser::new(["none", "at-once", "rolling"]).map(|s| {
+                                                                 match s.as_str() {
+        "none"     => habitat_sup_protocol::types::UpdateStrategy::None,
+        "at-once"  => habitat_sup_protocol::types::UpdateStrategy::AtOnce,
+        "rolling"  => habitat_sup_protocol::types::UpdateStrategy::Rolling,
+        _ => unreachable!(),
+      }
+                                                             })
+}
+
+pub(crate) fn update_condition_parser(
+    )
+    -> impl TypedValueParser<Value = habitat_sup_protocol::types::UpdateCondition>
+{
+    PossibleValuesParser::new(["latest", "track-channel"]).map(|s| {
+                                                              match s.as_str() {
+        "latest"        => habitat_sup_protocol::types::UpdateCondition::Latest,
+        "track-channel" => habitat_sup_protocol::types::UpdateCondition::TrackChannel,
+        _ => unreachable!(),
+      }
+                                                          })
+}
+
+pub(crate) fn binding_mode_parser(
+    )
+    -> impl TypedValueParser<Value = habitat_sup_protocol::types::BindingMode>
+{
+    PossibleValuesParser::new(["strict", "relaxed"]).map(|s| {
+                                                        match s.as_str() {
+        "strict"  => habitat_sup_protocol::types::BindingMode::Strict,
+        "relaxed" => habitat_sup_protocol::types::BindingMode::Relaxed,
+        _ => unreachable!(),
+      }
+                                                    })
+}
 
 #[cfg(test)]
 mod tests {
