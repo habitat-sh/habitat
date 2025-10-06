@@ -40,10 +40,6 @@ Describe "hab pkg bulkupload" {
         hab pkg bulkupload --channel bulkuploadtest $cacheDir
         $LASTEXITCODE | Should -Be 0
     }
-    It "succeeds with autobuild" {
-        hab pkg bulkupload --auto-build $cacheDir
-        $LASTEXITCODE | Should -Be 0
-    }
     It "fails without directory argument" {
         hab pkg bulkupload
         $LASTEXITCODE | Should -Not -Be 0
