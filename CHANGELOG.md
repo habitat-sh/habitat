@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.272 -->
-## [2.0.272](https://github.com/habitat-sh/habitat/tree/2.0.272) (2025-10-03)
+<!-- latest_release 2.0.273 -->
+## [2.0.273](https://github.com/habitat-sh/habitat/tree/2.0.273) (2025-10-06)
 
 #### Merged Pull Requests
-- adding some more output to windows installer checkum failures [#9972](https://github.com/habitat-sh/habitat/pull/9972) ([mwrock](https://github.com/mwrock))
+- Hab svc test clap v4 [#9961](https://github.com/habitat-sh/habitat/pull/9961) ([sougata-progress](https://github.com/sougata-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Hab svc test clap v4 [#9961](https://github.com/habitat-sh/habitat/pull/9961) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.273 -->
 - adding some more output to windows installer checkum failures [#9972](https://github.com/habitat-sh/habitat/pull/9972) ([mwrock](https://github.com/mwrock)) <!-- 2.0.272 -->
 - no longer use unnecessary and now unsupported --no-build arg in pipeline [#9971](https://github.com/habitat-sh/habitat/pull/9971) ([mwrock](https://github.com/mwrock)) <!-- 2.0.271 -->
 - Bump aws-credential-types from 1.2.6 to 1.2.7 [#9970](https://github.com/habitat-sh/habitat/pull/9970) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.270 -->
