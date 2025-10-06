@@ -33,6 +33,12 @@ identifier = "habitat"
   parent = "habitat"
   weight = 40
 
+    [[menu.habitat]]
+    title = "Package support"
+    identifier = "habitat/packages/support"
+    parent = "habitat/packages"
+    weight = 10
+
   [[menu.habitat]]
   title = "Plans"
   identifier = "habitat/plans"
