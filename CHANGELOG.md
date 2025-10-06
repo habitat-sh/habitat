@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.274 -->
-## [2.0.274](https://github.com/habitat-sh/habitat/tree/2.0.274) (2025-10-06)
+<!-- latest_release 2.0.275 -->
+## [2.0.275](https://github.com/habitat-sh/habitat/tree/2.0.275) (2025-10-06)
 
 #### Merged Pull Requests
-- Corrects casing for write-host for psscriptanalyzer [#9978](https://github.com/habitat-sh/habitat/pull/9978) ([jasonheath](https://github.com/jasonheath))
+- Bump flate2 from 1.1.2 to 1.1.4 [#9974](https://github.com/habitat-sh/habitat/pull/9974) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump flate2 from 1.1.2 to 1.1.4 [#9974](https://github.com/habitat-sh/habitat/pull/9974) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.275 -->
+- Bump parking_lot from 0.12.4 to 0.12.5 [#9976](https://github.com/habitat-sh/habitat/pull/9976) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.275 -->
+- Bump cc from 1.2.39 to 1.2.40 [#9975](https://github.com/habitat-sh/habitat/pull/9975) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.275 -->
 - Corrects casing for write-host for psscriptanalyzer [#9978](https://github.com/habitat-sh/habitat/pull/9978) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.274 -->
 - Removes &#39;succeeds with autobuild&#39; from test_pkg_bulkupload.ps1 [#9977](https://github.com/habitat-sh/habitat/pull/9977) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.274 -->
 - Hab svc test clap v4 [#9961](https://github.com/habitat-sh/habitat/pull/9961) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.273 -->
