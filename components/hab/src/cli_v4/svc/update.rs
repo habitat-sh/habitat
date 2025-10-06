@@ -18,7 +18,8 @@ use habitat_sup_protocol::{ctl,
                                    UpdateCondition,
                                    UpdateStrategy}};
 
-use crate::{cli_v4::utils::{BldrUrl,
+use crate::{cli_v4::utils::{resolve_channel_for_pkg,
+                            BldrUrl,
                             RemoteSup},
             error::{Error,
                     Result as HabResult},
@@ -55,11 +56,11 @@ pub(crate) struct UpdateCommand {
     group: Option<String>,
 
     /// Service topology
-    #[arg(long = "topology", short = 't')]
+    #[arg(long = "topology", short = 't', value_enum)]
     topology: Option<Topology>,
 
     /// The update strategy
-    #[arg(long = "strategy", short = 's')]
+    #[arg(long = "strategy", short = 's', value_enum)]
     strategy: Option<UpdateStrategy>,
 
     /// The condition dictating when this service should update
@@ -72,7 +73,7 @@ pub(crate) struct UpdateCommand {
     /// an older version of the package. A ramification of enabling this condition is packages
     /// newer than the package at the head of the channel will be automatically uninstalled
     /// during a service rollback.
-    #[arg(long = "update-condition", default_value=UpdateCondition::Latest.as_str())]
+    #[arg(long = "update-condition", default_value=UpdateCondition::Latest.as_str(), value_enum)]
     update_condition: UpdateCondition,
 
     /// One or more service groups to bind to a configuration
@@ -82,7 +83,7 @@ pub(crate) struct UpdateCommand {
     /// Governs how the presence or absence of binds affects service startup
     ///
     /// strict: blocks startup until all binds are present.
-    #[arg(long = "binding-mode")]
+    #[arg(long = "binding-mode", value_enum)]
     binding_mode: Option<BindingMode>,
 
     /// The interval in seconds on which to run health checks
@@ -108,23 +109,25 @@ impl TryFrom<UpdateCommand> for ctl::SvcUpdate {
     type Error = Error;
 
     fn try_from(u: UpdateCommand) -> HabResult<Self> {
-        let msg = ctl::SvcUpdate { ident: Some(From::from(u.pkg_ident)),
-                                   // We are explicitly *not* using the environment variable as a
-                                   // fallback.
-                                   bldr_url: u.bldr_url.map(|u| u.to_string()),
-                                   bldr_channel: u.channel.map(Into::into),
-                                   binds: u.bind.map(FromIterator::from_iter),
-                                   group: u.group,
-                                   health_check_interval: u.health_check_interval.map(Into::into),
-                                   binding_mode: u.binding_mode.map(|v| v as i32),
-                                   topology: u.topology.map(|v| v as i32),
-                                   update_strategy: u.strategy.map(|v| v as i32),
-                                   update_condition: Some(u.update_condition as i32),
-                                   shutdown_timeout: u.shutdown_timeout.map(Into::into),
-                                   #[cfg(windows)]
-                                   svc_encrypted_password: u.password,
-                                   #[cfg(not(windows))]
-                                   svc_encrypted_password: None, };
+        let msg =
+            ctl::SvcUpdate { bldr_channel:
+                                 Some(resolve_channel_for_pkg(&u.channel, &u.pkg_ident).to_string()),
+                             ident: Some(From::from(u.pkg_ident)),
+                             // We are explicitly *not* using the environment variable as a
+                             // fallback.
+                             bldr_url: u.bldr_url.map(|u| u.to_string()),
+                             binds: u.bind.map(FromIterator::from_iter),
+                             group: u.group,
+                             health_check_interval: u.health_check_interval.map(Into::into),
+                             binding_mode: u.binding_mode.map(|v| v as i32),
+                             topology: u.topology.map(|v| v as i32),
+                             update_strategy: u.strategy.map(|v| v as i32),
+                             update_condition: Some(u.update_condition as i32),
+                             shutdown_timeout: u.shutdown_timeout.map(Into::into),
+                             #[cfg(windows)]
+                             svc_encrypted_password: u.password,
+                             #[cfg(not(windows))]
+                             svc_encrypted_password: None, };
 
         // Compiler-assisted validation that the user has indeed
         // specified *something* to change. If they didn't, all the

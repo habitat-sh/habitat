@@ -218,6 +218,7 @@ pub(crate) struct RemoteSup {
     #[arg(name = "REMOTE_SUP",
                 long = "remote-sup",
                 short = 'r',
+                default_value = "127.0.0.1:9632",
                 default_missing_value = ListenCtlAddr::default_as_str())]
     remote_sup: Option<ResolvedListenCtlAddr>,
 }
@@ -376,11 +377,11 @@ pub struct SharedLoad {
     group: String,
 
     /// Service topology
-    #[arg(long = "topology", short = 't')]
+    #[arg(long = "topology", short = 't', value_enum)]
     topology: Option<habitat_sup_protocol::types::Topology>,
 
     /// The update strategy
-    #[arg(long = "strategy", short = 's', default_value = "none")]
+    #[arg(long = "strategy", short = 's', default_value = "none", value_enum)]
     #[serde(default)]
     strategy: habitat_sup_protocol::types::UpdateStrategy,
 
@@ -395,7 +396,8 @@ pub struct SharedLoad {
     /// newer than the package at the head of the channel will be automatically uninstalled
     /// during a service rollback.
     #[arg(long = "update-condition",
-                default_value = UpdateCondition::Latest.as_str())]
+                default_value = UpdateCondition::Latest.as_str(),
+            value_enum)]
     #[serde(default)]
     update_condition: UpdateCondition,
 
@@ -407,7 +409,7 @@ pub struct SharedLoad {
     /// Governs how the presence or absence of binds affects service startup
     ///
     /// strict: blocks startup until all binds are present.
-    #[arg(long = "binding-mode", default_value = "strict")]
+    #[arg(long = "binding-mode", default_value = "strict", value_enum)]
     #[serde(default)]
     binding_mode: habitat_sup_protocol::types::BindingMode,
 
@@ -637,11 +639,12 @@ pub fn shared_load_cli_to_ctl(ident: PackageIdent,
     #[cfg(not(target_os = "windows"))]
     let svc_encrypted_password = None;
 
-    Ok(SvcLoad { ident: Some(ident.into()),
+    Ok(SvcLoad { bldr_channel:
+                     Some(resolve_channel_for_pkg(&shared_load.channel, &ident).to_string()),
+                 ident: Some(ident.into()),
                  binds,
                  binding_mode: Some(shared_load.binding_mode as i32),
                  bldr_url: Some(habitat_core::url::bldr_url(shared_load.bldr_url)),
-                 bldr_channel: shared_load.channel.map(|x| x.to_string()),
                  config_from,
                  force: Some(force),
                  group: Some(shared_load.group),
@@ -679,6 +682,19 @@ pub(crate) fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Op
 }
 
 pub(crate) fn is_default<T: Default + PartialEq>(val: &T) -> bool { val == &T::default() }
+
+pub(crate) fn resolve_channel_for_pkg(user_channel: &Option<ChannelIdent>,
+                                      ident: &PackageIdent)
+                                      -> ChannelIdent {
+    if let Some(ch) = user_channel {
+        return ch.clone();
+    }
+    if ident.origin == "core" {
+        ChannelIdent::base()
+    } else {
+        ChannelIdent::stable()
+    }
+}
 
 #[cfg(test)]
 mod tests {

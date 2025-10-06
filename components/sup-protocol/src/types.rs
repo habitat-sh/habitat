@@ -16,7 +16,6 @@ use std::{fmt::{self,
                 Write},
           str::FromStr};
 
-#[cfg(feature = "v4")]
 use clap_v4::builder::PossibleValue;
 
 include!(concat!(env!("OUT_DIR"), "/sup.types.rs"));
@@ -60,7 +59,6 @@ impl fmt::Display for BindingMode {
     }
 }
 
-#[cfg(feature = "v4")]
 impl clap_v4::ValueEnum for BindingMode {
     fn value_variants<'a>() -> &'a [Self] { &[Self::Strict, Self::Relaxed] }
 
@@ -315,7 +313,6 @@ impl fmt::Display for Topology {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
 }
 
-#[cfg(feature = "v4")]
 impl clap_v4::ValueEnum for Topology {
     fn value_variants<'a>() -> &'a [Self] { &[Self::Leader, Self::Standalone] }
 
@@ -337,7 +334,6 @@ impl UpdateStrategy {
     }
 }
 
-#[cfg(feature = "v4")]
 impl clap_v4::ValueEnum for UpdateStrategy {
     fn value_variants<'a>() -> &'a [Self] { &[Self::None, Self::AtOnce, Self::Rolling] }
 
@@ -394,7 +390,6 @@ impl fmt::Display for UpdateCondition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
 }
 
-#[cfg(feature = "v4")]
 impl clap_v4::ValueEnum for UpdateCondition {
     fn value_variants<'a>() -> &'a [Self] { &[Self::Latest, Self::TrackChannel] }
 
