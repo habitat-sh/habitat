@@ -133,11 +133,12 @@ pub struct SupRunOptions {
     #[arg(long = "ctl-server-key", default_missing_value = HAB_CTL_KEYS_CACHE, num_args = 0..)]
     pub ctl_server_key: Option<PrivateKeyCli>,
 
-    /// The client CA certificate.
+    /// Enable client authentication for the control gateway and set the certificate authority to
+    /// use when authenticating the client.
     #[arg(long = "ctl-client-ca-certificate", default_missing_value = HAB_CTL_KEYS_CACHE, num_args = 0..)]
     pub ctl_client_ca_certificate: Option<RootCertificateStoreCli>,
 
-    /// Organization the Supervisor belongs to.
+    /// Organization the Supervisor and it's services are part of.
     #[arg(long = "org")]
     pub organization: Option<String>,
 
@@ -308,13 +309,13 @@ pub struct SupRunOptions {
     #[arg(long = "keep-latest-packages", env = "HAB_KEEP_LATEST_PACKAGES")]
     pub keep_latest_packages: Option<usize>,
 
-    /// Config Files
-    #[arg(hide = true, long = "config-files", value_delimiter=' ', num_args = 1.., value_parser = FileExistsValueParser)]
+    /// Paths to config files to Read
+    #[arg(long = "config-files", value_delimiter=' ', num_args = 1.., value_parser = FileExistsValueParser)]
     #[serde(skip)]
     pub config_files: Vec<PathBuf>,
 
-    /// Config Files
-    #[arg(hide = true, long = "generate-config")]
+    /// Generate a TOML Config
+    #[arg(long = "generate-config")]
     #[serde(skip)]
     pub generate_config: bool,
 
