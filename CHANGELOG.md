@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.276 -->
-## [2.0.276](https://github.com/habitat-sh/habitat/tree/2.0.276) (2025-10-07)
+<!-- latest_release 2.0.277 -->
+## [2.0.277](https://github.com/habitat-sh/habitat/tree/2.0.277) (2025-10-07)
 
 #### Merged Pull Requests
-- purge cdn on promotion and fix migrate verify test [#9973](https://github.com/habitat-sh/habitat/pull/9973) ([mwrock](https://github.com/mwrock))
+- `hab sup ...` command testing [#9980](https://github.com/habitat-sh/habitat/pull/9980) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- `hab sup ...` command testing [#9980](https://github.com/habitat-sh/habitat/pull/9980) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.277 -->
 - purge cdn on promotion and fix migrate verify test [#9973](https://github.com/habitat-sh/habitat/pull/9973) ([mwrock](https://github.com/mwrock)) <!-- 2.0.276 -->
 - Bump flate2 from 1.1.2 to 1.1.4 [#9974](https://github.com/habitat-sh/habitat/pull/9974) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.275 -->
 - Bump parking_lot from 0.12.4 to 0.12.5 [#9976](https://github.com/habitat-sh/habitat/pull/9976) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.275 -->
