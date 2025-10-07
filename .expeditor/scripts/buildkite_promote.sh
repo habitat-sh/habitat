@@ -52,3 +52,6 @@ maybe_run promote_packages_to_builder_channel manifest.json "${destination_chann
 version="$(jq -r '.version' < manifest.json)"
 echo "--- Promoting binary packages and manifest to the ${destination_channel} channel in S3"
 maybe_run promote_version_in_s3 "${version}" "${destination_channel}"
+
+export EXPEDITOR_TARGET_CHANNEL="${destination_channel}"
+.expeditor/scripts/purge_cdn.sh 
