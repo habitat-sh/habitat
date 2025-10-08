@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.280 -->
-## [2.0.280](https://github.com/habitat-sh/habitat/tree/2.0.280) (2025-10-08)
+<!-- latest_release 2.0.281 -->
+## [2.0.281](https://github.com/habitat-sh/habitat/tree/2.0.281) (2025-10-08)
 
 #### Merged Pull Requests
-- Bump aws-config from 1.8.7 to 1.8.8 [#9982](https://github.com/habitat-sh/habitat/pull/9982) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump aws-sdk-ecr from 1.94.0 to 1.95.0 [#9983](https://github.com/habitat-sh/habitat/pull/9983) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump aws-sdk-ecr from 1.94.0 to 1.95.0 [#9983](https://github.com/habitat-sh/habitat/pull/9983) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.281 -->
+- Bump aws-credential-types from 1.2.7 to 1.2.8 [#9984](https://github.com/habitat-sh/habitat/pull/9984) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.281 -->
+- Bump github/codeql-action from 3 to 4 [#9985](https://github.com/habitat-sh/habitat/pull/9985) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.281 -->
 - Bump aws-config from 1.8.7 to 1.8.8 [#9982](https://github.com/habitat-sh/habitat/pull/9982) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.280 -->
 - default remote-sup to localhost [#9981](https://github.com/habitat-sh/habitat/pull/9981) ([mwrock](https://github.com/mwrock)) <!-- 2.0.279 -->
 - Bump windows-sys from 0.61.1 to 0.61.2 [#9979](https://github.com/habitat-sh/habitat/pull/9979) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.278 -->
