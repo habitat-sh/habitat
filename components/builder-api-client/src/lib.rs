@@ -282,14 +282,6 @@ impl TabularText for OriginInfoResponse {
     }
 }
 
-#[derive(Clone, Deserialize)]
-pub struct OriginSecret {
-    pub id:        String,
-    pub origin_id: String,
-    pub name:      String,
-    pub value:     String,
-}
-
 #[derive(Clone, Debug, Deserialize)]
 pub struct OriginKeyIdent {
     pub origin:   String,
