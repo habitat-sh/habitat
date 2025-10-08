@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.279 -->
-## [2.0.279](https://github.com/habitat-sh/habitat/tree/2.0.279) (2025-10-08)
+<!-- latest_release 2.0.280 -->
+## [2.0.280](https://github.com/habitat-sh/habitat/tree/2.0.280) (2025-10-08)
 
 #### Merged Pull Requests
-- default remote-sup to localhost [#9981](https://github.com/habitat-sh/habitat/pull/9981) ([mwrock](https://github.com/mwrock))
+- Bump aws-config from 1.8.7 to 1.8.8 [#9982](https://github.com/habitat-sh/habitat/pull/9982) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump aws-config from 1.8.7 to 1.8.8 [#9982](https://github.com/habitat-sh/habitat/pull/9982) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.280 -->
 - default remote-sup to localhost [#9981](https://github.com/habitat-sh/habitat/pull/9981) ([mwrock](https://github.com/mwrock)) <!-- 2.0.279 -->
 - Bump windows-sys from 0.61.1 to 0.61.2 [#9979](https://github.com/habitat-sh/habitat/pull/9979) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.278 -->
 - `hab sup ...` command testing [#9980](https://github.com/habitat-sh/habitat/pull/9980) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.277 -->
