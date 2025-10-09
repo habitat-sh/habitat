@@ -55,7 +55,7 @@ COMMON OPTIONS:
     -a <ARTIFACT_PATH>    Sets the source artifact cache path (default: /hab/cache/artifacts)
     -c <CERT_PATH>        Sets the SSL certs cache path (default: /hab/cache/ssl)
     -f <REFRESH_CHANNEL>  Sets the channel used to retrieve plan dpendencies for Chef
-                          supported origins (default: stable)
+                          supported origins (default: base)
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
     -r <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
     -s <SRC_PATH>         Sets the source path (default: \$PWD)
