@@ -223,7 +223,15 @@ pub(crate) struct RemoteSup {
 }
 
 impl RemoteSup {
-    pub fn inner(&self) -> Option<&ResolvedListenCtlAddr> { self.remote_sup.as_ref() }
+    pub fn inner(&self) -> Option<&ResolvedListenCtlAddr> { 
+        // Return None when the default address is detected.
+        // This allows SrvClient::ctl_addr() to fall back to reading the listen_ctl
+        // value from cli.toml rather than always using the default value.
+        match &self.remote_sup {
+            Some(addr) if *addr == ResolvedListenCtlAddr::default() => None,
+            other => other.as_ref(),
+        }
+    }
 }
 
 #[derive(Default, Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -785,7 +793,7 @@ mod tests {
 
             let args = ["test-auth-token"];
             let result = TestAuthToken::try_parse_from(args);
-            assert!(result.is_ok(), "{:?}", result.err().unwrap());
+            assert!(result.is_ok(), "{:#?}", result.err().unwrap());
 
             let test_auth_token = result.unwrap();
             let auth_token = test_auth_token.a.try_from_cli_or_config();
@@ -802,7 +810,7 @@ mod tests {
 
             let args = ["test-auth-token", "--auth", "foo-bar"];
             let result = TestAuthToken::try_parse_from(args);
-            assert!(result.is_ok(), "{:?}", result.err().unwrap());
+            assert!(result.is_ok(), "{:#?}", result.err().unwrap());
 
             let test_auth_token = result.unwrap();
             let auth_token = test_auth_token.a.try_from_cli_or_config();
