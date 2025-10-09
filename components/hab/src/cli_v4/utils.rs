@@ -223,7 +223,7 @@ pub(crate) struct RemoteSup {
 }
 
 impl RemoteSup {
-    pub fn inner(&self) -> Option<&ResolvedListenCtlAddr> { 
+    pub fn inner(&self) -> Option<&ResolvedListenCtlAddr> {
         // Return None when the default address is detected.
         // This allows SrvClient::ctl_addr() to fall back to reading the listen_ctl
         // value from cli.toml rather than always using the default value.
