@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.281 -->
-## [2.0.281](https://github.com/habitat-sh/habitat/tree/2.0.281) (2025-10-08)
+<!-- latest_release 2.0.282 -->
+## [2.0.282](https://github.com/habitat-sh/habitat/tree/2.0.282) (2025-10-09)
 
 #### Merged Pull Requests
-- Bump aws-sdk-ecr from 1.94.0 to 1.95.0 [#9983](https://github.com/habitat-sh/habitat/pull/9983) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump widestring from 1.2.0 to 1.2.1 [#9987](https://github.com/habitat-sh/habitat/pull/9987) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump widestring from 1.2.0 to 1.2.1 [#9987](https://github.com/habitat-sh/habitat/pull/9987) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.282 -->
 - Bump aws-sdk-ecr from 1.94.0 to 1.95.0 [#9983](https://github.com/habitat-sh/habitat/pull/9983) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.281 -->
 - Bump aws-credential-types from 1.2.7 to 1.2.8 [#9984](https://github.com/habitat-sh/habitat/pull/9984) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.281 -->
 - Bump github/codeql-action from 3 to 4 [#9985](https://github.com/habitat-sh/habitat/pull/9985) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.281 -->
