@@ -224,11 +224,16 @@ impl LockFile {
         // [LockFileEx](https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex)
         // for more.
         fs2::FileExt::try_lock_shared(&file).map_err(|e| {
+                                                // Convert TryLockError to io::Error
+                                                let io_error = std::io::Error::new(
+                                                    std::io::ErrorKind::WouldBlock, 
+                                                    format!("Failed to acquire shared lock: {}", e)
+                                                );
                                                 if cfg!(windows) {
-                                                    Error::CannotAcquireSharedLock(e)
+                                                    Error::CannotAcquireSharedLock(io_error)
                                                 } else {
                                                     // Unix, Linux, et al.
-                                                    Error::LockDowngrade(e)
+                                                    Error::LockDowngrade(io_error)
                                                 }
                                             })?;
         if cfg!(windows) {
