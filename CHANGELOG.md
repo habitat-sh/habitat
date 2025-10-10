@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.283 -->
-## [2.0.283](https://github.com/habitat-sh/habitat/tree/2.0.283) (2025-10-09)
+<!-- latest_release 2.0.284 -->
+## [2.0.284](https://github.com/habitat-sh/habitat/tree/2.0.284) (2025-10-10)
 
 #### Merged Pull Requests
-- fix remote sup honoring config [#9989](https://github.com/habitat-sh/habitat/pull/9989) ([mwrock](https://github.com/mwrock))
+- `HAB_REFRESH_CHANNEL` help set to default as `base` [#9988](https://github.com/habitat-sh/habitat/pull/9988) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- `HAB_REFRESH_CHANNEL` help set to default as `base` [#9988](https://github.com/habitat-sh/habitat/pull/9988) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.284 -->
 - fix remote sup honoring config [#9989](https://github.com/habitat-sh/habitat/pull/9989) ([mwrock](https://github.com/mwrock)) <!-- 2.0.283 -->
 - Bump widestring from 1.2.0 to 1.2.1 [#9987](https://github.com/habitat-sh/habitat/pull/9987) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.282 -->
 - Bump aws-sdk-ecr from 1.94.0 to 1.95.0 [#9983](https://github.com/habitat-sh/habitat/pull/9983) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.281 -->
