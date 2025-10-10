@@ -6,7 +6,6 @@ use crate::{error::{Error,
             OriginInfoResponse,
             OriginKeyIdent,
             OriginMemberRoleResponse,
-            OriginSecret,
             Package,
             PendingOriginInvitationsResponse,
             ReverseDependencies,
@@ -16,8 +15,7 @@ use broadcast::BroadcastWriter;
 use bytes::BytesMut;
 use futures::{io::AllowStdIo,
               TryStreamExt};
-use habitat_core::{crypto::keys::AnonymousBox,
-                   fs::{AtomicWriter,
+use habitat_core::{fs::{AtomicWriter,
                         Permissions,
                         DEFAULT_CACHED_ARTIFACT_PERMISSIONS,
                         DEFAULT_PUBLIC_KEY_PERMISSIONS,
@@ -492,55 +490,6 @@ impl BuilderAPIClient {
                              &[StatusCode::CREATED]).await
     }
 
-    /// Create secret for an origin
-    ///
-    /// # Failures
-    ///
-    /// * Remote Builder is not available
-    pub async fn create_origin_secret(&self,
-                                      origin: &Origin,
-                                      token: &str,
-                                      key_name: &str,
-                                      secret: &AnonymousBox)
-                                      -> Result<()> {
-        debug!("Creating origin secret: {}, {}", origin, key_name);
-
-        let path = format!("depot/origins/{}/secret", origin);
-        let body = json!({
-            "name": key_name,
-            "value": secret.to_string()
-        });
-
-        response::ok_if_unit(self.0
-                                 .post(&path)
-                                 .bearer_auth(token)
-                                 .json(&body)
-                                 .send()
-                                 .await?,
-                             &[StatusCode::CREATED]).await
-    }
-
-    /// Delete a secret for an origin
-    ///
-    /// # Failures
-    ///
-    /// * Remote Builder is not available
-    pub async fn delete_origin_secret(&self,
-                                      origin: &Origin,
-                                      token: &str,
-                                      key_name: &str)
-                                      -> Result<()> {
-        debug!("Deleting origin secret: {}, {}", origin, key_name);
-
-        let path = format!("depot/origins/{}/secret/{}", origin, key_name);
-
-        // Originally, we only returned an Ok result if the response was StatusCode::NO_CONTENT
-        // (HTTP 204). However the Bldr API appears to always have returned HTTP 200. We'll accept
-        // either as indicators of a successful operation moving forward.
-        response::ok_if_unit(self.0.delete(&path).bearer_auth(token).send().await?,
-                             &[StatusCode::NO_CONTENT, StatusCode::OK]).await
-    }
-
     /// Check an origin exists
     ///
     ///  # Failures
@@ -811,26 +760,6 @@ impl BuilderAPIClient {
 
         response::ok_if_unit(self.0.post(&path).bearer_auth(token).send().await?,
                              &[StatusCode::CREATED]).await
-    }
-
-    /// List all secrets keys for an origin
-    ///
-    /// # Failures
-    ///
-    /// * Remote Builder is not available
-    pub async fn list_origin_secrets(&self, origin: &Origin, token: &str) -> Result<Vec<String>> {
-        debug!("Listing origin secret: {}", origin);
-
-        let path = format!("depot/origins/{}/secret", origin);
-        let resp = self.0.get(&path).bearer_auth(token).send().await?;
-        let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
-
-        let encoded = resp.text().await.map_err(Error::BadResponseBody)?;
-        trace!(target: "habitat_http_client::api_client::list_origin_secrets", "{:?}", encoded);
-
-        Ok(serde_json::from_str::<Vec<OriginSecret>>(&encoded)?.into_iter()
-                                                               .map(|s| s.name)
-                                                               .collect())
     }
 
     /// Download a public key from a remote Builder to the given filepath.

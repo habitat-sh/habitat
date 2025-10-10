@@ -172,7 +172,7 @@ pub struct OriginInfoResponse {
     #[serde(with = "util::serde::string")]
     pub owner_id: u64,
     pub owner_account: String,
-    pub private_key_name: String,
+    pub private_key_name: Option<String>,
 }
 
 #[derive(Clone, Deserialize)]
@@ -269,21 +269,17 @@ impl TabularText for OriginInfoResponse {
         let tw = tabw().padding(2).minwidth(5);
         let mut body = Vec::new();
         body.push(String::from("Owner Id\tOwner Account\tPrivate Key\tPackage Visibility"));
+        let key_display = match &self.private_key_name {
+            Some(key) => key.as_str(),
+            None => "None",
+        };
         body.push(format!("{}\t{}\t{}\t{}",
                           self.owner_id,
                           self.owner_account,
-                          self.private_key_name,
+                          key_display,
                           self.default_package_visibility));
         tabify(tw, &body.join("\n"))
     }
-}
-
-#[derive(Clone, Deserialize)]
-pub struct OriginSecret {
-    pub id:        String,
-    pub origin_id: String,
-    pub name:      String,
-    pub value:     String,
 }
 
 #[derive(Clone, Debug, Deserialize)]

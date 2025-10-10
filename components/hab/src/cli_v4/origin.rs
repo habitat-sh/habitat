@@ -12,7 +12,6 @@ mod info;
 mod invitations;
 mod key;
 mod rbac;
-mod secret;
 mod transfer;
 
 #[derive(Clone, Debug, Subcommand)]
@@ -46,10 +45,6 @@ pub(super) enum OriginCommand {
     #[command(subcommand)]
     Rbac(rbac::OriginRbacCommand),
 
-    /// Commands related to secret management
-    #[command(subcommand)]
-    Secret(secret::OriginSecretCommand),
-
     /// Transfers ownership of an origin to another member of that origin
     Transfer(transfer::OriginTransferOptions),
 }
@@ -67,7 +62,6 @@ impl OriginCommand {
             Self::Invitations(opts) => opts.execute(ui).await,
             Self::Key(opts) => opts.execute(ui).await,
             Self::Rbac(opts) => opts.execute(ui).await,
-            Self::Secret(opts) => opts.execute(ui).await,
             Self::Transfer(opts) => opts.do_transfer(ui).await,
         }
     }

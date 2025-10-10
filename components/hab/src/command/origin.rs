@@ -5,5 +5,4 @@ pub mod info;
 pub mod invitations;
 pub mod key;
 pub mod rbac;
-pub mod secret;
 pub mod transfer;
