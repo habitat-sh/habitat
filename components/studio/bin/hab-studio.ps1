@@ -50,7 +50,7 @@ COMMON FLAGS:
 
 COMMON OPTIONS:
     -f <REFRESH_CHANNEL>  Sets the channel used to retrieve plan dpendencies for Chef
-                          supported origins (default: stable)
+                          supported origins (default: base)
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
     -o <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
     -s <SRC_PATH>         Sets the source path (default: \$PWD)

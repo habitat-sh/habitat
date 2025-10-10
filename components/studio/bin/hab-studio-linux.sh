@@ -71,7 +71,7 @@ COMMON OPTIONS:
     -a <ARTIFACT_PATH>    Sets the source artifact cache path (default: /hab/cache/artifacts)
     -c <CERT_PATH>        Sets the SSL certs cache path (default: /hab/cache/ssl)
     -f <REFRESH_CHANNEL>  Sets the channel used to retrieve plan dpendencies for Chef
-                          supported origins (default: stable)
+                          supported origins (default: base)
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
     -r <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
     -s <SRC_PATH>         Sets the source path (default: \$PWD)
@@ -1042,7 +1042,7 @@ chown_certs() {
 
 # **Internal** Mimic delay using busy loop
 # We cannot use the sleep command as we have already unmounted, but we are
-# encountering 'device busy' failures on AArch64 Linux. We need this because 
+# encountering 'device busy' failures on AArch64 Linux. We need this because
 # we unmounted the resource and want to allow some time for it to be freed.
 busy_sleep() {
     duration="$1"
@@ -1067,23 +1067,23 @@ umount_fs() {
         # Filesystem is confirmed umounted, return success
         return 0
       else
-        # TODO: The retry mechanism with an increasing delay has been added 
-        # to address potential race conditions: if the `umount` operation 
-        # is performed asynchronously, the filesystem might still be reported 
-        # as mounted during the retries while the unmounting is in progress. 
-        # By incrementally increasing the delay between retries (starting with 
-        # a 5-second delay and increasing with each attempt), we aim to account 
-        # for such races and give the system more time to process the unmount 
-        # operation. This approach provides a balance between responsiveness 
-        # and allowing sufficient time for the unmount process to complete. 
-        # If this still impacts user experience, further adjustments such as 
-        # dynamic retry intervals or enhanced detection mechanisms could be 
+        # TODO: The retry mechanism with an increasing delay has been added
+        # to address potential race conditions: if the `umount` operation
+        # is performed asynchronously, the filesystem might still be reported
+        # as mounted during the retries while the unmounting is in progress.
+        # By incrementally increasing the delay between retries (starting with
+        # a 5-second delay and increasing with each attempt), we aim to account
+        # for such races and give the system more time to process the unmount
+        # operation. This approach provides a balance between responsiveness
+        # and allowing sufficient time for the unmount process to complete.
+        # If this still impacts user experience, further adjustments such as
+        # dynamic retry intervals or enhanced detection mechanisms could be
         # explored.
         RETRY_DELAY=5
         MAX_RETRIES=5
         i=1
         while [ "$i" -le "$MAX_RETRIES" ]
-        do 
+        do
             busy_sleep $((RETRY_DELAY * i))  # Delay increases with each retry
             if ! is_fs_mounted "$_mount_point"; then
                 return 0
@@ -1111,18 +1111,18 @@ persisted. Check that the filesystem is no longer in the mounted using \
 # if true and non-zero otherwise.
 is_fs_mounted() {
   _mount_point="${1:?}"
-  
-  # Work around bug in musl's implementation of getmntent_r. 
-  # https://github.com/habitat-sh/habitat/issues/6591#issuecomment-498292168 
+
+  # Work around bug in musl's implementation of getmntent_r.
+  # https://github.com/habitat-sh/habitat/issues/6591#issuecomment-498292168
   #$bb mount | $bb grep -q "on $_mount_point type"
 
-  # NOTE(SM): There is still a chance for failure here. Mount points with a 
+  # NOTE(SM): There is still a chance for failure here. Mount points with a
   # space in their name will not be detected. However, given that we control
-  # the name of all mount points, it is unlikely that we will encounter this 
-  # scenario.  
+  # the name of all mount points, it is unlikely that we will encounter this
+  # scenario.
 
-  # NOTE(SM): This makes this studio implementation Linux specific. 
-  $bb cut -d' ' -f2 /proc/mounts | $bb grep -q -x "$_mount_point" 
+  # NOTE(SM): This makes this studio implementation Linux specific.
+  $bb cut -d' ' -f2 /proc/mounts | $bb grep -q -x "$_mount_point"
 }
 
 # **Internal** Unmounts file system mounts if mounted. The order of file system
@@ -1264,11 +1264,11 @@ HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 # The default root path for SSL certs
 HAB_CACHE_CERT_PATH=$HAB_ROOT_PATH/cache/ssl
 
-# This block ensures the `HAB_LICENSE` environment variable is properly set before invoking the hab binary. 
-# It first checks if `HAB_LICENSE` is already 'accept' or 'accept-no-persist'. If not, it searches for an 
-# acceptance file ('habitat') in '/hab/accepted-licenses' and '$HOME/.hab/accepted-licenses'. 
-# If none of these conditions are met, it assigns 'deny' to `HAB_LICENSE`. This prevents any interactive 
-# license acceptance prompts from halting the studio operation by ensuring `HAB_LICENSE` is always either 
+# This block ensures the `HAB_LICENSE` environment variable is properly set before invoking the hab binary.
+# It first checks if `HAB_LICENSE` is already 'accept' or 'accept-no-persist'. If not, it searches for an
+# acceptance file ('habitat') in '/hab/accepted-licenses' and '$HOME/.hab/accepted-licenses'.
+# If none of these conditions are met, it assigns 'deny' to `HAB_LICENSE`. This prevents any interactive
+# license acceptance prompts from halting the studio operation by ensuring `HAB_LICENSE` is always either
 # accepted or denied prior to each hab invocation.
 if [ "${HAB_LICENSE:-}" = "accept" ] || [ "${HAB_LICENSE:-}" = "accept-no-persist" ] || [ -f "/hab/accepted-licenses/habitat" ] || [ -f "$HOME/.hab/accepted-licenses/habitat" ]; then
   HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}"
