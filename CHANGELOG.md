@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.284 -->
-## [2.0.284](https://github.com/habitat-sh/habitat/tree/2.0.284) (2025-10-10)
+<!-- latest_release 2.0.285 -->
+## [2.0.285](https://github.com/habitat-sh/habitat/tree/2.0.285) (2025-10-10)
 
 #### Merged Pull Requests
-- `HAB_REFRESH_CHANNEL` help set to default as `base` [#9988](https://github.com/habitat-sh/habitat/pull/9988) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump libc from 0.2.176 to 0.2.177 [#9991](https://github.com/habitat-sh/habitat/pull/9991) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.176 to 0.2.177 [#9991](https://github.com/habitat-sh/habitat/pull/9991) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.285 -->
+- Changes driven by hab origin CLI testing [#9986](https://github.com/habitat-sh/habitat/pull/9986) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.285 -->
+- Bump toml from 0.9.7 to 0.9.8 [#9990](https://github.com/habitat-sh/habitat/pull/9990) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.285 -->
 - `HAB_REFRESH_CHANNEL` help set to default as `base` [#9988](https://github.com/habitat-sh/habitat/pull/9988) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.284 -->
 - fix remote sup honoring config [#9989](https://github.com/habitat-sh/habitat/pull/9989) ([mwrock](https://github.com/mwrock)) <!-- 2.0.283 -->
 - Bump widestring from 1.2.0 to 1.2.1 [#9987](https://github.com/habitat-sh/habitat/pull/9987) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.282 -->
