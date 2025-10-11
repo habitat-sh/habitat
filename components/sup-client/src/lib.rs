@@ -149,10 +149,9 @@ impl SrvClient {
     ///
     /// Returns a stream of `SrvMessage`'s representing the server response.
     pub async fn request(
-        addr: Option<&ResolvedListenCtlAddr>,
+        addr: &ResolvedListenCtlAddr,
         request: impl Into<SrvMessage> + fmt::Debug)
         -> Result<impl Stream<Item = Result<SrvMessage, io::Error>>, SrvClientError> {
-        let addr = Self::ctl_addr(addr)?;
         let tcp_stream = TcpStream::connect(addr.addr()).await?;
 
         // Upgrade to a TLS connection if necessary
@@ -199,23 +198,6 @@ impl SrvClient {
 
         // Return the tcp_stream for use as a Stream of responses
         Ok(tcp_stream)
-    }
-
-    /// Return the ctl gateway address with the following order of precedence:
-    /// 1. `maybe_addr` parameter
-    /// 2. cli.toml
-    /// 3. default value
-    ///
-    /// This is public because it allows parts of the code to lookup the address, log messages with
-    /// that address, and then use that address to actually make the request.
-    pub fn ctl_addr(maybe_addr: Option<&ResolvedListenCtlAddr>)
-                    -> Result<ResolvedListenCtlAddr, SrvClientError> {
-        if let Some(addr) = maybe_addr {
-            Ok(addr.clone())
-        } else {
-            let config = CliConfig::load()?;
-            Ok(config.listen_ctl.unwrap_or_default())
-        }
     }
 
     /// Check if the `HAB_CTL_SECRET` env var is set. If not, check the CLI config to see if there

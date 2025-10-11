@@ -41,13 +41,12 @@ pub(crate) struct SupDepartOptions {
 impl SupDepartOptions {
     #[cfg(not(target_os = "macos"))]
     pub(super) async fn do_depart(&self, ui: &mut UI) -> HabResult<()> {
-        let remote = SrvClient::ctl_addr(self.remote_sup.inner())?;
-        // let mut ui = ui::ui();
         let msg = sup_proto::ctl::SupDepart { member_id: Some(self.member_id.clone()), };
 
         ui.begin(format!("Permanently marking {} as departed", &self.member_id))?;
-        ui.status(Status::Applying, format!("via peer {}", remote))?;
-        let mut response = SrvClient::request(Some(&remote), msg).await?;
+        ui.status(Status::Applying,
+                  format!("via peer {}", self.remote_sup.inner()))?;
+        let mut response = SrvClient::request(self.remote_sup.inner(), msg).await?;
 
         while let Some(message_result) = response.next().await {
             let reply = message_result?;

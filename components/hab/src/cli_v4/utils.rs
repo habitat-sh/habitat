@@ -218,20 +218,12 @@ pub(crate) struct RemoteSup {
     #[arg(name = "REMOTE_SUP",
                 long = "remote-sup",
                 short = 'r',
-                default_value = ListenCtlAddr::default_as_str())]
-    remote_sup: Option<ResolvedListenCtlAddr>,
+                default_value = ListenCtlAddr::config_or_default_as_str())]
+    remote_sup: ResolvedListenCtlAddr,
 }
 
 impl RemoteSup {
-    pub fn inner(&self) -> Option<&ResolvedListenCtlAddr> {
-        // Return None when the default address is detected.
-        // This allows SrvClient::ctl_addr() to fall back to reading the listen_ctl
-        // value from cli.toml rather than always using the default value.
-        match &self.remote_sup {
-            Some(addr) if *addr == ResolvedListenCtlAddr::default() => None,
-            other => other.as_ref(),
-        }
-    }
+    pub fn inner(&self) -> &ResolvedListenCtlAddr { &self.remote_sup }
 }
 
 #[derive(Default, Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

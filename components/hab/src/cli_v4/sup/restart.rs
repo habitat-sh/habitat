@@ -35,12 +35,11 @@ pub(crate) struct SupRestartOptions {
 impl SupRestartOptions {
     #[cfg(not(target_os = "macos"))]
     pub(super) async fn do_restart(&self) -> HabResult<()> {
-        let remote = SrvClient::ctl_addr(self.remote_sup.inner())?;
         let mut ui = ui::ui();
         let msg = sup_proto::ctl::SupRestart::default();
 
-        ui.begin(format!("Restarting supervisor {}", remote))?;
-        let mut response = SrvClient::request(Some(&remote), msg).await?;
+        ui.begin(format!("Restarting supervisor {}", self.remote_sup.inner()))?;
+        let mut response = SrvClient::request(self.remote_sup.inner(), msg).await?;
         while let Some(message_result) = response.next().await {
             let reply = message_result?;
             match reply.message_id() {

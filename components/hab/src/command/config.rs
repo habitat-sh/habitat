@@ -25,7 +25,7 @@ pub(crate) async fn sub_svc_set<U>(ui: &mut U,
                                    cfg_path: &String,
                                    version: u64,
                                    user_opt: Option<String>,
-                                   remote_sup: Option<ResolvedListenCtlAddr>,
+                                   remote_sup: &ResolvedListenCtlAddr,
                                    key_path: PathBuf)
                                    -> Result<()>
     where U: UIWriter
@@ -71,7 +71,7 @@ pub(crate) async fn sub_svc_set<U>(ui: &mut U,
 
     ui.begin(format!("Setting new configuration version {} for {}", version, grp))?;
     ui.status(Status::Creating, "service configuration")?;
-    let mut resp = SrvClient::request(remote_sup.as_ref(), validate).await?;
+    let mut resp = SrvClient::request(remote_sup, validate).await?;
     while let Some(msg) = resp.next().await {
         let reply = msg?;
         match reply.message_id() {
@@ -93,7 +93,7 @@ pub(crate) async fn sub_svc_set<U>(ui: &mut U,
     }
 
     ui.status(Status::Applying, "applying...")?;
-    let mut resp = SrvClient::request(remote_sup.as_ref(), set_msg).await?;
+    let mut resp = SrvClient::request(&remote_sup, set_msg).await?;
     while let Some(msg) = resp.next().await {
         let reply = msg?;
         match reply.message_id() {
@@ -116,10 +116,10 @@ pub(crate) async fn sub_svc_set<U>(ui: &mut U,
 }
 
 pub(crate) async fn sub_svc_config(ident: PackageIdent,
-                                   remote_sup_addr: Option<ResolvedListenCtlAddr>)
+                                   remote_sup_addr: &ResolvedListenCtlAddr)
                                    -> Result<()> {
     let msg = sup_proto::ctl::SvcGetDefaultCfg { ident: Some(ident.into()), };
-    let mut resp = SrvClient::request(remote_sup_addr.as_ref(), msg).await?;
+    let mut resp = SrvClient::request(remote_sup_addr, msg).await?;
     while let Some(msg) = resp.next().await {
         let reply = msg?;
         match reply.message_id() {

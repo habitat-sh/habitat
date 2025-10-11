@@ -1,4 +1,5 @@
-use crate::{error::Error,
+use crate::{cli_config::CliConfig,
+            error::Error,
             util};
 
 use native_tls::Certificate;
@@ -425,6 +426,19 @@ impl ListenCtlAddr {
     pub fn ip(&self) -> IpAddr { self.0.ip() }
 
     pub fn port(&self) -> u16 { self.0.port() }
+
+    /// Return the default ListenCtlAddr as a string.
+    /// This overrides the macro-generated method to consider
+    /// the cli.toml configuration when determining the default.
+    pub fn config_or_default_as_str() -> &'static str {
+        lazy_static::lazy_static! {
+            pub static ref DEFAULT: String = {
+                let config = CliConfig::load().unwrap();
+                config.listen_ctl.unwrap_or_default().to_string()
+            };
+        }
+        &DEFAULT
+    }
 }
 
 impl AsRef<SocketAddr> for ListenCtlAddr {
