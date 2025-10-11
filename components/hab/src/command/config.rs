@@ -93,7 +93,7 @@ pub(crate) async fn sub_svc_set<U>(ui: &mut U,
     }
 
     ui.status(Status::Applying, "applying...")?;
-    let mut resp = SrvClient::request(&remote_sup, set_msg).await?;
+    let mut resp = SrvClient::request(remote_sup, set_msg).await?;
     while let Some(msg) = resp.next().await {
         let reply = msg?;
         match reply.message_id() {
