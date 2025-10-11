@@ -34,7 +34,8 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
 
 use hab_common_derive::GenConfig;
 
-use habitat_sup_protocol::types::UpdateCondition;
+use habitat_sup_protocol::{codec::SrvMessage,
+                           types::UpdateCondition};
 
 use crate::error::{Error as HabError,
                    Result as HabResult};
@@ -42,6 +43,7 @@ use crate::error::{Error as HabError,
 use std::{convert::TryFrom,
           ffi::OsString,
           fmt,
+          io,
           net::SocketAddr,
           num::ParseIntError,
           path::PathBuf,
@@ -54,6 +56,10 @@ use serde::{Deserialize,
 use log::error;
 
 use crate::ORIGIN_ENVVAR;
+
+use futures::stream::StreamExt;
+use habitat_sup_client::{SrvClient,
+                         SrvClientError};
 
 lazy_static! {
     pub(crate) static ref CACHE_KEY_PATH_DEFAULT: String =
@@ -693,6 +699,26 @@ pub(crate) fn resolve_channel_for_pkg(user_channel: &Option<ChannelIdent>,
     } else {
         ChannelIdent::stable()
     }
+}
+
+#[cfg(not(target_os = "macos"))]
+pub(crate) async fn process_sup_request(remote_sup: &ResolvedListenCtlAddr,
+                                        msg: impl Into<SrvMessage> + fmt::Debug)
+                                        -> HabResult<()> {
+    let mut response = SrvClient::request(remote_sup, msg).await?;
+    while let Some(message_result) = response.next().await {
+        let reply = message_result?;
+        match reply.message_id() {
+            "NetOk" => (),
+            "NetErr" => {
+                let m = reply.parse::<habitat_sup_protocol::net::NetErr>()
+                            .map_err(SrvClientError::Decode)?;
+                return Err(SrvClientError::from(m).into());
+            }
+            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]

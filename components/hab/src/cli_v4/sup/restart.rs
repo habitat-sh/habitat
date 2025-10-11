@@ -2,23 +2,14 @@
 
 use clap_v4 as clap;
 
-use crate::{cli_v4::utils::RemoteSup,
+use crate::{cli_v4::utils::{process_sup_request,
+                            RemoteSup},
             error::Result as HabResult};
 use clap::Parser;
 
 #[cfg(not(target_os = "macos"))]
-use habitat_sup_client::{SrvClient,
-                         SrvClientError};
-
-#[cfg(not(target_os = "macos"))]
-use std::io;
-
-#[cfg(not(target_os = "macos"))]
 use habitat_common::ui::{self,
                          UIWriter};
-
-#[cfg(not(target_os = "macos"))]
-use futures::stream::StreamExt;
 
 #[cfg(not(target_os = "macos"))]
 use habitat_sup_protocol as sup_proto;
@@ -39,19 +30,7 @@ impl SupRestartOptions {
         let msg = sup_proto::ctl::SupRestart::default();
 
         ui.begin(format!("Restarting supervisor {}", self.remote_sup.inner()))?;
-        let mut response = SrvClient::request(self.remote_sup.inner(), msg).await?;
-        while let Some(message_result) = response.next().await {
-            let reply = message_result?;
-            match reply.message_id() {
-                "NetOk" => (),
-                "NetErr" => {
-                    let m = reply.parse::<sup_proto::net::NetErr>()
-                                .map_err(SrvClientError::Decode)?;
-                    return Err(SrvClientError::from(m).into());
-                }
-                _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
-            }
-        }
+        process_sup_request(self.remote_sup.inner(), msg).await?;
         ui.end("Restart recorded.")?;
         Ok(())
     }
