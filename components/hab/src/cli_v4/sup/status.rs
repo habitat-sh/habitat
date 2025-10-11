@@ -84,7 +84,7 @@ impl SupStatusOptions {
 
 #[cfg(not(target_os = "macos"))]
 async fn sub_svc_status(pkg_ident: Option<PackageIdent>,
-                        remote_sup: Option<&ResolvedListenCtlAddr>)
+                        remote_sup: &ResolvedListenCtlAddr)
                         -> HabResult<()> {
     let msg = sup_proto::ctl::SvcStatus { ident: pkg_ident.map(Into::into), };
 

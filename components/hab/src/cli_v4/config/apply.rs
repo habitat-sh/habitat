@@ -50,7 +50,7 @@ impl ConfigApplyOptions {
                     &self.file,
                     self.config_version,
                     self.user.clone(),
-                    self.remote_sup.inner().cloned(),
+                    self.remote_sup.inner(),
                     (&self.cache_key_path).into()).await
     }
 }

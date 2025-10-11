@@ -22,15 +22,13 @@ pub(crate) async fn sub_file_put<U>(service_group: &str,
                                     version: u64,
                                     file_path: &PathBuf,
                                     user_opt: Option<String>,
-                                    remote_sup: Option<ResolvedListenCtlAddr>,
+                                    remote_sup: &ResolvedListenCtlAddr,
                                     key_path: PathBuf,
                                     ui: &mut U)
                                     -> Result<()>
     where U: UIWriter
 {
     let grp = service_group.parse::<ServiceGroup>()?;
-
-    let remote_sup_addr = SrvClient::ctl_addr(remote_sup.as_ref())?;
 
     let mut msg = sup_proto::ctl::SvcFilePut { service_group: Some(grp.clone().into()),
                                                version: Some(version),
@@ -81,9 +79,9 @@ pub(crate) async fn sub_file_put<U>(service_group: &str,
         }
     }
 
-    ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))?;
+    ui.status(Status::Applying, format!("via peer {}", remote_sup))?;
 
-    let mut response = SrvClient::request(Some(&remote_sup_addr), msg).await?;
+    let mut response = SrvClient::request(remote_sup, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {

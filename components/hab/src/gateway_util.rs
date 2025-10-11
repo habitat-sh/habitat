@@ -24,7 +24,7 @@ use termcolor::{self,
 ///
 /// Unfortunately not all control gateway-interacting functions use
 /// this logic yet.
-pub async fn send(remote_sup_addr: Option<&ResolvedListenCtlAddr>,
+pub async fn send(remote_sup_addr: &ResolvedListenCtlAddr,
                   msg: impl Into<SrvMessage> + fmt::Debug)
                   -> Result<()> {
     let mut response = SrvClient::request(remote_sup_addr, msg).await?;

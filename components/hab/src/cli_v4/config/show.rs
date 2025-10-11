@@ -23,6 +23,6 @@ pub(crate) struct ConfigShowOptions {
 
 impl ConfigShowOptions {
     pub(crate) async fn do_show(&self) -> HabResult<()> {
-        sub_svc_config(self.ident.clone(), self.remote_sup.inner().cloned()).await
+        sub_svc_config(self.ident.clone(), self.remote_sup.inner()).await
     }
 }
