@@ -13,7 +13,7 @@
 //! async fn main() {
 //!     let listen_addr = ResolvedListenCtlAddr::default();
 //!     let msg = protocols::ctl::SvcGetDefaultCfg::default();
-//!     let mut response = SrvClient::request(Some(&listen_addr), msg).await.unwrap();
+//!     let mut response = SrvClient::request(&listen_addr, msg).await.unwrap();
 //!     while let Some(message_result) = response.next().await {
 //!         let reply = message_result.unwrap();
 //!         match reply.message_id() {
