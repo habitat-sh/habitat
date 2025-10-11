@@ -2,8 +2,10 @@
 
 use clap_v4 as clap;
 
-use crate::{cli_v4::utils::{process_sup_request,
-                            RemoteSup},
+#[cfg(not(target_os = "macos"))]
+use crate::cli_v4::utils::process_sup_request;
+
+use crate::{cli_v4::utils::RemoteSup,
             error::Result as HabResult};
 use clap::Parser;
 use habitat_common::ui::UI;

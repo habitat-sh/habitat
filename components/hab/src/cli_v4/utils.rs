@@ -34,8 +34,10 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
 
 use hab_common_derive::GenConfig;
 
-use habitat_sup_protocol::{codec::SrvMessage,
-                           types::UpdateCondition};
+#[cfg(not(target_os = "macos"))]
+use habitat_sup_protocol::codec::SrvMessage;
+
+use habitat_sup_protocol::types::UpdateCondition;
 
 use crate::error::{Error as HabError,
                    Result as HabResult};
@@ -43,12 +45,14 @@ use crate::error::{Error as HabError,
 use std::{convert::TryFrom,
           ffi::OsString,
           fmt,
-          io,
           net::SocketAddr,
           num::ParseIntError,
           path::PathBuf,
           str::FromStr,
           time::Duration};
+
+#[cfg(not(target_os = "macos"))]
+use std::io;
 
 use serde::{Deserialize,
             Serialize};
@@ -57,7 +61,10 @@ use log::error;
 
 use crate::ORIGIN_ENVVAR;
 
+#[cfg(not(target_os = "macos"))]
 use futures::stream::StreamExt;
+
+#[cfg(not(target_os = "macos"))]
 use habitat_sup_client::{SrvClient,
                          SrvClientError};
 
