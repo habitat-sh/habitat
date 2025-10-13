@@ -7,12 +7,6 @@ function getHelp(command, sub) {
   function render(data) {
     parsed = parseOutput(command, data.replace(/`/g, ''));
 
-    // `hab pkg export` subcommands shell out to external packages which must be downloaded
-    // separately and have inconsistent CLI arguments
-    if (parsed.command === "hab pkg export") {
-      return;
-    }
-
     console.log(markdownForCommand(parsed, sub));
 
     parsed.subcommands.forEach(item => {
@@ -84,13 +78,14 @@ function markdownForHeader() {
   return `+++
 title = "Chef Habitat Command-Line Interface (CLI) Reference"
 draft= false
+linkTitle = "Chef Habitat Command-Line Interface (CLI) Reference"
+summary = "Chef Habitat Command-Line Interface (CLI) Reference"
 
-[menu]
-  [menu.habitat]
+[menu.reference]
     title = "Habitat CLI Reference"
-    identifier = "habitat/reference/Habitat CLI Reference"
-    parent = "habitat/reference"
-    weight = 10
+    identifier = "reference/habitat_cli"
+    parent = "reference"
+    weight = 1
 +++
 
 <!-- markdownlint-disable-file -->
