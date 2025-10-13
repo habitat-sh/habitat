@@ -14,7 +14,8 @@ use habitat_core::{crypto,
                    crypto::keys::KeyCache,
                    origin::Origin};
 
-use crate::{command::pkg::build,
+use crate::{cli_v4::utils::maybe_refresh_channel_from_args_env_or_load,
+            command::pkg::build,
             error::Result as HabResult};
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
@@ -67,11 +68,10 @@ pub(crate) struct PkgBuildOptions {
     docker: bool,
 
     /// Channel used to retrieve plan dependencies for Chef supported origins
+    /// Uses value from the `HAB_REFRESH_CHANNEL` env variable or cli.toml config file if not set
     #[arg(name = "REFRESH_CHANNEL",
           short = 'f',
-          long = "refresh-channel",
-          env = "HAB_REFRESH_CHANNEL",
-          default_value = "base")]
+          long = "refresh-channel")]
     refresh_channel: Option<String>,
 }
 
@@ -110,6 +110,10 @@ impl PkgBuildOptions {
         #[cfg(any(target_os = "linux", target_os = "windows"))]
         let (reuse_flag, docker_flag) = (self.reuse, self.docker);
 
+        // Resolve refresh channel from CLI arg, env var, config file, or default to "base"
+        let refresh_channel = maybe_refresh_channel_from_args_env_or_load(self.refresh_channel.clone())
+                             .unwrap_or_else(|| "base".to_string());
+
         build::start(ui,
                      self.plan_context.as_ref(),
                      self.hab_studio_root.as_deref(),
@@ -118,7 +122,7 @@ impl PkgBuildOptions {
                      native_package,
                      reuse_flag,
                      docker_flag,
-                     self.refresh_channel.as_deref()).await
+                     Some(refresh_channel.as_str())).await
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]

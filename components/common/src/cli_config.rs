@@ -48,6 +48,7 @@ pub enum Error {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct CliConfig {
     pub auth_token:                 Option<String>,
+    pub refresh_channel:            Option<String>,
     pub origin:                     Option<Origin>,
     pub ctl_secret:                 Option<String>,
     pub listen_ctl:                 Option<ResolvedListenCtlAddr>,
@@ -120,4 +121,52 @@ fn cli_config_path() -> PathBuf {
         return home.join(format!(".{}", CLI_CONFIG_PATH_POSTFIX));
     }
     PathBuf::from(&*FS_ROOT_PATH).join(CLI_CONFIG_PATH_POSTFIX)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_cli_config_default() {
+        let config = CliConfig::default();
+        assert!(config.auth_token.is_none());
+        assert!(config.refresh_channel.is_none());
+        assert!(config.origin.is_none());
+        assert!(config.bldr_url.is_none());
+    }
+
+    #[test]
+    fn test_cli_config_serialization() {
+        let config = CliConfig {
+            auth_token: Some("test_token".to_string()),
+            refresh_channel: Some("stable".to_string()),
+            origin: None,
+            bldr_url: Some("https://bldr.example.com".to_string()),
+            ..Default::default()
+        };
+
+        let toml_str = toml::ser::to_string(&config).expect("Failed to serialize config");
+        
+        // Check that both auth_token and refresh_channel are serialized
+        assert!(toml_str.contains(r#"auth_token = "test_token""#));
+        assert!(toml_str.contains(r#"refresh_channel = "stable""#));
+        assert!(toml_str.contains(r#"bldr_url = "https://bldr.example.com""#));
+    }
+
+    #[test]
+    fn test_cli_config_deserialization() {
+        let toml_str = r#"
+auth_token = "test_token"
+refresh_channel = "stable"
+bldr_url = "https://bldr.example.com"
+"#;
+
+        let config: CliConfig = toml::from_str(toml_str).expect("Failed to deserialize config");
+        
+        assert_eq!(config.auth_token, Some("test_token".to_string()));
+        assert_eq!(config.refresh_channel, Some("stable".to_string()));
+        assert_eq!(config.bldr_url, Some("https://bldr.example.com".to_string()));
+        assert!(config.origin.is_none());
+    }
 }
