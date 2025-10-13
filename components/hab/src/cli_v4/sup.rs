@@ -16,11 +16,10 @@ mod term;
 
 #[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Subcommand)]
-#[command(author = "\nThe Habitat Maintainers <humans@habitat.sh>",
-          about = "The Habitat Supervisor",
+#[command(rename_all = "kebab-case",
           arg_required_else_help = true,
-          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
-                           {usage}\n\n{all-args}\n")]
+          help_template = "{name} {version} {author-section} \
+                           {about-section}\n{usage-heading}\n{usage}\n\n{all-args}\n")]
 pub(super) enum SupCommand {
     /// Depart a Supervisor from the gossip ring; kicking and banning the target from joining again
     /// with the same member-id
