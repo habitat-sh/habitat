@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.285 -->
-## [2.0.285](https://github.com/habitat-sh/habitat/tree/2.0.285) (2025-10-10)
+<!-- latest_release 2.0.286 -->
+## [2.0.286](https://github.com/habitat-sh/habitat/tree/2.0.286) (2025-10-13)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.176 to 0.2.177 [#9991](https://github.com/habitat-sh/habitat/pull/9991) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump regex from 1.11.3 to 1.12.1 [#9995](https://github.com/habitat-sh/habitat/pull/9995) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump regex from 1.11.3 to 1.12.1 [#9995](https://github.com/habitat-sh/habitat/pull/9995) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.286 -->
 - Bump libc from 0.2.176 to 0.2.177 [#9991](https://github.com/habitat-sh/habitat/pull/9991) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.285 -->
 - Changes driven by hab origin CLI testing [#9986](https://github.com/habitat-sh/habitat/pull/9986) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.285 -->
 - Bump toml from 0.9.7 to 0.9.8 [#9990](https://github.com/habitat-sh/habitat/pull/9990) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.285 -->
