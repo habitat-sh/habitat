@@ -28,6 +28,8 @@ ${hab_binary} pkg binlink "chef/hab/${version}" --force --dest=/usr/bin
 hab pkg install chef/hab-studio --channel="${channel}"
 hab pkg install chef/hab-sup --channel="${channel}"
 hab pkg install chef/hab-launcher --channel="${channel}"
+hab pkg install chef/hab-pkg-export-container --channel="${channel}"
+hab pkg install chef/hab-pkg-export-tar --channel="${channel}"
 hab pkg install core/node --binlink
 
 echo "--- :hammer_and_pick: Generating CLI docs"
@@ -53,6 +55,8 @@ echo "--- :hammer_and_pick: Generating template reference docs"
 tempdir="$(mktemp --directory --tmpdir="$(pwd)" -t "docs-XXXX")"
 
 cp components/sup/doc/* "${tempdir}"
+
+
 
 npm install json-schema-ref-parser@6.1.0
 node .expeditor/scripts/release_habitat/generate-template-reference.js \

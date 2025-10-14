@@ -31,10 +31,10 @@ mod unload;
 use unload::UnloadCommand;
 
 #[derive(Clone, Debug, Subcommand)]
-#[command(author = "\nThe Habitat Maintainers <humans@habitat.sh>",
+#[command(rename_all = "kebab-case",
           arg_required_else_help = true,
-          help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
-                           {usage}\n\n{all-args}\n")]
+          help_template = "{name} {version} {author-section} \
+                           {about-section}\n{usage-heading}\n{usage}\n\n{all-args}\n")]
 pub(crate) enum SvcCommand {
     #[clap(subcommand)]
     Key(KeyCommand),
