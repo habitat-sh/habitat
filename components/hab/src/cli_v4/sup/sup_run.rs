@@ -121,7 +121,7 @@ pub struct SupRunOptions {
     /// The listen address for the Control Gateway.
     #[arg(long = "listen-ctl",
         env = ListenCtlAddr::ENVVAR,
-        default_value = ListenCtlAddr::config_or_default_as_str())]
+        default_value = ListenCtlAddr::default_as_str())]
     #[serde(default)]
     pub listen_ctl: ResolvedListenCtlAddr,
 
