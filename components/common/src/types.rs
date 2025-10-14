@@ -432,7 +432,7 @@ impl ListenCtlAddr {
     /// the cli.toml configuration when determining the default.
     pub fn config_or_default_as_str() -> &'static str {
         lazy_static::lazy_static! {
-            pub static ref DEFAULT: String = {
+            static ref DEFAULT: String = {
                 let config = CliConfig::load().unwrap_or_default();
                 config.listen_ctl.unwrap_or_default().to_string()
             };
