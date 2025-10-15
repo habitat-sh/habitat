@@ -38,6 +38,6 @@ Write-Host "--- Using core/powershell $(pwsh --version)"
 Write-Host "--- Installing latest core/pester from $BuilderUrl, stable channel"
 # use --ignore-local because there is a local base-2025 pester package that is broken
 Invoke-NativeCommand hab pkg install core/pester `
-    --channel=base `
+    --channel=stable `
     --ignore-local `
     --url="$BuilderUrl"
