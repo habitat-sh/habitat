@@ -31,13 +31,13 @@ Write-Host "--- Installing latest core/powershell from $BuilderUrl, stable chann
 Invoke-NativeCommand hab pkg install core/powershell `
     --binlink `
     --force `
-    --channel=stable `
+    --channel=base `
     --url="$BuilderUrl"
 Write-Host "--- Using core/powershell $(pwsh --version)"
 
 Write-Host "--- Installing latest core/pester from $BuilderUrl, stable channel"
 # use --ignore-local because there is a local base-2025 pester package that is broken
 Invoke-NativeCommand hab pkg install core/pester `
-    --channel=stable `
+    --channel=base `
     --ignore-local `
     --url="$BuilderUrl"
