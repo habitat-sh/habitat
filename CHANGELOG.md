@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.291 -->
-## [2.0.291](https://github.com/habitat-sh/habitat/tree/2.0.291) (2025-10-15)
+<!-- latest_release 2.0.292 -->
+## [2.0.292](https://github.com/habitat-sh/habitat/tree/2.0.292) (2025-10-15)
 
 #### Merged Pull Requests
-- clean up remote-sup arg handling [#9992](https://github.com/habitat-sh/habitat/pull/9992) ([mwrock](https://github.com/mwrock))
+- Bump tokio from 1.47.1 to 1.48.0 [#10002](https://github.com/habitat-sh/habitat/pull/10002) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump tokio from 1.47.1 to 1.48.0 [#10002](https://github.com/habitat-sh/habitat/pull/10002) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.292 -->
 - clean up remote-sup arg handling [#9992](https://github.com/habitat-sh/habitat/pull/9992) ([mwrock](https://github.com/mwrock)) <!-- 2.0.291 -->
 - Changes relating to generation of the hab cli reference markdown [#9997](https://github.com/habitat-sh/habitat/pull/9997) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.290 -->
 - Bump clap_complete from 4.5.58 to 4.5.59 [#10000](https://github.com/habitat-sh/habitat/pull/10000) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.289 -->
