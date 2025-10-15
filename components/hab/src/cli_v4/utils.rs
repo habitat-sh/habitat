@@ -34,6 +34,9 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
 
 use hab_common_derive::GenConfig;
 
+#[cfg(not(target_os = "macos"))]
+use habitat_sup_protocol::codec::SrvMessage;
+
 use habitat_sup_protocol::types::UpdateCondition;
 
 use crate::error::{Error as HabError,
@@ -48,12 +51,22 @@ use std::{convert::TryFrom,
           str::FromStr,
           time::Duration};
 
+#[cfg(not(target_os = "macos"))]
+use std::io;
+
 use serde::{Deserialize,
             Serialize};
 
 use log::error;
 
 use crate::ORIGIN_ENVVAR;
+
+#[cfg(not(target_os = "macos"))]
+use futures::stream::StreamExt;
+
+#[cfg(not(target_os = "macos"))]
+use habitat_sup_client::{SrvClient,
+                         SrvClientError};
 
 lazy_static! {
     pub(crate) static ref CACHE_KEY_PATH_DEFAULT: String =
@@ -218,20 +231,12 @@ pub(crate) struct RemoteSup {
     #[arg(name = "REMOTE_SUP",
                 long = "remote-sup",
                 short = 'r',
-                default_value = ListenCtlAddr::default_as_str())]
-    remote_sup: Option<ResolvedListenCtlAddr>,
+                default_value = ListenCtlAddr::config_or_default_as_str())]
+    remote_sup: ResolvedListenCtlAddr,
 }
 
 impl RemoteSup {
-    pub fn inner(&self) -> Option<&ResolvedListenCtlAddr> {
-        // Return None when the default address is detected.
-        // This allows SrvClient::ctl_addr() to fall back to reading the listen_ctl
-        // value from cli.toml rather than always using the default value.
-        match &self.remote_sup {
-            Some(addr) if *addr == ResolvedListenCtlAddr::default() => None,
-            other => other.as_ref(),
-        }
-    }
+    pub fn inner(&self) -> &ResolvedListenCtlAddr { &self.remote_sup }
 }
 
 #[derive(Default, Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -701,6 +706,26 @@ pub(crate) fn resolve_channel_for_pkg(user_channel: &Option<ChannelIdent>,
     } else {
         ChannelIdent::stable()
     }
+}
+
+#[cfg(not(target_os = "macos"))]
+pub(crate) async fn process_sup_request(remote_sup: &ResolvedListenCtlAddr,
+                                        msg: impl Into<SrvMessage> + fmt::Debug)
+                                        -> HabResult<()> {
+    let mut response = SrvClient::request(remote_sup, msg).await?;
+    while let Some(message_result) = response.next().await {
+        let reply = message_result?;
+        match reply.message_id() {
+            "NetOk" => (),
+            "NetErr" => {
+                let m = reply.parse::<habitat_sup_protocol::net::NetErr>()
+                            .map_err(SrvClientError::Decode)?;
+                return Err(SrvClientError::from(m).into());
+            }
+            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]

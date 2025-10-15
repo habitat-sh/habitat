@@ -45,7 +45,7 @@ impl FileUploadOptions {
                      self.upload_version,
                      &self.file,
                      self.user.clone(),
-                     self.remote_sup.inner().cloned(),
+                     self.remote_sup.inner(),
                      (&self.cache_key_path).into(),
                      ui).await
     }

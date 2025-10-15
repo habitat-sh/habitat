@@ -1,6 +1,7 @@
 use super::{ExecutionStrategy,
             Scope};
 use crate::{command::pkg::list,
+            common::types::ResolvedListenCtlAddr,
             error::{Error,
                     Result}};
 use futures::stream::StreamExt;
@@ -270,7 +271,7 @@ async fn supervisor_services() -> Result<Vec<PackageIdent>> {
     let msg = habitat_sup_protocol::ctl::SvcStatus::default();
 
     let mut out: Vec<PackageIdent> = vec![];
-    let mut response = SrvClient::request(None, msg).await?;
+    let mut response = SrvClient::request(&ResolvedListenCtlAddr::default(), msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
