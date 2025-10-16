@@ -81,6 +81,7 @@ pub(crate) struct Cli {
           long = "auth",
           short = 'z',
           value_name = "BLDR_AUTH_TOKEN",
+          hide_env_values = true,
           env = "HAB_AUTH_TOKEN")]
     pub(crate) bldr_auth_token: Option<String>,
 

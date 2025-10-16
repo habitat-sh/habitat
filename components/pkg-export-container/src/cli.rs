@@ -118,6 +118,7 @@ fn add_builder_args(cmd: Command) -> Command {
                                        .short('z')
                                        .value_name("BLDR_AUTH_TOKEN")
                                        .env("HAB_AUTH_TOKEN")
+                                       .hide_env_values(true)
                                        .help("Provide a Builder auth token for private pkg export"))
 }
 
