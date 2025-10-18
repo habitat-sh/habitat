@@ -17,9 +17,9 @@ function New-Image() {
     )
 
     # NOTE: the container exporter is installed in setup_environment.{sh,ps1}
-    $env:RUST_LOG="debug"
-    Write-Host "running: hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --tag-custom=$tag $extra_args"
-    Write-Host (hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --tag-custom=$tag $extra_args | Out-String)
+    $command = "hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --tag-custom=$tag $extra_args"
+    Write-Host "running: $command"
+    Write-Host (Invoke-Expression $command | Out-String)
     write-host "Created image"
     "core/nginx:$tag"
 }
