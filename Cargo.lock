@@ -584,7 +584,7 @@ dependencies = [
  "hyper-util",
  "pin-project-lite",
  "rustls 0.21.12",
- "rustls 0.23.32",
+ "rustls 0.23.33",
  "rustls-native-certs 0.8.1",
  "rustls-pki-types",
  "tokio",
@@ -1727,7 +1727,7 @@ dependencies = [
  "rants",
  "reqwest",
  "retry",
- "rustls 0.23.32",
+ "rustls 0.23.33",
  "rustls-webpki 0.103.7",
  "same-file",
  "serde",
@@ -1823,7 +1823,7 @@ dependencies = [
  "habitat_core",
  "log",
  "prost",
- "rustls 0.23.32",
+ "rustls 0.23.33",
  "termcolor",
  "tokio",
  "tokio-util",
@@ -1925,7 +1925,7 @@ dependencies = [
  "regex",
  "reqwest",
  "retry",
- "rustls 0.23.32",
+ "rustls 0.23.33",
  "safer_owning_ref",
  "serde",
  "serde_json",
@@ -1971,7 +1971,7 @@ dependencies = [
  "rcgen",
  "regex",
  "reqwest",
- "rustls 0.23.32",
+ "rustls 0.23.33",
  "rustls-pemfile 2.2.0",
  "rustls-webpki 0.103.7",
  "serde",
@@ -2102,7 +2102,7 @@ dependencies = [
  "rants",
  "regex",
  "reqwest",
- "rustls 0.23.32",
+ "rustls 0.23.33",
  "rustls-pemfile 2.2.0",
  "serde",
  "serde_derive",
@@ -2329,7 +2329,7 @@ dependencies = [
  "http 1.3.1",
  "hyper 1.7.0",
  "hyper-util",
- "rustls 0.23.32",
+ "rustls 0.23.33",
  "rustls-native-certs 0.8.1",
  "rustls-pki-types",
  "tokio",
@@ -3830,9 +3830,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.32"
+version = "0.23.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd3c25631629d034ce7cd9940adc9d45762d46de2b0f57193c4443b92c6d4d40"
+checksum = "751e04a496ca00bb97a5e043158d23d66b5aabf2e1d5aa2a0aaebb1aafe6f82c"
 dependencies = [
  "aws-lc-rs",
  "log",
@@ -4536,7 +4536,7 @@ version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1729aa945f29d91ba541258c8df89027d5792d85a8841fb65e8bf0f4ede4ef61"
 dependencies = [
- "rustls 0.23.32",
+ "rustls 0.23.33",
  "tokio",
 ]
 
