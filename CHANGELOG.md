@@ -1,16 +1,20 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.294 -->
-## [2.0.294](https://github.com/habitat-sh/habitat/tree/2.0.294) (2025-10-20)
+<!-- latest_release 2.0.295 -->
+## [2.0.295](https://github.com/habitat-sh/habitat/tree/2.0.295) (2025-10-20)
 
 #### Merged Pull Requests
-- Bump bitflags from 2.9.4 to 2.10.0 [#10005](https://github.com/habitat-sh/habitat/pull/10005) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump syn from 2.0.106 to 2.0.107 [#10009](https://github.com/habitat-sh/habitat/pull/10009) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump syn from 2.0.106 to 2.0.107 [#10009](https://github.com/habitat-sh/habitat/pull/10009) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.295 -->
+- Bump rustls from 0.23.32 to 0.23.33 [#10006](https://github.com/habitat-sh/habitat/pull/10006) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.295 -->
+- Bump mio from 1.0.4 to 1.1.0 [#10007](https://github.com/habitat-sh/habitat/pull/10007) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.295 -->
+- Bump caps from 0.5.5 to 0.5.6 [#10008](https://github.com/habitat-sh/habitat/pull/10008) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.295 -->
 - Bump bitflags from 2.9.4 to 2.10.0 [#10005](https://github.com/habitat-sh/habitat/pull/10005) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.294 -->
 - `hide_env_values` for auth token in pkg-export-* [#10003](https://github.com/habitat-sh/habitat/pull/10003) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.293 -->
 - Bump tokio from 1.47.1 to 1.48.0 [#10002](https://github.com/habitat-sh/habitat/pull/10002) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.292 -->
