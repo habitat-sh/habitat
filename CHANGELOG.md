@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.293 -->
-## [2.0.293](https://github.com/habitat-sh/habitat/tree/2.0.293) (2025-10-16)
+<!-- latest_release 2.0.294 -->
+## [2.0.294](https://github.com/habitat-sh/habitat/tree/2.0.294) (2025-10-20)
 
 #### Merged Pull Requests
-- `hide_env_values` for auth token in pkg-export-* [#10003](https://github.com/habitat-sh/habitat/pull/10003) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump bitflags from 2.9.4 to 2.10.0 [#10005](https://github.com/habitat-sh/habitat/pull/10005) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump bitflags from 2.9.4 to 2.10.0 [#10005](https://github.com/habitat-sh/habitat/pull/10005) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.294 -->
 - `hide_env_values` for auth token in pkg-export-* [#10003](https://github.com/habitat-sh/habitat/pull/10003) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.293 -->
 - Bump tokio from 1.47.1 to 1.48.0 [#10002](https://github.com/habitat-sh/habitat/pull/10002) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.292 -->
 - clean up remote-sup arg handling [#9992](https://github.com/habitat-sh/habitat/pull/9992) ([mwrock](https://github.com/mwrock)) <!-- 2.0.291 -->
