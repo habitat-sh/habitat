@@ -40,7 +40,7 @@ echo "--- Installing latest core/netcat from ${HAB_BLDR_URL}, base-2025 channel"
 sudo -E hab pkg install core/netcat \
     --binlink \
     --force \
-    --channel="base-2025" \
+    --channel="base" \
     --url="${HAB_BLDR_URL}"
 
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
@@ -51,7 +51,7 @@ sudo -E hab pkg install core/powershell \
     --binlink \
     --binlink-dir="/usr/local/bin" \
     --force \
-    --channel="stable" \
+    --channel="base" \
     --url="${HAB_BLDR_URL}"
 echo "--- Using core/powershell version $(pwsh --version)"
 
