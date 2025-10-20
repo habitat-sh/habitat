@@ -78,7 +78,7 @@ caps = "*"
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
 habitat-launcher-protocol = { path = "../launcher-protocol" }
-mio = { version = "^1.0", features = ["os-ext"] }
+mio = { version = "^1.1", features = ["os-ext"] }
 winapi = { version = "^0.3", features = ["namedpipeapi", "tlhelp32"] }
 
 [dev-dependencies]
