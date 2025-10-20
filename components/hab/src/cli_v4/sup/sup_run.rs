@@ -125,11 +125,11 @@ pub struct SupRunOptions {
     #[serde(default)]
     pub listen_ctl: ResolvedListenCtlAddr,
 
-    /// The control gateway server’s TLS certificate.
+    /// The control gateway server's TLS certificate.
     #[arg(long = "ctl-server-certificate", default_missing_value = HAB_CTL_KEYS_CACHE, num_args = 0..)]
     pub ctl_server_certificate: Option<CertificateChainCli>,
 
-    /// The control gateway server’s private key.
+    /// The control gateway server's private key.
     #[arg(long = "ctl-server-key", default_missing_value = HAB_CTL_KEYS_CACHE, num_args = 0..)]
     pub ctl_server_key: Option<PrivateKeyCli>,
 
