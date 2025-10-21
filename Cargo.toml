@@ -7,6 +7,7 @@ incremental = false
 debug = true
 
 [workspace]
+resolver = "2"
 members = [
   "components/builder-api-client",
   "components/butterfly",
