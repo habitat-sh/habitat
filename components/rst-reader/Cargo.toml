@@ -2,7 +2,7 @@
 name = "habitat-rst-reader"
 version = "0.0.0"
 authors = ["The Habitat Maintainers <humans@habitat.sh>"]
-edition = "2018"
+edition = "2021"
 workspace = "../../"
 
 [[bin]]
