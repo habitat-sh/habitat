@@ -47,7 +47,7 @@ Describe "hab studio enter with studio_profile.ps1" {
         # process even though we have just stopped the entire process tree. Local
         # runs do not have this problem. Because buildkite runs occur in a container,
         # its not a big deal if the file is not deleted.
-        Remove-Item out.log -Force -ErrorAction SilentlyContinue
+        # Remove-Item out.log -Force -ErrorAction SilentlyContinue
         if($env:DOCKER_STUDIO_TEST) {
             docker ps -q --filter "label=buildkitejob=$env:BUILDKITE_JOB_ID" | ForEach-Object { docker stop $_ }
         }
