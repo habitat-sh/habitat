@@ -132,7 +132,7 @@ When prompted to create a PR for changes:
    gh pr create --title "HAB-123: Title" --body "PR description with HTML tags"
    ```
 
-3. **PR Description Format**: Use HTML tags for formatting:
+3. **PR Description Format**: Use HTML tags for formatting and ALWAYS include AI assistance acknowledgment:
    ```html
    <h3>Summary</h3>
    <p>Brief summary of changes made</p>
@@ -146,13 +146,17 @@ When prompted to create a PR for changes:
    <h3>Testing</h3>
    <p>Description of tests added/run</p>
    
+   <h3>AI Assistance</h3>
+   <p>This work was completed with AI assistance following Progress AI policies</p>
+   
    <h3>Jira Issue</h3>
    <p>Resolves: HAB-123</p>
    ```
 
-4. **Add Required Labels**: Always add the label `runtest:all:stable` to PRs:
+4. **Add Required Labels**: Always add these labels to PRs:
    ```bash
    gh pr edit HAB-123 --add-label "runtest:all:stable"
+   gh pr edit HAB-123 --add-label "ai-assisted"
    ```
 
 ### Authentication
@@ -216,15 +220,23 @@ All tasks should be performed in a prompt-based manner:
 - [ ] Create branch using Jira ID (if applicable)
 - [ ] Commit changes with descriptive messages
 - [ ] Push to remote branch using `gh` CLI
-- [ ] Create PR with HTML-formatted description
-- [ ] Add `runtest:all:stable` label
+- [ ] Create PR with HTML-formatted description including AI assistance statement
+- [ ] Add `runtest:all:stable` and `ai-assisted` labels
 - [ ] Request review from appropriate maintainers
 
-### 7. Final Verification
+### 7. JIRA Ticket Update Phase (MANDATORY)
+- [ ] **MANDATORY**: Update JIRA ticket with AI assistance field after PR is created successfully
+- [ ] Use atlassian-mcp tools to update customfield_11170 ("Does this Work Include AI Assisted Code?") to "Yes"
+- [ ] **CRITICAL**: Use correct field format: `{"customfield_11170": {"value": "Yes"}}`
+- [ ] Verify the field update was successful
+- [ ] Add comment to JIRA ticket with PR link and completion summary
+
+### 8. Final Verification
 - [ ] Verify all tests pass in CI
 - [ ] Ensure code coverage remains >80%
 - [ ] Confirm no restricted files were modified
 - [ ] Validate PR description includes all required information
+- [ ] Confirm JIRA ticket has been updated with AI assistance field
 
 ## Prohibited Modifications
 
@@ -248,6 +260,33 @@ All tasks will be performed on the local repository. Ensure:
 - All changes are committed locally before pushing
 - Use relative paths when referencing files
 - Test locally before creating PRs
+
+## JIRA Ticket Updates (MANDATORY)
+
+### AI Assistance Field Update
+**CRITICAL REQUIREMENT**: After successfully creating a PR, you MUST update the JIRA ticket to indicate AI assistance was used.
+
+1. **Field to Update**: `customfield_11170` ("Does this Work Include AI Assisted Code?")
+2. **Required Value**: "Yes"
+3. **Correct Format**: `{"customfield_11170": {"value": "Yes"}}`
+4. **Tools to Use**: Use `mcp_atlassian-mcp_editJiraIssue` from atlassian-mcp server
+
+### Update Process
+```javascript
+// Example JIRA field update
+mcp_atlassian-mcp_editJiraIssue({
+  "issueIdOrKey": "HAB-123",
+  "cloudId": "progresssoftware.atlassian.net",
+  "fields": {
+    "customfield_11170": {"value": "Yes"}
+  }
+})
+```
+
+### Verification
+- [ ] Confirm the API call returned success
+- [ ] Verify the field was updated in JIRA UI if possible
+- [ ] Add completion comment to JIRA ticket with PR link
 
 ## Quality Standards
 
