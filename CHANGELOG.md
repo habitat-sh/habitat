@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.297 -->
-## [2.0.297](https://github.com/habitat-sh/habitat/tree/2.0.297) (2025-10-21)
+<!-- latest_release 2.0.298 -->
+## [2.0.298](https://github.com/habitat-sh/habitat/tree/2.0.298) (2025-10-21)
 
 #### Merged Pull Requests
-- Bump clap from 4.5.49 to 4.5.50 [#10011](https://github.com/habitat-sh/habitat/pull/10011) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump dns-lookup from 3.0.0 to 3.0.1 [#10012](https://github.com/habitat-sh/habitat/pull/10012) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump dns-lookup from 3.0.0 to 3.0.1 [#10012](https://github.com/habitat-sh/habitat/pull/10012) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.298 -->
 - Bump clap from 4.5.49 to 4.5.50 [#10011](https://github.com/habitat-sh/habitat/pull/10011) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.297 -->
 - use ascii apostrophes in help comments to fix powershell cli completers [#10010](https://github.com/habitat-sh/habitat/pull/10010) ([mwrock](https://github.com/mwrock)) <!-- 2.0.296 -->
 - Bump syn from 2.0.106 to 2.0.107 [#10009](https://github.com/habitat-sh/habitat/pull/10009) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.295 -->
