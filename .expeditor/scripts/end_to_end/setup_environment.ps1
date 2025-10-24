@@ -31,7 +31,7 @@ Write-Host "--- Installing latest core/powershell from $BuilderUrl, stable chann
 Invoke-NativeCommand hab pkg install core/powershell `
     --binlink `
     --force `
-    --channel=base `
+    --channel=unstable `
     --url="$BuilderUrl"
 Write-Host "--- Using core/powershell $(pwsh --version)"
 
