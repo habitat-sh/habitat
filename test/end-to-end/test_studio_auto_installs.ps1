@@ -15,7 +15,7 @@ if(Test-Path /hab/pkgs/chef/hab-studio) {
 
 Describe "Studio install" {
     # 'studio enter' requires a signing key to be present for the current origin
-    hab origin key generate "$HAB_ORIGIN"
+    hab origin key generate "$env:HAB_ORIGIN"
 
     It "can create a new studio when no studio package is installed" {
         hab studio new

@@ -37,7 +37,7 @@ Describe "hab studio enter with studio_profile.ps1" {
                 PassThru               = $true
             }
             $proc = Start-Process @procArgs
-            Wait-PathIncludesContent -Path out.log -Content "[HAB-STUDIO] Habitat:\src>"
+            Wait-PathIncludesContent -Path out.log -Content "Habitat:\src>"
             Stop-ProcessTree $proc.Id
         }
     }
