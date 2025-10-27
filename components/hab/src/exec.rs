@@ -129,5 +129,8 @@ fn internal_tooling_channel(channel: Option<ChannelIdent>) -> ChannelIdent {
     hcore::env::var(INTERNAL_TOOLING_CHANNEL_ENVVAR).ok()
                                                     .map(ChannelIdent::from)
                                                     .or(channel)
+                                                    .or_else(|| {
+                                                        option_env!("HAB_RC_CHANNEL").map(ChannelIdent::from)
+                                                    })
                                                     .unwrap_or_default()
 }
