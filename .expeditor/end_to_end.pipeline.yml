@@ -1196,3 +1196,14 @@ steps:
       executor:
         docker:
           privileged: true
+
+  - wait
+
+  - label: "[:habicat: Promote to Acceptance]"
+    command:
+      - .expeditor/scripts/buildkite_promote.sh acceptance hab-2-rc1
+    if: build.creator.name == 'Chef Expeditor' || build.env("PROMOTE") == 'true'
+    expeditor:
+      executor:
+        docker:
+          privileged: true
