@@ -3,7 +3,6 @@ This guide provides step-by-step testing procedures to validate Habitat 2.0 func
 
 ## Prerequisites
 
-- Access to internal Habitat repositories
 - Valid license key for Habitat 2.0
 - Administrative privileges on your test system
 - Basic familiarity with Habitat concepts
@@ -28,12 +27,9 @@ Follow the [official installation guide]({{< relref "install_habitat" >}}) for c
 ```bash
 # Basic installation (installs latest stable version)
 curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash
-
-# Alternative: Install specific version for consistency
- curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- -c stable -v 1.6.1245
 ```
 
-Note: Refer 
+**Note:** Refer to the following guide:
 - [Linux Installation Guide](https://docs.chef.io/habitat/install_habitat/#chef-habitat-for-linux)
 
 ### Windows Installation
@@ -42,29 +38,17 @@ Refer [Windows Installation Guide](https://docs.chef.io/habitat/install_habitat/
 
 ### Common Verification Steps (All Platforms)
 - Check version: `hab --version`
-- Check studio functionality: `hab studio version`
-- Test package search: `hab pkg search core/glibc`
-- Verify CLI responsiveness: `hab --help`
 
 ### Habitat setup
-Once installed go through habitat setup. Habitat setup is performed by command
-```bash
-hab setup
-```
-During setup, you may answer the questions as follows for a simple default setup:
-Licensing: yes
-Connect to an on-premises Builder instance? No
-Set up a default origin? No
-Set up a default Builder personal access token? No.
-Set up a default Habtat Supervisor control gateway secret? No
-Run the following command to setup your environment to connect to acceptance bldr.
+
+YOu can generate your HAB_AUTH_TOKEN [here](https://docs.chef.io/habitat/builder_profile/#create-a-personal-access-token)
 
 ```bash
-#Name of origin where package is uploaded to in public builder]
+#Name of origin where package is uploaded to in public builder
 export HAB_ORIGIN=chef-private 
 
 #Required for private packages
-export HAB_AUTH_TOKEN='your token generate from https://bldr.acceptance.habitat.sh/#/profile' 
+export HAB_AUTH_TOKEN='your token' 
 
 #One time command to generate the public key
 hab origin key generate chef-private 
@@ -129,16 +113,15 @@ hab pkg install core/windows-service
 
 # Create and start the Windows service
 hab pkg exec core/windows-service install
-hab pkg exec core/windows-service start
 
 # Verify service is running
-Get-Service hab-*
+Get-Service habitat
 ```
 
 ### Verification Steps (All Platforms)
 
 - **Linux**: `sudo systemctl status hab-sup` shows active/running
-- **Windows**: `Get-Service hab-*` shows running services
+- **Windows**: `Get-Service habitat` shows running services
 - **All**: Supervisor is accessible: `sudo hab svc status` (should connect successfully)
 - **All**: Check logs for any startup issues
 
@@ -185,9 +168,7 @@ EOF
 ### Build Against Stable Channel
 
 ```bash
-# Enter studio with stable channel
-export HAB_BLDR_CHANNEL=stable
-export HAB_REFRESH_CHANNEL=stable
+# Enter studio 
 
 hab studio enter
 
@@ -245,7 +226,7 @@ sudo hab svc status
 ## Step 5: Setup HAB Auth Token with License Key
 
 ### Obtain License Key and Token
-If you dont have one already, generate a free/trial license key to go ahead https://www.chef.io/license-generation-free-trial.
+If you don't have one already, generate a free/trial license key to go ahead over [here](https://www.chef.io/license-generation-free-trial). Refer this [page](https://docs.chef.io/habitat/builder_profile/#add-a-progress-chef-license-key) for proper instructions.
 Once generated, you should have the below info ready with you:
 - Valid license key for Habitat 2.0
 - Auth token associated with the license
@@ -262,11 +243,9 @@ export HAB_AUTH_TOKEN=your_auth_token_here
 ```bash
 # Linux/macOS: Add to shell profile
 echo 'export HAB_AUTH_TOKEN=your_auth_token_here' >> ~/.bashrc
-echo 'export HAB_LICENSE=accept-no-persist' >> ~/.bashrc
 
 # Windows: Set environment variable
 setx HAB_AUTH_TOKEN "your_auth_token_here"
-setx HAB_LICENSE "accept-no-persist"
 ```
 
 ---
@@ -275,18 +254,7 @@ setx HAB_LICENSE "accept-no-persist"
 
 ### (Optional) Stop Current Services
 
-Note: If your supervisor is running services while executing the migration script, these services will be restarted.
-
-```bash
-# Stop all running services
-sudo hab svc unload chef-private/test-service
-
-# Linux: Stop systemd service
-sudo systemctl stop hab-sup
-
-# Windows: Stop Windows service
-hab pkg exec core/windows-service stop
-```
+**Note:** If your supervisor is running services while executing the migration script, they will be restarted.
 
 ### Run Migration Script
 
@@ -294,12 +262,12 @@ To upgrade a supervisor from 1.6.x to 2.0.x, run the following:
 
 - **linux**: 
 ```bash
-`curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/migrate.sh | sudo bash -s -- --auth <HAB_AUTH_TOKEN>`
+curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/migrate.sh | sudo bash -s -- --auth <HAB_AUTH_TOKEN>
 ```
 
 - **windows**: 
 ```bash
-`iex "& { $(irm https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/migrate.ps1) } --auth <HAB_AUTH_TOKEN>"`
+iex "& { $(irm https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/migrate.ps1) } --auth <HAB_AUTH_TOKEN>"
 ```
 
 ### Verification
