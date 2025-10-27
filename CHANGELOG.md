@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.301 -->
-## [2.0.301](https://github.com/habitat-sh/habitat/tree/2.0.301) (2025-10-24)
+<!-- latest_release 2.0.302 -->
+## [2.0.302](https://github.com/habitat-sh/habitat/tree/2.0.302) (2025-10-27)
 
 #### Merged Pull Requests
-- Use base powershell in end to end tests [#10014](https://github.com/habitat-sh/habitat/pull/10014) ([mwrock](https://github.com/mwrock))
+- Bump cc from 1.2.41 to 1.2.43 [#10023](https://github.com/habitat-sh/habitat/pull/10023) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.41 to 1.2.43 [#10023](https://github.com/habitat-sh/habitat/pull/10023) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.302 -->
 - Use base powershell in end to end tests [#10014](https://github.com/habitat-sh/habitat/pull/10014) ([mwrock](https://github.com/mwrock)) <!-- 2.0.301 -->
 - Bump rustls from 0.23.33 to 0.23.34 [#10015](https://github.com/habitat-sh/habitat/pull/10015) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.300 -->
 - Bump aws-sdk-ecr from 1.95.0 to 1.96.0 [#10018](https://github.com/habitat-sh/habitat/pull/10018) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.300 -->
