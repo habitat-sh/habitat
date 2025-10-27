@@ -13,6 +13,7 @@ expeditor:
         HAB_BLDR_URL: "https://bldr.habitat.sh"
         HAB_BLDR_CHANNEL: "dev"
         HAB_INTERNAL_BLDR_CHANNEL: "dev"
+        HAB_INTERPRETER_IDENT: "core/powershell/7.5.4/20251024155409"
 
 steps:
 #######################################################################
