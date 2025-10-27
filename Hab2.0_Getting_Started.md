@@ -130,7 +130,7 @@ Get-Service habitat
 
 ---
 
-## Step 3: Build a Plan Against Stable Channel [TODO: Fix the key-not-found error ]
+## Step 3: Build a Plan Against Stable Channel
 
 ### Create Test Plan
 
