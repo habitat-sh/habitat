@@ -57,7 +57,14 @@ sudo hab origin key generate chef-private
 
 ## Step 2: Setup Habitat Supervisor Service
 
-### Linux: Create systemd Service
+### Linux: Create hab user and systemd Service
+
+Create the hab user:
+
+```bash
+sudo groupadd hab
+sudo useradd -g hab hab
+```
 
 Create the systemd service file:
 
@@ -71,7 +78,6 @@ Wants=network-online.target
 [Service]
 Type=simple
 ExecStart=$(which hab) sup run
-Environment=HAB_LICENSE=accept-no-persist
 Restart=on-failure
 RestartSec=10
 KillMode=mixed
@@ -198,13 +204,11 @@ sudo hab svc load core/nginx
 ```bash
 
 # Install the package
-sudo -E hab pkg install <path to the artifact(.hart) created in previous step>
+source results/last_build.env
+sudo -E hab pkg install results/$pkg_artifact
 
 # Load the service in supervisor
-sudo hab svc load chef-private/test-service/1.0.0
-
-# Alternatively - Load the service by providing the full pkg_ident
-sudo hab svc load <PKG_IDENT>
+sudo hab svc load chef-private/test-service
 
 # Verify service is loaded
 sudo hab svc status
@@ -241,8 +245,6 @@ setx HAB_AUTH_TOKEN "your_auth_token_here"
 
 ## Step 6: Migrate Environment to Habitat 2.0
 
-### (Optional) Stop Current Services
-
 **Note:** If your supervisor is running services while executing the migration script, they will be restarted.
 
 ### Run Migration Script
@@ -268,21 +270,7 @@ iex "& { $(irm https://raw.githubusercontent.com/habitat-sh/habitat/main/compone
 
 ## Step 7: Rebuild Plan Against Stable Channel (Habitat 2.0)
 
-### Update Plan File
-Update the `pkg_version="2.0.0"` in the existing plan file.
-
-```bash
-sed -i 's/pkg_version="1.0.0"/pkg_version="2.0.0"/' plan.sh
-```
-
-### Set env to Build Against Stable Channel
-
-```bash
-export HAB_INTERNAL_BLDR_CHANNEL=acceptance 
-export HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL=acceptance
-```
-
-### Build
+### Build Against Stable Channel
 
 ```bash
 sudo -E hab pkg build . --refresh-channel stable
