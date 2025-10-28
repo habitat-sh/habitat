@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.302 -->
-## [2.0.302](https://github.com/habitat-sh/habitat/tree/2.0.302) (2025-10-27)
+<!-- latest_release 2.0.303 -->
+## [2.0.303](https://github.com/habitat-sh/habitat/tree/2.0.303) (2025-10-28)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.41 to 1.2.43 [#10023](https://github.com/habitat-sh/habitat/pull/10023) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- allow a build time env var to set tooling channel  [#10024](https://github.com/habitat-sh/habitat/pull/10024) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- allow a build time env var to set tooling channel  [#10024](https://github.com/habitat-sh/habitat/pull/10024) ([mwrock](https://github.com/mwrock)) <!-- 2.0.303 -->
+- Bump flate2 from 1.1.4 to 1.1.5 [#10021](https://github.com/habitat-sh/habitat/pull/10021) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.303 -->
 - Bump cc from 1.2.41 to 1.2.43 [#10023](https://github.com/habitat-sh/habitat/pull/10023) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.302 -->
 - Use base powershell in end to end tests [#10014](https://github.com/habitat-sh/habitat/pull/10014) ([mwrock](https://github.com/mwrock)) <!-- 2.0.301 -->
 - Bump rustls from 0.23.33 to 0.23.34 [#10015](https://github.com/habitat-sh/habitat/pull/10015) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.300 -->
