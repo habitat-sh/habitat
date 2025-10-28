@@ -30,7 +30,7 @@ curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/in
 
 ### Windows Installation
 
-```bash
+```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force
 iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.ps1'))
 ```
@@ -257,7 +257,7 @@ curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/mi
 
 - **windows**: 
 
-```bash
+```powershell
 iex "& { $(irm https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/migrate.ps1) }"
 ```
 
@@ -387,8 +387,8 @@ hab pkg list <PKG_IDENT>
 ```
 
 #### Secret key mismatch error
-Error you get when a supervior is already running and you try to run a new one.
-To fix this, kill the exisiting supervisor process and then follow step 2.
+Error you get when a supervisor is already running and you try to run a new one.
+To fix this, kill the existing supervisor process and then follow step 2.
 
 #### Permission denied
 If you get 404 or permission denied while building a package it's usually because you have not set your auth token.
