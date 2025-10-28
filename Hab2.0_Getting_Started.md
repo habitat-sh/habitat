@@ -19,7 +19,7 @@ The testing process involves:
 
 ## Step 1: Install Habitat v1.6 Baseline
 
-Follow the [official installation guide]( "https://docs.chef.io/habitat/install_habitat/#chef-habitat-for-linux" ) for complete platform-specific instructions. Below are quick installation steps for each platform:
+Follow the [official installation guide](https://docs.chef.io/habitat/install_habitat/#chef-habitat-for-linux) for complete platform-specific instructions. Below are quick installation steps for each platform:
 
 ### Linux Installation
 
@@ -40,7 +40,7 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercon
 
 ### Habitat setup
 
-To generate your HAB_AUTH_TOKEN, goto your builder UI and follow the steps [here](https://docs.chef.io/habitat/builder_profile/#create-a-personal-access-token)
+To generate your HAB_AUTH_TOKEN, go to your builder UI and follow the steps [here](https://docs.chef.io/habitat/builder_profile/#create-a-personal-access-token)
 
 ```bash
 #Name of origin where package is uploaded to in public builder
@@ -52,7 +52,7 @@ export HAB_AUTH_TOKEN='your token'
 #One time command to generate the public key at ~/.hab/cache/keys
 hab origin key generate chef-private 
 
-#Copy the key to /hab/cache/keys for commans that run in root/sudo
+#Copy the key to /hab/cache/keys for commands that run in root/sudo
 sudo cp ~/.hab/cache/keys/chef-private-* /hab/cache/keys/
 
 ```
@@ -190,7 +190,7 @@ sudo hab svc load core/nginx
 - Package artifact is created in `results/` directory
 - Dependencies are pulled from stable channel (verify in build output)
 
-**Note:** Make a note of the atrifact (.hart) file that is generated at the end of the terminal logs.
+**Note:** Make a note of the artifact (.hart) file that is generated at the end of the terminal logs.
 
 ---
 
@@ -261,7 +261,7 @@ curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/mi
 - **windows**: 
 
 ```bash
-iex "& { $(irm https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/migrate.ps1) } --auth <HAB_AUTH_TOKEN>"
+iex "& { $(irm https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/migrate.ps1) }"
 ```
 
 ### Verification
@@ -281,7 +281,6 @@ sed -i 's/pkg_version="1.0.0"/pkg_version="2.0.0"/' plan.sh
 ### Set env to Build Against Stable Channel
 
 ```bash
-export HAB_REFRESH_CHANNEL=stable
 export HAB_INTERNAL_BLDR_CHANNEL=acceptance 
 export HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL=acceptance
 ```
@@ -289,7 +288,7 @@ export HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL=acceptance
 ### Build
 
 ```bash
-hab pkg build .
+hab pkg build . --refresh-channel stable
 ```
 
 ### Verification Steps
@@ -298,7 +297,7 @@ hab pkg build .
 - Dependencies pulled from stable channel using chef/* packages where applicable
 - Package version shows 2.0.0
 
-**Note:** Make a note of the atrifact (.hart) file that is generated at the end of the terminal logs.
+**Note:** Make a note of the artifact (.hart) file that is generated at the end of the terminal logs.
 
 ---
 
@@ -337,8 +336,6 @@ sed -i 's/pkg_version="2.0.0"/pkg_version="2.0.1"/' plan.sh
 
 ```bash
 # Use the default channel , which is base.
-unset HAB_REFRESH_CHANNEL
-
 # Build
 hab pkg build .
 ```
@@ -350,7 +347,7 @@ hab pkg build .
 - Package version shows 2.0.1
 - Build process shows base channel package downloads
 
-**Note:** Make a note of the atrifact (.hart) file that is generated at the end of the terminal logs.
+**Note:** Make a note of the artifact (.hart) file that is generated at the end of the terminal logs.
 
 ---
 
@@ -397,5 +394,5 @@ Error you get when a supervior is already running and you try to run a new one.
 To fix this, kill the exisiting supervisor process and then follow step 2.
 
 #### Permission denied
-If you get 404 or permissiond enied while building a package its usually because you have not set you auth token.
+If you get 404 or permission denied while building a package it's usually because you have not set your auth token.
 Set it and try again.
