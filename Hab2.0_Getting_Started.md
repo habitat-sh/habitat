@@ -220,7 +220,7 @@ sudo hab svc status
 ## Step 5: Setup HAB Auth Token with License Key
 
 ### Obtain License Key and Token
-If you don't have one already, generate a free/trial license key to go ahead over [here](https://www.chef.io/license-generation-free-trial). Refer this [page](https://docs.chef.io/habitat/builder_profile/#add-a-progress-chef-license-key) for proper instructions.
+If you don't have one already, generate a free/trial license key [here](https://www.chef.io/license-generation-free-trial). Refer to this [page](https://docs.chef.io/habitat/builder_profile/#add-a-progress-chef-license-key) for proper instructions.
 Once generated, you should have the below info ready with you:
 - Valid license key for Habitat 2.0
 - Auth token associated with the license
@@ -387,7 +387,7 @@ hab pkg list <PKG_IDENT>
 ```
 
 #### Secret key mismatch error
-Error you get when a supervisor is already running and you try to run a new one.
+This error occurs when a supervisor is already running and you attempt to start a new one.
 To fix this, kill the existing supervisor process and then follow step 2.
 
 #### Permission denied
