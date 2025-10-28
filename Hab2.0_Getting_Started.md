@@ -252,7 +252,7 @@ To upgrade a supervisor from 1.6.x to 2.0.x, run the following:
 - **linux**: 
 
 ```bash
-curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/migrate.sh | sudo bash -s -- --auth <HAB_AUTH_TOKEN>
+curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/migrate.sh | sudo -E bash -s --
 ```
 
 - **windows**: 
