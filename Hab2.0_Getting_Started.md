@@ -117,11 +117,11 @@ sudo hab svc status
 hab pkg install core/hab-sup
 hab pkg install core/windows-service
 
-# Create and start the Windows service
-hab pkg exec core/windows-service install
+# Start the Habitat Windows service
+Start-Service Habitat
 
 # Verify service is running
-Get-Service habitat
+hab svc status
 ```
 
 ### Verification Steps (All Platforms)
@@ -175,16 +175,6 @@ EOF
 
 ```bash
 sudo -E hab pkg build .
-```
-
-### Alternative: Use Existing Component
-
-For more realistic testing, use an existing component like `core/nginx`:
-
-```bash
-# Test with existing core package
-sudo hab pkg install core/nginx
-sudo hab svc load core/nginx
 ```
 
 ### Verification Steps
@@ -270,7 +260,7 @@ iex "& { $(irm https://raw.githubusercontent.com/habitat-sh/habitat/main/compone
 
 ## Step 7: Rebuild Plan Against Stable Channel (Habitat 2.0)
 
-### Build Against Stable Channel
+### Build against stable channel
 
 ```bash
 sudo -E hab pkg build . --refresh-channel stable
@@ -280,9 +270,6 @@ sudo -E hab pkg build . --refresh-channel stable
 
 - Build completes with Habitat 2.0 toolchain
 - Dependencies pulled from stable channel using chef/* packages where applicable
-- Package version shows 2.0.0
-
-**Note:** Make a note of the artifact (.hart) file that is generated at the end of the terminal logs.
 
 ---
 
@@ -292,10 +279,12 @@ sudo -E hab pkg build . --refresh-channel stable
 
 ```bash
 # Install the new package
-sudo -E hab pkg install <path to the artifact(.hart) created in previous step>
+source results/last_build.env
+sudo -E hab pkg install results/$pkg_artifact
 
-# Load the updated service
-sudo hab svc load chef-private/test-service/2.0.0 --force
+# Reload the updated service
+sudo hab svc unload chef-private/test-service
+sudo hab svc load chef-private/test-service
 
 # Verify service status
 sudo hab svc status
@@ -303,19 +292,12 @@ sudo hab svc status
 
 ### Verification Steps
 
-- Service loads new 2.0.0 version
+- Service loads new version
 - Service runs without errors
 
 ---
 
 ## Step 9: Rebuild Plan Against Base Channel
-
-### Update Plan for Base Channel
-
-```bash
-# Update version for base channel build
-sed -i 's/pkg_version="2.0.0"/pkg_version="2.0.1"/' plan.sh
-```
 
 ### Build Against Base Channel
 
@@ -329,10 +311,6 @@ sudo -E hab pkg build .
 
 - Build completes successfully using base channel
 - Dependencies are resolved from base channel
-- Package version shows 2.0.1
-- Build process shows base channel package downloads
-
-**Note:** Make a note of the artifact (.hart) file that is generated at the end of the terminal logs.
 
 ---
 
@@ -341,10 +319,12 @@ sudo -E hab pkg build .
 ### Install and Load Final Service
 ```bash
 # Install the new package
-sudo -E hab pkg install <path to the artifact(.hart) created in previous step>
+source results/last_build.env
+sudo -E hab pkg install results/$pkg_artifact
 
-# Load the updated service
-sudo hab svc load chef-private/test-service/2.0.1 --force
+# Reload the updated service
+sudo hab svc unload chef-private/test-service
+sudo hab svc load chef-private/test-service
 
 # Verify service status
 sudo hab svc status
@@ -352,7 +332,7 @@ sudo hab svc status
 
 ### Verification Steps
 
-- Service loads new 2.0.1 version
+- Service loads new version
 - Service runs without errors
 
 ---
