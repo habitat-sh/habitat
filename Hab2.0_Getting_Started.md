@@ -50,10 +50,7 @@ export HAB_ORIGIN=chef-private
 export HAB_AUTH_TOKEN='your token' 
 
 #One time command to generate the public key at ~/.hab/cache/keys
-hab origin key generate chef-private 
-
-#Copy the key to /hab/cache/keys for commands that run in root/sudo
-sudo cp ~/.hab/cache/keys/chef-private-* /hab/cache/keys/
+sudo hab origin key generate chef-private 
 
 ```
 ---
@@ -171,7 +168,7 @@ EOF
 ### Build Against Stable Channel
 
 ```bash
-hab pkg build .
+sudo -E hab pkg build .
 ```
 
 ### Alternative: Use Existing Component
@@ -288,7 +285,7 @@ export HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL=acceptance
 ### Build
 
 ```bash
-hab pkg build . --refresh-channel stable
+sudo -E hab pkg build . --refresh-channel stable
 ```
 
 ### Verification Steps
@@ -337,7 +334,7 @@ sed -i 's/pkg_version="2.0.0"/pkg_version="2.0.1"/' plan.sh
 ```bash
 # Use the default channel , which is base.
 # Build
-hab pkg build .
+sudo -E hab pkg build .
 ```
 
 ### Verification Steps
