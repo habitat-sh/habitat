@@ -22,6 +22,7 @@ glob = "*"
 hex = "*"
 lazy_static = "*"
 libc = "*"
+libsodium-rs = "*"
 log = "0.4"
 native-tls = { version = "*", features = ["vendored"] }
 os_info = "*"
@@ -34,7 +35,6 @@ rustls = "*"
 rustls-pemfile = "*"
 serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*", features = ["preserve_order"] }
-sodiumoxide = "*"
 tabwriter = "*"
 tar = "*"
 tempfile = "*"

@@ -1,7 +1,7 @@
 //! Habitat core encryption and cryptography.
 //!
 //! This module uses [libsodium](https://github.com/jedisct1/libsodium) and its Rust counterpart
-//! [sodiumoxide](https://github.com/dnaq/sodiumoxide) for cryptographic operations.
+//! [libsodium-rs](https://github.com/jedisct1/libsodium-rs) for cryptographic operations.
 //!
 //! # Concepts and terminology:
 //!
@@ -126,7 +126,7 @@
 //!
 //! Note that the BLAKE2b hash functions use a digest length of 32 bytes (256 bits!). More details
 //! about the hashing strategy can be found in the [libsodium hashing
-//! documentation](https://download.libsodium.org/doc/hashing/generic_hashing.html).
+//! documentation](https://doc.libsodium.org/hashing/generic_hashing).
 //!
 //! Signing uses a secret origin key, while verifying uses the public origin key. Thus, it it safe
 //! to distribute public origin keys.
@@ -223,7 +223,7 @@ pub const SECRET_BOX_KEY_SUFFIX: &str = "box.key";
 /// The suffix on the end of a secret symmetric key file
 pub const SECRET_SYM_KEY_SUFFIX: &str = "sym.key";
 /// The hashing function we're using during sign/verify
-/// See also: https://download.libsodium.org/doc/hashing/generic_hashing.html
+/// See also: https://doc.libsodium.org/hashing/generic_hashing
 pub const SIG_HASH_TYPE: &str = "BLAKE2b";
 /// This environment variable allows you to override the fs::CACHE_KEY_PATH
 /// at runtime. This is useful for testing.
@@ -246,7 +246,7 @@ pub mod keys;
 
 pub use hash::Blake2bHash;
 
-pub fn init() -> Result<()> { sodiumoxide::init().map_err(|_| Error::SodiumInitFailed) }
+pub fn init() -> Result<()> { libsodium_rs::ensure_init().map_err(|_| Error::SodiumInitFailed) }
 
 /// A comparison function that takes a consistent amount of time to compare
 /// values of a given number of bytes so as to be resistant to timing attacks.
@@ -256,7 +256,7 @@ pub fn secure_eq<T, U>(t: T, u: U) -> bool
     where T: AsRef<[u8]>,
           U: AsRef<[u8]>
 {
-    sodiumoxide::utils::memcmp(t.as_ref(), u.as_ref())
+    libsodium_rs::utils::memcmp(t.as_ref(), u.as_ref())
 }
 
 #[cfg(test)]

@@ -69,7 +69,7 @@ pub(crate) async fn sub_file_put<U>(service_group: &str,
                       format!("file as {} for {}",
                               user_key.named_revision(),
                               service_key.named_revision()))?;
-            msg.content = Some(user_key.encrypt_for_service(&buf, &service_key)
+            msg.content = Some(user_key.encrypt_for_service(&buf, &service_key)?
                                        .to_string()
                                        .into_bytes());
             msg.is_encrypted = Some(true);
