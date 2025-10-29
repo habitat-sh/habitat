@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.305 -->
-## [2.0.305](https://github.com/habitat-sh/habitat/tree/2.0.305) (2025-10-28)
+<!-- latest_release 2.0.306 -->
+## [2.0.306](https://github.com/habitat-sh/habitat/tree/2.0.306) (2025-10-29)
 
 #### Merged Pull Requests
-- fix RC_CHANNEL in linux builds [#10026](https://github.com/habitat-sh/habitat/pull/10026) ([mwrock](https://github.com/mwrock))
+- Hab2.0_Getting_Started [#10020](https://github.com/habitat-sh/habitat/pull/10020) ([dikshagupta1](https://github.com/dikshagupta1))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Hab2.0_Getting_Started [#10020](https://github.com/habitat-sh/habitat/pull/10020) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.306 -->
 - fix RC_CHANNEL in linux builds [#10026](https://github.com/habitat-sh/habitat/pull/10026) ([mwrock](https://github.com/mwrock)) <!-- 2.0.305 -->
 - bump powershell version to 7.5.4 [#10025](https://github.com/habitat-sh/habitat/pull/10025) ([mwrock](https://github.com/mwrock)) <!-- 2.0.304 -->
 - allow a build time env var to set tooling channel  [#10024](https://github.com/habitat-sh/habitat/pull/10024) ([mwrock](https://github.com/mwrock)) <!-- 2.0.303 -->
