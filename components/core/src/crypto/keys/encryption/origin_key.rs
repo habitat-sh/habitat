@@ -38,15 +38,15 @@ use crate::{crypto::keys::{AnonymousBox,
 /// CLI.
 pub fn generate_origin_encryption_key_pair(
     origin: &Origin)
-    -> (OriginPublicEncryptionKey, OriginSecretEncryptionKey) {
+    -> Result<(OriginPublicEncryptionKey, OriginSecretEncryptionKey)> {
     let named_revision = NamedRevision::new(origin.to_string());
-    let (pk, sk) = primitives::gen_keypair();
+    let (pk, sk) = primitives::gen_keypair()?;
 
     let public = OriginPublicEncryptionKey { named_revision: named_revision.clone(),
                                              key:            pk, };
     let secret = OriginSecretEncryptionKey { named_revision,
                                              key: sk };
-    (public, secret)
+    Ok((public, secret))
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -60,9 +60,9 @@ gen_key!(/// Public key used to anonymously encrypt secrets for
          file_permissions: crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS);
 
 impl OriginPublicEncryptionKey {
-    pub fn encrypt(&self, data: &[u8]) -> AnonymousBox {
-        let ciphertext = primitives::sealedbox::seal(data, self.key());
-        AnonymousBox::new(self.named_revision().clone(), ciphertext)
+    pub fn encrypt(&self, data: &[u8]) -> Result<AnonymousBox> {
+        let ciphertext = primitives::sealedbox::seal(data, self.key())?;
+        Ok(AnonymousBox::new(self.named_revision().clone(), ciphertext))
     }
 }
 
@@ -91,7 +91,7 @@ impl OriginSecretEncryptionKey {
     pub fn decrypt(&self, secret: &AnonymousBox) -> Result<Vec<u8>> {
         // Recover the public key material from the secret key, so we
         // don't have to pass unnecessary arguments to this function.
-        let pk = self.key().public_key();
+        let pk = self.key().public_key()?;
 
         primitives::sealedbox::open(secret.ciphertext(), &pk, self.key())
             .map_err(|_| Error::CryptoError("Could not decrypt origin encrypted secret".to_string()))
@@ -109,7 +109,7 @@ mod tests {
             fixture_key("keys/fhloston-paradise-20200813211603.pub");
 
         let secret_message = "Leeloo Dallas Multipass".to_string();
-        let anonymous = key.encrypt(secret_message.as_bytes());
+        let anonymous = key.encrypt(secret_message.as_bytes()).unwrap();
 
         // Not a whole lot we can specifically test here, since the
         // ciphertext will be different each time. If we've got the
@@ -141,7 +141,7 @@ mod tests {
             fixture_key("keys/fhloston-paradise-20200813211603.box.key");
 
         let secret_message = "Super-green".to_string();
-        let encrypted = pk.encrypt(secret_message.as_bytes());
+        let encrypted = pk.encrypt(secret_message.as_bytes()).unwrap();
 
         let decrypted_message = sk.decrypt(&encrypted).unwrap();
         let decrypted_message = std::str::from_utf8(&decrypted_message).unwrap();

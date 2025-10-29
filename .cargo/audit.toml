@@ -5,14 +5,9 @@
 # permanently specified in this file.
 
 [advisories]
-# JAH: The warnings below have been grandfathered dating to the start of our use
-# JAH: of cargo audit so that they can be dealt with over time. At the bottom of
-# JAH: this file is is a comment block stating what updating each crate would
-# JAH: require and what parts of habitat are downstream dependents
-#
+
 # advisory IDs to ignore e.g. ["RUSTSEC-2019-0001", ...]
 ignore = [
-    "RUSTSEC-2021-0137", # Unmaintained: sodiumoxide
     "RUSTSEC-2025-0134", # Unmaintained: rustls-pemfile, pending AWS SDK updates
 ]
 informational_warnings = [
@@ -31,26 +26,11 @@ stale = false                                      # Allow stale advisory DB (i.
 
 # Output Configuration
 [output]
-deny = [
-    "warnings",
-    "unmaintained",
-    "unsound",
-    "yanked",
-] # exit on error if these are found
-format = "terminal" # "terminal" (human readable report) or "json"
-quiet = false # Only print information on error
-show_tree = true # Show inverse dependency trees along with advisories (default: true)
+deny = ["warnings", "unmaintained", "unsound", "yanked"] # exit on error if these are found
+format = "terminal"                                      # "terminal" (human readable report) or "json"
+quiet = false                                            # Only print information on error
+show_tree = true                                         # Show inverse dependency trees along with advisories (default: true)
 
 [yanked]
 enabled = true      # Warn for yanked crates in Cargo.lock (default: true)
 update_index = true # Auto-update the crates.io index (default: true)
-
-#-------------------------------------------------------------------------------
-# "RUSTSEC-2021-0137",    # Unmaintained: sodiumoxide
-#-------------------------------------------------------------------------------
-#
-# Requires selection of replacement cryptography crate
-#
-# sodiumoxide 0.2.7
-# └── habitat_core 0.0.0
-#
