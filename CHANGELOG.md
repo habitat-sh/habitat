@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.308 -->
-## [2.0.308](https://github.com/habitat-sh/habitat/tree/2.0.308) (2025-10-29)
+<!-- latest_release 2.0.309 -->
+## [2.0.309](https://github.com/habitat-sh/habitat/tree/2.0.309) (2025-10-30)
 
 #### Merged Pull Requests
-- Bump rustls-webpki from 0.103.7 to 0.103.8 [#10028](https://github.com/habitat-sh/habitat/pull/10028) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump clap from 4.5.50 to 4.5.51 [#10030](https://github.com/habitat-sh/habitat/pull/10030) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump clap from 4.5.50 to 4.5.51 [#10030](https://github.com/habitat-sh/habitat/pull/10030) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.309 -->
 - Bump rustls-webpki from 0.103.7 to 0.103.8 [#10028](https://github.com/habitat-sh/habitat/pull/10028) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.308 -->
 - Bump ctrlc from 3.5.0 to 3.5.1 [#10027](https://github.com/habitat-sh/habitat/pull/10027) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.307 -->
 - Hab2.0_Getting_Started [#10020](https://github.com/habitat-sh/habitat/pull/10020) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.306 -->
