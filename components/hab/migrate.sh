@@ -145,7 +145,7 @@ compare_versions() {
 # Script to install the latest chef/hab binary, chef/hab-sup and chef/hab-launcher from the specified channel
 
 echo "Installing latest chef/hab from $CHANNEL channel..."
-curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | bash -s -- -o chef -c "$CHANNEL"
+hab pkg install chef/hab -bf --channel="$CHANNEL" --auth="$AUTH_TOKEN"
 
 # Check if either core/hab-sup or chef/hab-sup is already installed
 if hab pkg list core/hab-sup 2>/dev/null | grep -q "core/hab-sup" || hab pkg list chef/hab-sup 2>/dev/null | grep -q "chef/hab-sup"; then
@@ -173,10 +173,10 @@ if hab pkg list core/hab-sup 2>/dev/null | grep -q "core/hab-sup" || hab pkg lis
   fi
   
   echo "Installing latest chef/hab-sup from $CHANNEL channel..."
-  sudo hab pkg install --channel="$CHANNEL" --auth="$AUTH_TOKEN" chef/hab-sup
+  hab pkg install --channel="$CHANNEL" --auth="$AUTH_TOKEN" chef/hab-sup
 
   echo "Installing latest chef/hab-launcher from $CHANNEL channel..."
-  sudo hab pkg install --channel="$CHANNEL" --auth="$AUTH_TOKEN" chef/hab-launcher
+  hab pkg install --channel="$CHANNEL" --auth="$AUTH_TOKEN" chef/hab-launcher
   
   # Get the newly installed version using find instead of ls for better handling of special characters
   NEW_VERSION=$(find /hab/pkgs/chef/hab-sup/ -maxdepth 1 -mindepth 1 -type d | sed 's|.*/||' | sort -V | tail -1)
@@ -195,18 +195,18 @@ if hab pkg list core/hab-sup 2>/dev/null | grep -q "core/hab-sup" || hab pkg lis
       echo "Ensuring systemd unit file has the HAB_AUTH_TOKEN environment variable..."
       
       # Create override directory if it doesn't exist
-      sudo mkdir -p /etc/systemd/system/hab-sup.service.d/
+      mkdir -p /etc/systemd/system/hab-sup.service.d/
       
       # Create or update the environment override file
       echo "Creating systemd override for environment variables..."
-      echo -e "[Service]\nEnvironment=\"HAB_AUTH_TOKEN=$AUTH_TOKEN\"" | sudo tee /etc/systemd/system/hab-sup.service.d/env-override.conf > /dev/null
+      echo -e "[Service]\nEnvironment=\"HAB_AUTH_TOKEN=$AUTH_TOKEN\"" | tee /etc/systemd/system/hab-sup.service.d/env-override.conf > /dev/null
       
       # Reload systemd to pick up the changes
       echo "Reloading systemd daemon..."
-      sudo systemctl daemon-reload
+      systemctl daemon-reload
       
       echo "Restarting hab-sup service..."
-      sudo systemctl restart hab-sup
+      systemctl restart hab-sup
       echo "hab-sup service has been restarted."
       
       # Wait a moment for the service to fully start
@@ -221,7 +221,7 @@ if hab pkg list core/hab-sup 2>/dev/null | grep -q "core/hab-sup" || hab pkg lis
           
           # Verify environment variable is set in the service
           echo "Checking if HAB_AUTH_TOKEN is set in the running service..."
-          if sudo systemctl show hab-sup | grep -q "Environment=.*HAB_AUTH_TOKEN"; then
+          if systemctl show hab-sup | grep -q "Environment=.*HAB_AUTH_TOKEN"; then
             echo "✓ Confirmed: HAB_AUTH_TOKEN environment variable is properly set in the service"
           else
             echo "⚠ Warning: HAB_AUTH_TOKEN does not appear to be set in the running service"
