@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.310 -->
-## [2.0.310](https://github.com/habitat-sh/habitat/tree/2.0.310) (2025-10-30)
+<!-- latest_release 2.0.311 -->
+## [2.0.311](https://github.com/habitat-sh/habitat/tree/2.0.311) (2025-11-03)
 
 #### Merged Pull Requests
-- Bump clap_complete from 4.5.59 to 4.5.60 [#10029](https://github.com/habitat-sh/habitat/pull/10029) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.43 to 1.2.44 [#10031](https://github.com/habitat-sh/habitat/pull/10031) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.43 to 1.2.44 [#10031](https://github.com/habitat-sh/habitat/pull/10031) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.311 -->
 - Bump clap_complete from 4.5.59 to 4.5.60 [#10029](https://github.com/habitat-sh/habitat/pull/10029) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.310 -->
 - Bump clap from 4.5.50 to 4.5.51 [#10030](https://github.com/habitat-sh/habitat/pull/10030) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.309 -->
 - Bump rustls-webpki from 0.103.7 to 0.103.8 [#10028](https://github.com/habitat-sh/habitat/pull/10028) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.308 -->
