@@ -1,6 +1,6 @@
 # Release Notes Draft
 
-This document is the draft for our Habitat 2.0 Release Announcement. Items at the second level of heading are thought of as independent sections that may or may not be appropriate for publishing (but the title should make it obvious). It will be added to our repo via a PR so that others can review and enhance as appropriate.  After Habitat 2.0 is released and the release notes are published it should probably be removed as it's utility has ceased.  We might keep it around as a live scratch pad but it's usually pretty easy just to look back and see what we should add.
+This document is the draft for our Habitat 2.0 Release Announcement. Items at the second level of heading are thought of as independent sections that may or may not be appropriate for publishing (but the title should make it obvious). It will be added to our repo via a PR so that others can review and enhance as appropriate.  After Habitat 2.0 is released and the release notes are published it should probably be removed as its utility has ceased.  We might keep it around as a live scratch pad but it's usually pretty easy just to look back and see what we should add.
 
 Note that items prefixed with REMOVE: are "inlined source material" meant to be removed before the release notes are published.
 
@@ -11,7 +11,7 @@ TODO before publishing:
 
 ## Draft Habitat 2.0 Release Notes
 
-The Progress Chef Habitat team is proud to announce the release of Habitat 2.0.  This milestone release brings a several new features and updates.  Comprehensive documentation may be found at <https://docs.chef.io/habitat/>.
+The Progress Chef Habitat team is proud to announce the release of Habitat 2.0.  This milestone release brings several new features and updates.  Comprehensive documentation may be found at <https://docs.chef.io/habitat/>.
 
 ### New Features
 
@@ -27,7 +27,7 @@ The Progress Chef Habitat team is proud to announce the release of Habitat 2.0. 
 - Habitat package moved from the `core` origin to the `chef` origin.
   - This move better delineates "the system" from "software used within the system".  A specific example of this change is that the packages containing the habitat binary is now the `chef/habitat` as opposed to `core/habitat` package.  The other binaries and libraries that comprise habitat have made the same move.
 - Default channel has changed from `core` to `base`.
-  - In order to better facitilate dropping support for software that has reached it's end-of-life we've introduced new channels named `base-2025` and `base` that represent a grouping of supported packages. The `base-2025` channel is the first grouping.  The `base` channel will always point to the most recent package group so at the current time `base` and `base-2025` are synonyms. This isn't necessarily a breaking change but to leverage updated packages going forward you will need to use the new channels.  The hab cli now uses `base` as it's default value.
+  - In order to better facilitate dropping support for software that has reached its end-of-life we've introduced new channels named `base-2025` and `base` that represent a grouping of supported packages. The `base-2025` channel is the first grouping.  The `base` channel will always point to the most recent package group so at the current time `base` and `base-2025` are synonyms. This isn't necessarily a breaking change but to leverage updated packages going forward you will need to use the new channels.  The hab cli now uses `base` as its default value.
   - REMOVE: <https://www.chef.io/blog/long-term-support-progress-chef-providing-stability>
     - I thought we had something like this blog post discussing the different channels and the strategy but I can't find it.  If we don't have that it feels like it would be a good blog post at some point.
 
@@ -58,12 +58,12 @@ These are security vulnerability reported in established security databases.
    - CVE-2022-24713
    - GHSA-m5pq-gvj9-9vr8
    - RUSTSEC-2022-0013
-1) "Some AES functions may panic when overflow checking is enabled.",
+1) "Some AES functions may panic when overflow checking is enabled."
    - CVE-2025-4432
    - GHSA-4p46-pwfr-66x6
    - GHSA-c86p-w88r-qvqr
    - RUSTSEC-2025-0009
-1) "Data race in `Iter` and `IterMut`",
+1) "Data race in `Iter` and `IterMut`"
    - GHSA-9hpw-r23r-xgm5
    - RUSTSEC-2022-0006
 1) Logging user input may result in poisoning logs with ANSI escape sequences
