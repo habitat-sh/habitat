@@ -666,18 +666,21 @@ dl_file() {
 
 # Extract origin from manifest.json file
 get_origin_from_manifest() {
-  local origin="core"  # Default fallback
+    local origin="core"  # Default fallback
   
-  # Look for "origin": "value" pattern, handling potential whitespace and quotes
-  origin=$(grep -o '"origin"[[:space:]]*:[[:space:]]*"[^"]*"' "$manifest_file" 2>/dev/null | \
-            sed 's/.*"origin"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' 2>/dev/null) || origin="core"
-  
-  # Validate that we got a non-empty origin
-  if [ -z "$origin" ] || [ "$origin" = "null" ]; then
-    origin="core"
-  fi
+    # Use basic text processing to extract origin from package identifiers
+    # Look for package identifiers and extract the origin (first part before /)
+    # Package identifiers are in format: origin/name/version/release
+    origin=$(grep -o '"[^"]*\/[^"]*\/[^"]*\/[^"]*"' "$manifest_file" 2>/dev/null | \
+             head -1 | \
+             sed 's/^"\([^/]*\)\/.*$/\1/' 2>/dev/null) || origin="core"
     
-  echo "$origin"
+    # Validate that we got a non-empty origin
+    if [ -z "$origin" ] || [ "$origin" = "null" ]; then
+      origin="core"
+    fi
+    
+    echo "$origin"
 }
 
 main "$@" || exit 99
