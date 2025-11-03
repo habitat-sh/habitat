@@ -457,7 +457,7 @@ download_archive() {
   manifest_file="manifest.json"
   dl_file "${url}/manifest.json" "${workdir}/manifest.json" || {
     warn "Failed to download manifest.json, will fallback to default origin"
-    touch "${workdir}/hab-${_version}.${ext}.manifest.json"  # Create empty file for fallback
+    touch "${workdir}/manifest.json"  # Create empty file for fallback
   }
 
   archive="hab-${_target}.${ext}"
