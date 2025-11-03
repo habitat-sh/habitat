@@ -5,7 +5,7 @@ set -eou pipefail
 package_path=${1?package_path argument required}
 
 # Install hab from a temporarily uploaded aarch64 package
-sudo ./components/hab/install.sh -t "$BUILD_PKG_TARGET" -c acceptance -o chef
+sudo ./components/hab/install.sh -t "$BUILD_PKG_TARGET" -c acceptance
 
 # Since we are only verifying we don't have build failures, make everything
 # temp!

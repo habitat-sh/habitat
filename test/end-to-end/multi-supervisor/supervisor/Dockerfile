@@ -15,7 +15,7 @@ RUN --mount=type=secret,id=hab_auth_token \
     export HAB_AUTH_TOKEN="$(cat /run/secrets/hab_auth_token)" \
     && apk add bash wget \
     && wget https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh \
-    && bash install.sh -c acceptance -o chef \
+    && bash install.sh -c acceptance \
     && mv /hab/pkgs/chef/hab/*/*/bin/hab /bin/ \
     && rm -Rf /hab \
     && unset HAB_AUTH_TOKEN

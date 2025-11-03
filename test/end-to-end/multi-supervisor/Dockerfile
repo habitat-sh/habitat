@@ -12,7 +12,7 @@ RUN curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/ha
 RUN chmod a+x ./install.sh
 RUN --mount=type=secret,id=hab_auth_token \
     export HAB_AUTH_TOKEN="$(cat /run/secrets/hab_auth_token)" \
-    && ./install.sh -c acceptance -o chef \
+    && ./install.sh -c acceptance \
     && unset HAB_AUTH_TOKEN
 
 # Always accept the license when we run this image.
