@@ -122,7 +122,11 @@ function Compare-HabitatVersion {
 # Script to install the latest chef/hab binary and chef/hab-sup from the specified channel
 
 Write-Host "Installing latest chef/hab from $Channel channel..."
-Invoke-Expression "& { $(Invoke-RestMethod https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1) } -Channel $Channel -Auth $Auth"
+hab pkg install -bf --channel="$Channel" --auth="$Auth" chef/hab
+$habPath = Join-Path $env:ProgramData Habitat
+if(Test-Path $habPath) { Remove-Item $habPath -Recurse -Force }
+New-Item $habPath -ItemType Directory | Out-Null
+Copy-Item "$(hab pkg path chef/hab)\bin\*" $habPath
 
 # Check if either core/hab-sup or chef/hab-sup is already installed
 $habSupInstalled = $false
