@@ -123,10 +123,11 @@ function Compare-HabitatVersion {
 
 Write-Host "Installing latest chef/hab from $Channel channel..."
 hab pkg install -bf --channel="$Channel" --auth="$Auth" chef/hab
+$chefhab = hab pkg path chef/hab
 $habPath = Join-Path $env:ProgramData Habitat
 if(Test-Path $habPath) { Remove-Item $habPath -Recurse -Force }
 New-Item $habPath -ItemType Directory | Out-Null
-Copy-Item "$(hab pkg path chef/hab)\bin\*" $habPath
+Copy-Item "$chefhab\bin\*" $habPath
 
 # Check if either core/hab-sup or chef/hab-sup is already installed
 $habSupInstalled = $false
