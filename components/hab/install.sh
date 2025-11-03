@@ -346,7 +346,7 @@ print_help() {
 		     SSL_CERT_FILE   allows you to verify against a custom cert such as one
 		                     generated from a corporate firewall
 
-		HEREDOC
+	HEREDOC
 }
 
 create_workdir() {
