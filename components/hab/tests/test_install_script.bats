@@ -36,7 +36,7 @@ installed_target() {
 
 @test "Install latest for x86_86-linux" {
   linux || skip "Did not detect a Linux system"
-  run components/hab/install.sh -c acceptance
+  run components/hab/install.sh
 
   [ "$status" -eq 0 ]
   [ "$(installed_target)" == "x86_64-linux" ]
