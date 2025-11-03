@@ -122,7 +122,7 @@ function Compare-HabitatVersion {
 # Script to install the latest chef/hab binary and chef/hab-sup from the specified channel
 
 Write-Host "Installing latest chef/hab from $Channel channel..."
-hab pkg install -bf --channel="$Channel" --auth="$Auth" chef/hab
+hab pkg install --binlink --force --channel="$Channel" --auth="$Auth" chef/hab
 $chefhab = hab pkg path chef/hab
 $habPath = Join-Path $env:ProgramData Habitat
 if(Test-Path $habPath) { Remove-Item $habPath -Recurse -Force }

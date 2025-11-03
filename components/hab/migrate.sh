@@ -145,7 +145,7 @@ compare_versions() {
 # Script to install the latest chef/hab binary, chef/hab-sup and chef/hab-launcher from the specified channel
 
 echo "Installing latest chef/hab from $CHANNEL channel..."
-hab pkg install chef/hab -bf --channel="$CHANNEL" --auth="$AUTH_TOKEN"
+hab pkg install chef/hab --binlink --force --channel="$CHANNEL" --auth="$AUTH_TOKEN"
 
 # Check if either core/hab-sup or chef/hab-sup is already installed
 if hab pkg list core/hab-sup 2>/dev/null | grep -q "core/hab-sup" || hab pkg list chef/hab-sup 2>/dev/null | grep -q "chef/hab-sup"; then
