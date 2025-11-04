@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.312 -->
-## [2.0.312](https://github.com/habitat-sh/habitat/tree/2.0.312) (2025-11-03)
+<!-- latest_release 2.0.313 -->
+## [2.0.313](https://github.com/habitat-sh/habitat/tree/2.0.313) (2025-11-04)
 
 #### Merged Pull Requests
-- Bump aws-config from 1.8.8 to 1.8.10 [#10034](https://github.com/habitat-sh/habitat/pull/10034) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- use manifest to determine correct origin in installer [#10037](https://github.com/habitat-sh/habitat/pull/10037) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- use manifest to determine correct origin in installer [#10037](https://github.com/habitat-sh/habitat/pull/10037) ([mwrock](https://github.com/mwrock)) <!-- 2.0.313 -->
 - Bump aws-config from 1.8.8 to 1.8.10 [#10034](https://github.com/habitat-sh/habitat/pull/10034) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.312 -->
 - Bump aws-sdk-ecr from 1.96.0 to 1.97.0 [#10032](https://github.com/habitat-sh/habitat/pull/10032) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.312 -->
 - Bump tokio-util from 0.7.16 to 0.7.17 [#10033](https://github.com/habitat-sh/habitat/pull/10033) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.312 -->
