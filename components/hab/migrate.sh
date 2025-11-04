@@ -224,7 +224,7 @@ if hab pkg list core/hab-sup 2>/dev/null | grep -q "core/hab-sup" || hab pkg lis
           if systemctl show hab-sup | grep "Environment=.*HAB_AUTH_TOKEN" 1>/dev/null; then
             echo "✓ Confirmed: HAB_AUTH_TOKEN environment variable is properly set in the service"
           else
-            echo "⚠ Warning: HAB_AUTH_TOKEN does not appear to be set in the running service. Error $?"
+            echo "⚠ Warning: HAB_AUTH_TOKEN does not appear to be set in the running service."
             echo "Please check systemd configuration for the hab-sup service"
           fi
         else
