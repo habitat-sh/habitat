@@ -10,8 +10,6 @@ if [ -n "${DEBUG:-}" ]; then set -x; fi
 readonly pcio_root="https://packages.chef.io/files"
 export HAB_LICENSE="accept-no-persist"
 
-origin="core"
-
 # This is the main function that sets up the Habitat environment on macOS.
 # It creates, mounts, and configures a designated volume (Habitat Store) with the necessary settings,
 # including file system options and encryption (if needed).
@@ -277,7 +275,7 @@ main() {
   version=""
 
   # Parse command line flags and options.
-  while getopts "c:hv:t:u:b:o:" opt; do
+  while getopts "c:hv:t:u:b:" opt; do
     case "${opt}" in
     c)
       channel="${OPTARG}"
@@ -298,9 +296,6 @@ main() {
     b)
       bldrChannel="${OPTARG}" # for temporary use
       ;;
-    o)
-      origin="${OPTARG}"
-      ;;
     \?)
       echo "" >&2
       print_help >&2
@@ -316,6 +311,8 @@ main() {
   download_archive "$version" "$channel" "$target"
   verify_archive
   extract_archive
+  origin="$(get_origin_from_manifest)"
+  info "Discovered origin from manifest: $origin"
   install_hab "$origin"
   print_hab_version
   info "Installation of Habitat 'hab' program complete."
@@ -443,18 +440,25 @@ download_archive() {
   local url
 
   if [ "$_version" == "latest" ]; then
-    url="${pcio_root}/${_channel}/habitat/latest/hab-${_target}.${ext}"
+    url="${pcio_root}/${_channel}/habitat/latest"
   else
     local -r _release="$(echo "${_version}" | cut -d'/' -f2)"
     if [ "${_release:+release}" == "release" ]; then
       _version="$(echo "${_version}" | cut -d'/' -f1)"
       info "packages.chef.io does not support 'version/release' format. Using $_version for the version"
     fi
-    url="${pcio_root}/habitat/${_version}/hab-${_target}.${ext}"
+    url="${pcio_root}/habitat/${_version}"
   fi
 
-  dl_file "${url}" "${workdir}/hab-${_version}.${ext}"
-  dl_file "${url}.sha256sum" "${workdir}/hab-${_version}.${ext}.sha256sum"
+  dl_file "${url}/hab-${_target}.${ext}" "${workdir}/hab-${_version}.${ext}"
+  dl_file "${url}/hab-${_target}.${ext}.sha256sum" "${workdir}/hab-${_version}.${ext}.sha256sum"
+  
+  # Download manifest.json to extract origin information
+  manifest_file="manifest.json"
+  dl_file "${url}/manifest.json" "${workdir}/manifest.json" || {
+    warn "Failed to download manifest.json, will fallback to default origin"
+    touch "${workdir}/manifest.json"  # Create empty file for fallback
+  }
 
   archive="hab-${_target}.${ext}"
   sha_file="hab-${_target}.${ext}.sha256sum"
@@ -468,7 +472,7 @@ download_archive() {
     key_file="${workdir}/chef.asc"
     local _key_url="https://packages.chef.io/chef.asc"
 
-    dl_file "${url}.sha256sum.asc" "${sha_sig_file}"
+    dl_file "${url}/hab-${_target}.${ext}.sha256sum.asc" "${sha_sig_file}"
     dl_file "${_key_url}" "${key_file}"
   fi
 }
@@ -658,6 +662,25 @@ dl_file() {
 
   # If we reach this point, wget and curl have failed and we're out of options
   exit_with "Required: SSL-enabled 'curl' or 'wget' on PATH with" 6
+}
+
+# Extract origin from manifest.json file
+get_origin_from_manifest() {
+  local origin="core"  # Default fallback
+
+  # Use basic text processing to extract origin from package identifiers
+  # Look for package identifiers and extract the origin (first part before /)
+  # Package identifiers are in format: origin/name/version/release
+  origin=$(grep -o '"[^"]*\/[^"]*\/[^"]*\/[^"]*"' "$manifest_file" 2>/dev/null | \
+            head -1 | \
+            sed 's/^"\([^/]*\)\/.*$/\1/' 2>/dev/null) || origin="core"
+  
+  # Validate that we got a non-empty origin
+  if [ -z "$origin" ] || [ "$origin" = "null" ]; then
+    origin="core"
+  fi
+  
+  echo "$origin"
 }
 
 main "$@" || exit 99
