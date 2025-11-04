@@ -244,13 +244,13 @@ To upgrade a supervisor from 1.6.x to 2.0.x, run the following:
 - **linux**: 
 
 ```bash
-curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/migrate.sh | sudo -E bash -s --
+curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/migrate.sh | sudo -E bash -s -- --channel hab-2-rc1
 ```
 
 - **windows**: 
 
 ```powershell
-iex "& { $(irm https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/migrate.ps1) }"
+iex "& { $(irm https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/migrate.ps1) } -Channel hab-2-rc1"
 ```
 
 ### Verification
