@@ -59,7 +59,7 @@ function Invoke-Install {
     Write-BuildLine "$HAB_CACHE_SRC_PATH/$pkg_dirname"
     Copy-Item -Path "$env:CARGO_TARGET_DIR/release/hab.exe" -Destination "$pkg_prefix/bin/hab.exe"
     Copy-Item -Path "$(Get-HabPackagePath "visual-cpp-redist-2022")/bin/*.dll" -Destination "$pkg_prefix/bin"
-    Copy-Item -Path "$SRC_PATH/../../NOTICES.txt" -Destination "$pkg_prefix"/bin/NOTICES.txt
+    Copy-Item -Path "$SRC_PATH/../../NOTICES.txt" -Destination "$pkg_prefix/bin/NOTICES.txt"
 }
 
 function Invoke-Clean {

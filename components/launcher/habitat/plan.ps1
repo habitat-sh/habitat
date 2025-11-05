@@ -56,7 +56,7 @@ function Invoke-Build {
 function Invoke-Install {
     Copy-Item -Path "$env:CARGO_TARGET_DIR/release/hab-launch.exe" -Destination "$pkg_prefix/bin/hab-launch.exe"
     Copy-Item -Path "$(Get-HabPackagePath "visual-cpp-redist-2022")/bin/*" -Destination "$pkg_prefix/bin"
-    Copy-Item -Path "$SRC_PATH/../../NOTICES.txt" -Destination "$pkg_prefix"/NOTICES.txt
+    Copy-Item -Path "$SRC_PATH/../../NOTICES.txt" -Destination "$pkg_prefix/NOTICES.txt"
 }
 
 function Invoke-Clean {
