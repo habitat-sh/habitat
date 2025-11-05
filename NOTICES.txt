@@ -1,0 +1,3476 @@
+Chef Habitat Release Review 2.0
+
+Copyright (c) 1987-2025 Progress Software Corporation and/or its subsidiaries
+or affiliates. All rights reserved.
+
+Portions of the Products include certain open source and commercial third-party
+components listed below ("Third-Party Components"). The authors of the
+Third-Party Components require Progress Software Corporation ("PSC") to include
+the following notices and additional licensing terms as a condition of PSC's
+use of such Third-Party Components. You acknowledge that the authors of the
+Third-Party Components have no obligation to provide support to you for the
+Third-Party Components or the Product. You hereby undertake to comply with all
+licenses related to the applicable Third-Party Components. Notwithstanding
+anything to the contrary, to the extent that any of the terms and conditions of
+the Progress Agreement conflict, vary, or are in addition to the terms and
+conditions of the aforementioned third-party licenses for these technologies,
+such terms and conditions are offered by PSC alone and not by any other party.
+
+--------------------------------------------------------------------------------
+SUMMARY OF COMPONENTS:
+
+Vendor Name | Product Name | Version
+
+Apache License 2.0:
+  AWS Rust SDK Team                | aws-credential-types             | 1.2.8
+  AWS Rust SDK Team                | aws-smithy-observability         | 0.1.4
+  AWS SDK Rust Bot                 | aws-runtime                      | 1.5.13
+  AWS SDK Rust Bot                 | aws-smithy-http-client           | 1.1.4
+  AWS SDK Rust Bot                 | aws-smithy-runtime               | 1.9.4
+  AWS SDK Rust Bot                 | aws-smithy-runtime-api           | 1.9.2
+  AWS SDK Rust Bot; awslabs/rust…  | aws-sdk-ecr                      | 1.97.0
+  > -sdk-owners                    |                                  |
+  AWS SDK Rust Bot; awslabs/rust…  | aws-sdk-sso                      | 1.88.0
+  > -sdk-owners                    |                                  |
+  AWS SDK Rust Bot; awslabs/rust…  | aws-sdk-ssooidc                  | 1.90.0
+  > -sdk-owners                    |                                  |
+  AWS SDK Rust Bot; awslabs/rust…  | aws-sdk-sts                      | 1.90.0
+  > -sdk-owners                    |                                  |
+  AWS SDK Rust Bot; awslabs/rust…  | aws-sigv4                        | 1.3.6
+  > -sdk-owners                    |                                  |
+  AWS SDK Rust Bot; awslabs/rust…  | aws-types                        | 1.3.10
+  > -sdk-owners                    |                                  |
+  AWS SDK Rust Bot; awslabs/rust…  | aws-smithy-http                  | 0.62.5
+  > -sdk-owners; awslabs/smithy…   |                                  |
+  > -rs-server                     |                                  |
+  AWS SDK Rust Bot; awslabs/rust…  | aws-smithy-json                  | 0.61.7
+  > -sdk-owners; awslabs/smithy…   |                                  |
+  > -rs-server                     |                                  |
+  AWS SDK Rust Bot; awslabs/rust…  | aws-smithy-types                 | 1.3.4
+  > -sdk-owners; awslabs/smithy…   |                                  |
+  > -rs-server                     |                                  |
+  AWS SDK Rust Bot; awslabs/rust…  | aws-smithy-xml                   | 0.60.12
+  > -sdk-owners; awslabs/smithy…   |                                  |
+  > -rs-server                     |                                  |
+  Actyx AG                         | sync_wrapper                     | 1.0.2
+  Aleksey Kladov                   | matklad/once_cell                | 1.21.3
+  Alex Crichton                    | alexcrichton/cmake-rs            | 0.1.54
+  Alex Crichton                    | alexcrichton/openssl-probe       | 0.1.6
+  Alex Crichton                    | alexcrichton/proc-macro2         | 1.0.103
+  Alex Crichton                    | cc-rs                            | 1.2.44
+  Alex Crichton                    | filetime                         | 0.2.26
+  Alex Crichton                    | lzma-sys                         | 0.1.20
+  Alex Crichton                    | openssl-src                      | 300.5.2+3.5.2
+  Alex Crichton                    | pkg-config                       | 0.3.32
+  Alex Crichton                    | rust-lang/cc-rs                  | 0.1.4
+  Alex Crichton                    | servo/rust-fnv                   | 1.0.7
+  Alex Crichton                    | xz2                              | 0.1.7
+  Alex Crichton; Carl Lerche;…     | hyperium/http                    | 0.2.12
+  > Sean McArthur                  |                                  |
+  Alex Crichton; Carl Lerche;…     | hyperium/http                    | 1.3.1
+  > Sean McArthur                  |                                  |
+  Alex Crichton; Josh Triplett     | flate2                           | 1.1.5
+  Alex Crichton; Taylor Cramer;…   | rust-lang-nursery/futures-rs     | 0.3.31
+  > Taiki Endo                     |                                  |
+  Alex Crichton; Thomas de Zeeuw   | alexcrichton/socket2-rs          | 0.5.10
+  Alex Crichton; Thomas de Zeeuw   | alexcrichton/socket2-rs          | 0.6.0
+  Alex Gaynor; Steven Fackler      | rust-openssl                     | 0.10.73
+  Alex Huszagh                     | minimal-lexical                  | 0.2.1
+  Alex Touchet; Fenhl; Garrett…    | shlex                            | 1.3.0
+  > Berg; comex; Daniel Parks;…    |                                  |
+  > Adrian Taylor                  |                                  |
+  Alexis Beingessner               | bit-vec                          | 0.6.3
+  Alexis Beingessner               | contain-rs/bit-set               | 0.5.3
+  Amanieu d'Antras                 | lock_api                         | 0.4.14
+  Amanieu d'Antras                 | parking_lot_core                 | 0.9.12
+  Amanieu d'Antras                 | rust-lang/hashbrown              | 0.15.5
+  Andre Bogus; Paho Lurie-Gregg    | paholg/typenum                   | 1.18.0
+  Andrew Chin                      | terminal_size                    | 0.4.3
+  Andrew Gallant                   | ucd-trie                         | 0.1.7
+  Andrew Straw; René Kijewski;…    | iana-time-zone                   | 0.1.63
+  > Ryan Lopopolo                  |                                  |
+  Anthony Ramine                   | nox/serde_urlencoded             | 0.7.1
+  Antti Keränen                    | Detegr/rust-ctrlc                | 3.5.1
+  Ashley Mannix; Steven Allen;…    | Stebalien/tempfile               | 3.23.0
+  > Jason White; The Rust Project… |                                  |
+  > Developers                     |                                  |
+  Billy Rieger                     | bimap                            | 0.6.3
+  Brian Smith                      | briansmith/ring                  | 0.17.14
+  Cesar Eduardo Barros             | cesarb/constant_time_eq          | 0.3.1
+  Christian Duerr; Joe Wilm        | utf8parse                        | 0.2.2
+  Christopher Armstrong; Dylan…    | uuid-rs/uuid                     | 1.4.1
+  > DPC; Hunar Roop Kahlon;…       |                                  |
+  > Ashley Mannix                  |                                  |
+  Colin Kiegel; Pascal Hertleif;…  | colin-kiegel/rust-derive-builder | 0.20.2
+  > Jan-Erik Rediger; Ted Driggs   |                                  |
+  Colin Walters; Alex Crichton     | tar (Rust)                       | 0.4.44
+  Contributors to futures-rs;…     | atomic-waker                     | 1.1.2
+  > Stjepan Glavina                |                                  |
+  Dan Burkert                      | danburkert/fs2-rs                | 0.4.3
+  Dan Gohman                       | linux-raw-sys                    | 0.9.4
+  Dan Gohman; Chris Wong           | errno                            | 0.3.14
+  Dan Gohman; Jakub Konka          | rustix                           | 1.0.8
+  David McNeil                     | rants                            | 0.6.0
+  David Tolnay                     | anyhow                           | 1.0.100
+  David Tolnay                     | async-trait                      | 0.1.89
+  David Tolnay                     | dtolnay/itoa                     | 1.0.15
+  David Tolnay                     | dtolnay/quote                    | 1.0.41
+  David Tolnay                     | dtolnay/ryu                      | 1.0.20
+  David Tolnay                     | dtolnay/serde-yaml               | 0.9.34+deprecated
+  David Tolnay                     | erased-serde                     | 0.3.31
+  David Tolnay                     | prettyplease                     | 0.2.37
+  David Tolnay                     | semver                           | 1.0.27
+  David Tolnay                     | syn                              | 2.0.108
+  David Tolnay                     | thiserror                        | 2.0.17
+  David Tolnay                     | thiserror-impl                   | 2.0.17
+  David Tolnay; Erick Tryzelaar    | serde_json                       | 1.0.145
+  Dirkjan Ochtman; rustls…         | rustls-pki-types                 | 1.12.0
+  > /publishers                    |                                  |
+  Dmitry                           | RustCrypto/hashes                | 0.10.9
+  Dragoș Tiselice                  | pest-parser                      | 2.8.1
+  Ed Page                          | is_terminal_polyfill             | 1.70.1
+  Ed Page; clap-rs/Admins; rust…   | rust-clap_builder                | 4.5.51
+  > -cli/Maintainers               |                                  |
+  Ed Page; clap-rs/Admins; rust…   | rust-clap_lex                    | 0.7.5
+  > -cli/Maintainers               |                                  |
+  Ed Page; rust-cli/Maintainers    | anstream                         | 0.6.20
+  Ed Page; rust-cli/Maintainers    | anstyle                          | 1.0.11
+  Ed Page; rust-cli/Maintainers    | anstyle-parse                    | 0.2.7
+  Ed Page; rust-cli/Maintainers    | anstyle-query                    | 1.1.4
+  Ed Page; rust-cli/Maintainers    | colorchoice                      | 1.0.4
+  Ed Page; toml-rs/Maintainers     | serde_spanned                    | 1.0.3
+  Ed Page; toml-rs/Maintainers     | toml_datetime                    | 0.7.3
+  Ed Page; toml-rs/Maintainers     | toml_parser                      | 1.0.4
+  Ed Page; toml-rs/Maintainers     | toml_writer                      | 1.0.4
+  Erick Tryzelaar; David Tolnay    | serde_derive                     | 1.0.177
+  Erick Tryzelaar; David Tolnay    | serde_derive                     | 1.0.228
+  Erick Tryzelaar; Frank Denis;…   | rust-zmq                         | 0.11.0
+  > Andreas Rottmann; Jasper…      |                                  |
+  > Bekkers                        |                                  |
+  Erick Tryzelaar; Frank Denis;…   | rust-zmq                         | 0.9.2
+  > Andreas Rottmann; Jasper…      |                                  |
+  > Bekkers                        |                                  |
+  Frank Denis                      | jedisct1/rust-siphash            | 1.0.1
+  Henri Sivonen                    | utf8_iter                        | 1.0.4
+  Huon Wilson; Steven Fackler;…    | env_logger                       | 0.11.8
+  > Sebastián Magrí; rust-lang…    |                                  |
+  > -nursery/log-owners; rust…     |                                  |
+  > -lang-nursery/libs; env…       |                                  |
+  > -logger-rs/Publishers          |                                  |
+  Huon Wilson; Steven Fackler;…    | rust-cli/env_logger              | 0.1.3
+  > Sebastián Magrí; rust-lang…    |                                  |
+  > -nursery/log-owners; rust…     |                                  |
+  > -lang-nursery/libs; env…       |                                  |
+  > -logger-rs/Publishers          |                                  |
+  Håvar Nøvik                      | multimap                         | 0.10.1
+  Ivan Nejgebauer                  | env_proxy                        | 0.4.1
+  Jack Wrenn                       | zerocopy                         | 0.8.26
+  Jacob Pratt                      | deranged                         | 0.4.0
+  Jacob Pratt                      | num-conv                         | 0.1.0
+  Jacob Pratt                      | powerfmt                         | 0.2.0
+  Jacob Pratt; Time contributors   | time                             | 0.3.41
+  Jacob Pratt; Time contributors   | time-core                        | 0.1.4
+  Jacob Zhong                      | num-modular                      | 0.6.1
+  Jacob Zhong                      | num-order                        | 1.2.0
+  Jane Lusby                       | displaydoc                       | 0.2.5
+  Jeehoon Kang; Amanieu d'Antras;… | crossbeam-channel                | 0.5.15
+  > Taiki Endo; crossbeam-rs…      |                                  |
+  > /admins                        |                                  |
+  Jeehoon Kang; Amanieu d'Antras;… | crossbeam-utils                  | 0.8.21
+  > Taiki Endo; crossbeam-rs…      |                                  |
+  > /admins                        |                                  |
+  Jeremy Banks                     | RustCrypto/traits                | 0.1.6
+  Jeremy Banks                     | RustCrypto/traits                | 1.6.4
+  Joe Birr-Pixton; Dirkjan…        | hyper-rustls                     | 0.24.2
+  > Ochtman; rustls/publishers     |                                  |
+  Joe Birr-Pixton; Dirkjan…        | hyper-rustls                     | 0.27.7
+  > Ochtman; rustls/publishers     |                                  |
+  Joe Birr-Pixton; Dirkjan…        | rustls                           | 0.21.12
+  > Ochtman; rustls/publishers     |                                  |
+  Joe Birr-Pixton; Dirkjan…        | rustls                           | 0.23.34
+  > Ochtman; rustls/publishers     |                                  |
+  Joe Birr-Pixton; Dirkjan…        | rustls-native-certs              | 0.6.3
+  > Ochtman; rustls/publishers     |                                  |
+  Joe Birr-Pixton; Dirkjan…        | rustls-native-certs              | 0.8.1
+  > Ochtman; rustls/publishers     |                                  |
+  Joe Birr-Pixton; Dirkjan…        | rustls-pemfile                   | 1.0.4
+  > Ochtman; rustls/publishers     |                                  |
+  Joe Birr-Pixton; Dirkjan…        | rustls-pemfile                   | 2.2.0
+  > Ochtman; rustls/publishers     |                                  |
+  John DiSanti; AWS Rust SDK Team  | aws-smithy-async                 | 1.2.6
+  John DiSanti; AWS Rust SDK Team  | aws-smithy-query                 | 0.60.8
+  Jonathan Reem; Alexander…        | destructure_traitobject          | 0.2.0
+  > Regueiro; Philip Peterson;…    |                                  |
+  > Steven Fackler                 |                                  |
+  Josef Brandl                     | pin-utils                        | 0.1.0
+  Joseph Birr-Pixton               | ctz/sct.rs                       | 0.7.1
+  Josh Driver                      | dns-lookup                       | 3.0.1
+  Josh Stone                       | autocfg                          | 1.5.0
+  Josh Stone                       | equivalent                       | 1.0.2
+  Josh Triplett                    | metadeps                         | 1.1.2
+  Kang Seonghoon; chronotope…      | chronotope/chrono                | 0.4.42
+  > /Release Manager               |                                  |
+  Kevin K.; clap-rs/Admins         | rust-clap_derive                 | 4.5.49
+  Kevin K.; rust-cli/Maintainers;… | clap-rs/clap                     | 4.5.51
+  > clap-rs/Admins                 |                                  |
+  Kevin K.; rust-cli/Maintainers;… | clap-rs/clap                     | 4.5.60
+  > clap-rs/Admins                 |                                  |
+  KokaKiwi                         | hex                              | 0.4.3
+  Kornel                           | dunce                            | 1.0.5
+  Kris Price                       | ipnet                            | 2.11.0
+  Linus Färnstrand; Amanieu d…     | parking_lot                      | 0.12.5
+  > 'Antras                        |                                  |
+  Luca Bruno                       | caps                             | 0.5.6
+  Marshall Pierce; Alice Maz       | rust-base64                      | 0.21.7
+  Marshall Pierce; Alice Maz       | rust-base64                      | 0.22.1
+  Marvin Löbel                     | lazy_static                      | 1.5.0
+  Marvin Löbel; Dirkjan Ochtman    | Kimundi/rustc-version-rs         | 0.4.1
+  Masaki Hara                      | yasna                            | 0.5.2
+  Masaki Hara; Michal 'vorner'…    | signal-hook-registry             | 1.4.6
+  > Vaner                          |                                  |
+  Michal 'vorner' Vaner            | bytes-utils                      | 0.1.4
+  Michal 'vorner' Vaner            | vorner/arc-swap                  | 1.7.1
+  Nick Fitzgerald; Philip Craig    | addr2line                        | 0.24.2
+  Nick Fitzgerald; Philip Craig    | gimli-rs                         | 0.31.1
+  Nick Fitzgerald; Philip Craig    | object-rs                        | 0.36.7
+  Nikolay Kim; Rob Ede             | actix-codec                      | 0.5.2
+  Nikolay Kim; Rob Ede             | actix-http                       | 3.11.0
+  Nikolay Kim; Rob Ede             | actix-rt                         | 2.11.0
+  Nikolay Kim; Rob Ede             | actix-service                    | 2.0.3
+  Nikolay Kim; Rob Ede             | actix-tls                        | 3.4.0
+  Nikolay Kim; Rob Ede             | actix-utils                      | 3.0.1
+  Nikolay Kim; Rob Ede             | actix-web                        | 4.11.0
+  Nikolay Kim; Rob Ede             | bytestring                       | 1.4.0
+  Nikolay Kim; Rob Ede             | local-channel                    | 0.1.5
+  Nikolay Kim; Rob Ede             | local-waker                      | 0.1.4
+  Nikolay Kim; Rob Ede; Ali MJ Al… | actix-router                     | 0.5.3
+  > -Nasrawy                       |                                  |
+  Nikolay Kim; Rob Ede; Ali MJ Al… | actix-server                     | 2.6.0
+  > -Nasrawy                       |                                  |
+  Nikolay Kim; Rob Ede; Ibraheem…  | actix-macros                     | 0.2.4
+  > Ahmed                          |                                  |
+  Paul Colomiets                   | cpu-time                         | 1.0.0
+  Paul Colomiets; Dirkjan Ochtman  | tailhook/humantime               | 2.2.0
+  Pyfisch                          | httpdate                         | 1.0.3
+  Rich Geldreich; oyvindln; Frommi | miniz_oxide                      | 0.8.9
+  Rob Ede                          | impl-more                        | 0.1.9
+  Robert Grosse                    | stable_deref_trait               | 1.2.0
+  Runji Wang; Ashish Myles         | marcianx/downcast-rs             | 1.2.1
+  Russell Cohen; AWS Rust SDK Team | aws-config                       | 1.8.10
+  RustCrypto Developers            | block-buffer                     | 0.10.4
+  RustCrypto Developers            | cpufeatures                      | 0.2.17
+  RustCrypto Developers            | digest                           | 0.10.7
+  RustCrypto Developers            | ed25519                          | 1.5.3
+  Ruud van Asseldonk               | thread-id                        | 5.0.0
+  Sam Rijs                         | srijs/rust-crc32fast             | 1.5.0
+  Sean McArthur                    | hyper-tls                        | 0.6.0
+  Sean McArthur                    | num_cpus                         | 1.17.0
+  Sean McArthur                    | seanmonstar/httparse             | 1.10.1
+  Sean McArthur                    | seanmonstar/reqwest              | 0.12.24
+  Sergio Benitez                   | SergioBenitez/version_check      | 0.9.5
+  Sergio Benitez                   | state                            | 0.6.0
+  Simon Ochsenreither              | dirs                             | 6.0.0
+  Simon Ochsenreither              | dirs-sys                         | 0.5.0
+  Stepan Koltsov; Andrew…          | linked-hash-map                  | 0.5.6
+  > Paseltiner                     |                                  |
+  Steven Allen                     | rust-xattr                       | 1.5.1
+  Steven Fackler                   | foreign-types                    | 0.1.1
+  Steven Fackler                   | foreign-types                    | 0.3.2
+  Steven Fackler                   | log-mdc                          | 0.1.0
+  Steven Fackler                   | native-tls                       | 0.2.14
+  Steven Fackler                   | openssl-macros                   | 0.1.1
+  Steven Fackler; Evan Simmons     | log4rs                           | 1.4.0
+  Stjepan Glavina                  | fastrand                         | 2.3.0
+  Taiki Endo                       | pin-project                      | 1.1.10
+  Taiki Endo                       | pin-project-internal             | 1.1.10
+  Taiki Endo                       | pin-project-lite                 | 0.2.16
+  Taylor Cramer; Taiki Endo        | futures-task                     | 0.3.31
+  Ted Driggs                       | TedDriggs/ident_case             | 1.0.1
+  The CryptoCorrosion Contributors | ppv-lite86                       | 0.2.21
+  The Habitat Maintainers          | habitat-sh                       | 1.6.1176
+  The Rand Project Developers      | getrandom                        | 0.2.16
+  The Rand Project Developers      | getrandom                        | 0.3.3
+  The Rand Project Developers;…    | rand_core                        | 0.6.4
+  > The Rust Project Developers    |                                  |
+  The Rand Project Developers;…    | rand_core                        | 0.9.3
+  > The Rust Project Developers    |                                  |
+  The Rand Project Developers;…    | rust-random/rand                 | 0.8.5
+  > The Rust Project Developers    |                                  |
+  The Rand Project Developers;…    | rust-random/rand                 | 0.9.2
+  > The Rust Project Developers    |                                  |
+  The Rand Project Developers;…    | rand_chacha                      | 0.9.0
+  > The Rust Project Developers;…  |                                  |
+  > The CryptoCorrosion Contribut… |                                  |
+  > ors                            |                                  |
+  The Rust Project Developers      | bitflags                         | 1.3.2
+  The Rust Project Developers      | bitflags                         | 2.10.0
+  The Rust Project Developers      | glob                             | 0.3.3
+  The Rust Project Developers      | log                              | 0.4.28
+  The Rust Project Developers      | num-integer                      | 0.1.46
+  The Rust Project Developers      | num-traits                       | 0.2.19
+  The Rust Project Developers      | rust-lang/backtrace-rs           | 0.3.75
+  The Rust Project Developers      | rust-lang/libc                   | 0.2.177
+  The Rust Project Developers;…    | regex-syntax                     | 0.8.6
+  > Andrew Gallant                 |                                  |
+  The Rust Project Developers;…    | rust-regex                       | 0.1.7
+  > Andrew Gallant                 |                                  |
+  The Rust Project Developers;…    | rust-regex                       | 1.12.2
+  > Andrew Gallant                 |                                  |
+  The RustCrypto Project…          | zeroize                          | 1.8.1
+  > Developers                     |                                  |
+  The Servo Project Developers     | servo/ipc-channel                | 0.20.1
+  The Servo Project Developers     | servo/rust-smallvec              | 1.15.1
+  The rust-url developers          | form_urlencoded                  | 1.2.2
+  The rust-url developers          | idna                             | 1.1.0
+  The rust-url developers          | idna_adapter                     | 1.2.1
+  Tokio Contributors; Dan Burkert… | danburkert/prost                 | 0.14.1
+  > ; Lucio Franco; Casper Meijn   |                                  |
+  Tokio Contributors; Dan Burkert… | prost-build                      | 0.14.1
+  > ; Lucio Franco; Casper Meijn   |                                  |
+  Tokio Contributors; Dan Burkert… | prost-derive                     | 0.14.1
+  > ; Lucio Franco; Casper Meijn   |                                  |
+  Tokio Contributors; Dan Burkert… | prost-types                      | 0.14.1
+  > ; Lucio Franco; Casper Meijn   |                                  |
+  Tpt; Pyfisch                     | language-tags                    | 0.3.2
+  Victor Koenders                  | unty                             | 0.0.4
+  YOSHIOKA Takuma                  | iri-string                       | 0.7.8
+  Yamakaky; Colin Kiegel; Brian…   | rust-lang-nursery/error-chain    | 0.10.0
+  > Anderson; Paul Colomiets       |                                  |
+  Yevhenii Reizner                 | xmlparser                        | 0.13.6
+  bluss                            | bluss/arrayvec                   | 0.7.6
+  bluss                            | bluss/either                     | 1.15.0
+  bluss                            | bluss/scopeguard                 | 1.2.0
+  bluss                            | fixedbitset                      | 0.5.7
+  bluss                            | rust-itertools/itertools         | 0.14.0
+  bluss; Josh Stone                | bluss/indexmap                   | 2.11.4
+  dnaq                             | sodiumoxide/sodiumoxide          | 0.2.7
+  est; rustls/rcgen-publish        | rcgen                            | 0.14.5
+  kwantam; Manish Goregaokar       | unicode-rs/unicode-segmentation  | 1.12.0
+  kwantam; Manish Goregaokar       | unicode-rs/unicode-width         | 0.2.1
+  kwantam; Manish Goregaokar;…     | unicode-rs/unicode-xid           | 0.2.6
+  > erick.tryzelaar                |                                  |
+  mitchmindtree; bluss             | petgraph                         | 0.7.1
+  mitchmindtree; bluss             | petgraph                         | 0.8.3
+  overvenus@gmail.com; siddontang… | pingcap/rust-prometheus          | 0.14.0
+  > @gmail.com; vistaswx@gmail.com |                                  |
+  percent-encoding                 | percent-encoding                 | 2.3.2
+  quininer; Dirkjan Ochtman        | tokio-rustls                     | 0.24.1
+  quininer; Dirkjan Ochtman        | tokio-rustls                     | 0.26.4
+  rushmorem                        | addr                             | 0.15.6
+  rushmorem                        | psl                              | 2.1.136
+  rushmorem                        | psl-types                        | 2.0.11
+  rust-bus/maintainers; Kornel;…   | vcpkg-rs                         | 0.2.15
+  > Peter Williams; mcgoo; Mike…   |                                  |
+  > Waychison                      |                                  |
+  rust-lang-owner; Vadim…          | alexcrichton/jobserver-rs        | 0.1.34
+  > Petrochenkov                   |                                  |
+  rust-lang-owner; rust-lang/libs  | alexcrichton/cfg-if              | 1.0.3
+  rust-lang-owner; rust-lang/libs… | alexcrichton/rustc-demangle      | 0.1.26
+  > ; rust-lang/compiler           |                                  |
+  rustcrypto/MACs; Artyom Pavlov   | RustCrypto/MACs                  | 0.12.1
+  rustcrypto/hashes; Tony Arcieri… | mitsuhiko/rust-sha1              | 0.10.6
+  > ; Artyom Pavlov                |                                  |
+  servo/cargo publish; rust…       | rust-threadpool/rust-threadpool  | 1.8.1
+  > -threadpool/Publishers; Huon…  |                                  |
+  > Wilson; Corey Farwell          |                                  |
+  servo/cargo publish; servo/rust… | rust-url                         | 2.5.7
+  > -url; Simon Sapin; Ana Hobden… |                                  |
+  > ; Sean McArthur                |                                  |
+  srrrse; Jonas Platte             | heck                             | 0.5.0
+  toml-rs/Maintainers; Eric Huss;… | toml-rs                          | 0.2.1
+  > Ed Page                        |                                  |
+  toml-rs/Maintainers; Eric Huss;… | toml-rs                          | 0.9.8
+  > Ed Page                        |                                  |
+
+BSD 2-Clause "Simplified" License:
+  David Roundy | arrayref | 0.3.9
+
+BSD 3-Clause "New" or "Revised" License:
+  Amit; Julia DeMille              | uritemplate-next | 0.2.0
+  Henri Sivonen                    | encoding_rs      | 0.8.35
+  Isis Lovecruft; Henry de Valence | subtle           | 2.6.1
+
+BSD Zero Clause License:
+  Jonas Schievink; oyvindln | adler2       | 2.0.1
+  museun                    | mock_instant | 0.6.0
+
+Creative Commons Zero v1.0 Universal:
+  Jorge Israel Peña; Félix…        | notify | 2.0.0
+  > Saparelli; Michael Maurizi;…   |        |
+  > Joe Wilm; Pierre Baillet       |        |
+  Jorge Israel Peña; Félix…        | notify | 8.2.0
+  > Saparelli; Michael Maurizi;…   |        |
+  > Joe Wilm; Pierre Baillet       |        |
+
+ISC License:
+  AWS-LC                           | aws-lc-sys           | 0.31.0
+  AWS-LibCrypto                    | aws-lc-rs            | 1.14.0
+  Brian Smith                      | briansmith/untrusted | 0.9.0
+  Hanno Braun                      | inotify-sys          | 0.1.5
+  Hanno Braun; Frank Denis; Félix… | inotify              | 0.11.0
+  > Saparelli; Cristian Kubis      |                      |
+  Joe Birr-Pixton; Dirkjan…        | rustls-webpki        | 0.101.7
+  > Ochtman; rustls/publishers     |                      |
+  Joe Birr-Pixton; Dirkjan…        | rustls-webpki        | 0.103.8
+  > Ochtman; rustls/publishers     |                      |
+
+MIT License:
+  Aaron Trent                      | generic-array             | 0.14.7
+  Alex Gaynor; Steven Fackler      | rust-openssl              | 0.9.109
+  Andrew Gallant                   | BurntSushi/rust-memchr    | 2.7.5
+  Andrew Gallant                   | BurntSushi/same-file      | 1.0.6
+  Andrew Gallant                   | jiff                      | 0.2.15
+  Andrew Gallant                   | tabwriter                 | 1.4.1
+  Anton Whalley; Jonathan Reem     | typemap-ors               | 1.0.0
+  Bertram Truong; Kornel           | urlencoding               | 2.1.3
+  Carl Lerche                      | slab                      | 0.4.11
+  Carl Lerche; Sean McArthur       | hyperium/h2               | 0.3.27
+  Carl Lerche; Sean McArthur       | hyperium/h2               | 0.4.12
+  Carl Lerche; Sean McArthur       | tokio-rs/bytes            | 1.10.1
+  David Tolnay                     | unsafe-libyaml            | 0.2.11
+  Denis Kurilenko                  | webdesus/fs_extra         | 1.3.0
+  Ed Page                          | winnow                    | 0.7.13
+  Francesco Mazzoli; Zoey Riordan… | servo/bincode             | 1.3.3
+  > ; David Tolnay; Ty Overby      |                           |
+  Francesco Mazzoli; Zoey Riordan… | servo/bincode             | 2.0.1
+  > ; David Tolnay; Ty Overby      |                           |
+  Geoffroy Couprie                 | rust-nom                  | 7.1.3
+  Jack O'Connor                    | oconnor663/blake2_simd    | 1.0.3
+  Jan Schulte; Stanislav Tkach     | os_info                   | 3.12.0
+  Jelte Fennema                    | JelteF/derive_more        | 2.0.1
+  Jimmy Cuadra; Sam Rijs           | retry                     | 1.0.0
+  Jonathan Creekmore               | pem                       | 3.0.6
+  Jonathan Reem; anton whalley     | unsafe-any-ors            | 1.0.0
+  Konstantin Stepanov              | a8m/pb                    | 1.1.1
+  Lucio Franco; Sean McArthur;…    | hyperium/http-body        | 0.1.3
+  > Carl Lerche                    |                           |
+  Lucio Franco; Sean McArthur;…    | hyperium/http-body        | 0.4.6
+  > Carl Lerche                    |                           |
+  Lucio Franco; Sean McArthur;…    | hyperium/http-body        | 1.0.1
+  > Carl Lerche                    |                           |
+  Marvin Countryman                | simd-adler32              | 0.3.7
+  Matt Brubeck; Jonathan Reem      | ordered-float             | 2.10.1
+  Max Bachmann; Danny Guo          | dguo/strsim-rs            | 0.11.1
+  Meng Wang                        | rust-mio                  | 1.1.0
+  Nathaniel Ringo; Julia DeMille   | json-pointer              | 0.3.4
+  Nika Layzell                     | synstructure              | 0.13.2
+  Ning Sun                         | sunng87/handlebars-rust   | 6.3.2
+  Noam Ta Shma; Marvin Löbel       | safer_owning_ref          | 0.5.0
+  Nugine                           | base64-simd               | 0.8.0
+  Nugine                           | outref                    | 0.5.2
+  Nugine                           | vsimd                     | 0.8.0
+  Robin Stocker; Raph Levien       | fancy-regex               | 0.11.0
+  Sean McArthur                    | hyper-util                | 0.1.16
+  Sean McArthur                    | hyperium/mime             | 0.3.17
+  Sean McArthur                    | seanmonstar/try-lock      | 0.2.5
+  Sean McArthur                    | seanmonstar/want          | 0.3.1
+  Sean McArthur; hyperium/Core     | Hyper HTTP library        | 0.14.32
+  Sean McArthur; hyperium/Core     | Hyper HTTP library        | 1.7.0
+  Stanislav Panferov               | jsonway                   | 2.0.0
+  Stanislav Panferov               | rustless/valico           | 4.0.0
+  Steven Fackler                   | rust-phf                  | 0.11.3
+  Ted Driggs                       | TedDriggs/darling         | 0.20.11
+  The Rand Project Developers;…    | rand_chacha               | 0.3.1
+  > The Rust Project Developers;…  |                           |
+  > The CryptoCorrosion Contribut… |                           |
+  > ors                            |                           |
+  The Rust Project Developers;…    | BurntSushi/regex-automata | 0.4.12
+  > Andrew Gallant                 |                           |
+  The nix-rust Project Developers  | nix-rust/nix              | 0.30.1
+  Tokio Contributors               | tokio                     | 1.48.0
+  Tokio Contributors               | tokio-macros              | 2.6.0
+  Tokio Contributors               | tokio-native-tls          | 0.3.1
+  Tokio Contributors               | tokio-stream              | 0.1.17
+  Tokio Contributors               | tokio-util                | 0.7.17
+  Tokio Contributors               | tracing-core              | 0.1.34
+  Tokio Contributors; Eliza…       | tracing                   | 0.1.41
+  > Weisman                        |                           |
+  Tokio Contributors; Eliza…       | tracing-attributes        | 0.1.30
+  > Weisman; David Barsky          |                           |
+  Tower Maintainers                | tower-http                | 0.6.6
+  Tower Maintainers                | tower-rs/tower            | 0.3.3
+  Tower Maintainers                | tower-rs/tower            | 0.5.2
+  Zicklag                          | cfg_aliases               | 0.2.1
+  Zoey Riordan; Trangar            | virtue                    | 0.0.18
+  Zoey Riordan; Victor Koenders    | bincode_derive            | 2.0.1
+  arcnmx                           | serde-value               | 0.7.0
+  softprops                        | broadcast                 | 0.1.0
+  softprops                        | tee                       | 0.1.0
+
+Mozilla Public License 2.0:
+  Joe Birr-Pixton; Dirkjan Ochtman; rustls/publishers | webpki-roots | 0.25.4
+  Sam Giles                                           | mktemp       | 0.5.1
+  Simon Ochsenreither                                 | option-ext   | 0.2.0
+
+The Unlicense:
+  Andrew Gallant | BurntSushi/byteorder | 1.5.0
+  Andrew Gallant | BurntSushi/termcolor | 1.4.1
+  Andrew Gallant | BurntSushi/walkdir   | 2.5.0
+  Andrew Gallant | rust-aho-corasick    | 1.1.3
+
+Unicode License Agreement - Data Files and Software (2016):
+  The ICU4X Project Developers | unicode-org/icu4x | 0.1.2
+
+Unicode License v3:
+  David Tolnay                     | unicode-ident     | 1.0.18
+  Manish Goregaokar                | yoke-derive       | 0.8.0
+  Manish Goregaokar                | zerovec-derive    | 0.11.1
+  Manish Goregaokar; Zibi…         | unicode-org/icu4x | 0.1.6
+  > Braniecki; Robert Bastian;…    |                   |
+  > unicode-org/icu4x-release      |                   |
+  Manish Goregaokar; Zibi…         | unicode-org/icu4x | 0.2.2
+  > Braniecki; Robert Bastian;…    |                   |
+  > unicode-org/icu4x-release      |                   |
+  Manish Goregaokar; unicode-org…  | yoke              | 0.8.0
+  > /icu4x-release                 |                   |
+  The ICU4X Project Developers     | icu_normalizer    | 2.0.0
+  The ICU4X Project Developers     | icu_provider      | 2.0.0
+  The ICU4X Project Developers     | litemap           | 0.8.0
+  The ICU4X Project Developers     | tinystr           | 0.8.1
+  The ICU4X Project Developers     | unicode-org/icu4x | 2.0.0
+  The ICU4X Project Developers     | unicode-org/icu4x | 2.0.1
+  The ICU4X Project Developers     | writeable         | 0.6.1
+  The ICU4X Project Developers     | zerovec           | 0.11.4
+
+zlib License:
+  Orson Peters | foldhash | 0.1.5
+
+--------------------------------------------------------------------------------
+
+The Product contains mktemp 0.5.1, option-ext 0.2.0, and webpki-roots 0.25.4.
+These third-party technologies are licensed to PSC and User is subject to the
+terms of a third-party license, a copy of which is included herein. PSC will,
+at Licensee's request, provide a copy of the source code for this third-party
+technology, including modifications, if any, made by PSC. PSC may charge
+reasonable shipping and handling charges for such distribution. Licensee may
+also obtain the source code for these third-party technologies through
+http://iue.progress.com/3dpartysoftwares/Pages/default.aspx by following the
+instructions set forth therein.
+
+1. Special Notices Regarding Open-Source Third-Party Components incorporated
+into the Product. Such technology is subject to the following terms and
+conditions:
+
+(1) Apache License 2.0:
+
+Chef Habitat Release Review 2.0 incorporates Detegr/rust-ctrlc 3.5.1,
+Kimundi/rustc-version-rs 0.4.1, RustCrypto/MACs 0.12.1, RustCrypto/hashes
+0.10.9, RustCrypto/traits 0.1.6, RustCrypto/traits 1.6.4,
+SergioBenitez/version_check 0.9.5, Stebalien/tempfile 3.23.0,
+TedDriggs/ident_case 1.0.1, actix-codec 0.5.2, actix-http 3.11.0, actix-macros
+0.2.4, actix-router 0.5.3, actix-rt 2.11.0, actix-server 2.6.0, actix-service
+2.0.3, actix-tls 3.4.0, actix-utils 3.0.1, actix-web 4.11.0, addr 0.15.6,
+addr2line 0.24.2, alexcrichton/cfg-if 1.0.3, alexcrichton/cmake-rs 0.1.54,
+alexcrichton/jobserver-rs 0.1.34, alexcrichton/openssl-probe 0.1.6,
+alexcrichton/proc-macro2 1.0.103, alexcrichton/rustc-demangle 0.1.26,
+alexcrichton/socket2-rs 0.5.10, alexcrichton/socket2-rs 0.6.0, anstream 0.6.20,
+anstyle 1.0.11, anstyle-parse 0.2.7, anstyle-query 1.1.4, anyhow 1.0.100,
+async-trait 0.1.89, atomic-waker 1.1.2, autocfg 1.5.0, aws-config 1.8.10,
+aws-credential-types 1.2.8, aws-runtime 1.5.13, aws-sdk-ecr 1.97.0, aws-sdk-sso
+1.88.0, aws-sdk-ssooidc 1.90.0, aws-sdk-sts 1.90.0, aws-sigv4 1.3.6,
+aws-smithy-async 1.2.6, aws-smithy-http 0.62.5, aws-smithy-http-client 1.1.4,
+aws-smithy-json 0.61.7, aws-smithy-observability 0.1.4, aws-smithy-query
+0.60.8, aws-smithy-runtime 1.9.4, aws-smithy-runtime-api 1.9.2,
+aws-smithy-types 1.3.4, aws-smithy-xml 0.60.12, aws-types 1.3.10, bimap 0.6.3,
+bit-vec 0.6.3, bitflags 1.3.2, bitflags 2.10.0, block-buffer 0.10.4,
+bluss/arrayvec 0.7.6, bluss/either 1.15.0, bluss/indexmap 2.11.4,
+bluss/scopeguard 1.2.0, briansmith/ring 0.17.14, bytes-utils 0.1.4, bytestring
+1.4.0, caps 0.5.6, cc-rs 1.2.44, cesarb/constant_time_eq 0.3.1,
+chronotope/chrono 0.4.42, clap-rs/clap 4.5.51, clap-rs/clap 4.5.60,
+colin-kiegel/rust-derive-builder 0.20.2, colorchoice 1.0.4, contain-rs/bit-set
+0.5.3, cpu-time 1.0.0, cpufeatures 0.2.17, crossbeam-channel 0.5.15,
+crossbeam-utils 0.8.21, ctz/sct.rs 0.7.1, danburkert/fs2-rs 0.4.3,
+danburkert/prost 0.14.1, deranged 0.4.0, destructure_traitobject 0.2.0, digest
+0.10.7, dirs 6.0.0, dirs-sys 0.5.0, displaydoc 0.2.5, dns-lookup 3.0.1,
+dtolnay/itoa 1.0.15, dtolnay/quote 1.0.41, dtolnay/ryu 1.0.20,
+dtolnay/serde-yaml 0.9.34+deprecated, dunce 1.0.5, ed25519 1.5.3, env_logger
+0.11.8, env_proxy 0.4.1, equivalent 1.0.2, erased-serde 0.3.31, errno 0.3.14,
+fastrand 2.3.0, filetime 0.2.26, fixedbitset 0.5.7, flate2 1.1.5, foreign-types
+0.1.1, foreign-types 0.3.2, form_urlencoded 1.2.2, futures-task 0.3.31,
+getrandom 0.2.16, getrandom 0.3.3, gimli-rs 0.31.1, glob 0.3.3, habitat-sh
+1.6.1176, heck 0.5.0, hex 0.4.3, httpdate 1.0.3, hyper-rustls 0.24.2,
+hyper-rustls 0.27.7, hyper-tls 0.6.0, hyperium/http 0.2.12, hyperium/http
+1.3.1, iana-time-zone 0.1.63, idna 1.1.0, idna_adapter 1.2.1, impl-more 0.1.9,
+ipnet 2.11.0, iri-string 0.7.8, is_terminal_polyfill 1.70.1,
+jedisct1/rust-siphash 1.0.1, language-tags 0.3.2, lazy_static 1.5.0,
+linked-hash-map 0.5.6, linux-raw-sys 0.9.4, local-channel 0.1.5, local-waker
+0.1.4, lock_api 0.4.14, log 0.4.28, log-mdc 0.1.0, log4rs 1.4.0, lzma-sys
+0.1.20, marcianx/downcast-rs 1.2.1, matklad/once_cell 1.21.3, metadeps 1.1.2,
+minimal-lexical 0.2.1, miniz_oxide 0.8.9, mitsuhiko/rust-sha1 0.10.6, multimap
+0.10.1, native-tls 0.2.14, nox/serde_urlencoded 0.7.1, num-conv 0.1.0,
+num-integer 0.1.46, num-modular 0.6.1, num-order 1.2.0, num-traits 0.2.19,
+num_cpus 1.17.0, object-rs 0.36.7, openssl-macros 0.1.1, openssl-src
+300.5.2+3.5.2, paholg/typenum 1.18.0, parking_lot 0.12.5, parking_lot_core
+0.9.12, percent-encoding 2.3.2, pest-parser 2.8.1, petgraph 0.7.1, petgraph
+0.8.3, pin-project 1.1.10, pin-project-internal 1.1.10, pin-project-lite
+0.2.16, pin-utils 0.1.0, pingcap/rust-prometheus 0.14.0, pkg-config 0.3.32,
+powerfmt 0.2.0, ppv-lite86 0.2.21, prettyplease 0.2.37, prost-build 0.14.1,
+prost-derive 0.14.1, prost-types 0.14.1, psl 2.1.136, psl-types 2.0.11,
+rand_chacha 0.9.0, rand_core 0.6.4, rand_core 0.9.3, rants 0.6.0, rcgen 0.14.5,
+regex-syntax 0.8.6, rust-base64 0.21.7, rust-base64 0.22.1, rust-clap_builder
+4.5.51, rust-clap_derive 4.5.49, rust-clap_lex 0.7.5, rust-cli/env_logger
+0.1.3, rust-itertools/itertools 0.14.0, rust-lang-nursery/error-chain 0.10.0,
+rust-lang-nursery/futures-rs 0.3.31, rust-lang/backtrace-rs 0.3.75,
+rust-lang/cc-rs 0.1.4, rust-lang/hashbrown 0.15.5, rust-lang/libc 0.2.177,
+rust-openssl 0.10.73, rust-random/rand 0.8.5, rust-random/rand 0.9.2,
+rust-regex 0.1.7, rust-regex 1.12.2, rust-threadpool/rust-threadpool 1.8.1,
+rust-url 2.5.7, rust-xattr 1.5.1, rust-zmq 0.11.0, rust-zmq 0.9.2, rustix
+1.0.8, rustls 0.21.12, rustls 0.23.34, rustls-native-certs 0.6.3,
+rustls-native-certs 0.8.1, rustls-pemfile 1.0.4, rustls-pemfile 2.2.0,
+rustls-pki-types 1.12.0, seanmonstar/httparse 1.10.1, seanmonstar/reqwest
+0.12.24, semver 1.0.27, serde_derive 1.0.177, serde_derive 1.0.228, serde_json
+1.0.145, serde_spanned 1.0.3, servo/ipc-channel 0.20.1, servo/rust-fnv 1.0.7,
+servo/rust-smallvec 1.15.1, shlex 1.3.0, signal-hook-registry 1.4.6,
+sodiumoxide/sodiumoxide 0.2.7, srijs/rust-crc32fast 1.5.0, stable_deref_trait
+1.2.0, state 0.6.0, syn 2.0.108, sync_wrapper 1.0.2, tailhook/humantime 2.2.0,
+tar (Rust) 0.4.44, terminal_size 0.4.3, thiserror 2.0.17, thiserror-impl
+2.0.17, thread-id 5.0.0, time 0.3.41, time-core 0.1.4, tokio-rustls 0.24.1,
+tokio-rustls 0.26.4, toml-rs 0.2.1, toml-rs 0.9.8, toml_datetime 0.7.3,
+toml_parser 1.0.4, toml_writer 1.0.4, ucd-trie 0.1.7,
+unicode-rs/unicode-segmentation 1.12.0, unicode-rs/unicode-width 0.2.1,
+unicode-rs/unicode-xid 0.2.6, unty 0.0.4, utf8_iter 1.0.4, utf8parse 0.2.2,
+uuid-rs/uuid 1.4.1, vcpkg-rs 0.2.15, vorner/arc-swap 1.7.1, xmlparser 0.13.6,
+xz2 0.1.7, yasna 0.5.2, zerocopy 0.8.26, and zeroize 1.8.1.
+
+  Apache License Version 2.0, January 2004 http://www.apache.org/licenses/
+
+  TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+  1. Definitions.
+
+  "License" shall mean the terms and conditions for use, reproduction, and
+  distribution as defined by Sections 1 through 9 of this document.
+
+  "Licensor" shall mean the copyright owner or entity authorized by the
+  copyright owner that is granting the License.
+
+  "Legal Entity" shall mean the union of the acting entity and all other
+  entities that control, are controlled by, or are under common control with
+  that entity. For the purposes of this definition, "control" means (i) the
+  power, direct or indirect, to cause the direction or management of such
+  entity, whether by contract or otherwise, or (ii) ownership of fifty percent
+  (50%) or more of the outstanding shares, or (iii) beneficial ownership of
+  such entity.
+
+  "You" (or "Your") shall mean an individual or Legal Entity exercising
+  permissions granted by this License.
+
+  "Source" form shall mean the preferred form for making modifications,
+  including but not limited to software source code, documentation source, and
+  configuration files.
+
+  "Object" form shall mean any form resulting from mechanical transformation or
+  translation of a Source form, including but not limited to compiled object
+  code, generated documentation, and conversions to other media types.
+
+  "Work" shall mean the work of authorship, whether in Source or Object form,
+  made available under the License, as indicated by a copyright notice that is
+  included in or attached to the work (an example is provided in the Appendix
+  below).
+
+  "Derivative Works" shall mean any work, whether in Source or Object form,
+  that is based on (or derived from) the Work and for which the editorial
+  revisions, annotations, elaborations, or other modifications represent, as a
+  whole, an original work of authorship. For the purposes of this License,
+  Derivative Works shall not include works that remain separable from, or
+  merely link (or bind by name) to the interfaces of, the Work and Derivative
+  Works thereof.
+
+  "Contribution" shall mean any work of authorship, including the original
+  version of the Work and any modifications or additions to that Work or
+  Derivative Works thereof, that is intentionally submitted to Licensor for
+  inclusion in the Work by the copyright owner or by an individual or Legal
+  Entity authorized to submit on behalf of the copyright owner. For the
+  purposes of this definition, "submitted" means any form of electronic,
+  verbal, or written communication sent to the Licensor or its representatives,
+  including but not limited to communication on electronic mailing lists,
+  source code control systems, and issue tracking systems that are managed by,
+  or on behalf of, the Licensor for the purpose of discussing and improving the
+  Work, but excluding communication that is conspicuously marked or otherwise
+  designated in writing by the copyright owner as "Not a Contribution."
+
+  "Contributor" shall mean Licensor and any individual or Legal Entity on
+  behalf of whom a Contribution has been received by Licensor and subsequently
+  incorporated within the Work.
+
+  2. Grant of Copyright License.
+
+  Subject to the terms and conditions of this License, each Contributor hereby
+  grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
+  irrevocable copyright license to reproduce, prepare Derivative Works of,
+  publicly display, publicly perform, sublicense, and distribute the Work and
+  such Derivative Works in Source or Object form.
+
+  3. Grant of Patent License.
+
+  Subject to the terms and conditions of this License, each Contributor hereby
+  grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
+  irrevocable (except as stated in this section) patent license to make, have
+  made, use, offer to sell, sell, import, and otherwise transfer the Work,
+  where such license applies only to those patent claims licensable by such
+  Contributor that are necessarily infringed by their Contribution(s) alone or
+  by combination of their Contribution(s) with the Work to which such
+  Contribution(s) was submitted. If You institute patent litigation against any
+  entity (including a cross-claim or counterclaim in a lawsuit) alleging that
+  the Work or a Contribution incorporated within the Work constitutes direct or
+  contributory patent infringement, then any patent licenses granted to You
+  under this License for that Work shall terminate as of the date such
+  litigation is filed.
+
+  4. Redistribution.
+
+  You may reproduce and distribute copies of the Work or Derivative Works
+  thereof in any medium, with or without modifications, and in Source or Object
+  form, provided that You meet the following conditions:
+
+  (a) You must give any other recipients of the Work or Derivative Works a copy
+  of this License; and
+
+  (b) You must cause any modified files to carry prominent notices stating that
+  You changed the files; and
+
+  (c) You must retain, in the Source form of any Derivative Works that You
+  distribute, all copyright, patent, trademark, and attribution notices from
+  the Source form of the Work, excluding those notices that do not pertain to
+  any part of the Derivative Works; and
+
+  (d) If the Work includes a "NOTICE" text file as part of its distribution,
+  then any Derivative Works that You distribute must include a readable copy of
+  the attribution notices contained within such NOTICE file, excluding those
+  notices that do not pertain to any part of the Derivative Works, in at least
+  one of the following places: within a NOTICE text file distributed as part of
+  the Derivative Works; within the Source form or documentation, if provided
+  along with the Derivative Works; or, within a display generated by the
+  Derivative Works, if and wherever such third-party notices normally appear.
+  The contents of the NOTICE file are for informational purposes only and do
+  not modify the License. You may add Your own attribution notices within
+  Derivative Works that You distribute, alongside or as an addendum to the
+  NOTICE text from the Work, provided that such additional attribution notices
+  cannot be construed as modifying the License.
+
+  You may add Your own copyright statement to Your modifications and may
+  provide additional or different license terms and conditions for use,
+  reproduction, or distribution of Your modifications, or for any such
+  Derivative Works as a whole, provided Your use, reproduction, and
+  distribution of the Work otherwise complies with the conditions stated in
+  this License.
+
+  5. Submission of Contributions.
+
+  Unless You explicitly state otherwise, any Contribution intentionally
+  submitted for inclusion in the Work by You to the Licensor shall be under the
+  terms and conditions of this License, without any additional terms or
+  conditions. Notwithstanding the above, nothing herein shall supersede or
+  modify the terms of any separate license agreement you may have executed with
+  Licensor regarding such Contributions.
+
+  6. Trademarks.
+
+  This License does not grant permission to use the trade names, trademarks,
+  service marks, or product names of the Licensor, except as required for
+  reasonable and customary use in describing the origin of the Work and
+  reproducing the content of the NOTICE file.
+
+  7. Disclaimer of Warranty.
+
+  Unless required by applicable law or agreed to in writing, Licensor provides
+  the Work (and each Contributor provides its Contributions) on an "AS IS"
+  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+  implied, including, without limitation, any warranties or conditions of
+  TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR
+  PURPOSE. You are solely responsible for determining the appropriateness of
+  using or redistributing the Work and assume any risks associated with Your
+  exercise of permissions under this License.
+
+  8. Limitation of Liability.
+
+  In no event and under no legal theory, whether in tort (including
+  negligence), contract, or otherwise, unless required by applicable law (such
+  as deliberate and grossly negligent acts) or agreed to in writing, shall any
+  Contributor be liable to You for damages, including any direct, indirect,
+  special, incidental, or consequential damages of any character arising as a
+  result of this License or out of the use or inability to use the Work
+  (including but not limited to damages for loss of goodwill, work stoppage,
+  computer failure or malfunction, or any and all other commercial damages or
+  losses), even if such Contributor has been advised of the possibility of such
+  damages.
+
+  9. Accepting Warranty or Additional Liability.
+
+  While redistributing the Work or Derivative Works thereof, You may choose to
+  offer, and charge a fee for, acceptance of support, warranty, indemnity, or
+  other liability obligations and/or rights consistent with this License.
+  However, in accepting such obligations, You may act only on Your own behalf
+  and on Your sole responsibility, not on behalf of any other Contributor, and
+  only if You agree to indemnify, defend, and hold each Contributor harmless
+  for any liability incurred by, or claims asserted against, such Contributor
+  by reason of your accepting any such warranty or additional liability.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Contents of NOTICE text file for actix-codec 0.5.2:
+
+  Nikolay Kim actix/Core
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Contents of NOTICE text file for aws-config 1.8.10, aws-credential-types 1.2.8,
+aws-runtime 1.5.13, aws-sdk-ecr 1.97.0, aws-sdk-sso 1.88.0, aws-sdk-ssooidc
+1.90.0, aws-sdk-sts 1.90.0, aws-sigv4 1.3.6, aws-smithy-async 1.2.6,
+aws-smithy-http 0.62.5, aws-smithy-http-client 1.1.4, aws-smithy-json 0.61.7,
+aws-smithy-observability 0.1.4, aws-smithy-query 0.60.8, aws-smithy-runtime
+1.9.4, aws-smithy-runtime-api 1.9.2, aws-smithy-types 1.3.4, aws-smithy-xml
+0.60.12, and aws-types 1.3.10:
+
+  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+(2) BSD 2-Clause "Simplified" License:
+
+Chef Habitat Release Review 2.0 incorporates arrayref 0.3.9.
+
+  Copyright  David Roundy
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+(3) BSD 3-Clause "New" or "Revised" License:
+
+Chef Habitat Release Review 2.0 incorporates encoding_rs 0.8.35.
+
+  Copyright  Henri Sivonen
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its contributors
+  may be used to endorse or promote products derived from this software without
+  specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+(4) BSD 3-Clause "New" or "Revised" License:
+
+Chef Habitat Release Review 2.0 incorporates subtle 2.6.1.
+
+  Copyright  Isis Lovecruft
+
+  Copyright  Henry de Valence
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its contributors
+  may be used to endorse or promote products derived from this software without
+  specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+(5) BSD 3-Clause "New" or "Revised" License:
+
+Chef Habitat Release Review 2.0 incorporates uritemplate-next 0.2.0.
+
+  Copyright  Amit
+
+  Copyright  Julia DeMille
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its contributors
+  may be used to endorse or promote products derived from this software without
+  specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+(6) BSD Zero Clause License:
+
+Chef Habitat Release Review 2.0 incorporates mock_instant 0.6.0.
+
+  Copyright (c)  museun
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  PERFORMANCE OF THIS SOFTWARE.
+
+(7) BSD Zero Clause License:
+
+Chef Habitat Release Review 2.0 incorporates adler2 2.0.1.
+
+  Copyright (c)  Jonas Schievink
+
+  Copyright (c)  oyvindln
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  PERFORMANCE OF THIS SOFTWARE.
+
+(8) Creative Commons Zero v1.0 Universal:
+
+Chef Habitat Release Review 2.0 incorporates notify 2.0.0 and notify 8.2.0.
+
+  Copyright  Jorge Israel Peña
+
+  Copyright  Félix Saparelli
+
+  Copyright  Michael Maurizi
+
+  Copyright  Joe Wilm
+
+  Copyright  Pierre Baillet
+
+  Statement of Purpose
+
+  The laws of most jurisdictions throughout the world automatically confer
+  exclusive Copyright and Related Rights (defined below) upon the creator and
+  subsequent owner(s) (each and all, an "owner") of an original work of
+  authorship and/or a database (each, a "Work").
+
+  Certain owners wish to permanently relinquish those rights to a Work for the
+  purpose of contributing to a commons of creative, cultural and scientific
+  works ("Commons") that the public can reliably and without fear of later
+  claims of infringement build upon, modify, incorporate in other works, reuse
+  and redistribute as freely as possible in any form whatsoever and for any
+  purposes, including without limitation commercial purposes. These owners may
+  contribute to the Commons to promote the ideal of a free culture and the
+  further production of creative, cultural and scientific works, or to gain
+  reputation or greater distribution for their Work in part through the use and
+  efforts of others.
+
+  For these and/or other purposes and motivations, and without any expectation
+  of additional consideration or compensation, the person associating CC0 with
+  a Work (the "Affirmer"), to the extent that he or she is an owner of
+  Copyright and Related Rights in the Work, voluntarily elects to apply CC0 to
+  the Work and publicly distribute the Work under its terms, with knowledge of
+  his or her Copyright and Related Rights in the Work and the meaning and
+  intended legal effect of CC0 on those rights.
+
+  1. Copyright and Related Rights. A Work made available under CC0 may be
+  protected by copyright and related or neighboring rights ("Copyright and
+  Related Rights"). Copyright and Related Rights include, but are not limited
+  to, the following:
+
+  i. the right to reproduce, adapt, distribute, perform, display, communicate,
+  and translate a Work;
+
+  ii. moral rights retained by the original author(s) and/or performer(s);
+
+  iii. publicity and privacy rights pertaining to a person's image or likeness
+  depicted in a Work;
+
+  iv. rights protecting against unfair competition in regards to a Work,
+  subject to the limitations in paragraph 4(a), below;
+
+  v. rights protecting the extraction, dissemination, use and reuse of data in
+  a Work;
+
+  vi. database rights (such as those arising under Directive 96/9/EC of the
+  European Parliament and of the Council of 11 March 1996 on the legal
+  protection of databases, and under any national implementation thereof,
+  including any amended or successor version of such directive); and
+
+  vii. other similar, equivalent or corresponding rights throughout the world
+  based on applicable law or treaty, and any national implementations thereof.
+
+  2. Waiver. To the greatest extent permitted by, but not in contravention of,
+  applicable law, Affirmer hereby overtly, fully, permanently, irrevocably and
+  unconditionally waives, abandons, and surrenders all of Affirmer's Copyright
+  and Related Rights and associated claims and causes of action, whether now
+  known or unknown (including existing as well as future claims and causes of
+  action), in the Work (i) in all territories worldwide, (ii) for the maximum
+  duration provided by applicable law or treaty (including future time
+  extensions), (iii) in any current or future medium and for any number of
+  copies, and (iv) for any purpose whatsoever, including without limitation
+  commercial, advertising or promotional purposes (the "Waiver"). Affirmer
+  makes the Waiver for the benefit of each member of the public at large and to
+  the detriment of Affirmer's heirs and successors, fully intending that such
+  Waiver shall not be subject to revocation, rescission, cancellation,
+  termination, or any other legal or equitable action to disrupt the quiet
+  enjoyment of the Work by the public as contemplated by Affirmer's express
+  Statement of Purpose.
+
+  3. Public License Fallback. Should any part of the Waiver for any reason be
+  judged legally invalid or ineffective under applicable law, then the Waiver
+  shall be preserved to the maximum extent permitted taking into account
+  Affirmer's express Statement of Purpose. In addition, to the extent the
+  Waiver is so judged Affirmer hereby grants to each affected person a
+  royalty-free, non transferable, non sublicensable, non exclusive, irrevocable
+  and unconditional license to exercise Affirmer's Copyright and Related Rights
+  in the Work (i) in all territories worldwide, (ii) for the maximum duration
+  provided by applicable law or treaty (including future time extensions),
+  (iii) in any current or future medium and for any number of copies, and (iv)
+  for any purpose whatsoever, including without limitation commercial,
+  advertising or promotional purposes (the "License"). The License shall be
+  deemed effective as of the date CC0 was applied by Affirmer to the Work.
+  Should any part of the License for any reason be judged legally invalid or
+  ineffective under applicable law, such partial invalidity or ineffectiveness
+  shall not invalidate the remainder of the License, and in such case Affirmer
+  hereby affirms that he or she will not (i) exercise any of his or her
+  remaining Copyright and Related Rights in the Work or (ii) assert any
+  associated claims and causes of action with respect to the Work, in either
+  case contrary to Affirmer's express Statement of Purpose.
+
+  4. Limitations and Disclaimers.
+
+  a. No trademark or patent rights held by Affirmer are waived, abandoned,
+  surrendered, licensed or otherwise affected by this document.
+
+  b. Affirmer offers the Work as-is and makes no representations or warranties
+  of any kind concerning the Work, express, implied, statutory or otherwise,
+  including without limitation warranties of title, merchantability, fitness
+  for a particular purpose, non infringement, or the absence of latent or other
+  defects, accuracy, or the present or absence of errors, whether or not
+  discoverable, all to the greatest extent permissible under applicable law.
+
+  c. Affirmer disclaims responsibility for clearing rights of other persons
+  that may apply to the Work or any use thereof, including without limitation
+  any person's Copyright and Related Rights in the Work. Further, Affirmer
+  disclaims responsibility for obtaining any necessary consents, permissions or
+  other rights required for any use of the Work.
+
+  d. Affirmer understands and acknowledges that Creative Commons is not a party
+  to this document and has no duty or obligation with respect to this CC0 or
+  use of the Work.
+
+(9) ISC License:
+
+Chef Habitat Release Review 2.0 incorporates rustls-webpki 0.101.7 and
+rustls-webpki 0.103.8.
+
+  Copyright (c)  Joe Birr-Pixton
+
+  Copyright (c)  Dirkjan Ochtman
+
+  Copyright (c)  rustls/publishers
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  PERFORMANCE OF THIS SOFTWARE.
+
+(10) ISC License:
+
+Chef Habitat Release Review 2.0 incorporates inotify 0.11.0.
+
+  Copyright (c)  Hanno Braun
+
+  Copyright (c)  Frank Denis
+
+  Copyright (c)  Félix Saparelli
+
+  Copyright (c)  Cristian Kubis
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  PERFORMANCE OF THIS SOFTWARE.
+
+(11) ISC License:
+
+Chef Habitat Release Review 2.0 incorporates briansmith/untrusted 0.9.0.
+
+  Copyright (c)  Brian Smith
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  PERFORMANCE OF THIS SOFTWARE.
+
+(12) ISC License:
+
+Chef Habitat Release Review 2.0 incorporates aws-lc-sys 0.31.0.
+
+  Copyright (c)  AWS-LC
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  PERFORMANCE OF THIS SOFTWARE.
+
+(13) ISC License:
+
+Chef Habitat Release Review 2.0 incorporates aws-lc-rs 1.14.0.
+
+  Copyright (c)  AWS-LibCrypto
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  PERFORMANCE OF THIS SOFTWARE.
+
+(14) ISC License:
+
+Chef Habitat Release Review 2.0 incorporates inotify-sys 0.1.5.
+
+  Copyright (c)  Hanno Braun
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  PERFORMANCE OF THIS SOFTWARE.
+
+(15) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates tokio 1.48.0, tokio-macros 2.6.0,
+tokio-native-tls 0.3.1, tokio-stream 0.1.17, tokio-util 0.7.17, and
+tracing-core 0.1.34.
+
+  Copyright  Tokio Contributors
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(16) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates nix-rust/nix 0.30.1.
+
+  Copyright  The nix-rust Project Developers
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(17) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates json-pointer 0.3.4.
+
+  Copyright  Nathaniel Ringo
+
+  Copyright  Julia DeMille
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(18) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates tracing-attributes 0.1.30.
+
+  Copyright  Tokio Contributors
+
+  Copyright  Eliza Weisman
+
+  Copyright  David Barsky
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(19) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates generic-array 0.14.7.
+
+  Copyright  Aaron Trent
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(20) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates tracing 0.1.41.
+
+  Copyright  Tokio Contributors
+
+  Copyright  Eliza Weisman
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(21) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates a8m/pb 1.1.1.
+
+  Copyright  Konstantin Stepanov
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(22) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates webdesus/fs_extra 1.3.0.
+
+  Copyright  Denis Kurilenko
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(23) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates bincode_derive 2.0.1.
+
+  Copyright  Zoey Riordan
+
+  Copyright  Victor Koenders
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(24) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates jsonway 2.0.0 and rustless/valico
+4.0.0.
+
+  Copyright  Stanislav Panferov
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(25) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates rand_chacha 0.3.1.
+
+  Copyright  The Rand Project Developers
+
+  Copyright  The Rust Project Developers
+
+  Copyright  The CryptoCorrosion Contributors
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(26) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates hyperium/http-body 0.1.3,
+hyperium/http-body 0.4.6, and hyperium/http-body 1.0.1.
+
+  Copyright  Lucio Franco
+
+  Copyright  Sean McArthur
+
+  Copyright  Carl Lerche
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(27) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates synstructure 0.13.2.
+
+  Copyright  Nika Layzell
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(28) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates dguo/strsim-rs 0.11.1.
+
+  Copyright  Max Bachmann
+
+  Copyright  Danny Guo
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(29) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates virtue 0.0.18.
+
+  Copyright  Zoey Riordan
+
+  Copyright  Trangar
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(30) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates hyper-util 0.1.16, hyperium/mime
+0.3.17, seanmonstar/try-lock 0.2.5, and seanmonstar/want 0.3.1.
+
+  Copyright  Sean McArthur
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(31) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates servo/bincode 1.3.3 and
+servo/bincode 2.0.1.
+
+  Copyright  Francesco Mazzoli
+
+  Copyright  Zoey Riordan
+
+  Copyright  David Tolnay
+
+  Copyright  Ty Overby
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(32) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates BurntSushi/rust-memchr 2.7.5,
+BurntSushi/same-file 1.0.6, jiff 0.2.15, and tabwriter 1.4.1.
+
+  Copyright  Andrew Gallant
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(33) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates cfg_aliases 0.2.1.
+
+  Copyright  Zicklag
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(34) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates TedDriggs/darling 0.20.11.
+
+  Copyright  Ted Driggs
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(35) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates hyperium/h2 0.3.27, hyperium/h2
+0.4.12, and tokio-rs/bytes 1.10.1.
+
+  Copyright  Carl Lerche
+
+  Copyright  Sean McArthur
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(36) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates retry 1.0.0.
+
+  Copyright  Jimmy Cuadra
+
+  Copyright  Sam Rijs
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(37) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates urlencoding 2.1.3.
+
+  Copyright  Bertram Truong
+
+  Copyright  Kornel
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(38) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates Hyper HTTP library 0.14.32 and
+Hyper HTTP library 1.7.0.
+
+  Copyright  Sean McArthur
+
+  Copyright  hyperium/Core
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(39) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates rust-nom 7.1.3.
+
+  Copyright  Geoffroy Couprie
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(40) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates rust-openssl 0.9.109.
+
+  Copyright  Alex Gaynor
+
+  Copyright  Steven Fackler
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(41) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates ordered-float 2.10.1.
+
+  Copyright  Matt Brubeck
+
+  Copyright  Jonathan Reem
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(42) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates winnow 0.7.13.
+
+  Copyright  Ed Page
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(43) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates broadcast 0.1.0 and tee 0.1.0.
+
+  Copyright  softprops
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(44) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates unsafe-libyaml 0.2.11.
+
+  Copyright  David Tolnay
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(45) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates base64-simd 0.8.0, outref 0.5.2,
+and vsimd 0.8.0.
+
+  Copyright  Nugine
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(46) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates sunng87/handlebars-rust 6.3.2.
+
+  Copyright  Ning Sun
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(47) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates tower-http 0.6.6, tower-rs/tower
+0.3.3, and tower-rs/tower 0.5.2.
+
+  Copyright  Tower Maintainers
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(48) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates BurntSushi/regex-automata 0.4.12.
+
+  Copyright  The Rust Project Developers
+
+  Copyright  Andrew Gallant
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(49) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates os_info 3.12.0.
+
+  Copyright  Jan Schulte
+
+  Copyright  Stanislav Tkach
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(50) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates rust-mio 1.1.0.
+
+  Copyright  Meng Wang
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(51) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates pem 3.0.6.
+
+  Copyright  Jonathan Creekmore
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(52) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates slab 0.4.11.
+
+  Copyright  Carl Lerche
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(53) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates fancy-regex 0.11.0.
+
+  Copyright  Robin Stocker
+
+  Copyright  Raph Levien
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(54) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates safer_owning_ref 0.5.0.
+
+  Copyright  Noam Ta Shma
+
+  Copyright  Marvin Löbel
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(55) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates serde-value 0.7.0.
+
+  Copyright  arcnmx
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(56) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates JelteF/derive_more 2.0.1.
+
+  Copyright  Jelte Fennema
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(57) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates simd-adler32 0.3.7.
+
+  Copyright  Marvin Countryman
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(58) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates unsafe-any-ors 1.0.0.
+
+  Copyright  Jonathan Reem
+
+  Copyright  anton whalley
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(59) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates oconnor663/blake2_simd 1.0.3.
+
+  Copyright  Jack O'Connor
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(60) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates rust-phf 0.11.3.
+
+  Copyright  Steven Fackler
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(61) MIT License:
+
+Chef Habitat Release Review 2.0 incorporates typemap-ors 1.0.0.
+
+  Copyright  Anton Whalley
+
+  Copyright  Jonathan Reem
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(62) Mozilla Public License 2.0:
+
+Chef Habitat Release Review 2.0 incorporates mktemp 0.5.1.
+
+  Copyright  Sam Giles
+
+  1. Definitions
+
+      1.1. "Contributor" means each individual or legal entity that creates,
+      contributes to the creation of, or owns Covered Software.
+
+      1.2. "Contributor Version" means the combination of the Contributions of
+      others (if any) used by a Contributor and that particular Contributor's
+      Contribution.
+
+      1.3. "Contribution" means Covered Software of a particular Contributor.
+
+      1.4. "Covered Software" means Source Code Form to which the initial
+      Contributor has attached the notice in Exhibit A, the Executable Form of
+      such Source Code Form, and Modifications of such Source Code Form, in
+      each case including portions thereof.
+
+      1.5. "Incompatible With Secondary Licenses" means
+
+          (a) that the initial Contributor has attached the notice described in
+          Exhibit B to the Covered Software; or
+
+          (b) that the Covered Software was made available under the terms of
+          version 1.1 or earlier of the License, but not also under the terms
+          of a Secondary License.
+
+      1.6. "Executable Form" means any form of the work other than Source Code
+      Form.
+
+      1.7. "Larger Work" means a work that combines Covered Software with other
+      material, in a separate file or files, that is not Covered Software.
+
+      1.8. "License" means this document.
+
+      1.9. "Licensable" means having the right to grant, to the maximum extent
+      possible, whether at the time of the initial grant or subsequently, any
+      and all of the rights conveyed by this License.
+
+      1.10. "Modifications" means any of the following:
+
+          (a) any file in Source Code Form that results from an addition to,
+          deletion from, or modification of the contents of Covered Software; or
+
+          (b) any new file in Source Code Form that contains any Covered
+          Software.
+
+      1.11. "Patent Claims" of a Contributor means any patent claim(s),
+      including without limitation, method, process, and apparatus claims, in
+      any patent Licensable by such Contributor that would be infringed, but
+      for the grant of the License, by the making, using, selling, offering for
+      sale, having made, import, or transfer of either its Contributions or its
+      Contributor Version.
+
+      1.12. "Secondary License" means either the GNU General Public License,
+      Version 2.0, the GNU Lesser General Public License, Version 2.1, the GNU
+      Affero General Public License, Version 3.0, or any later versions of
+      those licenses.
+
+      1.13. "Source Code Form" means the form of the work preferred for making
+      modifications.
+
+      1.14. "You" (or "Your") means an individual or a legal entity exercising
+      rights under this License. For legal entities, "You" includes any entity
+      that controls, is controlled by, or is under common control with You. For
+      purposes of this definition, "control" means (a) the power, direct or
+      indirect, to cause the direction or management of such entity, whether by
+      contract or otherwise, or (b) ownership of more than fifty percent (50%)
+      of the outstanding shares or beneficial ownership of such entity.
+
+  2. License Grants and Conditions
+
+      2.1. Grants
+
+          Each Contributor hereby grants You a world-wide, royalty-free,
+          non-exclusive license:
+
+          (a) under intellectual property rights (other than patent or
+          trademark) Licensable by such Contributor to use, reproduce, make
+          available, modify, display, perform, distribute, and otherwise
+          exploit its Contributions, either on an unmodified basis, with
+          Modifications, or as part of a Larger Work; and
+
+          (b) under Patent Claims of such Contributor to make, use, sell, offer
+          for sale, have made, import, and otherwise transfer either its
+          Contributions or its Contributor Version.
+
+      2.2. Effective Date
+
+          The licenses granted in Section 2.1 with respect to any Contribution
+          become effective for each Contribution on the date the Contributor
+          first distributes such Contribution.
+
+      2.3. Limitations on Grant Scope
+
+          The licenses granted in this Section 2 are the only rights granted
+          under this License. No additional rights or licenses will be implied
+          from the distribution or licensing of Covered Software under this
+          License. Notwithstanding Section 2.1(b) above, no patent license is
+          granted by a Contributor:
+
+          (a) for any code that a Contributor has removed from Covered
+          Software; or
+
+          (b) for infringements caused by: (i) Your and any other third party's
+          modifications of Covered Software, or (ii) the combination of its
+          Contributions with other software (except as part of its Contributor
+          Version); or
+
+          (c) under Patent Claims infringed by Covered Software in the absence
+          of its Contributions.
+
+          This License does not grant any rights in the trademarks, service
+          marks, or logos of any Contributor (except as may be necessary to
+          comply with the notice requirements in Section 3.4).
+
+      2.4. Subsequent Licenses
+
+          No Contributor makes additional grants as a result of Your choice to
+          distribute the Covered Software under a subsequent version of this
+          License (see Section 10.2) or under the terms of a Secondary License
+          (if permitted under the terms of Section 3.3).
+
+      2.5. Representation
+
+          Each Contributor represents that the Contributor believes its
+          Contributions are its original creation(s) or it has sufficient
+          rights to grant the rights to its Contributions conveyed by this
+          License.
+
+      2.6. Fair Use
+
+          This License is not intended to limit any rights You have under
+          applicable copyright doctrines of fair use, fair dealing, or other
+          equivalents.
+
+      2.7. Conditions
+
+          Sections 3.1, 3.2, 3.3, and 3.4 are conditions of the licenses
+          granted in Section 2.1.
+
+  3. Responsibilities
+
+      3.1. Distribution of Source Form
+
+          All distribution of Covered Software in Source Code Form, including
+          any Modifications that You create or to which You contribute, must be
+          under the terms of this License. You must inform recipients that the
+          Source Code Form of the Covered Software is governed by the terms of
+          this License, and how they can obtain a copy of this License. You may
+          not attempt to alter or restrict the recipients' rights in the Source
+          Code Form.
+
+      3.2. Distribution of Executable Form
+
+          If You distribute Covered Software in Executable Form then:
+
+          (a) such Covered Software must also be made available in Source Code
+          Form, as described in Section 3.1, and You must inform recipients of
+          the Executable Form how they can obtain a copy of such Source Code
+          Form by reasonable means in a timely manner, at a charge no more than
+          the cost of distribution to the recipient; and
+
+          (b) You may distribute such Executable Form under the terms of this
+          License, or sublicense it under different terms, provided that the
+          license for the Executable Form does not attempt to limit or alter
+          the recipients' rights in the Source Code Form under this License.
+
+      3.3. Distribution of a Larger Work
+
+          You may create and distribute a Larger Work under terms of Your
+          choice, provided that You also comply with the requirements of this
+          License for the Covered Software. If the Larger Work is a combination
+          of Covered Software with a work governed by one or more Secondary
+          Licenses, and the Covered Software is not Incompatible With Secondary
+          Licenses, this License permits You to additionally distribute such
+          Covered Software under the terms of such Secondary License(s), so
+          that the recipient of the Larger Work may, at their option, further
+          distribute the Covered Software under the terms of either this
+          License or such Secondary License(s).
+
+      3.4. Notices
+
+          You may not remove or alter the substance of any license notices
+          (including copyright notices, patent notices, disclaimers of
+          warranty, or limitations of liability) contained within the Source
+          Code Form of the Covered Software, except that You may alter any
+          license notices to the extent required to remedy known factual
+          inaccuracies.
+
+      3.5. Application of Additional Terms
+
+          You may choose to offer, and to charge a fee for, warranty, support,
+          indemnity or liability obligations to one or more recipients of
+          Covered Software. However, You may do so only on Your own behalf, and
+          not on behalf of any Contributor. You must make it absolutely clear
+          that any such warranty, support, indemnity, or liability obligation
+          is offered by You alone, and You hereby agree to indemnify every
+          Contributor for any liability incurred by such Contributor as a
+          result of warranty, support, indemnity or liability terms You offer.
+          You may include additional disclaimers of warranty and limitations of
+          liability specific to any jurisdiction.
+
+  4. Inability to Comply Due to Statute or Regulation
+
+      If it is impossible for You to comply with any of the terms of this
+      License with respect to some or all of the Covered Software due to
+      statute, judicial order, or regulation then You must: (a) comply with the
+      terms of this License to the maximum extent possible; and (b) describe
+      the limitations and the code they affect. Such description must be placed
+      in a text file included with all distributions of the Covered Software
+      under this License. Except to the extent prohibited by statute or
+      regulation, such description must be sufficiently detailed for a
+      recipient of ordinary skill to be able to understand it.
+
+  5. Termination
+
+      5.1. The rights granted under this License will terminate automatically
+      if You fail to comply with any of its terms. However, if You become
+      compliant, then the rights granted under this License from a particular
+      Contributor are reinstated (a) provisionally, unless and until such
+      Contributor explicitly and finally terminates Your grants, and (b) on an
+      ongoing basis, if such Contributor fails to notify You of the
+      non-compliance by some reasonable means prior to 60 days after You have
+      come back into compliance. Moreover, Your grants from a particular
+      Contributor are reinstated on an ongoing basis if such Contributor
+      notifies You of the non-compliance by some reasonable means, this is the
+      first time You have received notice of non-compliance with this License
+      from such Contributor, and You become compliant prior to 30 days after
+      Your receipt of the notice.
+
+      5.2. If You initiate litigation against any entity by asserting a patent
+      infringement claim (excluding declaratory judgment actions,
+      counter-claims, and cross-claims) alleging that a Contributor Version
+      directly or indirectly infringes any patent, then the rights granted to
+      You by any and all Contributors for the Covered Software under Section
+      2.1 of this License shall terminate.
+
+      5.3. In the event of termination under Sections 5.1 or 5.2 above, all end
+      user license agreements (excluding distributors and resellers) which have
+      been validly granted by You or Your distributors under this License prior
+      to termination shall survive termination.
+
+  6. Disclaimer of Warranty
+
+      Covered Software is provided under this License on an "as is" basis,
+      without warranty of any kind, either expressed, implied, or statutory,
+      including, without limitation, warranties that the Covered Software is
+      free of defects, merchantable, fit for a particular purpose or
+      non-infringing. The entire risk as to the quality and performance of the
+      Covered Software is with You. Should any Covered Software prove defective
+      in any respect, You (not any Contributor) assume the cost of any
+      necessary servicing, repair, or correction. This disclaimer of warranty
+      constitutes an essential part of this License. No use of any Covered
+      Software is authorized under this License except under this disclaimer.
+
+  7. Limitation of Liability
+
+      Under no circumstances and under no legal theory, whether tort (including
+      negligence), contract, or otherwise, shall any Contributor, or anyone who
+      distributes Covered Software as permitted above, be liable to You for any
+      direct, indirect, special, incidental, or consequential damages of any
+      character including, without limitation, damages for lost profits, loss
+      of goodwill, work stoppage, computer failure or malfunction, or any and
+      all other commercial damages or losses, even if such party shall have
+      been informed of the possibility of such damages. This limitation of
+      liability shall not apply to liability for death or personal injury
+      resulting from such party's negligence to the extent applicable law
+      prohibits such limitation. Some jurisdictions do not allow the exclusion
+      or limitation of incidental or consequential damages, so this exclusion
+      and limitation may not apply to You.
+
+  8. Litigation
+
+      Any litigation relating to this License may be brought only in the courts
+      of a jurisdiction where the defendant maintains its principal place of
+      business and such litigation shall be governed by laws of that
+      jurisdiction, without reference to its conflict-of-law provisions.
+      Nothing in this Section shall prevent a party's ability to bring
+      cross-claims or counter-claims.
+
+  9. Miscellaneous
+
+      This License represents the complete agreement concerning the subject
+      matter hereof. If any provision of this License is held to be
+      unenforceable, such provision shall be reformed only to the extent
+      necessary to make it enforceable. Any law or regulation which provides
+      that the language of a contract shall be construed against the drafter
+      shall not be used to construe this License against a Contributor.
+
+  10. Versions of the License
+
+      10.1. New Versions
+
+          Mozilla Foundation is the license steward. Except as provided in
+          Section 10.3, no one other than the license steward has the right to
+          modify or publish new versions of this License. Each version will be
+          given a distinguishing version number.
+
+    10.2. Effect of New Versions
+
+          You may distribute the Covered Software under the terms of the
+          version of the License under which You originally received the
+          Covered Software, or under the terms of any subsequent version
+          published by the license steward.
+
+    10.3. Modified Versions
+
+          If you create software not governed by this License, and you want to
+          create a new license for such software, you may create and use a
+          modified version of this License if you rename the license and remove
+          any references to the name of the license steward (except to note
+          that such modified license differs from this License).
+
+      10.4. Distributing Source Code Form that is Incompatible With Secondary
+      Licenses
+
+          If You choose to distribute Source Code Form that is Incompatible
+          With Secondary Licenses under the terms of this version of the
+          License, the notice described in Exhibit B of this License must be
+          attached.
+
+(63) Mozilla Public License 2.0:
+
+Chef Habitat Release Review 2.0 incorporates option-ext 0.2.0.
+
+  Copyright  Simon Ochsenreither
+
+  1. Definitions
+
+      1.1. "Contributor" means each individual or legal entity that creates,
+      contributes to the creation of, or owns Covered Software.
+
+      1.2. "Contributor Version" means the combination of the Contributions of
+      others (if any) used by a Contributor and that particular Contributor's
+      Contribution.
+
+      1.3. "Contribution" means Covered Software of a particular Contributor.
+
+      1.4. "Covered Software" means Source Code Form to which the initial
+      Contributor has attached the notice in Exhibit A, the Executable Form of
+      such Source Code Form, and Modifications of such Source Code Form, in
+      each case including portions thereof.
+
+      1.5. "Incompatible With Secondary Licenses" means
+
+          (a) that the initial Contributor has attached the notice described in
+          Exhibit B to the Covered Software; or
+
+          (b) that the Covered Software was made available under the terms of
+          version 1.1 or earlier of the License, but not also under the terms
+          of a Secondary License.
+
+      1.6. "Executable Form" means any form of the work other than Source Code
+      Form.
+
+      1.7. "Larger Work" means a work that combines Covered Software with other
+      material, in a separate file or files, that is not Covered Software.
+
+      1.8. "License" means this document.
+
+      1.9. "Licensable" means having the right to grant, to the maximum extent
+      possible, whether at the time of the initial grant or subsequently, any
+      and all of the rights conveyed by this License.
+
+      1.10. "Modifications" means any of the following:
+
+          (a) any file in Source Code Form that results from an addition to,
+          deletion from, or modification of the contents of Covered Software; or
+
+          (b) any new file in Source Code Form that contains any Covered
+          Software.
+
+      1.11. "Patent Claims" of a Contributor means any patent claim(s),
+      including without limitation, method, process, and apparatus claims, in
+      any patent Licensable by such Contributor that would be infringed, but
+      for the grant of the License, by the making, using, selling, offering for
+      sale, having made, import, or transfer of either its Contributions or its
+      Contributor Version.
+
+      1.12. "Secondary License" means either the GNU General Public License,
+      Version 2.0, the GNU Lesser General Public License, Version 2.1, the GNU
+      Affero General Public License, Version 3.0, or any later versions of
+      those licenses.
+
+      1.13. "Source Code Form" means the form of the work preferred for making
+      modifications.
+
+      1.14. "You" (or "Your") means an individual or a legal entity exercising
+      rights under this License. For legal entities, "You" includes any entity
+      that controls, is controlled by, or is under common control with You. For
+      purposes of this definition, "control" means (a) the power, direct or
+      indirect, to cause the direction or management of such entity, whether by
+      contract or otherwise, or (b) ownership of more than fifty percent (50%)
+      of the outstanding shares or beneficial ownership of such entity.
+
+  2. License Grants and Conditions
+
+      2.1. Grants
+
+          Each Contributor hereby grants You a world-wide, royalty-free,
+          non-exclusive license:
+
+          (a) under intellectual property rights (other than patent or
+          trademark) Licensable by such Contributor to use, reproduce, make
+          available, modify, display, perform, distribute, and otherwise
+          exploit its Contributions, either on an unmodified basis, with
+          Modifications, or as part of a Larger Work; and
+
+          (b) under Patent Claims of such Contributor to make, use, sell, offer
+          for sale, have made, import, and otherwise transfer either its
+          Contributions or its Contributor Version.
+
+      2.2. Effective Date
+
+          The licenses granted in Section 2.1 with respect to any Contribution
+          become effective for each Contribution on the date the Contributor
+          first distributes such Contribution.
+
+      2.3. Limitations on Grant Scope
+
+          The licenses granted in this Section 2 are the only rights granted
+          under this License. No additional rights or licenses will be implied
+          from the distribution or licensing of Covered Software under this
+          License. Notwithstanding Section 2.1(b) above, no patent license is
+          granted by a Contributor:
+
+          (a) for any code that a Contributor has removed from Covered
+          Software; or
+
+          (b) for infringements caused by: (i) Your and any other third party's
+          modifications of Covered Software, or (ii) the combination of its
+          Contributions with other software (except as part of its Contributor
+          Version); or
+
+          (c) under Patent Claims infringed by Covered Software in the absence
+          of its Contributions.
+
+          This License does not grant any rights in the trademarks, service
+          marks, or logos of any Contributor (except as may be necessary to
+          comply with the notice requirements in Section 3.4).
+
+      2.4. Subsequent Licenses
+
+          No Contributor makes additional grants as a result of Your choice to
+          distribute the Covered Software under a subsequent version of this
+          License (see Section 10.2) or under the terms of a Secondary License
+          (if permitted under the terms of Section 3.3).
+
+      2.5. Representation
+
+          Each Contributor represents that the Contributor believes its
+          Contributions are its original creation(s) or it has sufficient
+          rights to grant the rights to its Contributions conveyed by this
+          License.
+
+      2.6. Fair Use
+
+          This License is not intended to limit any rights You have under
+          applicable copyright doctrines of fair use, fair dealing, or other
+          equivalents.
+
+      2.7. Conditions
+
+          Sections 3.1, 3.2, 3.3, and 3.4 are conditions of the licenses
+          granted in Section 2.1.
+
+  3. Responsibilities
+
+      3.1. Distribution of Source Form
+
+          All distribution of Covered Software in Source Code Form, including
+          any Modifications that You create or to which You contribute, must be
+          under the terms of this License. You must inform recipients that the
+          Source Code Form of the Covered Software is governed by the terms of
+          this License, and how they can obtain a copy of this License. You may
+          not attempt to alter or restrict the recipients' rights in the Source
+          Code Form.
+
+      3.2. Distribution of Executable Form
+
+          If You distribute Covered Software in Executable Form then:
+
+          (a) such Covered Software must also be made available in Source Code
+          Form, as described in Section 3.1, and You must inform recipients of
+          the Executable Form how they can obtain a copy of such Source Code
+          Form by reasonable means in a timely manner, at a charge no more than
+          the cost of distribution to the recipient; and
+
+          (b) You may distribute such Executable Form under the terms of this
+          License, or sublicense it under different terms, provided that the
+          license for the Executable Form does not attempt to limit or alter
+          the recipients' rights in the Source Code Form under this License.
+
+      3.3. Distribution of a Larger Work
+
+          You may create and distribute a Larger Work under terms of Your
+          choice, provided that You also comply with the requirements of this
+          License for the Covered Software. If the Larger Work is a combination
+          of Covered Software with a work governed by one or more Secondary
+          Licenses, and the Covered Software is not Incompatible With Secondary
+          Licenses, this License permits You to additionally distribute such
+          Covered Software under the terms of such Secondary License(s), so
+          that the recipient of the Larger Work may, at their option, further
+          distribute the Covered Software under the terms of either this
+          License or such Secondary License(s).
+
+      3.4. Notices
+
+          You may not remove or alter the substance of any license notices
+          (including copyright notices, patent notices, disclaimers of
+          warranty, or limitations of liability) contained within the Source
+          Code Form of the Covered Software, except that You may alter any
+          license notices to the extent required to remedy known factual
+          inaccuracies.
+
+      3.5. Application of Additional Terms
+
+          You may choose to offer, and to charge a fee for, warranty, support,
+          indemnity or liability obligations to one or more recipients of
+          Covered Software. However, You may do so only on Your own behalf, and
+          not on behalf of any Contributor. You must make it absolutely clear
+          that any such warranty, support, indemnity, or liability obligation
+          is offered by You alone, and You hereby agree to indemnify every
+          Contributor for any liability incurred by such Contributor as a
+          result of warranty, support, indemnity or liability terms You offer.
+          You may include additional disclaimers of warranty and limitations of
+          liability specific to any jurisdiction.
+
+  4. Inability to Comply Due to Statute or Regulation
+
+      If it is impossible for You to comply with any of the terms of this
+      License with respect to some or all of the Covered Software due to
+      statute, judicial order, or regulation then You must: (a) comply with the
+      terms of this License to the maximum extent possible; and (b) describe
+      the limitations and the code they affect. Such description must be placed
+      in a text file included with all distributions of the Covered Software
+      under this License. Except to the extent prohibited by statute or
+      regulation, such description must be sufficiently detailed for a
+      recipient of ordinary skill to be able to understand it.
+
+  5. Termination
+
+      5.1. The rights granted under this License will terminate automatically
+      if You fail to comply with any of its terms. However, if You become
+      compliant, then the rights granted under this License from a particular
+      Contributor are reinstated (a) provisionally, unless and until such
+      Contributor explicitly and finally terminates Your grants, and (b) on an
+      ongoing basis, if such Contributor fails to notify You of the
+      non-compliance by some reasonable means prior to 60 days after You have
+      come back into compliance. Moreover, Your grants from a particular
+      Contributor are reinstated on an ongoing basis if such Contributor
+      notifies You of the non-compliance by some reasonable means, this is the
+      first time You have received notice of non-compliance with this License
+      from such Contributor, and You become compliant prior to 30 days after
+      Your receipt of the notice.
+
+      5.2. If You initiate litigation against any entity by asserting a patent
+      infringement claim (excluding declaratory judgment actions,
+      counter-claims, and cross-claims) alleging that a Contributor Version
+      directly or indirectly infringes any patent, then the rights granted to
+      You by any and all Contributors for the Covered Software under Section
+      2.1 of this License shall terminate.
+
+      5.3. In the event of termination under Sections 5.1 or 5.2 above, all end
+      user license agreements (excluding distributors and resellers) which have
+      been validly granted by You or Your distributors under this License prior
+      to termination shall survive termination.
+
+  6. Disclaimer of Warranty
+
+      Covered Software is provided under this License on an "as is" basis,
+      without warranty of any kind, either expressed, implied, or statutory,
+      including, without limitation, warranties that the Covered Software is
+      free of defects, merchantable, fit for a particular purpose or
+      non-infringing. The entire risk as to the quality and performance of the
+      Covered Software is with You. Should any Covered Software prove defective
+      in any respect, You (not any Contributor) assume the cost of any
+      necessary servicing, repair, or correction. This disclaimer of warranty
+      constitutes an essential part of this License. No use of any Covered
+      Software is authorized under this License except under this disclaimer.
+
+  7. Limitation of Liability
+
+      Under no circumstances and under no legal theory, whether tort (including
+      negligence), contract, or otherwise, shall any Contributor, or anyone who
+      distributes Covered Software as permitted above, be liable to You for any
+      direct, indirect, special, incidental, or consequential damages of any
+      character including, without limitation, damages for lost profits, loss
+      of goodwill, work stoppage, computer failure or malfunction, or any and
+      all other commercial damages or losses, even if such party shall have
+      been informed of the possibility of such damages. This limitation of
+      liability shall not apply to liability for death or personal injury
+      resulting from such party's negligence to the extent applicable law
+      prohibits such limitation. Some jurisdictions do not allow the exclusion
+      or limitation of incidental or consequential damages, so this exclusion
+      and limitation may not apply to You.
+
+  8. Litigation
+
+      Any litigation relating to this License may be brought only in the courts
+      of a jurisdiction where the defendant maintains its principal place of
+      business and such litigation shall be governed by laws of that
+      jurisdiction, without reference to its conflict-of-law provisions.
+      Nothing in this Section shall prevent a party's ability to bring
+      cross-claims or counter-claims.
+
+  9. Miscellaneous
+
+      This License represents the complete agreement concerning the subject
+      matter hereof. If any provision of this License is held to be
+      unenforceable, such provision shall be reformed only to the extent
+      necessary to make it enforceable. Any law or regulation which provides
+      that the language of a contract shall be construed against the drafter
+      shall not be used to construe this License against a Contributor.
+
+  10. Versions of the License
+
+      10.1. New Versions
+
+          Mozilla Foundation is the license steward. Except as provided in
+          Section 10.3, no one other than the license steward has the right to
+          modify or publish new versions of this License. Each version will be
+          given a distinguishing version number.
+
+    10.2. Effect of New Versions
+
+          You may distribute the Covered Software under the terms of the
+          version of the License under which You originally received the
+          Covered Software, or under the terms of any subsequent version
+          published by the license steward.
+
+    10.3. Modified Versions
+
+          If you create software not governed by this License, and you want to
+          create a new license for such software, you may create and use a
+          modified version of this License if you rename the license and remove
+          any references to the name of the license steward (except to note
+          that such modified license differs from this License).
+
+      10.4. Distributing Source Code Form that is Incompatible With Secondary
+      Licenses
+
+          If You choose to distribute Source Code Form that is Incompatible
+          With Secondary Licenses under the terms of this version of the
+          License, the notice described in Exhibit B of this License must be
+          attached.
+
+(64) Mozilla Public License 2.0:
+
+Chef Habitat Release Review 2.0 incorporates webpki-roots 0.25.4.
+
+  Copyright  Joe Birr-Pixton
+
+  Copyright  Dirkjan Ochtman
+
+  Copyright  rustls/publishers
+
+  1. Definitions
+
+      1.1. "Contributor" means each individual or legal entity that creates,
+      contributes to the creation of, or owns Covered Software.
+
+      1.2. "Contributor Version" means the combination of the Contributions of
+      others (if any) used by a Contributor and that particular Contributor's
+      Contribution.
+
+      1.3. "Contribution" means Covered Software of a particular Contributor.
+
+      1.4. "Covered Software" means Source Code Form to which the initial
+      Contributor has attached the notice in Exhibit A, the Executable Form of
+      such Source Code Form, and Modifications of such Source Code Form, in
+      each case including portions thereof.
+
+      1.5. "Incompatible With Secondary Licenses" means
+
+          (a) that the initial Contributor has attached the notice described in
+          Exhibit B to the Covered Software; or
+
+          (b) that the Covered Software was made available under the terms of
+          version 1.1 or earlier of the License, but not also under the terms
+          of a Secondary License.
+
+      1.6. "Executable Form" means any form of the work other than Source Code
+      Form.
+
+      1.7. "Larger Work" means a work that combines Covered Software with other
+      material, in a separate file or files, that is not Covered Software.
+
+      1.8. "License" means this document.
+
+      1.9. "Licensable" means having the right to grant, to the maximum extent
+      possible, whether at the time of the initial grant or subsequently, any
+      and all of the rights conveyed by this License.
+
+      1.10. "Modifications" means any of the following:
+
+          (a) any file in Source Code Form that results from an addition to,
+          deletion from, or modification of the contents of Covered Software; or
+
+          (b) any new file in Source Code Form that contains any Covered
+          Software.
+
+      1.11. "Patent Claims" of a Contributor means any patent claim(s),
+      including without limitation, method, process, and apparatus claims, in
+      any patent Licensable by such Contributor that would be infringed, but
+      for the grant of the License, by the making, using, selling, offering for
+      sale, having made, import, or transfer of either its Contributions or its
+      Contributor Version.
+
+      1.12. "Secondary License" means either the GNU General Public License,
+      Version 2.0, the GNU Lesser General Public License, Version 2.1, the GNU
+      Affero General Public License, Version 3.0, or any later versions of
+      those licenses.
+
+      1.13. "Source Code Form" means the form of the work preferred for making
+      modifications.
+
+      1.14. "You" (or "Your") means an individual or a legal entity exercising
+      rights under this License. For legal entities, "You" includes any entity
+      that controls, is controlled by, or is under common control with You. For
+      purposes of this definition, "control" means (a) the power, direct or
+      indirect, to cause the direction or management of such entity, whether by
+      contract or otherwise, or (b) ownership of more than fifty percent (50%)
+      of the outstanding shares or beneficial ownership of such entity.
+
+  2. License Grants and Conditions
+
+      2.1. Grants
+
+          Each Contributor hereby grants You a world-wide, royalty-free,
+          non-exclusive license:
+
+          (a) under intellectual property rights (other than patent or
+          trademark) Licensable by such Contributor to use, reproduce, make
+          available, modify, display, perform, distribute, and otherwise
+          exploit its Contributions, either on an unmodified basis, with
+          Modifications, or as part of a Larger Work; and
+
+          (b) under Patent Claims of such Contributor to make, use, sell, offer
+          for sale, have made, import, and otherwise transfer either its
+          Contributions or its Contributor Version.
+
+      2.2. Effective Date
+
+          The licenses granted in Section 2.1 with respect to any Contribution
+          become effective for each Contribution on the date the Contributor
+          first distributes such Contribution.
+
+      2.3. Limitations on Grant Scope
+
+          The licenses granted in this Section 2 are the only rights granted
+          under this License. No additional rights or licenses will be implied
+          from the distribution or licensing of Covered Software under this
+          License. Notwithstanding Section 2.1(b) above, no patent license is
+          granted by a Contributor:
+
+          (a) for any code that a Contributor has removed from Covered
+          Software; or
+
+          (b) for infringements caused by: (i) Your and any other third party's
+          modifications of Covered Software, or (ii) the combination of its
+          Contributions with other software (except as part of its Contributor
+          Version); or
+
+          (c) under Patent Claims infringed by Covered Software in the absence
+          of its Contributions.
+
+          This License does not grant any rights in the trademarks, service
+          marks, or logos of any Contributor (except as may be necessary to
+          comply with the notice requirements in Section 3.4).
+
+      2.4. Subsequent Licenses
+
+          No Contributor makes additional grants as a result of Your choice to
+          distribute the Covered Software under a subsequent version of this
+          License (see Section 10.2) or under the terms of a Secondary License
+          (if permitted under the terms of Section 3.3).
+
+      2.5. Representation
+
+          Each Contributor represents that the Contributor believes its
+          Contributions are its original creation(s) or it has sufficient
+          rights to grant the rights to its Contributions conveyed by this
+          License.
+
+      2.6. Fair Use
+
+          This License is not intended to limit any rights You have under
+          applicable copyright doctrines of fair use, fair dealing, or other
+          equivalents.
+
+      2.7. Conditions
+
+          Sections 3.1, 3.2, 3.3, and 3.4 are conditions of the licenses
+          granted in Section 2.1.
+
+  3. Responsibilities
+
+      3.1. Distribution of Source Form
+
+          All distribution of Covered Software in Source Code Form, including
+          any Modifications that You create or to which You contribute, must be
+          under the terms of this License. You must inform recipients that the
+          Source Code Form of the Covered Software is governed by the terms of
+          this License, and how they can obtain a copy of this License. You may
+          not attempt to alter or restrict the recipients' rights in the Source
+          Code Form.
+
+      3.2. Distribution of Executable Form
+
+          If You distribute Covered Software in Executable Form then:
+
+          (a) such Covered Software must also be made available in Source Code
+          Form, as described in Section 3.1, and You must inform recipients of
+          the Executable Form how they can obtain a copy of such Source Code
+          Form by reasonable means in a timely manner, at a charge no more than
+          the cost of distribution to the recipient; and
+
+          (b) You may distribute such Executable Form under the terms of this
+          License, or sublicense it under different terms, provided that the
+          license for the Executable Form does not attempt to limit or alter
+          the recipients' rights in the Source Code Form under this License.
+
+      3.3. Distribution of a Larger Work
+
+          You may create and distribute a Larger Work under terms of Your
+          choice, provided that You also comply with the requirements of this
+          License for the Covered Software. If the Larger Work is a combination
+          of Covered Software with a work governed by one or more Secondary
+          Licenses, and the Covered Software is not Incompatible With Secondary
+          Licenses, this License permits You to additionally distribute such
+          Covered Software under the terms of such Secondary License(s), so
+          that the recipient of the Larger Work may, at their option, further
+          distribute the Covered Software under the terms of either this
+          License or such Secondary License(s).
+
+      3.4. Notices
+
+          You may not remove or alter the substance of any license notices
+          (including copyright notices, patent notices, disclaimers of
+          warranty, or limitations of liability) contained within the Source
+          Code Form of the Covered Software, except that You may alter any
+          license notices to the extent required to remedy known factual
+          inaccuracies.
+
+      3.5. Application of Additional Terms
+
+          You may choose to offer, and to charge a fee for, warranty, support,
+          indemnity or liability obligations to one or more recipients of
+          Covered Software. However, You may do so only on Your own behalf, and
+          not on behalf of any Contributor. You must make it absolutely clear
+          that any such warranty, support, indemnity, or liability obligation
+          is offered by You alone, and You hereby agree to indemnify every
+          Contributor for any liability incurred by such Contributor as a
+          result of warranty, support, indemnity or liability terms You offer.
+          You may include additional disclaimers of warranty and limitations of
+          liability specific to any jurisdiction.
+
+  4. Inability to Comply Due to Statute or Regulation
+
+      If it is impossible for You to comply with any of the terms of this
+      License with respect to some or all of the Covered Software due to
+      statute, judicial order, or regulation then You must: (a) comply with the
+      terms of this License to the maximum extent possible; and (b) describe
+      the limitations and the code they affect. Such description must be placed
+      in a text file included with all distributions of the Covered Software
+      under this License. Except to the extent prohibited by statute or
+      regulation, such description must be sufficiently detailed for a
+      recipient of ordinary skill to be able to understand it.
+
+  5. Termination
+
+      5.1. The rights granted under this License will terminate automatically
+      if You fail to comply with any of its terms. However, if You become
+      compliant, then the rights granted under this License from a particular
+      Contributor are reinstated (a) provisionally, unless and until such
+      Contributor explicitly and finally terminates Your grants, and (b) on an
+      ongoing basis, if such Contributor fails to notify You of the
+      non-compliance by some reasonable means prior to 60 days after You have
+      come back into compliance. Moreover, Your grants from a particular
+      Contributor are reinstated on an ongoing basis if such Contributor
+      notifies You of the non-compliance by some reasonable means, this is the
+      first time You have received notice of non-compliance with this License
+      from such Contributor, and You become compliant prior to 30 days after
+      Your receipt of the notice.
+
+      5.2. If You initiate litigation against any entity by asserting a patent
+      infringement claim (excluding declaratory judgment actions,
+      counter-claims, and cross-claims) alleging that a Contributor Version
+      directly or indirectly infringes any patent, then the rights granted to
+      You by any and all Contributors for the Covered Software under Section
+      2.1 of this License shall terminate.
+
+      5.3. In the event of termination under Sections 5.1 or 5.2 above, all end
+      user license agreements (excluding distributors and resellers) which have
+      been validly granted by You or Your distributors under this License prior
+      to termination shall survive termination.
+
+  6. Disclaimer of Warranty
+
+      Covered Software is provided under this License on an "as is" basis,
+      without warranty of any kind, either expressed, implied, or statutory,
+      including, without limitation, warranties that the Covered Software is
+      free of defects, merchantable, fit for a particular purpose or
+      non-infringing. The entire risk as to the quality and performance of the
+      Covered Software is with You. Should any Covered Software prove defective
+      in any respect, You (not any Contributor) assume the cost of any
+      necessary servicing, repair, or correction. This disclaimer of warranty
+      constitutes an essential part of this License. No use of any Covered
+      Software is authorized under this License except under this disclaimer.
+
+  7. Limitation of Liability
+
+      Under no circumstances and under no legal theory, whether tort (including
+      negligence), contract, or otherwise, shall any Contributor, or anyone who
+      distributes Covered Software as permitted above, be liable to You for any
+      direct, indirect, special, incidental, or consequential damages of any
+      character including, without limitation, damages for lost profits, loss
+      of goodwill, work stoppage, computer failure or malfunction, or any and
+      all other commercial damages or losses, even if such party shall have
+      been informed of the possibility of such damages. This limitation of
+      liability shall not apply to liability for death or personal injury
+      resulting from such party's negligence to the extent applicable law
+      prohibits such limitation. Some jurisdictions do not allow the exclusion
+      or limitation of incidental or consequential damages, so this exclusion
+      and limitation may not apply to You.
+
+  8. Litigation
+
+      Any litigation relating to this License may be brought only in the courts
+      of a jurisdiction where the defendant maintains its principal place of
+      business and such litigation shall be governed by laws of that
+      jurisdiction, without reference to its conflict-of-law provisions.
+      Nothing in this Section shall prevent a party's ability to bring
+      cross-claims or counter-claims.
+
+  9. Miscellaneous
+
+      This License represents the complete agreement concerning the subject
+      matter hereof. If any provision of this License is held to be
+      unenforceable, such provision shall be reformed only to the extent
+      necessary to make it enforceable. Any law or regulation which provides
+      that the language of a contract shall be construed against the drafter
+      shall not be used to construe this License against a Contributor.
+
+  10. Versions of the License
+
+      10.1. New Versions
+
+          Mozilla Foundation is the license steward. Except as provided in
+          Section 10.3, no one other than the license steward has the right to
+          modify or publish new versions of this License. Each version will be
+          given a distinguishing version number.
+
+    10.2. Effect of New Versions
+
+          You may distribute the Covered Software under the terms of the
+          version of the License under which You originally received the
+          Covered Software, or under the terms of any subsequent version
+          published by the license steward.
+
+    10.3. Modified Versions
+
+          If you create software not governed by this License, and you want to
+          create a new license for such software, you may create and use a
+          modified version of this License if you rename the license and remove
+          any references to the name of the license steward (except to note
+          that such modified license differs from this License).
+
+      10.4. Distributing Source Code Form that is Incompatible With Secondary
+      Licenses
+
+          If You choose to distribute Source Code Form that is Incompatible
+          With Secondary Licenses under the terms of this version of the
+          License, the notice described in Exhibit B of this License must be
+          attached.
+
+(65) The Unlicense:
+
+Chef Habitat Release Review 2.0 incorporates BurntSushi/byteorder 1.5.0,
+BurntSushi/termcolor 1.4.1, BurntSushi/walkdir 2.5.0, and rust-aho-corasick
+1.1.3.
+
+  This is free and unencumbered software released into the public domain.
+
+  Anyone is free to copy, modify, publish, use, compile, sell, or distribute
+  this software, either in source code form or as a compiled binary, for any
+  purpose, commercial or non-commercial, and by any means.
+
+  In jurisdictions that recognize copyright laws, the author or authors of this
+  software dedicate any and all copyright interest in the software to the
+  public domain. We make this dedication for the benefit of the public at large
+  and to the detriment of our heirs and successors. We intend this dedication
+  to be an overt act of relinquishment in perpetuity of all present and future
+  rights to this software under copyright law.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+  For more information, please refer to <http://unlicense.org/>
+
+(66) Unicode License Agreement - Data Files and Software (2016):
+
+Chef Habitat Release Review 2.0 incorporates unicode-org/icu4x 0.1.2.
+
+(67) Unicode License v3:
+
+Chef Habitat Release Review 2.0 incorporates icu_normalizer 2.0.0, icu_provider
+2.0.0, litemap 0.8.0, tinystr 0.8.1, unicode-ident 1.0.18, unicode-org/icu4x
+0.1.6, unicode-org/icu4x 0.2.2, unicode-org/icu4x 2.0.0, unicode-org/icu4x
+2.0.1, writeable 0.6.1, yoke 0.8.0, yoke-derive 0.8.0, zerovec 0.11.4, and
+zerovec-derive 0.11.1.
+
+(68) zlib License:
+
+Chef Habitat Release Review 2.0 incorporates foldhash 0.1.5.
+
+  Copyright (c)  Orson Peters
+
+  This software is provided 'as-is', without any express or implied warranty.
+  In no event will the authors be held liable for any damages arising from the
+  use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software in a
+     product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+
+  3. This notice may not be removed or altered from any source distribution.
+
+NOTICE FROM PROGRESS SOFTWARE CORPORATION: Additional notices may be included
+in the release notes or other documentation that accompanies updates received
+in connection with support of the Product.
+
+Updated November 4, 2025

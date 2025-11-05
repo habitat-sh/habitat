@@ -62,6 +62,7 @@ do_build() {
 do_install() {
   install -v -D "$CARGO_TARGET_DIR"/"$rustc_target"/"${cargo_build_mode#--}"/$bin \
     "$pkg_prefix"/bin/$bin
+  cp "$SRC_PATH/../../NOTICES.txt" "$pkg_prefix"/NOTICES.txt
 }
 
 do_strip() {

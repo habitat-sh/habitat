@@ -531,6 +531,13 @@ install_hab() {
       info "Installing hab into /usr/local/bin"
       mkdir -pv /usr/local/bin
       install -v "${archive_dir}"/hab /usr/local/bin/hab
+      
+      # Copy NOTICES.txt if it exists in the archive
+      if [ -f "${archive_dir}/NOTICES.txt" ]; then
+        info "Installing NOTICES.txt into /usr/local/share/habitat"
+        mkdir -pv /usr/local/share/habitat
+        install -v "${archive_dir}/NOTICES.txt" /usr/local/share/habitat/NOTICES.txt
+      fi
       ;;
     aarch64)
       setup_hab_root

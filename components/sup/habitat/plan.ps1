@@ -59,10 +59,11 @@ function Invoke-Build {
 }
 
 function Invoke-Install {
-    Copy-Item "$env:CARGO_TARGET_DIR/release/hab-sup.exe" "$pkg_prefix/bin/hab-sup.exe"
-    Copy-Item "$PLAN_CONTEXT/../static/named_pipe_service.ps1" "$pkg_prefix/bin/named_pipe_service.ps1"
-    Copy-Item "$(Get-HabPackagePath "zeromq")/bin/*.dll" "$pkg_prefix/bin"
-    Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2022")/bin/*.dll" "$pkg_prefix/bin"
+    Copy-Item -Path "$env:CARGO_TARGET_DIR/release/hab-sup.exe" -Destination "$pkg_prefix/bin/hab-sup.exe"
+    Copy-Item -Path "$PLAN_CONTEXT/../static/named_pipe_service.ps1" -Destination "$pkg_prefix/bin/named_pipe_service.ps1"
+    Copy-Item -Path "$(Get-HabPackagePath "zeromq")/bin/*.dll" -Destination "$pkg_prefix/bin"
+    Copy-Item -Path "$(Get-HabPackagePath "visual-cpp-redist-2022")/bin/*.dll" -Destination "$pkg_prefix/bin"
+    Copy-Item -Path "$SRC_PATH/../../NOTICES.txt" -Destination "$pkg_prefix/NOTICES.txt"
 }
 
 function Invoke-Clean {
