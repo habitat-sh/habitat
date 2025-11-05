@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.315 -->
-## [2.0.315](https://github.com/habitat-sh/habitat/tree/2.0.315) (2025-11-05)
+<!-- latest_release 2.0.316 -->
+## [2.0.316](https://github.com/habitat-sh/habitat/tree/2.0.316) (2025-11-05)
 
 #### Merged Pull Requests
-- remove origin fallback in install.sh which fails in docker [#10038](https://github.com/habitat-sh/habitat/pull/10038) ([mwrock](https://github.com/mwrock))
+- Bump rustls from 0.23.34 to 0.23.35 [#10039](https://github.com/habitat-sh/habitat/pull/10039) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump rustls from 0.23.34 to 0.23.35 [#10039](https://github.com/habitat-sh/habitat/pull/10039) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.316 -->
 - remove origin fallback in install.sh which fails in docker [#10038](https://github.com/habitat-sh/habitat/pull/10038) ([mwrock](https://github.com/mwrock)) <!-- 2.0.315 -->
 - Migrator should not migrate cli via packages.chef.io [#10036](https://github.com/habitat-sh/habitat/pull/10036) ([mwrock](https://github.com/mwrock)) <!-- 2.0.314 -->
 - use manifest to determine correct origin in installer [#10037](https://github.com/habitat-sh/habitat/pull/10037) ([mwrock](https://github.com/mwrock)) <!-- 2.0.313 -->
