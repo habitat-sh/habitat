@@ -63,6 +63,7 @@ function Invoke-Install {
     Copy-Item "$PLAN_CONTEXT/../static/named_pipe_service.ps1" "$pkg_prefix/bin/named_pipe_service.ps1"
     Copy-Item "$(Get-HabPackagePath "zeromq")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2022")/bin/*.dll" "$pkg_prefix/bin"
+    Copy-Item "$SRC_PATH/../../NOTICES.txt" "$pkg_prefix"/NOTICES.txt
 }
 
 function Invoke-Clean {
