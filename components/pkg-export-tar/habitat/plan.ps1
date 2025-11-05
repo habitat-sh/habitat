@@ -54,7 +54,7 @@ function Invoke-Build {
 }
 
 function Invoke-Install {
-    Copy-Item "$env:CARGO_TARGET_DIR/release/hab-pkg-export-tar.exe" "$pkg_prefix/bin/hab-pkg-export-tar.exe"
-    Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2022")/bin/*.dll" "$pkg_prefix/bin"
-    Copy-Item "$SRC_PATH/../../NOTICES.txt" "$pkg_prefix"/NOTICES.txt
+    Copy-Item -Path "$env:CARGO_TARGET_DIR/release/hab-pkg-export-tar.exe" -Destination "$pkg_prefix/bin/hab-pkg-export-tar.exe"
+    Copy-Item -Path "$(Get-HabPackagePath "visual-cpp-redist-2022")/bin/*.dll" -Destination "$pkg_prefix/bin"
+    Copy-Item -Path "$SRC_PATH/../../NOTICES.txt" -Destination "$pkg_prefix"/NOTICES.txt
 }
