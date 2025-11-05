@@ -673,7 +673,7 @@ get_origin_from_manifest() {
   # Package identifiers are in format: origin/name/version/release
   origin=$(grep -o '"[^"]*\/[^"]*\/[^"]*\/[^"]*"' "$manifest_file" 2>/dev/null | \
             head -1 | \
-            sed 's/^"\([^/]*\)\/.*$/\1/' 2>/dev/null) || origin="core"
+            sed 's/^"\([^/]*\)\/.*$/\1/' 2>/dev/null)
   
   # Validate that we got a non-empty origin
   if [ -z "$origin" ] || [ "$origin" = "null" ]; then
