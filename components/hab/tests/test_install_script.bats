@@ -34,7 +34,7 @@ installed_target() {
   cat /hab/pkgs/"${origin}"/hab/"$version"/"$release"/TARGET
 }
 
-@test "Install latest for x86_86-linux" {
+@test "Install latest for x86_64-linux" {
   linux || skip "Did not detect a Linux system"
   run components/hab/install.sh
 
@@ -51,7 +51,7 @@ installed_target() {
   [ "$(installed_target)" == "x86_64-linux" ]
 }
 
-@test "Install legacy package for x86_84-linux" {
+@test "Install legacy package for x86_64-linux" {
   linux || skip "Did not detect a Linux system"
   run components/hab/install.sh -v 0.79.1
 
@@ -60,7 +60,7 @@ installed_target() {
   [ "$(installed_target)" == "x86_64-linux" ]
 }
 
-@test "Install package for x86_84-linux from acceptance" {
+@test "Install package for x86_64-linux from acceptance" {
   linux || skip "Did not detect a Linux system"
   run components/hab/install.sh -c acceptance
 
@@ -69,11 +69,19 @@ installed_target() {
   [ "$(installed_target chef)" == "x86_64-linux" ]
 }
 
-@test "Install latest for x86_86-darwin" {
+@test "Install latest for x86_64-darwin" {
   darwin || skip "Did not detect a Darwin system"
   run components/hab/install.sh
 
   [ "$status" -eq 0 ]
+}
+
+@test "Install package for x86_64-darwin from acceptance" {
+  darwin || skip "Did not detect a Darwin system"
+  run components/hab/install.sh -c acceptance
+
+  [ "$status" -eq 0 ]
+  [ -f "/usr/local/share/habitat/NOTICES.txt" ]
 }
 
 @test "Install specific version for x86_64-darwin" {
