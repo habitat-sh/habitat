@@ -13,8 +13,8 @@ build_version=$(jq -r -c ".version"  manifest.json)
 
 pushd ./habitat.wiki
   # Prepend release date to release notes
-  RELEASE_DATE="Release date: $(date +"%B %d, %Y")\n"
-  echo -e "$RELEASE_DATE" | cat - Pending-Release-Notes.md > temp && mv temp Pending-Release-Notes.md
+  RELEASE_DATE="Release date: $(date +"%B %d, %Y")\n\n"
+  printf "$RELEASE_DATE" | cat - Pending-Release-Notes.md > temp && mv temp Pending-Release-Notes.md
 
   # Publish release notes to S3
   aws s3 cp Pending-Release-Notes.md "s3://chef-automate-artifacts/release-notes/${EXPEDITOR_PROJECT:-habitat}/${build_version}.md" --acl public-read --content-type "text/plain" --profile chef-cd
