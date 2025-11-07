@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.317 -->
-## [2.0.317](https://github.com/habitat-sh/habitat/tree/2.0.317) (2025-11-05)
+<!-- latest_release 2.0.318 -->
+## [2.0.318](https://github.com/habitat-sh/habitat/tree/2.0.318) (2025-11-07)
 
 #### Merged Pull Requests
-- adding NOTICES.txt [#10040](https://github.com/habitat-sh/habitat/pull/10040) ([mwrock](https://github.com/mwrock))
+- Bump aws-sdk-ecr from 1.97.0 to 1.98.0 [#10044](https://github.com/habitat-sh/habitat/pull/10044) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump aws-sdk-ecr from 1.97.0 to 1.98.0 [#10044](https://github.com/habitat-sh/habitat/pull/10044) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.318 -->
 - adding NOTICES.txt [#10040](https://github.com/habitat-sh/habitat/pull/10040) ([mwrock](https://github.com/mwrock)) <!-- 2.0.317 -->
 - Bump rustls from 0.23.34 to 0.23.35 [#10039](https://github.com/habitat-sh/habitat/pull/10039) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.316 -->
 - remove origin fallback in install.sh which fails in docker [#10038](https://github.com/habitat-sh/habitat/pull/10038) ([mwrock](https://github.com/mwrock)) <!-- 2.0.315 -->
