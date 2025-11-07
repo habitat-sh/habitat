@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.318 -->
-## [2.0.318](https://github.com/habitat-sh/habitat/tree/2.0.318) (2025-11-07)
+<!-- latest_release 2.0.319 -->
+## [2.0.319](https://github.com/habitat-sh/habitat/tree/2.0.319) (2025-11-07)
 
 #### Merged Pull Requests
-- Bump aws-sdk-ecr from 1.97.0 to 1.98.0 [#10044](https://github.com/habitat-sh/habitat/pull/10044) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- test that the notices.txt is saved into shared folder on macos [#10043](https://github.com/habitat-sh/habitat/pull/10043) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- test that the notices.txt is saved into shared folder on macos [#10043](https://github.com/habitat-sh/habitat/pull/10043) ([mwrock](https://github.com/mwrock)) <!-- 2.0.319 -->
+- Bump quote from 1.0.41 to 1.0.42 [#10045](https://github.com/habitat-sh/habitat/pull/10045) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.319 -->
 - Bump aws-sdk-ecr from 1.97.0 to 1.98.0 [#10044](https://github.com/habitat-sh/habitat/pull/10044) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.318 -->
 - adding NOTICES.txt [#10040](https://github.com/habitat-sh/habitat/pull/10040) ([mwrock](https://github.com/mwrock)) <!-- 2.0.317 -->
 - Bump rustls from 0.23.34 to 0.23.35 [#10039](https://github.com/habitat-sh/habitat/pull/10039) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.316 -->
