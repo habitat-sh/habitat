@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.321 -->
-## [2.0.321](https://github.com/habitat-sh/habitat/tree/2.0.321) (2025-11-10)
+<!-- latest_release 2.0.322 -->
+## [2.0.322](https://github.com/habitat-sh/habitat/tree/2.0.322) (2025-11-10)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.44 to 1.2.45 [#10047](https://github.com/habitat-sh/habitat/pull/10047) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- stop publishing hab 2 builds to rc1 [#10049](https://github.com/habitat-sh/habitat/pull/10049) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- stop publishing hab 2 builds to rc1 [#10049](https://github.com/habitat-sh/habitat/pull/10049) ([mwrock](https://github.com/mwrock)) <!-- 2.0.322 -->
+- Bump syn from 2.0.109 to 2.0.110 [#10048](https://github.com/habitat-sh/habitat/pull/10048) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.322 -->
+- Add release date to publish-release-notes.sh script [#10042](https://github.com/habitat-sh/habitat/pull/10042) ([IanMadd](https://github.com/IanMadd)) <!-- 2.0.322 -->
 - Bump cc from 1.2.44 to 1.2.45 [#10047](https://github.com/habitat-sh/habitat/pull/10047) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.321 -->
 - Bump syn from 2.0.108 to 2.0.109 [#10041](https://github.com/habitat-sh/habitat/pull/10041) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.320 -->
 - test that the notices.txt is saved into shared folder on macos [#10043](https://github.com/habitat-sh/habitat/pull/10043) ([mwrock](https://github.com/mwrock)) <!-- 2.0.319 -->
