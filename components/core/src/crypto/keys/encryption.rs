@@ -31,12 +31,13 @@ const SECRET_BOX_KEY_VERSION: &str = "BOX-SEC-1";
 /// Private module to re-export the various sodiumoxide concepts we
 /// use, to ensure everyone is using them consistently.
 mod primitives {
-    pub use sodiumoxide::crypto::{box_::{curve25519xsalsa20poly1305::{gen_nonce,
-                                                                      Nonce,
-                                                                      PublicKey,
-                                                                      SecretKey},
-                                         gen_keypair,
-                                         open,
-                                         seal},
-                                  sealedbox};
+    pub use dryoc::types::*;
+    pub use dryoc::classic::crypto_box::{Nonce,
+                                         PublicKey,
+                                         SecretKey};
+
+    pub fn gen_nonce() -> Nonce { Nonce::gen() }
+    pub fn gen_keypair() -> (PublicKey, SecretKey) {
+       dryoc::classic::crypto_box::crypto_box_keypair()
+    }
 }

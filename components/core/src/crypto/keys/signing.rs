@@ -12,11 +12,11 @@ use std::{io::Read,
 /// Private module to re-export the various sodiumoxide concepts we
 /// use, to keep them all consolidated and abstracted.
 mod primitives {
-    pub use sodiumoxide::crypto::sign::{ed25519::{PublicKey,
-                                                  SecretKey},
-                                        gen_keypair,
-                                        sign,
-                                        verify};
+    pub use crypto_box::{PublicKey, SecretKey}; // gen_keypair, sign, verify;
+
+    pub fn gen_keypair() -> (PublicKey, SecretKey)  {
+       todo!();
+    }
 }
 
 /// Given the name of an origin, generate a new signing key pair.
