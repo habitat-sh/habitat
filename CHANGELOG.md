@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.322 -->
-## [2.0.322](https://github.com/habitat-sh/habitat/tree/2.0.322) (2025-11-10)
+<!-- latest_release 2.0.323 -->
+## [2.0.323](https://github.com/habitat-sh/habitat/tree/2.0.323) (2025-11-12)
 
 #### Merged Pull Requests
-- stop publishing hab 2 builds to rc1 [#10049](https://github.com/habitat-sh/habitat/pull/10049) ([mwrock](https://github.com/mwrock))
+- Bump hyper from 1.7.0 to 1.8.0 [#10050](https://github.com/habitat-sh/habitat/pull/10050) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump hyper from 1.7.0 to 1.8.0 [#10050](https://github.com/habitat-sh/habitat/pull/10050) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.323 -->
 - stop publishing hab 2 builds to rc1 [#10049](https://github.com/habitat-sh/habitat/pull/10049) ([mwrock](https://github.com/mwrock)) <!-- 2.0.322 -->
 - Bump syn from 2.0.109 to 2.0.110 [#10048](https://github.com/habitat-sh/habitat/pull/10048) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.322 -->
 - Add release date to publish-release-notes.sh script [#10042](https://github.com/habitat-sh/habitat/pull/10042) ([IanMadd](https://github.com/IanMadd)) <!-- 2.0.322 -->
