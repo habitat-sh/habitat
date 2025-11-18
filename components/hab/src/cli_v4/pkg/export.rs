@@ -7,8 +7,7 @@ use clap_v4 as clap;
 use clap::{Args,
            Subcommand};
 
-use habitat_common::ui::{UIWriter,
-                         UI};
+use habitat_common::ui::UI;
 
 use crate::{command::pkg::export,
             error::Result as HabResult};
@@ -31,10 +30,6 @@ pub(crate) enum PkgExportCommand {
     #[command(disable_help_flag = true)]
     Container(PkgExportCommandOptions),
 
-    #[cfg(any(target_os = "linux", target_os = "windows"))]
-    #[command(hide = true)]
-    Docker(PkgExportCommandOptions),
-
     /// Tar Exporter
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     #[command(disable_help_flag = true)]
@@ -46,16 +41,6 @@ impl PkgExportCommand {
         match self {
             #[cfg(any(target_os = "linux", target_os = "windows"))]
             PkgExportCommand::Container(opts) => {
-                export::container::start(ui,
-                                         &opts.args
-                                              .iter()
-                                              .map(OsString::from)
-                                              .collect::<Vec<_>>()).await
-            }
-            #[cfg(any(target_os = "linux", target_os = "windows"))]
-            PkgExportCommand::Docker(opts) => {
-                ui.warn("'hab pkg export docker' is now a deprecated alias for 'hab pkg export \
-                         container'. Please update your automation and processes accordingly.")?;
                 export::container::start(ui,
                                          &opts.args
                                               .iter()

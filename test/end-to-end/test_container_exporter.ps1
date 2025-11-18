@@ -56,24 +56,6 @@ function Confirm-ContainerBehavior() {
     [string]$headers.Server | Should -BeLike "nginx/*"
 }
 
-# This is just to ensure that our deprecated `hab pkg export docker`
-# alias still functions, until we decide to remove it.
-Describe "Old 'hab pkg export docker' alias" {
-    BeforeAll {
-        $tag = New-CustomTag
-        Write-Host (hab pkg export docker --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --tag-custom=$tag | Out-String)
-        $script:image = "core/nginx:$tag"
-    }
-
-    AfterAll {
-        docker rmi $script:image
-    }
-
-    It "still works" {
-        docker inspect $script:image | Should -Not -Be $null
-    }
-}
-
 Describe "hab pkg export container" {
     BeforeAll {
         $tag = New-CustomTag
