@@ -1,6 +1,6 @@
-use habitat_common::{ui::{UIWriter,
-                          UI},
-                     FeatureFlag};
+use habitat_common::{FeatureFlag,
+                     ui::{UI,
+                          UIWriter}};
 
 use hab::cli_driver;
 

@@ -1,20 +1,20 @@
 use super::{BUSYBOX_IDENT,
             VERSION};
 use crate::{common::{self,
+                     PROGRAM_NAME,
                      command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
                                                  LocalPackageUsage},
                      ui::{Status,
-                          UIWriter,
-                          UI},
-                     PROGRAM_NAME},
-            hcore::{fs::{cache_artifact_path,
-                         CACHE_ARTIFACT_PATH,
+                          UI,
+                          UIWriter}},
+            hcore::{ChannelIdent,
+                    fs::{CACHE_ARTIFACT_PATH,
                          CACHE_KEY_PATH,
-                         CACHE_KEY_PATH_POSTFIX},
-                    package::PackageIdent,
-                    ChannelIdent},
+                         CACHE_KEY_PATH_POSTFIX,
+                         cache_artifact_path},
+                    package::PackageIdent},
             rootfs};
 use anyhow::Result;
 use log::debug;

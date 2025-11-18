@@ -10,9 +10,9 @@ use clap::{ArgAction,
 use habitat_core::{fs::FS_ROOT_PATH,
                    package::PackageIdent};
 
-use habitat_common::{cli::{clap_validators::HabPkgIdentValueParser,
-                           BINLINK_DIR_ENVVAR,
-                           DEFAULT_BINLINK_DIR},
+use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
+                           DEFAULT_BINLINK_DIR,
+                           clap_validators::HabPkgIdentValueParser},
                      ui::UI};
 
 use crate::{command::pkg::binlink,

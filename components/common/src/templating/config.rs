@@ -6,8 +6,8 @@ use crate::{error::{Error,
                     fs::{self,
                          USER_CONFIG_FILE}},
             outputln,
-            templating::{package::Pkg,
-                         TemplateRenderer}};
+            templating::{TemplateRenderer,
+                         package::Pkg}};
 use log::{debug,
           trace};
 use serde::{Deserialize,
@@ -347,21 +347,25 @@ impl Serialize for Cfg {
     {
         let mut table = toml::value::Table::new();
         if let Some(ref default_cfg) = self.default
-            && let Err(err) = toml_merge(&mut table, default_cfg) {
-                outputln!("Error merging default-cfg into config, {}", err);
-            }
+           && let Err(err) = toml_merge(&mut table, default_cfg)
+        {
+            outputln!("Error merging default-cfg into config, {}", err);
+        }
         if let Some(ref env_cfg) = self.environment
-            && let Err(err) = toml_merge(&mut table, env_cfg) {
-                outputln!("Error merging environment-cfg into config, {}", err);
-            }
+           && let Err(err) = toml_merge(&mut table, env_cfg)
+        {
+            outputln!("Error merging environment-cfg into config, {}", err);
+        }
         if let Some(ref user_cfg) = self.user
-            && let Err(err) = toml_merge(&mut table, user_cfg) {
-                outputln!("Error merging user-cfg into config, {}", err);
-            }
+           && let Err(err) = toml_merge(&mut table, user_cfg)
+        {
+            outputln!("Error merging user-cfg into config, {}", err);
+        }
         if let Some(ref gossip_cfg) = self.gossip
-            && let Err(err) = toml_merge(&mut table, gossip_cfg) {
-                outputln!("Error merging gossip-cfg into config, {}", err);
-            }
+           && let Err(err) = toml_merge(&mut table, gossip_cfg)
+        {
+            outputln!("Error merging gossip-cfg into config, {}", err);
+        }
 
         serializer.collect_map(&table)
     }
@@ -785,11 +789,14 @@ mod test {
             "#,
         );
 
-        match toml_merge(&mut me, &other) { Err(Error::TomlMergeError(_)) => {
-            // expected result
-        } _ => {
-            panic!("Should fail with Error::TomlMergeError");
-        }}
+        match toml_merge(&mut me, &other) {
+            Err(Error::TomlMergeError(_)) => {
+                // expected result
+            }
+            _ => {
+                panic!("Should fail with Error::TomlMergeError");
+            }
+        }
     }
 
     struct TestPkg {

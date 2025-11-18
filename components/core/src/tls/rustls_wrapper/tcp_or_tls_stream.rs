@@ -1,7 +1,7 @@
 use pin_project::pin_project;
-use rustls::{pki_types::ServerName,
-             ClientConfig as TlsClientConfig,
-             ServerConfig as TlsServerConfig};
+use rustls::{ClientConfig as TlsClientConfig,
+             ServerConfig as TlsServerConfig,
+             pki_types::ServerName};
 use std::{convert::TryFrom,
           pin::Pin,
           sync::Arc,

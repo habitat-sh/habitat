@@ -2,11 +2,11 @@ use super::IncarnatedPackageIdent;
 use crate::{manager::service::Service,
             util};
 use habitat_core::{self,
+                   ChannelIdent,
                    package::{FullyQualifiedPackageIdent,
                              Identifiable,
                              PackageIdent},
-                   service::ServiceGroup,
-                   ChannelIdent};
+                   service::ServiceGroup};
 use habitat_sup_protocol::types::UpdateCondition;
 use log::{debug,
           trace,

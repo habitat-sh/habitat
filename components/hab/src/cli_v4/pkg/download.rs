@@ -7,29 +7,29 @@ use std::path::PathBuf;
 use clap::{ArgAction,
            Parser};
 
-use habitat_common::{cli::{clap_validators::{HabPkgIdentValueParser,
+use habitat_common::{Error as HabitatCommonError,
+                     cli::{PACKAGE_TARGET_ENVVAR,
+                           clap_validators::{HabPkgIdentValueParser,
                                              TomlOrPkgIdentFileValueParser},
                            file_into_idents,
-                           is_toml_file,
-                           PACKAGE_TARGET_ENVVAR},
-                     ui::UI,
-                     Error as HabitatCommonError};
+                           is_toml_file},
+                     ui::UI};
 
-use habitat_core::{env::Config,
-                   package::{target,
-                             Identifiable,
+use habitat_core::{ChannelIdent,
+                   env::Config,
+                   package::{Identifiable,
                              PackageIdent,
-                             PackageTarget},
-                   ChannelIdent};
+                             PackageTarget,
+                             target}};
 
-use crate::{cli_v4::utils::{AuthToken,
+use crate::{PRODUCT,
+            VERSION,
+            cli_v4::utils::{AuthToken,
                             BldrUrl},
             command::pkg::{download,
                            download::{PackageSet,
                                       PackageSetFile}},
-            error::Result as HabResult,
-            PRODUCT,
-            VERSION};
+            error::Result as HabResult};
 
 #[derive(Debug, Clone, Parser)]
 #[command(arg_required_else_help = true,

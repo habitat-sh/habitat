@@ -13,25 +13,25 @@
 //!
 //! This should be extended to cover uploading specific packages, and finding them by ways more
 //! complex than just latest version.
-use crate::{api_client::{self,
+use crate::{PRODUCT,
+            VERSION,
+            api_client::{self,
                          BuilderAPIClient,
                          Client},
             common::{command::package::install::{RETRIES,
                                                  RETRY_WAIT},
                      ui::{Status,
-                          UIWriter,
-                          UI}},
+                          UI,
+                          UIWriter}},
             error::{Error,
-                    Result},
-            PRODUCT,
-            VERSION};
-use habitat_core::{crypto::{artifact::get_artifact_header,
+                    Result}};
+use habitat_core::{ChannelIdent,
+                   crypto::{artifact::get_artifact_header,
                             keys::{KeyCache,
                                    KeyFile}},
                    package::{PackageArchive,
                              PackageIdent,
-                             PackageTarget},
-                   ChannelIdent};
+                             PackageTarget}};
 use log::trace;
 use reqwest::StatusCode;
 use retry::delay;
@@ -178,10 +178,9 @@ async fn upload_into_depot(ui: &mut UI,
     ui.status(Status::Uploaded, ident)?;
 
     // Promote to additional_release_channel if specified
-    if package_exists_in_target
-        && let Some(channel) = additional_release_channel.clone() {
-            promote_to_channel(ui, api_client, (ident, target), channel, token).await?
-        }
+    if package_exists_in_target && let Some(channel) = additional_release_channel.clone() {
+        promote_to_channel(ui, api_client, (ident, target), channel, token).await?
+    }
 
     Ok(())
 }

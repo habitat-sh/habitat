@@ -1,13 +1,13 @@
 #[cfg(test)]
 use super::PackageTarget;
-use super::{list::package_list_for_ident,
-            metadata::{parse_key_value,
-                       read_metafile,
-                       Bind,
+use super::{Identifiable,
+            PackageIdent,
+            list::package_list_for_ident,
+            metadata::{Bind,
                        MetaFile,
-                       PackageType},
-            Identifiable,
-            PackageIdent};
+                       PackageType,
+                       parse_key_value,
+                       read_metafile}};
 use crate::{error::{Error,
                     Result},
             fs,

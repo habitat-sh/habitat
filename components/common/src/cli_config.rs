@@ -2,16 +2,16 @@
 //! for more than simply CLI configuration. If the opportunity arose it would be useful to rename
 //! this to convey that it is general configuration.
 use crate::types::ResolvedListenCtlAddr;
-use habitat_core::{fs::{am_i_root,
-                        FS_ROOT_PATH},
+use habitat_core::{fs::{FS_ROOT_PATH,
+                        am_i_root},
                    origin::Origin,
                    tls::rustls_wrapper::{CertificateChainCli,
                                          PrivateKeyCli,
                                          RootCertificateStoreCli}};
 use log::debug;
-use rustls::{pki_types::PrivateKeyDer,
-             ClientConfig as TlsClientConfig,
-             Error as TLSError};
+use rustls::{ClientConfig as TlsClientConfig,
+             Error as TLSError,
+             pki_types::PrivateKeyDer};
 use serde::{Deserialize,
             Serialize};
 use std::{fs,
@@ -115,8 +115,9 @@ impl CliConfig {
 
 fn cli_config_path() -> PathBuf {
     if !am_i_root()
-        && let Some(home) = dirs::home_dir() {
-            return home.join(format!(".{}", CLI_CONFIG_PATH_POSTFIX));
-        }
+       && let Some(home) = dirs::home_dir()
+    {
+        return home.join(format!(".{}", CLI_CONFIG_PATH_POSTFIX));
+    }
     PathBuf::from(&*FS_ROOT_PATH).join(CLI_CONFIG_PATH_POSTFIX)
 }

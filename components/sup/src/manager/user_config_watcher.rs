@@ -11,15 +11,15 @@ use std::{collections::HashMap,
           io,
           path::{Path,
                  PathBuf},
-          sync::{mpsc::{channel,
-                        sync_channel,
-                        Receiver,
+          sync::{Arc,
+                 Mutex,
+                 mpsc::{Receiver,
                         Sender,
                         SyncSender,
                         TryRecvError,
-                        TrySendError},
-                 Arc,
-                 Mutex},
+                        TrySendError,
+                        channel,
+                        sync_channel}},
           thread::{self,
                    Builder as ThreadBuilder},
           time::Duration};
@@ -125,11 +125,12 @@ impl UserConfigWatcher {
                                  .lock()
                                  .expect("states lock was poisoned")
                                  .remove(service.name())
-            && let Err(e) = state.stop_running.send(()) {
-                debug!("Error stopping user-config watcher thread for service {}: {:?}",
-                       service.name(),
-                       e);
-            }
+           && let Err(e) = state.stop_running.send(())
+        {
+            debug!("Error stopping user-config watcher thread for service {}: {:?}",
+                   service.name(),
+                   e);
+        }
     }
 
     /// Checks whether the watcher for the specified service has observed any events.
@@ -256,8 +257,8 @@ impl Worker {
 mod tests {
     use super::*;
     use habitat_core::locked_env_var;
-    use std::{fs::{remove_file,
-                   File},
+    use std::{fs::{File,
+                   remove_file},
               io::Write,
               str::FromStr,
               thread,

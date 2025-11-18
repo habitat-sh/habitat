@@ -1,8 +1,8 @@
 use crate::{error::Result,
             hcore::{fs as hfs,
                     package::{self,
-                              ident::PackageIdent,
-                              PackageInstall}}};
+                              PackageInstall,
+                              ident::PackageIdent}}};
 use bimap::BiMap;
 use petgraph::{self,
                graph::NodeIndex,

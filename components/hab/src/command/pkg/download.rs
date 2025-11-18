@@ -35,26 +35,26 @@ use std::{collections::{HashMap,
           str::FromStr};
 
 use crate::{api_client::{self,
-                         retry_builder_api,
+                         API_RETRY_COUNT,
+                         API_RETRY_DELAY,
                          APIFailure,
                          BuilderAPIClient,
                          Client,
                          Error::{APIClientError,
                                  APIError},
                          Package,
-                         API_RETRY_COUNT,
-                         API_RETRY_DELAY},
+                         retry_builder_api},
             common::error::Error as CommonError,
-            hcore::{crypto::{artifact,
+            hcore::{ChannelIdent,
+                    Error as CoreError,
+                    crypto::{artifact,
                              keys::{KeyCache,
                                     NamedRevision}},
                     fs::cache_root_path,
                     package::{Identifiable,
                               PackageArchive,
                               PackageIdent,
-                              PackageTarget},
-                    ChannelIdent,
-                    Error as CoreError}};
+                              PackageTarget}}};
 
 use habitat_common::ui::{Glyph,
                          Status,
@@ -85,13 +85,14 @@ impl PackageSetFile {
     // format_version is 1
     pub(crate) fn to_package_sets(&self) -> Result<Vec<PackageSet>> {
         if let Some(version) = self.format_version
-            && version != 1 {
-                return Err(Error::PackageSetParseError(format!("format_version \
-                                                                invalid, only \
-                                                                version 1 allowed \
-                                                                ({} provided",
-                                                               version)));
-            }
+           && version != 1
+        {
+            return Err(Error::PackageSetParseError(format!("format_version \
+                                                            invalid, only \
+                                                            version 1 allowed \
+                                                            ({} provided",
+                                                           version)));
+        }
         let mut sets = vec![];
         for (target, pkg_sets) in &self.targets {
             for pkg_set in pkg_sets {

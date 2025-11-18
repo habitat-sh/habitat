@@ -21,14 +21,14 @@
 //! * Unpack it
 
 use crate::{api_client::{self,
-                         retry_builder_api,
+                         API_RETRY_COUNT,
+                         API_RETRY_DELAY,
                          APIFailure,
                          BuilderAPIClient,
                          Client,
                          Error::{APIClientError,
                                  APIError},
-                         API_RETRY_COUNT,
-                         API_RETRY_DELAY},
+                         retry_builder_api},
             error::{Error,
                     Result},
             templating::hooks::{InstallHook,
@@ -36,23 +36,23 @@ use crate::{api_client::{self,
             ui::{Status,
                  UIWriter}};
 use habitat_core::{self,
+                   ChannelIdent,
                    crypto::{artifact,
                             keys::{Key,
                                    KeyCache,
                                    NamedRevision,
                                    PublicOriginSigningKey}},
-                   fs::{cache_key_path,
-                        pkg_install_path,
-                        AtomicWriter,
-                        DEFAULT_CACHED_ARTIFACT_PERMISSIONS},
-                   package::{list::temp_package_directory,
-                             FullyQualifiedPackageIdent,
+                   fs::{AtomicWriter,
+                        DEFAULT_CACHED_ARTIFACT_PERMISSIONS,
+                        cache_key_path,
+                        pkg_install_path},
+                   package::{FullyQualifiedPackageIdent,
                              Identifiable,
                              PackageArchive,
                              PackageIdent,
                              PackageInstall,
-                             PackageTarget},
-                   ChannelIdent};
+                             PackageTarget,
+                             list::temp_package_directory}};
 use log::debug;
 use reqwest::StatusCode;
 use serde::{Deserialize,
@@ -146,9 +146,10 @@ impl FromStr for InstallSource {
             }
         } else {
             if let Some(extension) = path.extension()
-                && extension == "hart" {
-                    return Err(habitat_core::Error::FileNotFound(s.to_string()));
-                }
+               && extension == "hart"
+            {
+                return Err(habitat_core::Error::FileNotFound(s.to_string()));
+            }
 
             match s.parse::<PackageIdent>() {
                 // TODO fn: I would have preferred to explicitly choose a `PackageTarget` here, but
@@ -1019,14 +1020,15 @@ impl InstallTask<'_> {
     {
         if let Ok(recommendations) = self.get_channel_recommendations((ident, target), token)
                                          .await
-            && !recommendations.is_empty() {
-                ui.warn(format!("No releases of {} exist in the '{}' channel",
-                                &ident, self.channel))?;
-                ui.warn("The following releases were found:")?;
-                for r in recommendations {
-                    ui.warn(format!("  {} in the '{}' channel", r.1, r.0))?;
-                }
+           && !recommendations.is_empty()
+        {
+            ui.warn(format!("No releases of {} exist in the '{}' channel",
+                            &ident, self.channel))?;
+            ui.warn("The following releases were found:")?;
+            for r in recommendations {
+                ui.warn(format!("  {} in the '{}' channel", r.1, r.0))?;
             }
+        }
 
         Ok(())
     }

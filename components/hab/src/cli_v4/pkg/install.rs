@@ -4,33 +4,33 @@ use clap_v4 as clap;
 
 use std::path::PathBuf;
 
-use clap::{builder::NonEmptyStringValueParser,
-           parser::ValueSource,
-           ArgAction,
+use clap::{ArgAction,
            CommandFactory,
-           Parser};
+           Parser,
+           builder::NonEmptyStringValueParser,
+           parser::ValueSource};
 
-use habitat_core::{env::Config,
-                   fs::{cache_artifact_path,
-                        FS_ROOT_PATH},
-                   package::PackageIdent,
-                   ChannelIdent};
+use habitat_core::{ChannelIdent,
+                   env::Config,
+                   fs::{FS_ROOT_PATH,
+                        cache_artifact_path},
+                   package::PackageIdent};
 
-use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
+use habitat_common::{FEATURE_FLAGS,
+                     FeatureFlag,
+                     cli::{BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR},
                      command::package::install::{self,
                                                  InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
                                                  LocalPackageUsage},
-                     ui::UI,
-                     FeatureFlag,
-                     FEATURE_FLAGS};
+                     ui::UI};
 
-use crate::{command::pkg::binlink,
-            error::Result as HabResult,
-            PRODUCT,
-            VERSION};
+use crate::{PRODUCT,
+            VERSION,
+            command::pkg::binlink,
+            error::Result as HabResult};
 
 use crate::cli_v4::utils::{AuthToken,
                            BldrUrl};

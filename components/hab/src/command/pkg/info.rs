@@ -1,5 +1,5 @@
-use crate::{common::ui::{UIWriter,
-                         UI},
+use crate::{common::ui::{UI,
+                         UIWriter},
             error::{Error,
                     Result},
             hcore::package::PackageArchiveInfo};

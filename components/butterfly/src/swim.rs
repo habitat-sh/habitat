@@ -6,8 +6,8 @@ use crate::{error::{Error,
                      Member,
                      Membership},
             protocol::{self,
-                       swim as proto,
-                       FromProto}};
+                       FromProto,
+                       swim as proto}};
 use bytes::BytesMut;
 use prost::Message as ProstMessage;
 use serde::Serialize;

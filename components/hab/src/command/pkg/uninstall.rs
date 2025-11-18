@@ -7,10 +7,10 @@ use habitat_common::ui::UI;
 use habitat_core::package::PackageIdent;
 use std::path::Path;
 
-pub use uninstall_impl::{uninstall,
-                         uninstall_all_but_latest,
-                         UninstallHookMode,
-                         UninstallSafety};
+pub use uninstall_impl::{UninstallHookMode,
+                         UninstallSafety,
+                         uninstall,
+                         uninstall_all_but_latest};
 
 #[derive(Clone, Copy)]
 pub enum UninstallMode {

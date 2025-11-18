@@ -13,10 +13,10 @@ use habitat_common::{package_graph::PackageGraph,
 use habitat_core::{error as herror,
                    fs::{self as hfs,
                         FS_ROOT_PATH},
-                   package::{list::temp_package_directory,
-                             Identifiable,
+                   package::{Identifiable,
                              PackageIdent,
-                             PackageInstall}};
+                             PackageInstall,
+                             list::temp_package_directory}};
 use habitat_sup_client::{SrvClient,
                          SrvClientError};
 use log::warn;

@@ -2,27 +2,27 @@
 // conditionals, possibly better to have a `build_windows` and `build_linux` kind of modules. Will
 // make the code readable and will remove this cluttering
 
-use crate::{error::Error,
-            graph::Graph,
-            util,
-            BUSYBOX_IDENT,
+use crate::{BUSYBOX_IDENT,
             CACERTS_IDENT,
-            VERSION};
+            VERSION,
+            error::Error,
+            graph::Graph,
+            util};
 
 use anyhow::Result;
 use clap::{self,
            ArgMatches};
 use hab::license;
-use habitat_common::{cfg_unix,
+use habitat_common::{PROGRAM_NAME,
+                     cfg_unix,
                      cfg_windows,
                      command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
                                                  LocalPackageUsage},
                      ui::{Status,
-                          UIWriter,
-                          UI},
-                     PROGRAM_NAME};
+                          UI,
+                          UIWriter}};
 
 cfg_unix! {
     use crate::rootfs;
@@ -41,16 +41,16 @@ cfg_windows! {
     use std::os::windows::fs::symlink_dir as symlink;
 }
 
-use habitat_core::{env,
-                   fs::{cache_artifact_path,
-                        CACHE_ARTIFACT_PATH,
+use habitat_core::{ChannelIdent,
+                   env,
+                   fs::{CACHE_ARTIFACT_PATH,
                         CACHE_KEY_PATH,
-                        CACHE_KEY_PATH_POSTFIX},
+                        CACHE_KEY_PATH_POSTFIX,
+                        cache_artifact_path},
                    package::{FullyQualifiedPackageIdent,
                              PackageArchive,
                              PackageIdent,
-                             PackageInstall},
-                   ChannelIdent};
+                             PackageInstall}};
 use log::debug;
 
 use std::{collections::HashMap,

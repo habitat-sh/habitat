@@ -1,9 +1,9 @@
 //! Utility functions to standardize reading certificates, private keys, and root certificate stores
 //! using `rustls`
 
-use rustls::{pki_types::{CertificateDer,
-                         PrivatePkcs8KeyDer},
-             RootCertStore};
+use rustls::{RootCertStore,
+             pki_types::{CertificateDer,
+                         PrivatePkcs8KeyDer}};
 use std::{fs::File,
           io::{self,
                BufReader},

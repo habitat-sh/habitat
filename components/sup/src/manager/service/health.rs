@@ -1,9 +1,9 @@
 use crate::{error::Error,
-            manager::service::{hook_runner,
+            manager::service::{ProcessOutput,
+                               ProcessState,
+                               hook_runner,
                                hooks::HealthCheckHook,
-                               supervisor::Supervisor,
-                               ProcessOutput,
-                               ProcessState}};
+                               supervisor::Supervisor}};
 use habitat_common::{outputln,
                      templating::package::Pkg};
 use habitat_core::service::{HealthCheckInterval,
@@ -230,9 +230,7 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
             }
 
             trace!("`{}` health-check was `{}` next check in {}",
-                   service_group,
-                   result,
-                   interval);
+                   service_group, result, interval);
             time::sleep(interval.into()).await;
         }
         outputln!(preamble service_group_clone, "Health checking has been stopped");

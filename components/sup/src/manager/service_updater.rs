@@ -120,7 +120,9 @@ impl ServiceUpdater {
         self.updates.lock().get(service_group).cloned()
     }
 
-    fn at_once_worker(&mut self, service: &Service) -> impl Future<Output = ()> + Send + 'static + use<> {
+    fn at_once_worker(&mut self,
+                      service: &Service)
+                      -> impl Future<Output = ()> + Send + 'static + use<> {
         debug!("'{}' service updater spawning at-once worker watching for changes to '{}' from \
                 channel '{}'",
                service.service_group,

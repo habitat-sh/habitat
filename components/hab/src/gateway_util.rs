@@ -5,8 +5,8 @@ use crate::error::Result;
 use futures::stream::StreamExt;
 use habitat_common as common;
 use habitat_common::{types::ResolvedListenCtlAddr,
-                     ui::{UIWriter,
-                          UI}};
+                     ui::{UI,
+                          UIWriter}};
 use habitat_sup_client::{SrvClient,
                          SrvClientError};
 use habitat_sup_protocol as sup_proto;

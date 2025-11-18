@@ -5,10 +5,10 @@
 
 use crate::{manager::ShutdownConfig,
             sys::ShutdownMethod};
-use habitat_core::os::process::{is_alive,
-                                signal,
-                                Pid,
-                                Signal};
+use habitat_core::os::process::{Pid,
+                                Signal,
+                                is_alive,
+                                signal};
 use libc::{self,
            pid_t};
 use log::{debug,
@@ -64,8 +64,7 @@ impl Process {
         // process was already exited before we return out and assume
         // so.
         trace!("Sending {:?} signal to process {}",
-               shutdown_signal,
-               pid_to_kill);
+               shutdown_signal, pid_to_kill);
         #[allow(clippy::question_mark)]
         if signal(pid_to_kill, shutdown_signal).is_err() {
             return ShutdownMethod::AlreadyExited;

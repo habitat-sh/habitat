@@ -1,17 +1,17 @@
-use crate::{command::sup::{SUP_CMD,
+use crate::{VERSION,
+            command::sup::{SUP_CMD,
                            SUP_CMD_ENVVAR,
                            SUP_PKG_IDENT},
             common::ui::UI,
             error::{Error,
                     Result},
             exec,
-            hcore::{crypto::init,
+            hcore::{ChannelIdent,
+                    crypto::init,
                     env as henv,
                     fs::find_command,
                     os::process,
-                    package::PackageIdent,
-                    ChannelIdent},
-            VERSION};
+                    package::PackageIdent}};
 
 use std::{ffi::OsString,
           path::PathBuf,

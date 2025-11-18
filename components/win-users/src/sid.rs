@@ -22,8 +22,7 @@ use winapi::{shared::{minwindef::{BOOL,
                   processthreadsapi,
                   securitybaseapi::GetTokenInformation,
                   winbase,
-                  winnt::{TokenUser,
-                          ACCESS_MASK,
+                  winnt::{ACCESS_MASK,
                           ACL,
                           DACL_SECURITY_INFORMATION,
                           LPCWSTR,
@@ -34,7 +33,8 @@ use winapi::{shared::{minwindef::{BOOL,
                           PSECURITY_INFORMATION,
                           PSID,
                           PTOKEN_USER,
-                          TOKEN_READ}}};
+                          TOKEN_READ,
+                          TokenUser}}};
 
 #[repr(C)]
 struct ACL_SIZE_INFORMATION {

@@ -1,11 +1,12 @@
 use log::{debug,
           warn};
 
-use crate::{command::studio::enter::{ARTIFACT_PATH_ENVVAR,
+use crate::{VERSION,
+            command::studio::enter::{ARTIFACT_PATH_ENVVAR,
                                      CERT_PATH_ENVVAR,
                                      SSL_CERT_FILE_ENVVAR},
-            common::ui::{tty,
-                         UI},
+            common::ui::{UI,
+                         tty},
             error::{Error,
                     Result},
             hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
@@ -17,8 +18,7 @@ use crate::{command::studio::enter::{ARTIFACT_PATH_ENVVAR,
                     os::process,
                     package::target,
                     util::docker},
-            license,
-            VERSION};
+            license};
 use std::{env,
           ffi::{OsStr,
                 OsString},
@@ -156,8 +156,10 @@ fn update_ssl_cert_file_envvar(mnt_prefix: &str) {
                 // Don't use Path::join here in order to work around platform
                 // differences with paths on Windows with linux containers enabled
                 // TODO: Audit that the environment access only happens in single-threaded code.
-                unsafe { env::set_var(SSL_CERT_FILE_ENVVAR,
-                             format!("{}/{}/{}", mnt_prefix, CACHE_SSL_PATH, cert_file_name)) };
+                unsafe {
+                    env::set_var(SSL_CERT_FILE_ENVVAR,
+                                 format!("{}/{}/{}", mnt_prefix, CACHE_SSL_PATH, cert_file_name))
+                };
             } else {
                 warn!("Unable to format {:?} for use inside studio", ssl_cert_file);
             }
@@ -381,10 +383,10 @@ fn studio_target(windows: bool, target: target::PackageTarget) -> target::Packag
 
 #[cfg(test)]
 mod tests {
-    use super::{image_identifier,
-                update_ssl_cert_file_envvar,
-                DOCKER_IMAGE,
-                DOCKER_WINDOWS_IMAGE};
+    use super::{DOCKER_IMAGE,
+                DOCKER_WINDOWS_IMAGE,
+                image_identifier,
+                update_ssl_cert_file_envvar};
     use crate::VERSION;
 
     use crate::{command::studio::enter::SSL_CERT_FILE_ENVVAR,

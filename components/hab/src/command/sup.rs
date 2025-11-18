@@ -1,4 +1,5 @@
-use crate::{common::ui::UI,
+use crate::{VERSION,
+            common::ui::UI,
             error::{Error,
                     Result},
             exec,
@@ -6,8 +7,7 @@ use crate::{common::ui::UI,
                     env as henv,
                     fs::find_command,
                     os::process,
-                    package::PackageIdent},
-            VERSION};
+                    package::PackageIdent}};
 use std::{ffi::OsString,
           path::PathBuf,
           str::FromStr};

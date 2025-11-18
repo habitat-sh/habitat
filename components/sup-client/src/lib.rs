@@ -157,14 +157,15 @@ impl SrvClient {
         // Upgrade to a TLS connection if necessary
         let config = CliConfig::load()?;
         let server_name_indication = config.ctl_server_name_indication.clone();
-        let tcp_stream = match config.maybe_tls_client_config()?.map(Arc::new) { Some(tls_config) => {
-            let domain = server_name_indication.unwrap_or_else(|| addr.domain().to_string());
-            debug!("Upgrading ctl-gateway to TLS with domain '{}'", domain);
-            TcpOrTlsStream::new_tls_client(tcp_stream, tls_config, &domain).await
-                                                                           .map_err(|e| e.0)?
-        } _ => {
-            TcpOrTlsStream::new(tcp_stream)
-        }};
+        let tcp_stream = match config.maybe_tls_client_config()?.map(Arc::new) {
+            Some(tls_config) => {
+                let domain = server_name_indication.unwrap_or_else(|| addr.domain().to_string());
+                debug!("Upgrading ctl-gateway to TLS with domain '{}'", domain);
+                TcpOrTlsStream::new_tls_client(tcp_stream, tls_config, &domain).await
+                                                                               .map_err(|e| e.0)?
+            }
+            _ => TcpOrTlsStream::new(tcp_stream),
+        };
 
         let mut tcp_stream = Framed::new(tcp_stream, SrvCodec::new());
         let mut current_transaction = SrvTxn::default();

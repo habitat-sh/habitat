@@ -14,37 +14,37 @@ mod user_config_watcher;
 use self::{action::{ShutdownInput,
                     SupervisorAction},
            peer_watcher::PeerWatcher,
-           self_updater::{SelfUpdater,
-                          SUP_PKG_IDENT},
-           service::{spec::{RefreshOperation,
-                            ServiceOperation},
-                     ConfigRendering,
+           self_updater::{SUP_PKG_IDENT,
+                          SelfUpdater},
+           service::{ConfigRendering,
                      DesiredState,
                      PersistentServiceWrapper,
                      Service,
                      ServiceQueryModel,
                      ServiceRunState,
                      ServiceSpec,
-                     Topology},
+                     Topology,
+                     spec::{RefreshOperation,
+                            ServiceOperation}},
            service_updater::ServiceUpdater,
            spec_dir::SpecDir,
            spec_watcher::SpecWatcher,
            sys::Sys,
            user_config_watcher::UserConfigWatcher};
-use crate::{census::{CensusRing,
+use crate::{VERSION,
+            census::{CensusRing,
                      CensusRingProxy},
             ctl_gateway::{self,
+                          CtlRequest,
                           acceptor::CtlAcceptor,
-                          server::CtlGatewayServer,
-                          CtlRequest},
+                          server::CtlGatewayServer},
             error::{Error,
                     Result},
             event::{self,
                     EventStreamConfig},
             http_gateway,
             lock_file::LockFile,
-            util::pkg,
-            VERSION};
+            util::pkg};
 use cpu_time::ProcessTime;
 use futures::{channel::{mpsc as fut_mpsc,
                         oneshot},
@@ -52,20 +52,21 @@ use futures::{channel::{mpsc as fut_mpsc,
               prelude::*,
               stream::FuturesUnordered};
 use habitat_butterfly::{member::Member,
-                        server::{timing::Timing,
-                                 ServerProxy,
-                                 Suitability}};
-use habitat_common::{liveliness_checker,
+                        server::{ServerProxy,
+                                 Suitability,
+                                 timing::Timing}};
+use habitat_common::{FeatureFlag,
+                     liveliness_checker,
                      outputln,
                      types::{GossipListenAddr,
                              HttpListenAddr,
-                             ListenCtlAddr},
-                     FeatureFlag};
+                             ListenCtlAddr}};
 #[cfg(unix)]
 use habitat_core::os::{process::{ShutdownSignal,
                                  Signal},
                        signals};
-use habitat_core::{crypto::keys::{KeyCache,
+use habitat_core::{ChannelIdent,
+                   crypto::keys::{KeyCache,
                                   RingKey},
                    env,
                    env::Config,
@@ -78,8 +79,7 @@ use habitat_core::{crypto::keys::{KeyCache,
                    service::ServiceGroup,
                    tls::rustls_wrapper::{certificates_from_file,
                                          private_key_from_file},
-                   util::ToI64,
-                   ChannelIdent};
+                   util::ToI64};
 use habitat_launcher_client::{LauncherCli,
                               LauncherStatus};
 use habitat_sup_protocol::{self};
@@ -91,16 +91,16 @@ use log::{debug,
           warn};
 use parking_lot::{Mutex,
                   RwLock};
-use prometheus::{register_histogram_vec,
-                 register_int_gauge,
-                 HistogramVec,
-                 IntGauge};
-use rustls::{pki_types::{CertificateDer,
+use prometheus::{HistogramVec,
+                 IntGauge,
+                 register_histogram_vec,
+                 register_int_gauge};
+use rustls::{RootCertStore,
+             ServerConfig,
+             pki_types::{CertificateDer,
                          PrivateKeyDer,
                          PrivatePkcs8KeyDer},
-             server::WebPkiClientVerifier,
-             RootCertStore,
-             ServerConfig};
+             server::WebPkiClientVerifier};
 use serde::{Deserialize,
             Serialize};
 use std::{collections::{HashMap,
@@ -117,12 +117,12 @@ use std::{collections::{HashMap,
           path::{Path,
                  PathBuf},
           str::FromStr,
-          sync::{atomic::{AtomicBool,
-                          Ordering},
-                 mpsc as std_mpsc,
-                 Arc,
+          sync::{Arc,
                  Condvar,
-                 Mutex as StdMutex},
+                 Mutex as StdMutex,
+                 atomic::{AtomicBool,
+                          Ordering},
+                 mpsc as std_mpsc},
           thread,
           time::{Duration,
                  Instant,
@@ -565,8 +565,9 @@ pub(crate) mod sync {
     impl<'a> ManagerServicesWriteGuard<'a> {
         fn new(lock: &'a Lock<ManagerServicesInner>) -> Self { Self(lock.write()) }
 
-        pub fn iter_mut(&mut self)
-                        -> impl Iterator<Item = (&PackageIdent, &mut PersistentServiceWrapper)> + use<'_>
+        pub fn iter_mut(
+            &mut self)
+            -> impl Iterator<Item = (&PackageIdent, &mut PersistentServiceWrapper)> + use<'_>
         {
             self.0.iter_mut()
         }
@@ -588,7 +589,8 @@ pub(crate) mod sync {
             self.0.get_mut(key)
         }
 
-        pub fn services(&mut self) -> impl Iterator<Item = &mut PersistentServiceWrapper> + use<'_> {
+        pub fn services(&mut self)
+                        -> impl Iterator<Item = &mut PersistentServiceWrapper> + use<'_> {
             self.0.values_mut()
         }
 
@@ -1081,9 +1083,10 @@ impl Manager {
         // (which will be all of them at this point!)
         for ident in self.maybe_spawn_service_futures_rsw_mlw_gsw_rhw_msw().await {
             if let Some(wrapper) = self.state.services.lock_msr().get(&ident)
-                && let Some(service) = wrapper.service() {
-                    self.service_updater.lock().register(service);
-                }
+               && let Some(service) = wrapper.service()
+            {
+                self.service_updater.lock().register(service);
+            }
         }
 
         // Ensure that the updated census state is saved to the gateway
@@ -1145,10 +1148,11 @@ impl Manager {
             // Only cleanup supervisor packages if we are running the latest installed version. It
             // is possible to have no versions installed if a development build is being run.
             if let Some(latest) = pkg::installed(&*THIS_SUPERVISOR_FUZZY_IDENT)
-                && *THIS_SUPERVISOR_IDENT == latest.ident {
-                    self.maybe_uninstall_old_packages(&THIS_SUPERVISOR_FUZZY_IDENT)
-                        .await;
-                }
+               && *THIS_SUPERVISOR_IDENT == latest.ident
+            {
+                self.maybe_uninstall_old_packages(&THIS_SUPERVISOR_FUZZY_IDENT)
+                    .await;
+            }
 
             let (lock, cvar) = &*pair;
             let mut started = lock.lock().expect("Control mutex is poisoned");
@@ -1213,17 +1217,18 @@ impl Manager {
             }
 
             if self.feature_flags.contains(FeatureFlag::TEST_EXIT)
-                && let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT")
-                    && let Ok(mut exit_code_file) = File::open(&exit_file_path) {
-                        let mut buffer = String::new();
-                        exit_code_file.read_to_string(&mut buffer)
-                                      .expect("couldn't read");
-                        if let Ok(exit_code) = buffer.lines().next().unwrap_or("").parse::<i32>() {
-                            fs::remove_file(&exit_file_path).expect("couldn't remove");
-                            outputln!("Simulating abrupt, unexpected exit with code {}", exit_code);
-                            std::process::exit(exit_code);
-                        }
-                    }
+               && let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT")
+               && let Ok(mut exit_code_file) = File::open(&exit_file_path)
+            {
+                let mut buffer = String::new();
+                exit_code_file.read_to_string(&mut buffer)
+                              .expect("couldn't read");
+                if let Ok(exit_code) = buffer.lines().next().unwrap_or("").parse::<i32>() {
+                    fs::remove_file(&exit_file_path).expect("couldn't remove");
+                    outputln!("Simulating abrupt, unexpected exit with code {}", exit_code);
+                    std::process::exit(exit_code);
+                }
+            }
 
             let next_check = Instant::now() + Duration::from_secs(1);
             match self.launcher.launcher_status() {
@@ -1337,9 +1342,10 @@ impl Manager {
             // threads may have stale census data
             for ident in updaters_to_register {
                 if let Some(wrapper) = self.state.services.lock_msr().get(&ident)
-                    && let Some(service) = wrapper.service() {
-                        self.service_updater.lock().register(service);
-                    }
+                   && let Some(service) = wrapper.service()
+                {
+                    self.service_updater.lock().register(service);
+                }
             }
 
             for service_state in self.state.services.lock_msw().services() {
@@ -1638,30 +1644,32 @@ impl Manager {
         let mut watched_services = Vec::new();
         for spec in self.spec_dir.specs() {
             let ident = spec.ident.clone();
-            match service_map.iter().find(|(ident, _)| **ident == spec.ident)
-            { Some((_, svc_state)) => {
-                // If the service wrapper does not contain a service we create one
-                if svc_state.service().is_none() {
-                    match Service::new(self.sys.clone(),
-                                       spec,
-                                       self.fs_cfg.clone(),
-                                       self.organization.as_deref(),
-                                       self.census_ring.clone(),
-                                       self.state.gateway_state.clone(),
-                                       self.pid_source,
-                                       self.feature_flags).await
-                    {
-                        Ok(service) => {
-                            watched_services.push((service, svc_state.service_run_state().clone()))
-                        }
-                        Err(err) => {
-                            warn!("Failed to create service '{}' from spec: {:?}", ident, err)
-                        }
-                    };
+            match service_map.iter().find(|(ident, _)| **ident == spec.ident) {
+                Some((_, svc_state)) => {
+                    // If the service wrapper does not contain a service we create one
+                    if svc_state.service().is_none() {
+                        match Service::new(self.sys.clone(),
+                                           spec,
+                                           self.fs_cfg.clone(),
+                                           self.organization.as_deref(),
+                                           self.census_ring.clone(),
+                                           self.state.gateway_state.clone(),
+                                           self.pid_source,
+                                           self.feature_flags).await
+                        {
+                            Ok(service) => {
+                                watched_services.push((service,
+                                                       svc_state.service_run_state().clone()))
+                            }
+                            Err(err) => {
+                                warn!("Failed to create service '{}' from spec: {:?}", ident, err)
+                            }
+                        };
+                    }
                 }
-            } _ => {
-                // If there is no wrapper for the service, we create one
-                match Service::new(self.sys.clone(),
+                _ => {
+                    // If there is no wrapper for the service, we create one
+                    match Service::new(self.sys.clone(),
                                    spec,
                                    self.fs_cfg.clone(),
                                    self.organization.as_deref(),
@@ -1678,7 +1686,8 @@ impl Manager {
                     }
                     Err(err) => warn!("Failed to create service '{}' from spec: {:?}", ident, err),
                 };
-            }}
+                }
+            }
         }
         let watched_service_proxies: Vec<ServiceQueryModel> =
             watched_services.iter()
@@ -1722,15 +1731,18 @@ impl Manager {
     /// * `GatewayState::inner` (write)
     /// * `ManagerServices::inner` (write)
     fn stop_service_gsw_msw(&mut self, ident: &PackageIdent, shutdown_input: &ShutdownInput) {
-        match self.remove_service_from_state_msw(ident) { Some(mut service_state) => {
-            if let Some(service) = service_state.shutdown(false) {
-                let future = self.stop_service_future_gsw(service, None, Some(shutdown_input));
-                tokio::spawn(future);
+        match self.remove_service_from_state_msw(ident) {
+            Some(mut service_state) => {
+                if let Some(service) = service_state.shutdown(false) {
+                    let future = self.stop_service_future_gsw(service, None, Some(shutdown_input));
+                    tokio::spawn(future);
+                }
             }
-        } _ => {
-            warn!("Tried to stop '{}', but couldn't find it in our list of running services!",
-                  ident);
-        }}
+            _ => {
+                warn!("Tried to stop '{}', but couldn't find it in our list of running services!",
+                      ident);
+            }
+        }
     }
 
     /// Create a future for stopping a Service removing it from the manager. The Service is assumed
@@ -1899,15 +1911,18 @@ impl Manager {
                     // onto the end of the stop one for a *real*
                     // restart future.
                     match self.remove_service_from_state_msw(&spec.ident)
-                            .and_then(|mut service_state| service_state.shutdown(false))
-                    { Some(service) => {
-                        tokio::spawn(self.stop_service_future_gsw(service, None, None));
-                    } _ => {
-                        // We really don't expect this to happen....
-                        outputln!("Tried to remove service for {} but could not find it running, \
-                                   skipping",
-                                  &spec.ident);
-                    }}
+                              .and_then(|mut service_state| service_state.shutdown(false))
+                    {
+                        Some(service) => {
+                            tokio::spawn(self.stop_service_future_gsw(service, None, None));
+                        }
+                        _ => {
+                            // We really don't expect this to happen....
+                            outputln!("Tried to remove service for {} but could not find it \
+                                       running, skipping",
+                                      &spec.ident);
+                        }
+                    }
                 }
                 ServiceOperation::Start(spec) => {
                     // We need to check if the service is already known, if yes, then is it ready to

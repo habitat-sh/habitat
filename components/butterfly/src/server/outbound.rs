@@ -7,8 +7,8 @@ use crate::{member::{Health,
                      Member},
             rumor::{RumorKey,
                     RumorType},
-            server::{timing::Timing,
-                     Server},
+            server::{Server,
+                     timing::Timing},
             swim::{Ack,
                    Ping,
                    PingReq,
@@ -21,13 +21,13 @@ use log::{debug,
           error,
           trace,
           warn};
-use prometheus::{register_histogram_vec,
-                 register_int_counter_vec,
-                 register_int_gauge_vec,
-                 HistogramTimer,
+use prometheus::{HistogramTimer,
                  HistogramVec,
                  IntCounterVec,
-                 IntGaugeVec};
+                 IntGaugeVec,
+                 register_histogram_vec,
+                 register_int_counter_vec,
+                 register_int_gauge_vec};
 use std::{collections::HashSet,
           fmt,
           iter::FromIterator,
@@ -328,9 +328,10 @@ pub fn populate_membership_rumors_mlr_rhw(server: &Server,
     // targets current status. This ensures that members always get a "Confirmed" rumor, before we
     // have the chance to flip it to "Alive", which helps make sure we heal from a partition.
     if server.member_list.contains_member_mlr(&target.id)
-        && let Some(always_target) = server.member_list.membership_for_mlr(&target.id) {
-            swim.membership.push(always_target);
-        }
+       && let Some(always_target) = server.member_list.membership_for_mlr(&target.id)
+    {
+        swim.membership.push(always_target);
+    }
 
     // NOTE: the way this is currently implemented, this is grabbing
     // the 5 coolest (but still warm!) Member rumors.

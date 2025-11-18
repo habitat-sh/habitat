@@ -1,13 +1,13 @@
 use crate::error::Result;
 use clap::Parser;
 
-use habitat_butterfly::rumor::{dat_file,
-                               Departure,
+use habitat_butterfly::rumor::{Departure,
                                Election,
                                ElectionUpdate,
                                Service,
                                ServiceConfig,
-                               ServiceFile};
+                               ServiceFile,
+                               dat_file};
 use log::error;
 use std::{path::PathBuf,
           process};

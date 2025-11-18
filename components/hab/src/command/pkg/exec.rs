@@ -2,8 +2,8 @@ use log::debug;
 
 use crate::{error::{Error,
                     Result},
-            hcore::{fs::{find_command,
-                         FS_ROOT_PATH},
+            hcore::{fs::{FS_ROOT_PATH,
+                         find_command},
                     os::process,
                     package::{PackageIdent,
                               PackageInstall}}};
@@ -22,18 +22,17 @@ pub fn start<T>(ident: &PackageIdent, command: T, args: &[OsString]) -> Result<(
     let mut cmd_env = pkg_install.environment_for_command()?;
 
     if let Some(path) = cmd_env.get(PATH_KEY)
-        && let Some(val) = env::var_os(PATH_KEY) {
-            let mut paths: Vec<PathBuf> = env::split_paths(&path).collect();
-            let mut os_paths = env::split_paths(&val).collect();
-            paths.append(&mut os_paths);
-            let joined = env::join_paths(paths)?;
-            let path_str =
-                joined.into_string()
-                      .map_err(|s| {
-                          io::Error::new(io::ErrorKind::InvalidData, s.to_string_lossy())
-                      })?;
-            cmd_env.insert(PATH_KEY.to_string(), path_str);
-        }
+       && let Some(val) = env::var_os(PATH_KEY)
+    {
+        let mut paths: Vec<PathBuf> = env::split_paths(&path).collect();
+        let mut os_paths = env::split_paths(&val).collect();
+        paths.append(&mut os_paths);
+        let joined = env::join_paths(paths)?;
+        let path_str =
+            joined.into_string()
+                  .map_err(|s| io::Error::new(io::ErrorKind::InvalidData, s.to_string_lossy()))?;
+        cmd_env.insert(PATH_KEY.to_string(), path_str);
+    }
 
     for (key, value) in cmd_env.into_iter() {
         debug!("Setting: {}='{}'", key, value);

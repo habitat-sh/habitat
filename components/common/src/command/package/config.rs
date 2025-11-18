@@ -12,9 +12,9 @@ use std::{io::{self,
                Write},
           path::Path};
 
-use crate::hcore::package::{install::DEFAULT_CFG_FILE,
-                            PackageIdent,
-                            PackageInstall};
+use crate::hcore::package::{PackageIdent,
+                            PackageInstall,
+                            install::DEFAULT_CFG_FILE};
 
 use crate::error::Result;
 

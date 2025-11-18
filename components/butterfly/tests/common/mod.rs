@@ -1,17 +1,17 @@
 use habitat_butterfly::{error::Error,
                         member::{Health,
                                  Member},
-                        rumor::{departure::Departure,
+                        rumor::{ConstIdRumor as _,
+                                Election,
+                                departure::Departure,
                                 election::ElectionStatus,
                                 service::{Service,
                                           SysInfo},
                                 service_config::ServiceConfig,
-                                service_file::ServiceFile,
-                                ConstIdRumor as _,
-                                Election},
-                        server::{timing::Timing,
-                                 Server,
-                                 Suitability}};
+                                service_file::ServiceFile},
+                        server::{Server,
+                                 Suitability,
+                                 timing::Timing}};
 use habitat_core::{crypto::keys::RingKey,
                    package::{Identifiable,
                              PackageIdent},
@@ -400,9 +400,10 @@ impl SwimNet {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {
             if let Some(real_health) = self.health_of_mlr(from_entry, to_check)
-                && real_health == health {
-                    return true;
-                }
+               && real_health == health
+            {
+                return true;
+            }
             if self.check_rounds(&rounds_in) {
                 println!("MEMBERS: {:#?}", self.members);
                 println!("Failed health check for\n***FROM***{:#?}\n***TO***\n{:#?}",

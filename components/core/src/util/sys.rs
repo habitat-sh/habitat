@@ -1,7 +1,7 @@
 use crate::error::{Error,
                    Result};
-pub use crate::os::system::{uname,
-                            Uname};
+pub use crate::os::system::{Uname,
+                            uname};
 use std::{io,
           net::{IpAddr,
                 Ipv4Addr,

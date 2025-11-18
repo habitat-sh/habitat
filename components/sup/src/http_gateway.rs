@@ -2,7 +2,11 @@ use crate::manager::{self,
                      service::{HealthCheckHook,
                                HealthCheckResult}};
 use actix_rt::System;
-use actix_web::{body::BoxBody,
+use actix_web::{App,
+                Error,
+                HttpResponse,
+                HttpServer,
+                body::BoxBody,
                 dev::{Service,
                       ServiceRequest,
                       ServiceResponse},
@@ -11,18 +15,14 @@ use actix_web::{body::BoxBody,
                 web::{self,
                       Data,
                       Path,
-                      ServiceConfig},
-                App,
-                Error,
-                HttpResponse,
-                HttpServer};
-use futures::future::{ok,
-                      Either,
-                      Future};
+                      ServiceConfig}};
+use futures::future::{Either,
+                      Future,
+                      ok};
 use habitat_common::{self,
+                     FeatureFlag,
                      templating::hooks,
-                     types::HttpListenAddr,
-                     FeatureFlag};
+                     types::HttpListenAddr};
 use habitat_core::{crypto,
                    env as henv,
                    service::ServiceGroup};
@@ -32,13 +32,13 @@ use manager::sync::GatewayState;
 
 use lazy_static::lazy_static;
 use prometheus::{self,
-                 register_counter_vec,
-                 register_histogram_vec,
                  CounterVec,
                  Encoder,
                  HistogramTimer,
                  HistogramVec,
-                 TextEncoder};
+                 TextEncoder,
+                 register_counter_vec,
+                 register_histogram_vec};
 use rustls::ServerConfig;
 use serde::Serialize;
 use std::{self,
@@ -123,9 +123,10 @@ impl AppState {
 
 // Begin middleware
 
-fn authentication_middleware<S>(req: ServiceRequest,
-                                srv: &S)
-                                -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>> + use<S>
+fn authentication_middleware<S>(
+    req: ServiceRequest,
+    srv: &S)
+    -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>> + use<S>
     where S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>
 {
     let current_token = &req.app_data::<Data<AppState>>()
@@ -166,9 +167,10 @@ fn authentication_middleware<S>(req: ServiceRequest,
     }
 }
 
-fn metrics_middleware<S>(req: ServiceRequest,
-                         srv: &S)
-                         -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>> + use<S>
+fn metrics_middleware<S>(
+    req: ServiceRequest,
+    srv: &S)
+    -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>> + use<S>
     where S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>
 {
     let label_values = &[req.path()];
@@ -196,9 +198,10 @@ fn metrics_middleware<S>(req: ServiceRequest,
     }
 }
 
-fn redact_http_middleware<S>(req: ServiceRequest,
-                             srv: &S)
-                             -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>> + use<S>
+fn redact_http_middleware<S>(
+    req: ServiceRequest,
+    srv: &S)
+    -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>> + use<S>
     where S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>
 {
     if req.app_data::<Data<AppState>>()

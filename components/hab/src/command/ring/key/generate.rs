@@ -1,5 +1,5 @@
-use crate::{common::ui::{UIWriter,
-                         UI},
+use crate::{common::ui::{UI,
+                         UIWriter},
             error::Result};
 use habitat_core::crypto::keys::{Key,
                                  KeyCache};

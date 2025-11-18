@@ -115,10 +115,11 @@ impl FeatureFlag {
 
         for (feature, env_var) in ENV_VARS.iter() {
             if let Some(val) = env::var_os(env_var)
-                && !val.is_empty() {
-                    flags.insert(*feature);
-                    ui.warn(format!("Enabling feature: {:?}", feature)).unwrap();
-                }
+               && !val.is_empty()
+            {
+                flags.insert(*feature);
+                ui.warn(format!("Enabling feature: {:?}", feature)).unwrap();
+            }
         }
 
         // TODO (CM): Once the other TODOs above are done (especially the

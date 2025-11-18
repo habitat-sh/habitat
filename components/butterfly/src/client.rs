@@ -2,14 +2,14 @@
 //!
 //! This will connect to a given butterfly members `Pull` thread, and inject a rumor.
 
-use crate::{error::{Error,
+use crate::{ZMQ_CONTEXT,
+            error::{Error,
                     Result},
             message,
-            rumor::{departure::Departure,
+            rumor::{Rumor,
+                    departure::Departure,
                     service_config::ServiceConfig,
-                    service_file::ServiceFile,
-                    Rumor},
-            ZMQ_CONTEXT};
+                    service_file::ServiceFile}};
 use habitat_core::{crypto::keys::RingKey,
                    service::ServiceGroup};
 

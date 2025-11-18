@@ -1,8 +1,4 @@
-use crate::{error::{Error,
-                    Result},
-            hab_http::ApiClient,
-            response,
-            DisplayProgress,
+use crate::{DisplayProgress,
             OriginInfoResponse,
             OriginKeyIdent,
             OriginMemberRoleResponse,
@@ -10,34 +6,38 @@ use crate::{error::{Error,
             PendingOriginInvitationsResponse,
             ReverseDependencies,
             SchedulerResponse,
-            UserOriginInvitationsResponse};
+            UserOriginInvitationsResponse,
+            error::{Error,
+                    Result},
+            hab_http::ApiClient,
+            response};
 use broadcast::BroadcastWriter;
 use bytes::BytesMut;
-use futures::{io::AllowStdIo,
-              TryStreamExt};
-use habitat_core::{fs::{AtomicWriter,
-                        Permissions,
+use futures::{TryStreamExt,
+              io::AllowStdIo};
+use habitat_core::{ChannelIdent,
+                   fs::{AtomicWriter,
                         DEFAULT_CACHED_ARTIFACT_PERMISSIONS,
                         DEFAULT_PUBLIC_KEY_PERMISSIONS,
-                        DEFAULT_SECRET_KEY_PERMISSIONS},
+                        DEFAULT_SECRET_KEY_PERMISSIONS,
+                        Permissions},
                    origin::{Origin,
                             OriginMemberRole},
                    package::{Identifiable,
                              PackageArchive,
                              PackageIdent,
                              PackageTarget},
-                   util,
-                   ChannelIdent};
+                   util};
 use log::{debug,
           trace};
-use percent_encoding::{percent_encode,
-                       AsciiSet,
-                       CONTROLS};
-use reqwest::{header::CONTENT_LENGTH,
-              Body,
+use percent_encoding::{AsciiSet,
+                       CONTROLS,
+                       percent_encode};
+use reqwest::{Body,
               IntoUrl,
               RequestBuilder,
-              StatusCode};
+              StatusCode,
+              header::CONTENT_LENGTH};
 use serde::{Deserialize,
             Serialize};
 use serde_json::json;

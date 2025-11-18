@@ -42,9 +42,9 @@ mod manager_config {
     use tempfile::TempDir;
 
     use habitat_common::FeatureFlag;
-    use habitat_core::{fs::CACHE_KEY_PATH,
-                       package::PackageIdent,
-                       ChannelIdent};
+    use habitat_core::{ChannelIdent,
+                       fs::CACHE_KEY_PATH,
+                       package::PackageIdent};
     use habitat_sup::{event::EventStreamConfig,
                       manager::{ManagerConfig,
                                 ServiceRestartConfig,
@@ -69,8 +69,8 @@ mod manager_config {
                                      NamedRevision,
                                      RingKey};
 
-    use crate::cli_v4::{split_apart_sup_run,
-                        HabSup};
+    use crate::cli_v4::{HabSup,
+                        split_apart_sup_run};
 
     use hab::SupRunOptions;
 

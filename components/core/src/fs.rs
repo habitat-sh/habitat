@@ -727,17 +727,18 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
 // We should only search with PATHEXT if the file does not already have an extension.
 fn find_command_with_pathext(candidate: &Path) -> Option<PathBuf> {
     if candidate.extension().is_none()
-        && let Some(pathexts) = henv::var_os("PATHEXT") {
-            for pathext in env::split_paths(&pathexts) {
-                let mut source_candidate = candidate.to_path_buf();
-                let extension = pathext.to_str().unwrap().trim_matches('.');
-                source_candidate.set_extension(extension);
-                let current_candidate = source_candidate.to_path_buf();
-                if current_candidate.is_file() {
-                    return Some(current_candidate);
-                }
+       && let Some(pathexts) = henv::var_os("PATHEXT")
+    {
+        for pathext in env::split_paths(&pathexts) {
+            let mut source_candidate = candidate.to_path_buf();
+            let extension = pathext.to_str().unwrap().trim_matches('.');
+            source_candidate.set_extension(extension);
+            let current_candidate = source_candidate.to_path_buf();
+            if current_candidate.is_file() {
+                return Some(current_candidate);
             }
-        };
+        }
+    };
     None
 }
 
@@ -1211,8 +1212,8 @@ mod test_find_command {
 
 #[cfg(test)]
 mod test_atomic_writer {
-    use super::{atomic_write,
-                AtomicWriter};
+    use super::{AtomicWriter,
+                atomic_write};
     use std::{fs::File,
               io::{Read,
                    Seek,

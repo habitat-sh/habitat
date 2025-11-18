@@ -8,8 +8,8 @@ use crate::{common::ui::UI,
             hcore::package::{PackageIdent,
                              PackageInstall}};
 use anyhow::Result;
-use flate2::{write::GzEncoder,
-             Compression};
+use flate2::{Compression,
+             write::GzEncoder};
 use std::{fs::File,
           path::{Path,
                  PathBuf},

@@ -1,10 +1,10 @@
 use crate::RegistryType;
-use anyhow::{anyhow,
-             Result};
+use anyhow::{Result,
+             anyhow};
 use clap::ArgMatches;
-use habitat_core::{package::{FullyQualifiedPackageIdent,
-                             Identifiable},
-                   ChannelIdent};
+use habitat_core::{ChannelIdent,
+                   package::{FullyQualifiedPackageIdent,
+                             Identifiable}};
 use handlebars::Handlebars;
 use serde::Serialize;
 use serde_json::json;

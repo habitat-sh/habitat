@@ -1,6 +1,6 @@
 use crate::{common::ui::{Status,
-                         UIWriter,
-                         UI},
+                         UI,
+                         UIWriter},
             error::Result};
 use habitat_core::crypto::{artifact,
                            keys::KeyCache};

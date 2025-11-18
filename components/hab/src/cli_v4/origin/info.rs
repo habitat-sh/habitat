@@ -2,17 +2,17 @@
 
 use clap_v4 as clap;
 
-use crate::{api_client::Client,
+use crate::{PRODUCT,
+            VERSION,
+            api_client::Client,
             cli_v4::utils::{AuthToken,
                             BldrUrl},
             error::{Error,
-                    Result as HabResult},
-            PRODUCT,
-            VERSION};
+                    Result as HabResult}};
 use clap::Parser;
 use habitat_common::ui::{Status,
-                         UIWriter,
-                         UI};
+                         UI,
+                         UIWriter};
 use habitat_core::{origin::Origin,
                    util::text_render::{PortableText,
                                        TabularText}};

@@ -3,24 +3,24 @@ use habitat_butterfly::{member::{Health,
                                  Member,
                                  MemberList,
                                  Membership},
-                        rumor::{election::{Election as ElectionRumor,
+                        rumor::{ConstIdRumor as _,
+                                RumorStore,
+                                election::{Election as ElectionRumor,
                                            ElectionStatus as ElectionStatusRumor,
                                            ElectionUpdate as ElectionUpdateRumor},
                                 service::{Service as ServiceRumor,
                                           SysInfo},
                                 service_config::ServiceConfig as ServiceConfigRumor,
-                                service_file::ServiceFile as ServiceFileRumor,
-                                ConstIdRumor as _,
-                                RumorStore}};
+                                service_file::ServiceFile as ServiceFileRumor}};
 use habitat_common::outputln;
 use habitat_core::{self,
                    crypto::keys::KeyCache,
                    package::PackageIdent,
                    service::ServiceGroup};
 use log::warn;
-use serde::{ser::SerializeStruct,
-            Serialize,
-            Serializer};
+use serde::{Serialize,
+            Serializer,
+            ser::SerializeStruct};
 use std::{borrow::Cow,
           collections::{BTreeMap,
                         HashMap,
@@ -163,10 +163,11 @@ impl CensusRing {
     fn update_from_election_store_rsr(&mut self, election_rumors: &RumorStore<ElectionRumor>) {
         for (service_group, rumors) in election_rumors.lock_rsr().iter() {
             if let Some(election) = rumors.get(ElectionRumor::const_id())
-                && let Ok(sg) = service_group_from_str(service_group)
-                    && let Some(census_group) = self.census_groups.get_mut(&sg) {
-                        census_group.update_from_election_rumor(election);
-                    }
+               && let Ok(sg) = service_group_from_str(service_group)
+               && let Some(census_group) = self.census_groups.get_mut(&sg)
+            {
+                census_group.update_from_election_rumor(election);
+            }
         }
     }
 
@@ -177,10 +178,11 @@ impl CensusRing {
     {
         for (service_group, rumors) in election_update_rumors.lock_rsr().iter() {
             if let Ok(sg) = service_group_from_str(service_group)
-                && let Some(census_group) = self.census_groups.get_mut(&sg) {
-                    let election = rumors.get(ElectionUpdateRumor::const_id()).unwrap();
-                    census_group.update_from_election_update_rumor(election);
-                }
+               && let Some(census_group) = self.census_groups.get_mut(&sg)
+            {
+                let election = rumors.get(ElectionUpdateRumor::const_id()).unwrap();
+                census_group.update_from_election_update_rumor(election);
+            }
         }
     }
 
@@ -191,10 +193,11 @@ impl CensusRing {
                                       service_config_rumors: &RumorStore<ServiceConfigRumor>) {
         for (service_group, rumors) in service_config_rumors.lock_rsr().iter() {
             if let Ok(sg) = service_group_from_str(service_group)
-                && let Some(service_config) = rumors.get(ServiceConfigRumor::const_id())
-                    && let Some(census_group) = self.census_groups.get_mut(&sg) {
-                        census_group.update_from_service_config_rumor(key_cache, service_config);
-                    }
+               && let Some(service_config) = rumors.get(ServiceConfigRumor::const_id())
+               && let Some(census_group) = self.census_groups.get_mut(&sg)
+            {
+                census_group.update_from_service_config_rumor(key_cache, service_config);
+            }
         }
     }
 
@@ -745,14 +748,14 @@ mod tests {
     use crate::test_helpers::*;
     use habitat_butterfly::{member::{Health,
                                      MemberList},
-                            rumor::{election::{self,
+                            rumor::{RumorStore,
+                                    election::{self,
                                                Election as ElectionRumor,
                                                ElectionUpdate as ElectionUpdateRumor},
                                     service::{Service as ServiceRumor,
                                               SysInfo},
                                     service_config::ServiceConfig as ServiceConfigRumor,
-                                    service_file::ServiceFile as ServiceFileRumor,
-                                    RumorStore}};
+                                    service_file::ServiceFile as ServiceFileRumor}};
     use habitat_core::{fs::CACHE_KEY_PATH,
                        package::ident::PackageIdent,
                        service::ServiceGroup};

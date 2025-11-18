@@ -1,8 +1,8 @@
 use crate::{error::Result,
             hcore::{fs::{self as hfs,
                          FS_ROOT_PATH},
-                    package::{list,
-                              PackageIdent}}};
+                    package::{PackageIdent,
+                              list}}};
 
 /// There are three options for what we can list:
 ///   - All packages (no prefix supplied)

@@ -55,12 +55,15 @@ impl StatusCommand {
         let mut out = TabWriter::new(std::io::stdout());
         let mut response = SrvClient::request(self.remote_sup.inner(), msg).await?;
         // Ensure there is at least one result from the server otherwise produce an error
-        match response.next().await { Some(message_result) => {
-            let reply = message_result?;
-            print_svc_status(&mut out, &reply, true)?;
-        } _ => {
-            return Err(SrvClientError::from(std::io::Error::from(std::io::ErrorKind::UnexpectedEof)).into());
-        }}
+        match response.next().await {
+            Some(message_result) => {
+                let reply = message_result?;
+                print_svc_status(&mut out, &reply, true)?;
+            }
+            _ => {
+                return Err(SrvClientError::from(std::io::Error::from(std::io::ErrorKind::UnexpectedEof)).into());
+            }
+        }
         while let Some(message_result) = response.next().await {
             let reply = message_result?;
             print_svc_status(&mut out, &reply, false)?;

@@ -1,7 +1,7 @@
-use actix_web::{web::{self,
-                      Data},
-                App as ActixApp,
-                HttpServer};
+use actix_web::{App as ActixApp,
+                HttpServer,
+                web::{self,
+                      Data}};
 use clap::{Arg,
            Command};
 
