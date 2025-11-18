@@ -114,7 +114,7 @@ mod tests {
     /// Helper macro to create PackageIdents and make them easily
     /// accessible via function invocation.
     macro_rules! pkg {
-        ($fn_name:ident, $ident_str:expr) => {
+        ($fn_name:ident, $ident_str:expr_2021) => {
             fn $fn_name() -> PackageIdent { $ident_str.parse().unwrap() }
         };
     }
@@ -122,7 +122,7 @@ mod tests {
     /// Helper macro to convert a PackageIdent into a
     /// FullyQualifiedPackageIdent with a minimum of ceremony.
     macro_rules! fqpi {
-        ($ident:expr) => {
+        ($ident:expr_2021) => {
             FullyQualifiedPackageIdent::try_from($ident).unwrap()
         };
     }

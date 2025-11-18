@@ -282,7 +282,8 @@ mod manager_config {
         let lock = lock_var();
         lock.set(key_cache.path());
 
-        env::set_var("HAB_CACHE_KEY_PATH", key_cache.path());
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("HAB_CACHE_KEY_PATH", key_cache.path()) };
         let cmd_vec = vec![
                            "hab-sup",
                            "run",

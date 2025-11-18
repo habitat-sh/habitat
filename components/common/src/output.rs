@@ -278,7 +278,7 @@ enum OutputVerbosityInternal {
 #[macro_export]
 /// Works the same as println!, but uses our structured output formatter.
 macro_rules! outputln {
-    ($content: expr) => {
+    ($content: expr_2021) => {
         {
             use $crate::output::{get_format, get_verbosity, OutputContext, StructuredOutput};
             use $crate::PROGRAM_NAME;
@@ -292,7 +292,7 @@ macro_rules! outputln {
                                            $content).println().expect("failed to write output to stdout");
         }
     };
-    (preamble $preamble:expr, $content: expr) => {
+    (preamble $preamble:expr_2021, $content: expr_2021) => {
         {
             use $crate::output::{get_format, get_verbosity, OutputContext, StructuredOutput};
             StructuredOutput::new(&$preamble,
@@ -305,7 +305,7 @@ macro_rules! outputln {
                                            $content).println().expect("failed to write output to stdout");
         }
     };
-    ($content: expr, $($arg:tt)*) => {
+    ($content: expr_2021, $($arg:tt)*) => {
         {
             use $crate::output::{get_format, get_verbosity, OutputContext, StructuredOutput};
             use $crate::PROGRAM_NAME;
@@ -320,7 +320,7 @@ macro_rules! outputln {
                                            &content).println().expect("failed to write output to stdout");
         }
     };
-    (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
+    (preamble $preamble: expr_2021, $content: expr_2021, $($arg:tt)*) => {
         {
             use $crate::output::{get_format, get_verbosity, OutputContext, StructuredOutput};
             let content = format!($content, $($arg)*);

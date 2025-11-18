@@ -38,7 +38,8 @@ pub fn start<T>(ident: &PackageIdent, command: T, args: &[OsString]) -> Result<(
 
     for (key, value) in cmd_env.into_iter() {
         debug!("Setting: {}='{}'", key, value);
-        env::set_var(key, value);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var(key, value) };
     }
     let command = match find_command(&command) {
         Some(path) => path,

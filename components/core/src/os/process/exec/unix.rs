@@ -137,12 +137,11 @@ fn set_supplementary_groups(user_id: Uid,
                                   User};
                 use std::ffi::CString;
 
-                if let Some(user) =
-                    User::from_uid(user_id).map_err(|e| {
+                match User::from_uid(user_id).map_err(|e| {
                                                eprintln!("Error resolving user from ID: {:?}", e);
                                                io::Error::last_os_error()
                                            })?
-                {
+                { Some(user) => {
                     let user = CString::new(user.name).map_err(|e| {
                                                           eprintln!("User name cannot convert to \
                                                                      CString!: {:?}",
@@ -166,10 +165,10 @@ fn set_supplementary_groups(user_id: Uid,
                                           eprintln!("setgroups failed! {:?}", e);
                                           io::Error::last_os_error()
                                       })?; // CAP_SETGID
-                } else {
+                } _ => {
                     eprintln!("Could not find user from user ID. Wil not set supplementary \
                                groups.");
-                }
+                }}
             }
 
             // These calls replace `CommandExt::uid` and `CommandExt::gid`

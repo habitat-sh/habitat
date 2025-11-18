@@ -16,7 +16,7 @@ const VERSION_TAG_TEMPLATE: &str = "{{pkg_version}}";
 /// Helper macro to mark all Handlebars templating calls that are not based
 /// on user input, and can thus be safely unwrapped.
 macro_rules! safe {
-    ($render_result:expr) => {
+    ($render_result:expr_2021) => {
         $render_result.expect("We are in control of all inputs to this rendering, and thus the \
                                result should always be safe to unwrap")
     };
@@ -225,7 +225,7 @@ impl Naming {
 
     fn rendering_context(ident: &FullyQualifiedPackageIdent,
                          channel: &ChannelIdent)
-                         -> impl Serialize {
+                         -> impl Serialize + use<> {
         json!({
             "pkg_origin": ident.origin(),
             "pkg_name": ident.name(),

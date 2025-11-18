@@ -315,7 +315,7 @@ impl KeyCache {
     fn get_all_paths_for(&self,
                          name: &str,
                          key_extension: &str)
-                         -> Result<impl Iterator<Item = PathBuf>> {
+                         -> Result<impl Iterator<Item = PathBuf> + use<>> {
         // Ideally, we'd want that `*` to be `\d{14}` to match the
         // structure of our revisions... perhaps that can be an
         // additional filter later on with an actual regex?
@@ -441,7 +441,7 @@ mod test {
     /// Helper macro to assert that a given key can be saved and
     /// retrieved from the cache in different ways.
     macro_rules! assert_cache_round_trip {
-        ($t:ty, $key:expr, $cache:expr) => {
+        ($t:ty, $key:expr_2021, $cache:expr_2021) => {
             $cache.write_key::<$t>(&$key).unwrap();
             let fetched_latest: $t = $cache.fetch_latest_revision($key.named_revision().name())
                                            .unwrap();

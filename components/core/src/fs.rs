@@ -1004,7 +1004,8 @@ mod test_find_command {
         let mut path_bufs = vec![first_path, second_path];
         path_bufs.append(&mut os_paths);
         let new_path = env::join_paths(path_bufs).unwrap();
-        env::set_var("PATH", new_path);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("PATH", new_path) };
     }
 
     mod without_pathext_set {

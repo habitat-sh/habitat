@@ -7,7 +7,7 @@ use std::{ffi::CStr,
 
 pub fn uname() -> Result<Uname> { unsafe { uname_libc() } }
 
-unsafe fn uname_libc() -> Result<Uname> {
+unsafe fn uname_libc() -> Result<Uname> { unsafe {
     let mut utsname = mem::MaybeUninit::uninit();
     let rv = libc::uname(utsname.as_mut_ptr());
     let utsname = utsname.assume_init();
@@ -29,4 +29,4 @@ unsafe fn uname_libc() -> Result<Uname> {
                                                                   .into_owned(),
                machine:   CStr::from_ptr(utsname.machine.as_ptr()).to_string_lossy()
                                                                   .into_owned(), })
-}
+}}

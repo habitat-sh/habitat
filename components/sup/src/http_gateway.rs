@@ -125,7 +125,7 @@ impl AppState {
 
 fn authentication_middleware<S>(req: ServiceRequest,
                                 srv: &S)
-                                -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>>
+                                -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>> + use<S>
     where S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>
 {
     let current_token = &req.app_data::<Data<AppState>>()
@@ -168,7 +168,7 @@ fn authentication_middleware<S>(req: ServiceRequest,
 
 fn metrics_middleware<S>(req: ServiceRequest,
                          srv: &S)
-                         -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>>
+                         -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>> + use<S>
     where S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>
 {
     let label_values = &[req.path()];
@@ -198,7 +198,7 @@ fn metrics_middleware<S>(req: ServiceRequest,
 
 fn redact_http_middleware<S>(req: ServiceRequest,
                              srv: &S)
-                             -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>>
+                             -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>> + use<S>
     where S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>
 {
     if req.app_data::<Data<AppState>>()

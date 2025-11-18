@@ -85,8 +85,8 @@ impl UserConfigWatcher {
         let mut states = self.states.lock().expect("states lock was poisoned");
         if states.get(service.name()).is_none() {
             let user_toml_path = match service.user_config_path() {
-                UserConfigPath::Recommended(ref p) => p.join(USER_CONFIG_FILE),
-                UserConfigPath::Deprecated(ref p) => {
+                UserConfigPath::Recommended(p) => p.join(USER_CONFIG_FILE),
+                UserConfigPath::Deprecated(p) => {
                     outputln!(
                         preamble service.service_group(),
                         "Not watching {}, because it is located in deprecated path ({}).",

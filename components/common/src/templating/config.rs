@@ -47,7 +47,7 @@ pub enum UserConfigPath {
 impl UserConfigPath {
     pub fn get_path(&self) -> &PathBuf {
         match self {
-            UserConfigPath::Recommended(ref p) | UserConfigPath::Deprecated(ref p) => p,
+            UserConfigPath::Recommended(p) | UserConfigPath::Deprecated(p) => p,
         }
     }
 }
@@ -789,11 +789,11 @@ mod test {
             "#,
         );
 
-        if let Err(Error::TomlMergeError(_)) = toml_merge(&mut me, &other) {
+        match toml_merge(&mut me, &other) { Err(Error::TomlMergeError(_)) => {
             // expected result
-        } else {
+        } _ => {
             panic!("Should fail with Error::TomlMergeError");
-        }
+        }}
     }
 
     struct TestPkg {
@@ -951,13 +951,15 @@ mod test {
                                                     package_name: &str,
                                                     input_config: &str,
                                                     expected_config_as_toml: &str) {
-        env::set_var(env_key, input_config);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var(env_key, input_config) };
 
         let expected = toml_from_str(expected_config_as_toml);
         let result = Cfg::load_environment(package_name);
 
         // Clean up the environment after ourselves
-        env::remove_var(env_key);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var(env_key) };
 
         match result {
             Ok(Some(actual)) => {
@@ -990,12 +992,14 @@ mod test {
         let key = "HAB_TESTING_TRASH";
         let config = "{\"port: 1234 what even is this!!!!?! =";
 
-        env::set_var(key, config);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var(key, config) };
 
         let result = Cfg::load_environment("testing-trash");
 
         // Clean up the environment after ourselves
-        env::remove_var(key);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var(key) };
 
         assert!(result.is_err(), "Expected an error: got {:?}", result);
     }

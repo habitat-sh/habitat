@@ -75,7 +75,7 @@ macro_rules! package_targets {
     (
         $(
             $(#[$docs:meta])*
-            ($name:expr, $variant:ident, $konst:ident, $target_arch:expr, $target_os:expr);
+            ($name:expr_2021, $variant:ident, $konst:ident, $target_arch:expr_2021, $target_os:expr_2021);
         )+
     ) => {
         const PACKAGE_TARGETS: &'static [PackageTarget] = &[

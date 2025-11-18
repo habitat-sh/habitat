@@ -566,7 +566,7 @@ pub(crate) mod sync {
         fn new(lock: &'a Lock<ManagerServicesInner>) -> Self { Self(lock.write()) }
 
         pub fn iter_mut(&mut self)
-                        -> impl Iterator<Item = (&PackageIdent, &mut PersistentServiceWrapper)>
+                        -> impl Iterator<Item = (&PackageIdent, &mut PersistentServiceWrapper)> + use<'_>
         {
             self.0.iter_mut()
         }
@@ -588,17 +588,17 @@ pub(crate) mod sync {
             self.0.get_mut(key)
         }
 
-        pub fn services(&mut self) -> impl Iterator<Item = &mut PersistentServiceWrapper> {
+        pub fn services(&mut self) -> impl Iterator<Item = &mut PersistentServiceWrapper> + use<'_> {
             self.0.values_mut()
         }
 
-        pub fn running_services(&mut self) -> impl Iterator<Item = &mut Service> {
+        pub fn running_services(&mut self) -> impl Iterator<Item = &mut Service> + use<'_> {
             self.0
                 .values_mut()
                 .filter_map(PersistentServiceWrapper::service_mut)
         }
 
-        pub fn drain_services(&mut self) -> impl Iterator<Item = Service> + '_ {
+        pub fn drain_services(&mut self) -> impl Iterator<Item = Service> + '_ + use<'_> {
             self.0
                 .drain()
                 .filter_map(|(_, mut state)| state.shutdown(false))
@@ -1645,9 +1645,8 @@ impl Manager {
         let mut watched_services = Vec::new();
         for spec in self.spec_dir.specs() {
             let ident = spec.ident.clone();
-            if let Some((_, svc_state)) =
-                service_map.iter().find(|(ident, _)| **ident == spec.ident)
-            {
+            match service_map.iter().find(|(ident, _)| **ident == spec.ident)
+            { Some((_, svc_state)) => {
                 // If the service wrapper does not contain a service we create one
                 if svc_state.service().is_none() {
                     match Service::new(self.sys.clone(),
@@ -1667,7 +1666,7 @@ impl Manager {
                         }
                     };
                 }
-            } else {
+            } _ => {
                 // If there is no wrapper for the service, we create one
                 match Service::new(self.sys.clone(),
                                    spec,
@@ -1686,7 +1685,7 @@ impl Manager {
                     }
                     Err(err) => warn!("Failed to create service '{}' from spec: {:?}", ident, err),
                 };
-            }
+            }}
         }
         let watched_service_proxies: Vec<ServiceQueryModel> =
             watched_services.iter()
@@ -1730,15 +1729,15 @@ impl Manager {
     /// * `GatewayState::inner` (write)
     /// * `ManagerServices::inner` (write)
     fn stop_service_gsw_msw(&mut self, ident: &PackageIdent, shutdown_input: &ShutdownInput) {
-        if let Some(mut service_state) = self.remove_service_from_state_msw(ident) {
+        match self.remove_service_from_state_msw(ident) { Some(mut service_state) => {
             if let Some(service) = service_state.shutdown(false) {
                 let future = self.stop_service_future_gsw(service, None, Some(shutdown_input));
                 tokio::spawn(future);
             }
-        } else {
+        } _ => {
             warn!("Tried to stop '{}', but couldn't find it in our list of running services!",
                   ident);
-        }
+        }}
     }
 
     /// Create a future for stopping a Service removing it from the manager. The Service is assumed
@@ -1750,7 +1749,7 @@ impl Manager {
                                mut service: Service,
                                latest_desired_on_restart: Option<PackageIdent>,
                                shutdown_input: Option<&ShutdownInput>)
-                               -> impl Future<Output = ()> {
+                               -> impl Future<Output = ()> + use<> {
         let mut user_config_watcher = self.user_config_watcher.clone();
         let service_updater = Arc::clone(&self.service_updater);
         let busy_services = Arc::clone(&self.busy_services);
@@ -1906,17 +1905,16 @@ impl Manager {
                     // future; then we could just chain that future
                     // onto the end of the stop one for a *real*
                     // restart future.
-                    if let Some(service) =
-                        self.remove_service_from_state_msw(&spec.ident)
+                    match self.remove_service_from_state_msw(&spec.ident)
                             .and_then(|mut service_state| service_state.shutdown(false))
-                    {
+                    { Some(service) => {
                         tokio::spawn(self.stop_service_future_gsw(service, None, None));
-                    } else {
+                    } _ => {
                         // We really don't expect this to happen....
                         outputln!("Tried to remove service for {} but could not find it running, \
                                    skipping",
                                   &spec.ident);
-                    }
+                    }}
                 }
                 ServiceOperation::Start(spec) => {
                     // We need to check if the service is already known, if yes, then is it ready to

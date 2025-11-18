@@ -41,7 +41,8 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
                 }
                 Sensitivity::PrintValue => debug!("Setting {}={} via config file", env_var, val),
             }
-            env::set_var(env_var, val);
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { env::set_var(env_var, val) };
         }
     }
 }
@@ -50,8 +51,9 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
 //  hab studio.  It must be set outside of studio and passed in through
 //  the environment variable defined in STUDIO_HOST_ARCH_ENVVAR.
 fn set_arch_env_var() {
-    env::set_var(STUDIO_HOST_ARCH_ENVVAR,
-                 format!("{}", PackageTarget::active_target()));
+    // TODO: Audit that the environment access only happens in single-threaded code.
+    unsafe { env::set_var(STUDIO_HOST_ARCH_ENVVAR,
+                 format!("{}", PackageTarget::active_target())) };
 }
 
 fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
@@ -98,7 +100,8 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     if henv::var(CACHE_KEY_PATH_ENV_VAR).is_err() {
         let path = &*fs::CACHE_KEY_PATH;
         debug!("Setting {}={}", CACHE_KEY_PATH_ENV_VAR, path.display());
-        env::set_var(CACHE_KEY_PATH_ENV_VAR, path);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var(CACHE_KEY_PATH_ENV_VAR, path) };
     };
 
     let artifact_path = match henv::var(ARTIFACT_PATH_ENVVAR) {
@@ -106,7 +109,8 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         Err(_) => {
             let path = fs::cache_artifact_path(None::<&str>);
             debug!("Setting {}={}", ARTIFACT_PATH_ENVVAR, path.display());
-            env::set_var(ARTIFACT_PATH_ENVVAR, &path);
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { env::set_var(ARTIFACT_PATH_ENVVAR, &path) };
             path
         }
     };
@@ -120,7 +124,8 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         Err(_) => {
             let path = fs::cache_ssl_path(None::<&str>);
             debug!("Setting {}={}", CERT_PATH_ENVVAR, path.display());
-            env::set_var(CERT_PATH_ENVVAR, &path);
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { env::set_var(CERT_PATH_ENVVAR, &path) };
             path
         }
     };
@@ -192,7 +197,8 @@ mod inner {
                         let cmd_env = pkg_install.environment_for_command()?;
                         for (key, value) in cmd_env.into_iter() {
                             debug!("Setting: {}='{}'", key, value);
-                            env::set_var(key, value);
+                            // TODO: Audit that the environment access only happens in single-threaded code.
+                            unsafe { env::set_var(key, value) };
                         }
 
                         let mut display_args = STUDIO_CMD.to_string();

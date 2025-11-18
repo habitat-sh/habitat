@@ -7,7 +7,7 @@ use std::path::Path;
 pub fn start(ui: &mut UI, src: &Path) -> Result<()> {
     ui.begin(format!("Reading package header for {}", &src.display()))?;
     ui.para("")?;
-    if let Ok(header) = artifact::get_artifact_header(src) {
+    match artifact::get_artifact_header(src) { Ok(header) => {
         println!("Package        : {}", &src.display());
         println!("Format Version : {}", header.format());
         println!("Key Name       : {}", header.signer());
@@ -15,8 +15,8 @@ pub fn start(ui: &mut UI, src: &Path) -> Result<()> {
         // This should just be "Signature", but this is a public
         // interface right now.
         println!("Raw Signature  : {}", header.encoded_signature());
-    } else {
+    } _ => {
         ui.warn("Failed to read package header.")?;
-    }
+    }}
     Ok(())
 }

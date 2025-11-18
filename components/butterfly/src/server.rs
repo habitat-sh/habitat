@@ -1340,7 +1340,7 @@ impl Server {
     pub fn persist_data_rsr_mlr(&self) {
         if let Some(ref dat_file_lock) = self.dat_file {
             let dat_file = dat_file_lock.lock().expect("DatFile lock poisoned");
-            if let Some(err) = dat_file.write_rsr_mlr(&self.member_list,
+            match dat_file.write_rsr_mlr(&self.member_list,
                                                       &self.service_store,
                                                       &self.service_config_store,
                                                       &self.service_file_store,
@@ -1348,11 +1348,11 @@ impl Server {
                                                       &self.update_store,
                                                       &self.departure_store)
                                        .err()
-            {
+            { Some(err) => {
                 error!("Error persisting rumors to disk, {}", err);
-            } else {
+            } _ => {
                 info!("Rumors persisted to disk: {}", dat_file.path().display());
-            }
+            }}
         }
     }
 

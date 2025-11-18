@@ -55,7 +55,8 @@ mod test {
         // We would prefer to use the `locked_env_var` macro here but currently, the `habitat_core`
         // crate does not depend on `habitat_common`. If this becomes an issue, some refactoring
         // will be needed.
-        std::env::set_var(OutboundIpAddrLookupSocketAddr::ENVVAR, "127.0.0.1:80");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { std::env::set_var(OutboundIpAddrLookupSocketAddr::ENVVAR, "127.0.0.1:80") };
         // localhost should route back to localhost
         assert_eq!(ip().unwrap(), Ipv4Addr::LOCALHOST);
     }

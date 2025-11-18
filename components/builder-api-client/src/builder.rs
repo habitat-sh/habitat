@@ -1379,11 +1379,11 @@ impl BuilderAPIClient {
 /// IntoIterator<Item = Duration>)`
 #[macro_export]
 macro_rules! retry_builder_api {
-    ($api_future:expr) => {
+    ($api_future:expr_2021) => {
         retry_builder_api!($api_future,
                            with_custom_iterator: retry::delay::Fibonacci::from(API_RETRY_DELAY).take(API_RETRY_COUNT))
     };
-    ($api_future:expr,with_custom_iterator: $iterator:expr) => {
+    ($api_future:expr_2021,with_custom_iterator: $iterator:expr_2021) => {
         async {
             retry::retry_future!($iterator, async {
                 match $api_future.await.into() {

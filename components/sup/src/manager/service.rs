@@ -438,7 +438,7 @@ impl PersistentServiceWrapper {
 
     pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
         match &mut self.inner {
-            Some(ref mut service) => {
+            Some(service) => {
                 trace!("Starting service tick with persistent state: {:?}",
                        self.run_state);
                 service.tick(&mut self.run_state, census_ring, launcher)

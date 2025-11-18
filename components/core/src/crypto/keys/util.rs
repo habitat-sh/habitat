@@ -6,9 +6,9 @@ macro_rules! gen_key {
         $(#[$attr:meta])*
         $t:ident,key_material:
         $key:ty,file_format_version:
-        $version:expr,file_extension:
-        $extension:expr,file_permissions:
-        $permissions:expr
+        $version:expr_2021,file_extension:
+        $extension:expr_2021,file_permissions:
+        $permissions:expr_2021
     ) => {
 
 
@@ -174,7 +174,7 @@ mod tests {
         /// `from_str_impl_for_key` macro lines up with
         /// `KeyFile::to_key_string`.
         macro_rules! assert_parse_round_trip {
-            ($t:ty, $key:expr) => {
+            ($t:ty, $key:expr_2021) => {
                 let key_string = $key.to_key_string();
                 let parsed_key: $t = key_string.parse().unwrap();
                 assert_eq!($key, parsed_key,
@@ -226,7 +226,7 @@ mod tests {
             use crate::crypto::test_support::fixture_as_string;
 
             macro_rules! parse {
-                ($name:ident, $key:ty, $fixture_path:expr) => {
+                ($name:ident, $key:ty, $fixture_path:expr_2021) => {
                     #[test]
                     fn $name() {
                         let content = fixture_as_string($fixture_path);
@@ -295,7 +295,7 @@ mod tests {
                 /// the string it produces can be parsed as any other
                 /// public encryption key type.
                 macro_rules! assert_public_key_equivalence {
-                    ($key:expr) => {
+                    ($key:expr_2021) => {
                         let key_string = $key.to_key_string();
                         assert!(key_string.parse::<UserPublicEncryptionKey>().is_ok());
                         assert!(key_string.parse::<ServicePublicEncryptionKey>().is_ok());
@@ -307,7 +307,7 @@ mod tests {
                 /// the string it produces can be parsed as any other
                 /// secret encryption key type.
                 macro_rules! assert_secret_key_equivalence {
-                    ($key:expr) => {
+                    ($key:expr_2021) => {
                         let key_string = $key.to_key_string();
                         assert!(key_string.parse::<UserSecretEncryptionKey>().is_ok());
                         assert!(key_string.parse::<ServiceSecretEncryptionKey>().is_ok());
@@ -500,7 +500,7 @@ mod tests {
             use super::*;
 
             macro_rules! extension {
-                ($name:ident, $key:ty, $extension:expr) => {
+                ($name:ident, $key:ty, $extension:expr_2021) => {
                     #[test]
                     fn $name() {
                         let actual = <$key>::extension();
@@ -543,7 +543,7 @@ mod tests {
             use super::*;
 
             macro_rules! permissions {
-                ($name:ident, $key:ty, $permission:expr) => {
+                ($name:ident, $key:ty, $permission:expr_2021) => {
                     #[test]
                     fn $name() {
                         let actual = <$key>::permissions();
@@ -592,7 +592,7 @@ mod tests {
             use super::*;
 
             macro_rules! version {
-                ($name:ident, $key:ty, $version:expr) => {
+                ($name:ident, $key:ty, $version:expr_2021) => {
                     #[test]
                     fn $name() {
                         let actual = <$key>::version();
