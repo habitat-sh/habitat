@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.326 -->
-## [2.0.326](https://github.com/habitat-sh/habitat/tree/2.0.326) (2025-11-15)
+<!-- latest_release 2.0.327 -->
+## [2.0.327](https://github.com/habitat-sh/habitat/tree/2.0.327) (2025-11-18)
 
 #### Merged Pull Requests
-- Bump os_info from 3.12.0 to 3.13.0 [#10053](https://github.com/habitat-sh/habitat/pull/10053) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- completely remove hab pkg export docker [#10054](https://github.com/habitat-sh/habitat/pull/10054) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- completely remove hab pkg export docker [#10054](https://github.com/habitat-sh/habitat/pull/10054) ([mwrock](https://github.com/mwrock)) <!-- 2.0.327 -->
 - Bump os_info from 3.12.0 to 3.13.0 [#10053](https://github.com/habitat-sh/habitat/pull/10053) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.326 -->
 - Bump hyper from 1.8.0 to 1.8.1 [#10052](https://github.com/habitat-sh/habitat/pull/10052) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.325 -->
 - Bump aws-sdk-ecr from 1.98.0 to 1.99.0 [#10051](https://github.com/habitat-sh/habitat/pull/10051) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.324 -->
