@@ -1,7 +1,7 @@
 [package]
 name = "habitat_core"
 version = "0.0.0"
-edition = "2021"
+edition = "2024"
 authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 build = "build.rs"
@@ -66,10 +66,7 @@ winapi = { version = "^0.3", features = [
   "ws2def",
 ] }
 windows-acl = "*"
-windows-sys = { version = "^0.61.2", features = [
-  "Win32_Foundation",
-  "Win32_System_Environment",
-] }
+windows-sys = { version = "^0.61.2", features = ["Win32_Foundation", "Win32_System_Environment"] }
 
 [dev-dependencies]
 num_cpus = "*"                                       # For doc tests
@@ -79,13 +76,7 @@ reqwest = { version = "*", features = ["blocking"] }
 [features]
 default = ["supported_targets"]
 functional = []
-supported_targets = [
-  "x86_64-darwin",
-  "x86_64-linux",
-  "x86_64-windows",
-  "aarch64-darwin",
-  "aarch64-linux",
-]
+supported_targets = ["x86_64-darwin", "x86_64-linux", "x86_64-windows", "aarch64-darwin", "aarch64-linux"]
 x86_64-darwin = []
 x86_64-linux = []
 x86_64-windows = []

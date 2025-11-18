@@ -2,7 +2,7 @@
 name = "habitat-rst-reader"
 version = "0.0.0"
 authors = ["The Habitat Maintainers <humans@habitat.sh>"]
-edition = "2021"
+edition = "2024"
 workspace = "../../"
 
 [[bin]]
@@ -11,7 +11,7 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-clap = { version = "4" , features = ["env", "derive", "string", "wrap_help"]}
+clap = { version = "4", features = ["env", "derive", "string", "wrap_help"] }
 env_logger = "*"
 habitat_butterfly = { path = "../butterfly", default-features = false }
 log = "0.4"
