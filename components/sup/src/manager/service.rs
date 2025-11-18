@@ -183,9 +183,7 @@ impl TemplateUpdate {
     /// Returns `true` if the service needs to be reconfigured.
     ///
     /// A reconfigure is needed if `/config` or the `reconfigure` hook changed.
-    fn needs_reconfigure(&self) -> bool {
-        self.config_changed || self.hooks.reconfigure_changed() || self.hooks.reload_changed()
-    }
+    fn needs_reconfigure(&self) -> bool { self.config_changed || self.hooks.reconfigure_changed() }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -1088,7 +1086,7 @@ impl Service {
             let ctx = self.render_context(census_ring);
             TemplateUpdate::new(self.compile_hooks(&ctx),
                                 self.compile_configuration(&ctx),
-                                self.hooks.reconfigure.is_some() || self.hooks.reload.is_some())
+                                self.hooks.reconfigure.is_some())
         } else {
             TemplateUpdate::default()
         };
@@ -1161,13 +1159,6 @@ impl Service {
     /// Run reconfigure hook if present.
     fn reconfigure(&mut self) {
         let _timer = hook_timer("reconfigure");
-
-        if let Some(ref hook) = self.hooks.reload {
-            hook.run(&self.service_group,
-                     &self.pkg,
-                     self.spec.svc_encrypted_password.as_ref())
-                .ok();
-        }
 
         if let Some(ref hook) = self.hooks.reconfigure {
             hook.run(&self.service_group,
