@@ -10,7 +10,6 @@ mod depart;
 mod restart;
 mod secret;
 mod sh;
-mod status;
 pub(crate) mod sup_run;
 mod term;
 
@@ -31,9 +30,6 @@ pub(super) enum SupCommand {
     /// Commands relating to a Habitat Supervisor's Control Gateway secret
     #[command(subcommand)]
     Secret(secret::SupSecretOptions),
-
-    /// Query the status of Habitat services
-    Status(status::SupStatusOptions),
 
     // Basic Commands (sh, bash , terminate)
     /// Start an interactive Bourne-like shell
@@ -58,7 +54,6 @@ impl SupCommand {
             Self::Depart(opts) => opts.do_depart(ui).await,
             Self::Restart(opts) => opts.do_restart().await,
             Self::Secret(opts) => opts.execute().await,
-            Self::Status(opts) => opts.do_status().await,
             Self::Sh(opts) => opts.execute(ui).await,
             Self::Bash(opts) => opts.execute(ui).await,
             Self::Term(opts) => opts.execute(ui).await,
