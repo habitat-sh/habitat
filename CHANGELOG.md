@@ -1,16 +1,23 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.327 -->
-## [2.0.327](https://github.com/habitat-sh/habitat/tree/2.0.327) (2025-11-18)
+<!-- latest_release 2.0.328 -->
+## [2.0.328](https://github.com/habitat-sh/habitat/tree/2.0.328) (2025-11-18)
 
 #### Merged Pull Requests
-- completely remove hab pkg export docker [#10054](https://github.com/habitat-sh/habitat/pull/10054) ([mwrock](https://github.com/mwrock))
+- Changes rust-zmq dep from github repo to crates.io [#10061](https://github.com/habitat-sh/habitat/pull/10061) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Changes rust-zmq dep from github repo to crates.io [#10061](https://github.com/habitat-sh/habitat/pull/10061) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.328 -->
+- remove deprecated hab sup status [#10055](https://github.com/habitat-sh/habitat/pull/10055) ([mwrock](https://github.com/mwrock)) <!-- 2.0.328 -->
+- remove deprecated reload hook [#10056](https://github.com/habitat-sh/habitat/pull/10056) ([mwrock](https://github.com/mwrock)) <!-- 2.0.328 -->
+- remove deprecated shared load environment and application [#10057](https://github.com/habitat-sh/habitat/pull/10057) ([mwrock](https://github.com/mwrock)) <!-- 2.0.328 -->
+- Bump cc from 1.2.45 to 1.2.46 [#10058](https://github.com/habitat-sh/habitat/pull/10058) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.328 -->
+- Bump clap from 4.5.51 to 4.5.52 [#10059](https://github.com/habitat-sh/habitat/pull/10059) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.328 -->
+- Bump bytes from 1.10.1 to 1.11.0 [#10060](https://github.com/habitat-sh/habitat/pull/10060) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.328 -->
 - completely remove hab pkg export docker [#10054](https://github.com/habitat-sh/habitat/pull/10054) ([mwrock](https://github.com/mwrock)) <!-- 2.0.327 -->
 - Bump os_info from 3.12.0 to 3.13.0 [#10053](https://github.com/habitat-sh/habitat/pull/10053) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.326 -->
 - Bump hyper from 1.8.0 to 1.8.1 [#10052](https://github.com/habitat-sh/habitat/pull/10052) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.325 -->
