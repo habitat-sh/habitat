@@ -447,20 +447,6 @@ pub struct SharedLoad {
     #[arg(long = "password")]
     password: Option<String>,
 
-    // TODO (DM): This flag can eventually be removed.
-    // See https://github.com/habitat-sh/habitat/issues/7339
-    /// DEPRECATED
-    #[arg(long = "application", short = 'a', hide = true)]
-    #[serde(skip)]
-    application: Vec<String>,
-
-    // TODO (DM): This flag can eventually be removed.
-    // See https://github.com/habitat-sh/habitat/issues/7339
-    /// DEPRECATED
-    #[arg(long = "environment", short = 'e', hide = true)]
-    #[serde(skip)]
-    environment: Vec<String>,
-
     /// Use the package config from this path rather than the package itself
     #[arg(long = "config-from")]
     config_from: Option<PathBuf>,
@@ -480,8 +466,6 @@ impl Default for SharedLoad {
                shutdown_timeout:         None,
                #[cfg(windows)]
                password:                 None,
-               application:              vec![],
-               environment:              vec![],
                config_from:              None, }
     }
 }
@@ -609,21 +593,12 @@ pub fn shared_load_cli_to_ctl(ident: PackageIdent,
                               shared_load: SharedLoad,
                               force: bool)
                               -> HabResult<habitat_sup_protocol::ctl::SvcLoad> {
-    use habitat_common::{ui,
-                         ui::UIWriter};
     #[cfg(target_os = "windows")]
     use habitat_core::crypto::dpapi;
     use habitat_sup_protocol::{ctl::{ServiceBindList,
                                      SvcLoad},
                                types::{HealthCheckInterval,
                                        ServiceBind}};
-
-    // TODO (DM): This check can eventually be removed.
-    // See https://github.com/habitat-sh/habitat/issues/7339
-    if !shared_load.application.is_empty() || !shared_load.environment.is_empty() {
-        ui::ui().warn("--application and --environment flags are deprecated and ignored.")
-                .ok();
-    }
 
     let binds = if shared_load.bind.is_empty() {
         None
