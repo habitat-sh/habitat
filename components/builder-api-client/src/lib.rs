@@ -62,12 +62,11 @@ impl fmt::Display for Project {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut s = format!("{:50} {}", self.ident, self.state);
 
-        if let Ok(j) = self.job_id.parse::<i64>() {
-            if j > 0 {
+        if let Ok(j) = self.job_id.parse::<i64>()
+            && j > 0 {
                 let job_ids = format!(" (Job ID {})", self.job_id);
                 s = s + &job_ids;
             }
-        }
 
         write!(f, "{}", s)
     }

@@ -127,14 +127,13 @@ fn toml_to_json(cfg: &str) -> Result<Json> {
 
 // merge two Json structs
 fn merge(a: &mut Json, b: Json) {
-    if let Json::Object(a_map) = a {
-        if let Json::Object(b_map) = b {
+    if let Json::Object(a_map) = a
+        && let Json::Object(b_map) = b {
             for (k, v) in b_map {
                 merge(a_map.entry(k).or_insert(Json::Null), v);
             }
             return;
         }
-    }
     *a = b;
 }
 

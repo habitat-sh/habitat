@@ -186,11 +186,10 @@ impl FileSnapshot {
                                    self.path.display()));
             }
             let modified_at = self.path.metadata().ok().and_then(|p| p.modified().ok());
-            if let Some(modified_at) = modified_at {
-                if modified_at != self.last_modified_at {
+            if let Some(modified_at) = modified_at
+                && modified_at != self.last_modified_at {
                     return FileSnapshot::new(self.path.clone());
                 }
-            }
             tokio::time::sleep(Duration::from_secs(1)).await;
         }
     }

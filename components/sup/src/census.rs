@@ -162,13 +162,11 @@ impl CensusRing {
     /// * `RumorStore::list` (read)
     fn update_from_election_store_rsr(&mut self, election_rumors: &RumorStore<ElectionRumor>) {
         for (service_group, rumors) in election_rumors.lock_rsr().iter() {
-            if let Some(election) = rumors.get(ElectionRumor::const_id()) {
-                if let Ok(sg) = service_group_from_str(service_group) {
-                    if let Some(census_group) = self.census_groups.get_mut(&sg) {
+            if let Some(election) = rumors.get(ElectionRumor::const_id())
+                && let Ok(sg) = service_group_from_str(service_group)
+                    && let Some(census_group) = self.census_groups.get_mut(&sg) {
                         census_group.update_from_election_rumor(election);
                     }
-                }
-            }
         }
     }
 
@@ -178,12 +176,11 @@ impl CensusRing {
                                              election_update_rumors: &RumorStore<ElectionUpdateRumor>)
     {
         for (service_group, rumors) in election_update_rumors.lock_rsr().iter() {
-            if let Ok(sg) = service_group_from_str(service_group) {
-                if let Some(census_group) = self.census_groups.get_mut(&sg) {
+            if let Ok(sg) = service_group_from_str(service_group)
+                && let Some(census_group) = self.census_groups.get_mut(&sg) {
                     let election = rumors.get(ElectionUpdateRumor::const_id()).unwrap();
                     census_group.update_from_election_update_rumor(election);
                 }
-            }
         }
     }
 
@@ -193,13 +190,11 @@ impl CensusRing {
                                       key_cache: &KeyCache,
                                       service_config_rumors: &RumorStore<ServiceConfigRumor>) {
         for (service_group, rumors) in service_config_rumors.lock_rsr().iter() {
-            if let Ok(sg) = service_group_from_str(service_group) {
-                if let Some(service_config) = rumors.get(ServiceConfigRumor::const_id()) {
-                    if let Some(census_group) = self.census_groups.get_mut(&sg) {
+            if let Ok(sg) = service_group_from_str(service_group)
+                && let Some(service_config) = rumors.get(ServiceConfigRumor::const_id())
+                    && let Some(census_group) = self.census_groups.get_mut(&sg) {
                         census_group.update_from_service_config_rumor(key_cache, service_config);
                     }
-                }
-            }
         }
     }
 

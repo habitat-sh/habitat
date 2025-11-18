@@ -84,15 +84,14 @@ impl PackageSetFile {
     // Get Package Sets from the `toml` data. Following validations are performed -
     // format_version is 1
     pub(crate) fn to_package_sets(&self) -> Result<Vec<PackageSet>> {
-        if let Some(version) = self.format_version {
-            if version != 1 {
+        if let Some(version) = self.format_version
+            && version != 1 {
                 return Err(Error::PackageSetParseError(format!("format_version \
                                                                 invalid, only \
                                                                 version 1 allowed \
                                                                 ({} provided",
                                                                version)));
             }
-        }
         let mut sets = vec![];
         for (target, pkg_sets) in &self.targets {
             for pkg_set in pkg_sets {

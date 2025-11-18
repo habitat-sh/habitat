@@ -726,8 +726,8 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
 // Path extensions are found in the PATHEXT environment variable.
 // We should only search with PATHEXT if the file does not already have an extension.
 fn find_command_with_pathext(candidate: &Path) -> Option<PathBuf> {
-    if candidate.extension().is_none() {
-        if let Some(pathexts) = henv::var_os("PATHEXT") {
+    if candidate.extension().is_none()
+        && let Some(pathexts) = henv::var_os("PATHEXT") {
             for pathext in env::split_paths(&pathexts) {
                 let mut source_candidate = candidate.to_path_buf();
                 let extension = pathext.to_str().unwrap().trim_matches('.');
@@ -738,7 +738,6 @@ fn find_command_with_pathext(candidate: &Path) -> Option<PathBuf> {
                 }
             }
         };
-    }
     None
 }
 

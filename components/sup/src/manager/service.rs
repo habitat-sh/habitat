@@ -800,11 +800,10 @@ impl Service {
             .expect("Couldn't lock supervisor")
             .stop(shutdown_config);
 
-        if let Some(hook) = self.post_stop() {
-            if let Err(e) = hook.into_future().await {
+        if let Some(hook) = self.post_stop()
+            && let Err(e) = hook.into_future().await {
                 outputln!(preamble service_group, "Service stop failed: {}", e);
             }
-        }
     }
 
     /// Only used as a way to see if anything has happened to this
@@ -1369,14 +1368,13 @@ impl Service {
     fn file_updated(&self) -> bool {
         let _timer = hook_timer("file-updated");
 
-        if self.initialized() {
-            if let Some(ref hook) = self.hooks.file_updated {
+        if self.initialized()
+            && let Some(ref hook) = self.hooks.file_updated {
                 return hook.run(&self.service_group,
                                 &self.pkg,
                                 self.spec.svc_encrypted_password.as_ref())
                            .unwrap_or(false);
             }
-        }
 
         false
     }
@@ -1473,11 +1471,10 @@ impl Service {
         };
         let new_checksum = Blake2bHash::from_bytes(contents);
 
-        if let Some(current_checksum) = current_checksum {
-            if new_checksum == current_checksum {
+        if let Some(current_checksum) = current_checksum
+            && new_checksum == current_checksum {
                 return false;
             }
-        }
 
         if let Err(e) = atomic_write(file.as_ref(), contents) {
             outputln!(preamble self.service_group,

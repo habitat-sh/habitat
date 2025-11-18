@@ -527,14 +527,12 @@ impl TestSup {
                                            format!("Failed to get state of service {}.{}",
                                                    package_name, service_group)
                                        })?
-            {
-                if let ("up", "Up", Some(_)) = (service.process.state.as_str(),
+                && let ("up", "Up", Some(_)) = (service.process.state.as_str(),
                                                 service.desired_state.as_str(),
                                                 service.process.pid)
                 {
                     return Ok(service);
                 }
-            }
             tokio::time::sleep(Duration::from_millis(500)).await;
         }
     }
@@ -667,11 +665,9 @@ impl TestSup {
                 }
                 if let ("up", Some(process_id)) =
                     (service.process.state.as_str(), service.process.pid)
-                {
-                    if process_id != old_process_id {
+                    && process_id != old_process_id {
                         return Ok(service);
                     }
-                }
             } else {
                 return Err(anyhow!("Test supervisor is not running the service {}.{}",
                                    package_name,

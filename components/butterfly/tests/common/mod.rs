@@ -399,11 +399,10 @@ impl SwimNet {
                                   -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {
-            if let Some(real_health) = self.health_of_mlr(from_entry, to_check) {
-                if real_health == health {
+            if let Some(real_health) = self.health_of_mlr(from_entry, to_check)
+                && real_health == health {
                     return true;
                 }
-            }
             if self.check_rounds(&rounds_in) {
                 println!("MEMBERS: {:#?}", self.members);
                 println!("Failed health check for\n***FROM***{:#?}\n***TO***\n{:#?}",

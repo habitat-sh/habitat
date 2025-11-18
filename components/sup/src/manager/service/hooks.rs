@@ -575,8 +575,8 @@ impl HookTable {
               T: AsRef<Path>
     {
         let mut table = HookTable::default();
-        if let Ok(meta) = std::fs::metadata(templates.as_ref()) {
-            if meta.is_dir() {
+        if let Ok(meta) = std::fs::metadata(templates.as_ref())
+            && meta.is_dir() {
                 table.file_updated =
                     FileUpdatedHook::load(package_name, &hooks_path, &templates, feature_flags);
                 table.health_check = HealthCheckHook::load(package_name,
@@ -598,7 +598,6 @@ impl HookTable {
                                                      &templates,
                                                      feature_flags).map(Arc::new);
             }
-        }
         debug!("{}, Hooks loaded, destination={}, templates={}",
                package_name,
                hooks_path.as_ref().display(),

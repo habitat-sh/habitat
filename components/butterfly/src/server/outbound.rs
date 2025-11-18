@@ -327,11 +327,10 @@ pub fn populate_membership_rumors_mlr_rhw(server: &Server,
     // If this isn't the first time we are communicating with this target, we want to include this
     // targets current status. This ensures that members always get a "Confirmed" rumor, before we
     // have the chance to flip it to "Alive", which helps make sure we heal from a partition.
-    if server.member_list.contains_member_mlr(&target.id) {
-        if let Some(always_target) = server.member_list.membership_for_mlr(&target.id) {
+    if server.member_list.contains_member_mlr(&target.id)
+        && let Some(always_target) = server.member_list.membership_for_mlr(&target.id) {
             swim.membership.push(always_target);
         }
-    }
 
     // NOTE: the way this is currently implemented, this is grabbing
     // the 5 coolest (but still warm!) Member rumors.

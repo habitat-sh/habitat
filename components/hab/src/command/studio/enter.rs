@@ -33,8 +33,8 @@ enum Sensitivity {
 }
 
 fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive: Sensitivity) {
-    if henv::var(env_var).is_err() {
-        if let Some(val) = config_val {
+    if henv::var(env_var).is_err()
+        && let Some(val) = config_val {
             match sensitive {
                 Sensitivity::NoPrintValue => {
                     debug!("Setting {}=REDACTED (sensitive) via config file", env_var)
@@ -44,7 +44,6 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
             // TODO: Audit that the environment access only happens in single-threaded code.
             unsafe { env::set_var(env_var, val) };
         }
-    }
 }
 
 //  Set the environment variable for the host architecture to be used in
@@ -134,11 +133,10 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         stdfs::create_dir_all(&ssl_path)?;
     }
 
-    if let Ok(ssl_cert_file) = env::var(SSL_CERT_FILE_ENVVAR) {
-        if let Err(err) = cache_ssl_cert_file(&ssl_cert_file, &ssl_path) {
+    if let Ok(ssl_cert_file) = env::var(SSL_CERT_FILE_ENVVAR)
+        && let Err(err) = cache_ssl_cert_file(&ssl_cert_file, &ssl_path) {
             warn!("Unable to cache SSL_CERT_FILE: {}", err);
         }
-    }
 
     inner::start(ui, args).await
 }

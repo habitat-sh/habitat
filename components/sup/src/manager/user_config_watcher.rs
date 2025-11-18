@@ -125,13 +125,11 @@ impl UserConfigWatcher {
                                  .lock()
                                  .expect("states lock was poisoned")
                                  .remove(service.name())
-        {
-            if let Err(e) = state.stop_running.send(()) {
+            && let Err(e) = state.stop_running.send(()) {
                 debug!("Error stopping user-config watcher thread for service {}: {:?}",
                        service.name(),
                        e);
             }
-        }
     }
 
     /// Checks whether the watcher for the specified service has observed any events.

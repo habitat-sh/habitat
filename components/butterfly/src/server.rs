@@ -254,12 +254,11 @@ pub(crate) mod sync {
         fn refute_incarnation(&mut self, incoming: Incarnation) {
             self.member.incarnation = incoming + 1;
             INCARNATION.set(self.member.incarnation.to_i64());
-            if let Some(ref mut s) = self.incarnation_store {
-                if let Err(e) = s.store(self.member.incarnation) {
+            if let Some(ref mut s) = self.incarnation_store
+                && let Err(e) = s.store(self.member.incarnation) {
                     error!("Error persisting incarnation '{}' to disk: {:?}",
                            self.member.incarnation, e);
                 }
-            }
         }
 
         /// Returns the current incarnation number.

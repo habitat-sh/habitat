@@ -24,8 +24,8 @@ pub fn start(filename: &str,
     for entry in WalkDir::new(pkg_root).into_iter()
                                        .filter_map(std::result::Result::ok)
     {
-        if let Some(f) = entry.path().file_name().and_then(OsStr::to_str) {
-            if filename == f {
+        if let Some(f) = entry.path().file_name().and_then(OsStr::to_str)
+            && filename == f {
                 found_any = true;
                 let mut comps = entry.path().components();
 
@@ -57,7 +57,6 @@ pub fn start(filename: &str,
                     found.insert(pkg_name);
                 }
             }
-        }
     }
     // if we're not using full_path, then using a set will filter out
     // duplicates. This shows the filtered set of matches

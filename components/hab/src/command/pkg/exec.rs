@@ -21,8 +21,8 @@ pub fn start<T>(ident: &PackageIdent, command: T, args: &[OsString]) -> Result<(
     let pkg_install = PackageInstall::load(ident, Some(&*FS_ROOT_PATH))?;
     let mut cmd_env = pkg_install.environment_for_command()?;
 
-    if let Some(path) = cmd_env.get(PATH_KEY) {
-        if let Some(val) = env::var_os(PATH_KEY) {
+    if let Some(path) = cmd_env.get(PATH_KEY)
+        && let Some(val) = env::var_os(PATH_KEY) {
             let mut paths: Vec<PathBuf> = env::split_paths(&path).collect();
             let mut os_paths = env::split_paths(&val).collect();
             paths.append(&mut os_paths);
@@ -34,7 +34,6 @@ pub fn start<T>(ident: &PackageIdent, command: T, args: &[OsString]) -> Result<(
                       })?;
             cmd_env.insert(PATH_KEY.to_string(), path_str);
         }
-    }
 
     for (key, value) in cmd_env.into_iter() {
         debug!("Setting: {}='{}'", key, value);

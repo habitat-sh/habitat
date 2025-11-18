@@ -954,8 +954,7 @@ impl Manager {
 
         if let Ok(package) =
             PackageInstall::load(service.pkg.ident.as_ref(), Some(Path::new(&*FS_ROOT_PATH)))
-        {
-            if let Err(err) = habitat_common::command::package::install::check_install_hooks(
+            && let Err(err) = habitat_common::command::package::install::check_install_hooks(
                 &mut habitat_common::ui::UI::with_sinks(),
                 &package,
                 Path::new(&*FS_ROOT_PATH),
@@ -965,7 +964,6 @@ impl Manager {
                 outputln!("Failed to run install hook for {}, {}", ident, err);
                 return;
             }
-        }
 
         if let Err(e) = service.create_svc_path() {
             outputln!("Can't create directory {}: {}",
@@ -1082,11 +1080,10 @@ impl Manager {
         // This serves to start up any services that need starting
         // (which will be all of them at this point!)
         for ident in self.maybe_spawn_service_futures_rsw_mlw_gsw_rhw_msw().await {
-            if let Some(wrapper) = self.state.services.lock_msr().get(&ident) {
-                if let Some(service) = wrapper.service() {
+            if let Some(wrapper) = self.state.services.lock_msr().get(&ident)
+                && let Some(service) = wrapper.service() {
                     self.service_updater.lock().register(service);
                 }
-            }
         }
 
         // Ensure that the updated census state is saved to the gateway
@@ -1147,12 +1144,11 @@ impl Manager {
 
             // Only cleanup supervisor packages if we are running the latest installed version. It
             // is possible to have no versions installed if a development build is being run.
-            if let Some(latest) = pkg::installed(&*THIS_SUPERVISOR_FUZZY_IDENT) {
-                if *THIS_SUPERVISOR_IDENT == latest.ident {
+            if let Some(latest) = pkg::installed(&*THIS_SUPERVISOR_FUZZY_IDENT)
+                && *THIS_SUPERVISOR_IDENT == latest.ident {
                     self.maybe_uninstall_old_packages(&THIS_SUPERVISOR_FUZZY_IDENT)
                         .await;
                 }
-            }
 
             let (lock, cvar) = &*pair;
             let mut started = lock.lock().expect("Control mutex is poisoned");
@@ -1216,9 +1212,9 @@ impl Manager {
                 Err(e) => error!("Error retrieving open file descriptor count: {:?}", e),
             }
 
-            if self.feature_flags.contains(FeatureFlag::TEST_EXIT) {
-                if let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT") {
-                    if let Ok(mut exit_code_file) = File::open(&exit_file_path) {
+            if self.feature_flags.contains(FeatureFlag::TEST_EXIT)
+                && let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT")
+                    && let Ok(mut exit_code_file) = File::open(&exit_file_path) {
                         let mut buffer = String::new();
                         exit_code_file.read_to_string(&mut buffer)
                                       .expect("couldn't read");
@@ -1228,8 +1224,6 @@ impl Manager {
                             std::process::exit(exit_code);
                         }
                     }
-                }
-            }
 
             let next_check = Instant::now() + Duration::from_secs(1);
             match self.launcher.launcher_status() {
@@ -1342,11 +1336,10 @@ impl Manager {
             // census is updated from the rumors above. Otherwise the updater
             // threads may have stale census data
             for ident in updaters_to_register {
-                if let Some(wrapper) = self.state.services.lock_msr().get(&ident) {
-                    if let Some(service) = wrapper.service() {
+                if let Some(wrapper) = self.state.services.lock_msr().get(&ident)
+                    && let Some(service) = wrapper.service() {
                         self.service_updater.lock().register(service);
                     }
-                }
             }
 
             for service_state in self.state.services.lock_msw().services() {

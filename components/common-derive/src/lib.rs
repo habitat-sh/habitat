@@ -83,13 +83,11 @@ fn get_field_doc(attrs: &[Attribute]) -> String {
     let mut doc_string = String::new();
     for attr in attrs {
         let Attribute { meta, .. } = attr;
-        if let Meta::NameValue(MetaNameValue { path, value, .. }) = meta {
-            if path.segments[0].ident == "doc" {
-                if let Expr::Lit(ExprLit { lit: Lit::Str(lit), .. }) = value {
+        if let Meta::NameValue(MetaNameValue { path, value, .. }) = meta
+            && path.segments[0].ident == "doc"
+                && let Expr::Lit(ExprLit { lit: Lit::Str(lit), .. }) = value {
                     doc_string += &format!("### {}\n", lit.value());
                 }
-            }
-        }
     }
     doc_string
 }
@@ -100,15 +98,13 @@ fn is_hidden_field(field: &Field) -> bool {
             let nested = attr.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
                              .expect("parse_args_with:hidden:");
             for meta in nested {
-                if let Meta::NameValue(MetaNameValue { path, value, .. }) = meta {
-                    if path.is_ident("hide") {
-                        if let Expr::Lit(ExprLit { lit: Lit::Bool(hide),
+                if let Meta::NameValue(MetaNameValue { path, value, .. }) = meta
+                    && path.is_ident("hide")
+                        && let Expr::Lit(ExprLit { lit: Lit::Bool(hide),
                                                    .. }) = value
                         {
                             return hide.value;
                         }
-                    }
-                }
             }
         }
     }

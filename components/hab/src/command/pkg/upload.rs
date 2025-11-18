@@ -178,11 +178,10 @@ async fn upload_into_depot(ui: &mut UI,
     ui.status(Status::Uploaded, ident)?;
 
     // Promote to additional_release_channel if specified
-    if package_exists_in_target {
-        if let Some(channel) = additional_release_channel.clone() {
+    if package_exists_in_target
+        && let Some(channel) = additional_release_channel.clone() {
             promote_to_channel(ui, api_client, (ident, target), channel, token).await?
         }
-    }
 
     Ok(())
 }
