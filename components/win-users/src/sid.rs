@@ -58,12 +58,12 @@ struct ACCESS_ALLOWED_ACE {
     sidStart: DWORD,
 }
 
-extern "system" {
+unsafe extern "system" {
     fn ObtainSid(hToken: HANDLE, psid: *mut PSID) -> BOOL;
 }
 
 #[link(name = "user32")]
-extern "system" {
+unsafe extern "system" {
     fn AddAccessAllowedAceEx(pAcl: PACL,
                              dwAceRevision: DWORD,
                              aceFlags: DWORD,
