@@ -606,10 +606,11 @@ impl Service {
     #[cfg(windows)]
     async fn resolve_pkg(package: &PackageInstall, spec: &ServiceSpec) -> Result<Pkg> {
         let mut pkg = Pkg::from_install(package).await?;
-        if spec.svc_encrypted_password.is_none() && pkg.svc_user == DEFAULT_USER {
-            if let Some(user) = users::get_current_username()? {
-                pkg.svc_user = user;
-            }
+        if spec.svc_encrypted_password.is_none()
+           && pkg.svc_user == DEFAULT_USER
+           && let Some(user) = users::get_current_username()?
+        {
+            pkg.svc_user = user;
         }
         Ok(pkg)
     }

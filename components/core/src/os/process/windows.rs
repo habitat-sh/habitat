@@ -71,10 +71,10 @@ pub fn is_alive(pid: Pid) -> bool {
 }
 
 pub fn terminate(pid: Pid) -> Result<()> {
-    if let Some(handle) = handle_from_pid(pid) {
-        if unsafe { processthreadsapi::TerminateProcess(handle, 1) } == 0 {
-            return Err(Error::TerminateProcessFailed(pid, io::Error::last_os_error()));
-        }
+    if let Some(handle) = handle_from_pid(pid)
+       && unsafe { processthreadsapi::TerminateProcess(handle, 1) } == 0
+    {
+        return Err(Error::TerminateProcessFailed(pid, io::Error::last_os_error()));
     }
     Ok(())
 }
