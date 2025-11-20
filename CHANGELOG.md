@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.328 -->
-## [2.0.328](https://github.com/habitat-sh/habitat/tree/2.0.328) (2025-11-18)
+<!-- latest_release 2.0.329 -->
+## [2.0.329](https://github.com/habitat-sh/habitat/tree/2.0.329) (2025-11-20)
 
 #### Merged Pull Requests
-- Changes rust-zmq dep from github repo to crates.io [#10061](https://github.com/habitat-sh/habitat/pull/10061) ([jasonheath](https://github.com/jasonheath))
+- Bump clap_complete from 4.5.60 to 4.5.61 [#10063](https://github.com/habitat-sh/habitat/pull/10063) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump clap_complete from 4.5.60 to 4.5.61 [#10063](https://github.com/habitat-sh/habitat/pull/10063) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.329 -->
 - Changes rust-zmq dep from github repo to crates.io [#10061](https://github.com/habitat-sh/habitat/pull/10061) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.328 -->
 - remove deprecated hab sup status [#10055](https://github.com/habitat-sh/habitat/pull/10055) ([mwrock](https://github.com/mwrock)) <!-- 2.0.328 -->
 - remove deprecated reload hook [#10056](https://github.com/habitat-sh/habitat/pull/10056) ([mwrock](https://github.com/mwrock)) <!-- 2.0.328 -->
