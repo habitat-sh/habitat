@@ -34,6 +34,10 @@ pub async fn command_from_min_pkg(ui: &mut UI,
     command_from_min_pkg_with_optional_channel(ui, command, ident, None).await
 }
 
+// TODO: This function is only called from the *launcher* and since *launcher* is not yet a first
+// class citizen in MacOS we get a compile time warning. When *launcher* and *sup* are properly
+// supported, this should go
+#[cfg(not(target_os = "macos"))]
 pub async fn command_from_min_pkg_with_channel(ui: &mut UI,
                                                command: impl Into<PathBuf>,
                                                ident: &PackageIdent,

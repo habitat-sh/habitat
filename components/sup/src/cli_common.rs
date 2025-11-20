@@ -6,10 +6,12 @@ use log::error;
 use habitat_core::crypto;
 use habitat_launcher_client::LauncherCli;
 
-use habitat_sup::{command,
-                  error::{Error,
+use habitat_sup::{error::{Error,
                           Result},
                   manager::Manager};
+
+#[cfg(not(target_os = "macos"))]
+use habitat_sup::command;
 
 pub(crate) fn boot() -> Option<LauncherCli> {
     if crypto::init().is_err() {
