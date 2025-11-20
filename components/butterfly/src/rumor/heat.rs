@@ -194,9 +194,9 @@ pub(crate) mod sync {
     pub(crate) mod tests {
         use super::*;
         use crate::{member::Member,
-                    rumor::{service::{Service,
-                                      SysInfo},
-                            RumorKey}};
+                    rumor::{RumorKey,
+                            service::{Service,
+                                      SysInfo}}};
         use habitat_core::{locked_env_var,
                            package::PackageIdent,
                            service::ServiceGroup};
@@ -377,10 +377,10 @@ pub(crate) mod sync {
 
 #[cfg(test)]
 mod tests {
-    use super::{sync::{tests::{assert_rumor_is_cold_rhr,
+    use super::{sync::{RumorHeat,
+                       tests::{assert_rumor_is_cold_rhr,
                                assert_rumor_is_hot_rhr,
-                               cool_rumor_completely_rhw},
-                       RumorHeat},
+                               cool_rumor_completely_rhw}},
                 *};
     use crate::{error::Result,
                 protocol::{self,

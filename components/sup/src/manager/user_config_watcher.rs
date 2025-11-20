@@ -11,15 +11,15 @@ use std::{collections::HashMap,
           io,
           path::{Path,
                  PathBuf},
-          sync::{mpsc::{channel,
-                        sync_channel,
-                        Receiver,
+          sync::{Arc,
+                 Mutex,
+                 mpsc::{Receiver,
                         Sender,
                         SyncSender,
                         TryRecvError,
-                        TrySendError},
-                 Arc,
-                 Mutex},
+                        TrySendError,
+                        channel,
+                        sync_channel}},
           thread::{self,
                    Builder as ThreadBuilder},
           time::Duration};
@@ -85,8 +85,8 @@ impl UserConfigWatcher {
         let mut states = self.states.lock().expect("states lock was poisoned");
         if states.get(service.name()).is_none() {
             let user_toml_path = match service.user_config_path() {
-                UserConfigPath::Recommended(ref p) => p.join(USER_CONFIG_FILE),
-                UserConfigPath::Deprecated(ref p) => {
+                UserConfigPath::Recommended(p) => p.join(USER_CONFIG_FILE),
+                UserConfigPath::Deprecated(p) => {
                     outputln!(
                         preamble service.service_group(),
                         "Not watching {}, because it is located in deprecated path ({}).",
@@ -125,12 +125,11 @@ impl UserConfigWatcher {
                                  .lock()
                                  .expect("states lock was poisoned")
                                  .remove(service.name())
+           && let Err(e) = state.stop_running.send(())
         {
-            if let Err(e) = state.stop_running.send(()) {
-                debug!("Error stopping user-config watcher thread for service {}: {:?}",
-                       service.name(),
-                       e);
-            }
+            debug!("Error stopping user-config watcher thread for service {}: {:?}",
+                   service.name(),
+                   e);
         }
     }
 
@@ -258,8 +257,8 @@ impl Worker {
 mod tests {
     use super::*;
     use habitat_core::locked_env_var;
-    use std::{fs::{remove_file,
-                   File},
+    use std::{fs::{File,
+                   remove_file},
               io::Write,
               str::FromStr,
               thread,

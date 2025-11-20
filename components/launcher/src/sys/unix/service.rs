@@ -4,9 +4,9 @@ use crate::{error::ServiceRunError,
             service::Service};
 use anyhow::Result;
 use habitat_core::os::{self,
-                       process::{exec,
-                                 signal,
-                                 Signal}};
+                       process::{Signal,
+                                 exec,
+                                 signal}};
 use log::debug;
 use nix::unistd::{Gid,
                   Uid};

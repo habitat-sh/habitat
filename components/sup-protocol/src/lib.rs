@@ -45,8 +45,8 @@ use std::{fs::File,
           path::{Path,
                  PathBuf}};
 
-use rand::{rngs::OsRng,
-           TryRngCore};
+use rand::{TryRngCore,
+           rngs::OsRng};
 
 // Name of file containing the CtlGateway secret key.
 const CTL_SECRET_FILENAME: &str = "CTL_SECRET";

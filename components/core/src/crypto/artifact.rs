@@ -1,18 +1,18 @@
-use crate::{crypto::{keys::{Key,
+use crate::{crypto::{Blake2bHash,
+                     HART_FORMAT_VERSION,
+                     SIG_HASH_TYPE,
+                     keys::{Key,
                             KeyCache,
                             NamedRevision,
-                            SecretOriginSigningKey},
-                     Blake2bHash,
-                     HART_FORMAT_VERSION,
-                     SIG_HASH_TYPE},
+                            SecretOriginSigningKey}},
             error::{Error,
                     Result}};
 use std::{fs::File,
           io::{self,
-               prelude::*,
                BufRead,
                BufReader,
-               BufWriter},
+               BufWriter,
+               prelude::*},
           path::Path};
 
 pub struct ArtifactHeader {
@@ -183,9 +183,9 @@ pub fn artifact_signer<P>(hart_file_path: P) -> Result<NamedRevision>
 
 #[cfg(test)]
 mod test {
-    use super::{super::{test_support::*,
-                        HART_FORMAT_VERSION,
-                        SIG_HASH_TYPE},
+    use super::{super::{HART_FORMAT_VERSION,
+                        SIG_HASH_TYPE,
+                        test_support::*},
                 *};
 
     #[test]

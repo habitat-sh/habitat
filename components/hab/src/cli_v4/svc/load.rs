@@ -2,18 +2,18 @@ use clap_v4 as clap;
 
 use std::convert::TryFrom;
 
-use clap::{value_parser,
-           Parser};
+use clap::{Parser,
+           value_parser};
 
 use serde::{Deserialize,
             Serialize};
 
 use hab_common_derive::GenConfig;
 
-use crate::{cli_v4::utils::{shared_load_cli_to_ctl,
-                            PkgIdent,
+use crate::{cli_v4::utils::{PkgIdent,
                             RemoteSup,
-                            SharedLoad},
+                            SharedLoad,
+                            shared_load_cli_to_ctl},
             error::{Error as HabError,
                     Result as HabResult},
             gateway_util};

@@ -8,8 +8,8 @@
 //! `std::process::Command`, we could consider it. In the meantime,
 //! this seems to do the trick.
 
-use super::{hook_timer,
-            Pkg};
+use super::{Pkg,
+            hook_timer};
 use crate::error::{Error,
                    Result};
 use habitat_common::templating::hooks::Hook;

@@ -4,9 +4,9 @@ use log::debug;
 use std::{io,
           mem,
           ptr,
-          sync::{atomic::{AtomicBool,
-                          Ordering},
-                 Once},
+          sync::{Once,
+                 atomic::{AtomicBool,
+                          Ordering}},
           thread};
 
 static INIT: Once = Once::new();

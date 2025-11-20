@@ -10,7 +10,7 @@ pub(crate) enum Error {
     NoECRTokensReturned,
     #[error(transparent)]
     TokenFetchFailed(Box<SdkError<GetAuthorizationTokenError>>),
-    #[error("A primary service package could not be determined from: {0:?}. At least one \
-             package with a run hook must be provided.")]
+    #[error("A primary service package could not be determined from: {0:?}. At least one package \
+             with a run hook must be provided.")]
     PrimaryServicePackageNotFound(Vec<String>),
 }

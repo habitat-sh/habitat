@@ -6,8 +6,8 @@ use std::{fs,
 use crate::error::Result;
 
 use crate::{common::ui::{Status,
-                         UIWriter,
-                         UI},
+                         UI,
+                         UIWriter},
             hcore::{crypto::init,
                     package::PackageIdent}};
 
@@ -137,10 +137,10 @@ fn project_uses_gb(dir: &Path) -> io::Result<bool> {
             if path.is_dir() {
                 project_uses_gb(&path)?;
             } else if path.is_file() {
-                if let Some(ext) = path.extension() {
-                    if ext == "go" {
-                        return Ok(true);
-                    }
+                if let Some(ext) = path.extension()
+                   && ext == "go"
+                {
+                    return Ok(true);
                 }
             } else {
                 return Ok(false);

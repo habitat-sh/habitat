@@ -1,11 +1,11 @@
 //! Encryption logic used by Builder to encrypt secrets at rest.
 
-use crate::{crypto::keys::{encryption::{primitives,
-                                        SECRET_BOX_KEY_SUFFIX,
-                                        SECRET_BOX_KEY_VERSION},
-                           Key,
+use crate::{crypto::keys::{Key,
                            NamedRevision,
-                           SignedBox},
+                           SignedBox,
+                           encryption::{SECRET_BOX_KEY_SUFFIX,
+                                        SECRET_BOX_KEY_VERSION,
+                                        primitives}},
             error::{Error,
                     Result},
             fs::Permissions};

@@ -1,13 +1,13 @@
 use crate::os::process::can_run_services_as_svc_user;
 #[cfg(not(target_os = "macos"))]
 use log::warn;
-use nix::{sys::signal::{pthread_sigmask,
-                        SigSet,
-                        SigmaskHow},
-          unistd::{setgid,
-                   setuid,
-                   Gid,
-                   Uid}};
+use nix::{sys::signal::{SigSet,
+                        SigmaskHow,
+                        pthread_sigmask},
+          unistd::{Gid,
+                   Uid,
+                   setgid,
+                   setuid}};
 use std::{ffi::OsStr,
           io,
           os::unix::process::CommandExt,
@@ -132,43 +132,45 @@ fn set_supplementary_groups(user_id: Uid,
             // bit for now.
             #[cfg(not(target_os = "macos"))]
             {
-                use nix::unistd::{getgrouplist,
-                                  setgroups,
-                                  User};
+                use nix::unistd::{User,
+                                  getgrouplist,
+                                  setgroups};
                 use std::ffi::CString;
 
-                if let Some(user) =
-                    User::from_uid(user_id).map_err(|e| {
-                                               eprintln!("Error resolving user from ID: {:?}", e);
-                                               io::Error::last_os_error()
-                                           })?
-                {
-                    let user = CString::new(user.name).map_err(|e| {
-                                                          eprintln!("User name cannot convert to \
-                                                                     CString!: {:?}",
-                                                                    e);
-                                                          e
-                                                      })?;
-
-                    // There are some platforms (ex. SUSE 12 sp5) that may return
-                    // EINVAL from getgrouplist. This only appears to occur from
-                    // statically compiled (MUSL) executables like the hab CLI. The
-                    // error has not been reproducible from a dynamic executable like
-                    // the supervisor.
-                    let groups = getgrouplist(&user, group_id).unwrap_or_else(|e| {
-                                                                  warn!("unable to get \
-                                                                         supplementary groups \
-                                                                         with getgrouplist: {}",
+                match User::from_uid(user_id).map_err(|e| {
+                                                 eprintln!("Error resolving user from ID: {:?}", e);
+                                                 io::Error::last_os_error()
+                                             })? {
+                    Some(user) => {
+                        let user = CString::new(user.name).map_err(|e| {
+                                                              eprintln!("User name cannot \
+                                                                         convert to CString!: \
+                                                                         {:?}",
                                                                         e);
-                                                                  vec![group_id]
-                                                              });
-                    setgroups(&groups).map_err(|e| {
-                                          eprintln!("setgroups failed! {:?}", e);
-                                          io::Error::last_os_error()
-                                      })?; // CAP_SETGID
-                } else {
-                    eprintln!("Could not find user from user ID. Wil not set supplementary \
-                               groups.");
+                                                              e
+                                                          })?;
+
+                        // There are some platforms (ex. SUSE 12 sp5) that may return
+                        // EINVAL from getgrouplist. This only appears to occur from
+                        // statically compiled (MUSL) executables like the hab CLI. The
+                        // error has not been reproducible from a dynamic executable like
+                        // the supervisor.
+                        let groups =
+                            getgrouplist(&user, group_id).unwrap_or_else(|e| {
+                                                             warn!("unable to get supplementary \
+                                                                    groups with getgrouplist: {}",
+                                                                   e);
+                                                             vec![group_id]
+                                                         });
+                        setgroups(&groups).map_err(|e| {
+                                              eprintln!("setgroups failed! {:?}", e);
+                                              io::Error::last_os_error()
+                                          })?; // CAP_SETGID
+                    }
+                    _ => {
+                        eprintln!("Could not find user from user ID. Wil not set supplementary \
+                                   groups.");
+                    }
                 }
             }
 

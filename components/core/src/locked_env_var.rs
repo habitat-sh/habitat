@@ -68,21 +68,25 @@ impl LockedEnvVar {
     pub fn set<V>(&self, value: V)
         where V: AsRef<OsStr>
     {
-        env::set_var(&*self.lock, value.as_ref());
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var(&*self.lock, value.as_ref()) };
     }
 
     /// Unsets an environment variable.
-    pub fn unset(&self) { env::remove_var(&*self.lock); }
+    // TODO: Audit that the environment access only happens in single-threaded code.
+    pub fn unset(&self) { unsafe { env::remove_var(&*self.lock) }; }
 }
 
 impl Drop for LockedEnvVar {
     fn drop(&mut self) {
         match self.original_value {
             Some(ref val) => {
-                env::set_var(&*self.lock, val);
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { env::set_var(&*self.lock, val) };
             }
             None => {
-                env::remove_var(&*self.lock);
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe { env::remove_var(&*self.lock) };
             }
         }
     }
@@ -155,7 +159,8 @@ mod tests {
         // macro and types behave properly!
         locked_env_var!(HAB_TESTING_LOCKED_ENV_VAR, lock_var);
 
-        env::set_var("HAB_TESTING_LOCKED_ENV_VAR", "original_value");
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("HAB_TESTING_LOCKED_ENV_VAR", "original_value") };
 
         {
             let lock = lock_var();

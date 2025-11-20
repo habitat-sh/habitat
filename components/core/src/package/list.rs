@@ -1,7 +1,7 @@
-use super::{metadata::{read_metafile,
-                       MetaFile},
-            PackageIdent,
-            PackageTarget};
+use super::{PackageIdent,
+            PackageTarget,
+            metadata::{MetaFile,
+                       read_metafile}};
 use crate::error::{Error,
                    Result};
 use log::debug;
@@ -205,12 +205,11 @@ fn walk_releases(origin: &str,
     for entry in fs::read_dir(dir)? {
         let release_dir = entry?;
         let release_path = release_dir.path();
-        if fs::metadata(&release_path)?.is_dir() {
-            if let Some(ident) =
-                package_ident_from_dir(origin, name, version, active_target, &release_path)
-            {
-                packages.push(ident)
-            }
+        if fs::metadata(&release_path)?.is_dir()
+           && let Some(ident) =
+               package_ident_from_dir(origin, name, version, active_target, &release_path)
+        {
+            packages.push(ident)
         }
     }
     Ok(())

@@ -27,17 +27,18 @@ pub fn lookup_fqdn(hostname: &str) -> io::Result<String> {
     // If 'hints.flags' includes the AI_CANONNAME flag, then the ai_canonname
     // field of the first of the addrinfo structures in the returned list is set
     // to point to the official name of the host.
-    if let Some(first_result) = dns_lookup::getaddrinfo(Some(hostname), None, Some(hints))?.next() {
-        match first_result {
-            Ok(f) => Ok(f.canonname.expect("Some(canonname) if requested")),
-            Err(e) => {
-                debug!("lookup_fqdn() was unable to lookup the machine fqdn. {:?}",
-                       e);
-                Ok(hostname.to_string())
+    match dns_lookup::getaddrinfo(Some(hostname), None, Some(hints))?.next() {
+        Some(first_result) => {
+            match first_result {
+                Ok(f) => Ok(f.canonname.expect("Some(canonname) if requested")),
+                Err(e) => {
+                    debug!("lookup_fqdn() was unable to lookup the machine fqdn. {:?}",
+                           e);
+                    Ok(hostname.to_string())
+                }
             }
         }
-    } else {
-        Ok(hostname.to_string())
+        _ => Ok(hostname.to_string()),
     }
 }
 

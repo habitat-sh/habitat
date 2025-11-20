@@ -17,12 +17,14 @@ use std::{self,
 /// use std;
 ///
 /// let key = "_I_AM_A_TEAPOT_COMMA_RIGHT_PEOPLE_QUESTION_MARK_";
-/// std::env::set_var(key, "");
-/// match habitat_core::env::var(key) {
-///     Ok(val) => panic!("The environment variable {} is set but empty!", key),
-///     Err(e) => {
-///         println!("The environment variable {} is set, but empty. Not useful!",
-///                  key)
+/// unsafe {
+///     std::env::set_var(key, "");
+///     match habitat_core::env::var(key) {
+///         Ok(val) => panic!("The environment variable {} is set but empty!", key),
+///         Err(e) => {
+///             println!("The environment variable {} is set, but empty. Not useful!",
+///                      key)
+///         }
 ///     }
 /// }
 /// ```
@@ -51,7 +53,9 @@ pub fn var<K: AsRef<OsStr>>(key: K) -> std::result::Result<String, VarError> {
 /// use std;
 ///
 /// let key = "_I_AM_A_TEAPOT_COMMA_RIGHT_PEOPLE_QUESTION_MARK_";
-/// std::env::set_var(key, "");
+/// unsafe {
+///     std::env::set_var(key, "");
+/// }
 /// match habitat_core::env::var_os(key) {
 ///     Some(val) => panic!("The environment variable {} is set but empty!", key),
 ///     None => {

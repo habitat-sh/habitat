@@ -1,5 +1,5 @@
-use habitat_common::ui::{UIWriter,
-                         UI};
+use habitat_common::ui::{UI,
+                         UIWriter};
 use habitat_pkg_export_container::cli_driver;
 
 #[tokio::main]

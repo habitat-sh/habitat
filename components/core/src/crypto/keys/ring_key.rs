@@ -1,5 +1,5 @@
-use crate::{crypto::{keys::NamedRevision,
-                     SECRET_SYM_KEY_VERSION},
+use crate::{crypto::{SECRET_SYM_KEY_VERSION,
+                     keys::NamedRevision},
             error::{Error,
                     Result},
             fs::Permissions};
@@ -7,12 +7,12 @@ use crate::{crypto::{keys::NamedRevision,
 /// Private module to re-export the various sodiumoxide concepts we
 /// use, to keep them all consolidated and abstracted.
 mod primitives {
-    pub use sodiumoxide::crypto::secretbox::{gen_key,
+    pub use sodiumoxide::crypto::secretbox::{Key,
+                                             Nonce,
+                                             gen_key,
                                              gen_nonce,
                                              open,
-                                             seal,
-                                             Key,
-                                             Nonce};
+                                             seal};
 }
 
 gen_key!(

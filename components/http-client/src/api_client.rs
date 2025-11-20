@@ -5,15 +5,15 @@ use habitat_core::{env,
                    util::sys};
 use log::{debug,
           trace};
-use reqwest::{header::{HeaderValue,
-                       CONNECTION,
-                       USER_AGENT},
-              Certificate as ReqwestCertificate,
+use reqwest::{Certificate as ReqwestCertificate,
               Client as ReqwestClient,
               IntoUrl,
               Proxy,
               RequestBuilder,
-              Url};
+              Url,
+              header::{CONNECTION,
+                       HeaderValue,
+                       USER_AGENT}};
 use std::{path::Path,
           time::Duration};
 

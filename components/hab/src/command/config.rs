@@ -87,7 +87,7 @@ pub(crate) async fn sub_svc_set<U>(ui: &mut U,
             }
             _ => {
                 return Err(SrvClientError::from(io::Error::new(io::ErrorKind::UnexpectedEof,
-                                                               "Unexpected reply")).into())
+                                                               "Unexpected reply")).into());
             }
         }
     }
@@ -105,7 +105,7 @@ pub(crate) async fn sub_svc_set<U>(ui: &mut U,
             }
             _ => {
                 return Err(SrvClientError::from(io::Error::new(io::ErrorKind::UnexpectedEof,
-                                                               "Unexpected reply")).into())
+                                                               "Unexpected reply")).into());
             }
         }
     }
@@ -134,7 +134,7 @@ pub(crate) async fn sub_svc_config(ident: PackageIdent,
             }
             _ => {
                 return Err(SrvClientError::from(io::Error::new(io::ErrorKind::UnexpectedEof,
-                                                               "Unexpected reply")).into())
+                                                               "Unexpected reply")).into());
             }
         }
     }

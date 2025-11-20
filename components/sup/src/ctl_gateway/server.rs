@@ -10,9 +10,9 @@
 
 use super::{CtlRequest,
             REQ_TIMEOUT};
-use crate::manager::{action::ActionSender,
-                     commands,
-                     ManagerState};
+use crate::manager::{ManagerState,
+                     action::ActionSender,
+                     commands};
 use futures::{channel::mpsc,
               executor,
               prelude::*,
@@ -36,19 +36,19 @@ use log::{debug,
           trace,
           warn};
 use pin_project::pin_project;
-use prometheus::{register_histogram_vec,
-                 register_int_counter_vec,
-                 HistogramTimer,
+use prometheus::{HistogramTimer,
                  HistogramVec,
-                 IntCounterVec};
+                 IntCounterVec,
+                 register_histogram_vec,
+                 register_int_counter_vec};
 
 use rustls::{self,
+             RootCertStore,
+             ServerConfig as TlsServerConfig,
              pki_types::{CertificateDer,
                          PrivateKeyDer,
                          PrivatePkcs8KeyDer},
-             server::WebPkiClientVerifier,
-             RootCertStore,
-             ServerConfig as TlsServerConfig};
+             server::WebPkiClientVerifier};
 use std::{error,
           fmt,
           io,
@@ -235,8 +235,8 @@ mod util {
                 CtlSender,
                 HandlerError};
     use crate::{ctl_gateway::CtlRequest,
-                manager::{action::ActionSender,
-                          ManagerState}};
+                manager::{ManagerState,
+                          action::ActionSender}};
     use habitat_sup_protocol::{codec::SrvMessage,
                                message::MessageStatic,
                                net::NetResult};

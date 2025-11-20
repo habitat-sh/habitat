@@ -3,8 +3,8 @@
 /// The Supervisor is responsible for running any services we are asked to start. It handles
 /// spawning the new process, watching for failure, and ensuring the service is either up or
 /// down. If the process dies, the Supervisor will restart it.
-use super::{terminator,
-            ProcessState};
+use super::{ProcessState,
+            terminator};
 use crate::{error::{Error,
                     Result},
             manager::{ServicePidSource,

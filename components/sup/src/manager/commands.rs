@@ -2,11 +2,11 @@
 
 use crate::{ctl_gateway::CtlRequest,
             error::Error,
-            manager::{action::{ActionSender,
+            manager::{ManagerState,
+                      action::{ActionSender,
                                SupervisorAction},
-                      service::{spec::ServiceSpec,
-                                DesiredState},
-                      ManagerState},
+                      service::{DesiredState,
+                                spec::ServiceSpec}},
             util};
 use habitat_butterfly as butterfly;
 use habitat_common::{command::package::install::InstallSource,

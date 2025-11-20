@@ -1,15 +1,15 @@
 //! Watcher interface implementation for Habitat Supervisor.
-use habitat_core::package::target::{PackageTarget,
-                                    AARCH64_DARWIN};
+use habitat_core::package::target::{AARCH64_DARWIN,
+                                    PackageTarget};
 use log::debug;
-use notify::{poll::PollWatcher,
-             Config,
+use notify::{Config,
              EventHandler,
              RecommendedWatcher,
              RecursiveMode,
              Result,
              Watcher,
-             WatcherKind};
+             WatcherKind,
+             poll::PollWatcher};
 use std::{env,
           path::Path,
           str::FromStr};

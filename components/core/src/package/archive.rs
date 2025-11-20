@@ -1,10 +1,10 @@
-use super::{metadata::{MetaFile,
-                       PackageType},
-            Identifiable,
+use super::{Identifiable,
             PackageIdent,
-            PackageTarget};
-use crate::{crypto::{artifact,
-                     Blake2bHash},
+            PackageTarget,
+            metadata::{MetaFile,
+                       PackageType}};
+use crate::{crypto::{Blake2bHash,
+                     artifact},
             error::{Error,
                     Result},
             package::ident::FullyQualifiedPackageIdent};

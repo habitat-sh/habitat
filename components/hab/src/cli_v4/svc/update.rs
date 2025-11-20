@@ -7,20 +7,20 @@ use clap::Parser;
 
 use habitat_common::cli::clap_validators::HabPkgIdentValueParser;
 
-use habitat_core::{os::process::ShutdownTimeout,
+use habitat_core::{ChannelIdent,
+                   os::process::ShutdownTimeout,
                    package::PackageIdent,
                    service::{HealthCheckInterval,
-                             ServiceBind},
-                   ChannelIdent};
+                             ServiceBind}};
 use habitat_sup_protocol::{ctl,
                            types::{BindingMode,
                                    Topology,
                                    UpdateCondition,
                                    UpdateStrategy}};
 
-use crate::{cli_v4::utils::{resolve_channel_for_pkg,
-                            BldrUrl,
-                            RemoteSup},
+use crate::{cli_v4::utils::{BldrUrl,
+                            RemoteSup,
+                            resolve_channel_for_pkg},
             error::{Error,
                     Result as HabResult},
             gateway_util};

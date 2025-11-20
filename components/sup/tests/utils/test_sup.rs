@@ -1,8 +1,8 @@
 //! Encapsulate running the `hab-sup` executable for tests.
 use crate::hcore::url::BLDR_URL_ENVVAR;
-use anyhow::{anyhow,
-             Context,
-             Result};
+use anyhow::{Context,
+             Result,
+             anyhow};
 use habitat_core::os::process::Pid;
 use rand::{self,
            distr::{Distribution,
@@ -174,7 +174,7 @@ async fn await_local_tcp_port(port: u16, timeout: Duration) -> Result<()> {
                 return Err(anyhow!(err)).with_context(|| {
                                             format!("Failed to connect to tcp address 127.0.0.1:{}",
                                                     port)
-                                        })
+                                        });
             }
             Err(_) => return Err(anyhow!("Timed out waiting for tcp port {} to open up", port)),
         }
@@ -527,13 +527,11 @@ impl TestSup {
                                            format!("Failed to get state of service {}.{}",
                                                    package_name, service_group)
                                        })?
+               && let ("up", "Up", Some(_)) = (service.process.state.as_str(),
+                                               service.desired_state.as_str(),
+                                               service.process.pid)
             {
-                if let ("up", "Up", Some(_)) = (service.process.state.as_str(),
-                                                service.desired_state.as_str(),
-                                                service.process.pid)
-                {
-                    return Ok(service);
-                }
+                return Ok(service);
             }
             tokio::time::sleep(Duration::from_millis(500)).await;
         }
@@ -667,10 +665,9 @@ impl TestSup {
                 }
                 if let ("up", Some(process_id)) =
                     (service.process.state.as_str(), service.process.pid)
+                   && process_id != old_process_id
                 {
-                    if process_id != old_process_id {
-                        return Ok(service);
-                    }
+                    return Ok(service);
                 }
             } else {
                 return Err(anyhow!("Test supervisor is not running the service {}.{}",

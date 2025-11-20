@@ -2,11 +2,11 @@
 
 use clap_v4 as clap;
 
-use crate::{cli_v4::utils::{origin_param_or_env,
-                            AuthToken,
+use crate::{cli_v4::utils::{AuthToken,
                             BldrUrl,
                             CacheKeyPath,
-                            UploadGroup},
+                            UploadGroup,
+                            origin_param_or_env},
             command::origin::key,
             error::{Error,
                     Result as HabResult},

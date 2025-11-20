@@ -1,13 +1,13 @@
 #[cfg(windows)]
 use crate::common::cli::DEFAULT_BINLINK_DIR;
-use crate::{command,
-            common::ui::{UIReader,
-                         UIWriter,
-                         UI},
-            error::Result,
-            AUTH_TOKEN_ENVVAR,
+use crate::{AUTH_TOKEN_ENVVAR,
             BLDR_URL_ENVVAR,
-            ORIGIN_ENVVAR};
+            ORIGIN_ENVVAR,
+            command,
+            common::ui::{UI,
+                         UIReader,
+                         UIWriter},
+            error::Result};
 use habitat_common::{cli::CTL_SECRET_ENVVAR,
                      cli_config::CliConfig};
 #[cfg(windows)]
@@ -34,11 +34,11 @@ use winapi::um::winuser::{self,
                           SMTO_ABORTIFHUNG,
                           WM_SETTINGCHANGE};
 #[cfg(windows)]
+use winreg::RegKey;
+#[cfg(windows)]
 use winreg::enums::{HKEY_LOCAL_MACHINE,
                     KEY_ALL_ACCESS,
                     KEY_READ};
-#[cfg(windows)]
-use winreg::RegKey;
 
 pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
     ui.br()?;

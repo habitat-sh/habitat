@@ -1,12 +1,12 @@
-use crate::{api_client::{self,
+use crate::{PRODUCT,
+            VERSION,
+            api_client::{self,
                          Client},
             common::ui::{Status,
-                         UIWriter,
-                         UI},
+                         UI,
+                         UIWriter},
             error::{Error,
-                    Result},
-            PRODUCT,
-            VERSION};
+                    Result}};
 use habitat_core::{crypto::keys::{Key,
                                   KeyCache,
                                   PublicOriginSigningKey,

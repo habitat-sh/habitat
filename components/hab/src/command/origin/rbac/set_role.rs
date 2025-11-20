@@ -1,13 +1,13 @@
-use crate::{api_client::{self,
+use crate::{PRODUCT,
+            VERSION,
+            api_client::{self,
                          Client},
             common::ui::{Status,
+                         UI,
                          UIReader,
-                         UIWriter,
-                         UI},
+                         UIWriter},
             error::{Error,
-                    Result},
-            PRODUCT,
-            VERSION};
+                    Result}};
 use habitat_core::origin::{Origin,
                            OriginMemberRole};
 use reqwest::StatusCode;

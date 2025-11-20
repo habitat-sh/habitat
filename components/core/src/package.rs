@@ -22,8 +22,8 @@ pub mod test_support {
     use super::{metadata::MetaFile,
                 *};
     use crate::fs;
-    use std::{fs::{create_dir_all,
-                   File},
+    use std::{fs::{File,
+                   create_dir_all},
               io::Write,
               path::{Path,
                      PathBuf},

@@ -112,8 +112,8 @@ impl fmt::Display for Error {
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let content = match self {
-            Error::APIClient(ref err) => err.to_string(),
-            Error::BadAddress(ref err) => format!("Unable to bind to address {}.", err),
+            Error::APIClient(err) => err.to_string(),
+            Error::BadAddress(err) => format!("Unable to bind to address {}.", err),
             Error::Departed => "This Supervisor has been manually departed.\n\nFor the safety of \
                                 the system, this Supervisor cannot be started (if we did, we \
                                 would risk the services on this machine behaving badly without \
@@ -124,27 +124,27 @@ impl fmt::Display for Error {
                                 If you are in doubt, it is better to consider the services \
                                 managed by this Supervisor as unsafe to run."
                                                                              .to_string(),
-            Error::BadDataFile(ref path, ref err) => {
+            Error::BadDataFile(path, err) => {
                 format!("Unable to read or write to data file, {}, {}",
                         path.display(),
                         err)
             }
-            Error::BadDataPath(ref path, ref err) => {
+            Error::BadDataPath(path, err) => {
                 format!("Unable to read or write to data directory, {}, {}",
                         path.display(),
                         err)
             }
-            Error::BadDesiredState(ref state) => {
+            Error::BadDesiredState(state) => {
                 format!("Unknown service desired state style '{}'", state)
             }
-            Error::BadElectionStatus(ref status) => format!("Unknown election status '{}'", status),
-            Error::BadSpecsPath(ref path, ref err) => {
+            Error::BadElectionStatus(status) => format!("Unknown election status '{}'", status),
+            Error::BadSpecsPath(path, err) => {
                 format!("Unable to create the specs directory '{}' ({})",
                         path.display(),
                         err)
             }
-            Error::BadStartStyle(ref style) => format!("Unknown service start style '{}'", style),
-            Error::BindTimeout(ref err) => format!("Timeout waiting to bind to {}", err),
+            Error::BadStartStyle(style) => format!("Unknown service start style '{}'", style),
+            Error::BindTimeout(err) => format!("Timeout waiting to bind to {}", err),
             Error::LockPoisoned => "A mutex or read/write lock has failed.".to_string(),
 
             // This '->' formatting is taken from the thiserror crate and how it
@@ -154,39 +154,39 @@ impl fmt::Display for Error {
             Error::LockFileError(e) => format!("Lock file error -> {}", e),
 
             Error::TestBootFail => "Simulated boot failure".to_string(),
-            Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
-            Error::CtlSecretIo(ref path, ref err) => {
+            Error::ButterflyError(err) => format!("Butterfly error: {}", err),
+            Error::CtlSecretIo(path, err) => {
                 format!("IoError while reading or writing ctl secret, {}, {}",
                         path.display(),
                         err)
             }
-            Error::ExecCommandNotFound(ref c) => {
+            Error::ExecCommandNotFound(c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
             }
-            Error::EventError(ref err) => err.to_string(),
-            Error::Permissions(ref err) => err.to_string(),
-            Error::Hab(ref err) => err.to_string(),
-            Error::HabitatCommon(ref err) => err.to_string(),
-            Error::HabitatCore(ref err) => err.to_string(),
-            Error::EnvJoinPathsError(ref err) => err.to_string(),
-            Error::EnvVarError(ref err) => err.to_string(),
-            Error::FileNotFound(ref e) => format!("File not found at: {}", e),
+            Error::EventError(err) => err.to_string(),
+            Error::Permissions(err) => err.to_string(),
+            Error::Hab(err) => err.to_string(),
+            Error::HabitatCommon(err) => err.to_string(),
+            Error::HabitatCore(err) => err.to_string(),
+            Error::EnvJoinPathsError(err) => err.to_string(),
+            Error::EnvVarError(err) => err.to_string(),
+            Error::FileNotFound(e) => format!("File not found at: {}", e),
             Error::FileWatcherFileIsRoot => "Watched file is root".to_string(),
-            Error::GroupNotFound(ref e) => format!("No GID for group '{}' could be found", e),
-            Error::InvalidBinds(ref e) => format!("Invalid bind(s), {}", e.join(", ")),
-            Error::InvalidCertFile(ref path) => format!("Invalid cert file: {}", path.display()),
+            Error::GroupNotFound(e) => format!("No GID for group '{}' could be found", e),
+            Error::InvalidBinds(e) => format!("Invalid bind(s), {}", e.join(", ")),
+            Error::InvalidCertFile(path) => format!("Invalid cert file: {}", path.display()),
             Error::InvalidHealthCheckResult(code) => {
                 format!("Invalid health check result: {}", code)
             }
-            Error::InvalidKeyFile(ref path) => format!("Invalid key file: {}", path.display()),
-            Error::InvalidKeyParameter(ref e) => {
+            Error::InvalidKeyFile(path) => format!("Invalid key file: {}", path.display()),
+            Error::InvalidKeyParameter(e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
             Error::InvalidPidFile => "Invalid child process PID file".to_string(),
-            Error::InvalidTopology(ref t) => format!("Invalid topology: {}", t),
-            Error::InvalidUpdateStrategy(ref s) => format!("Invalid update strategy: {}", s),
-            Error::Io(ref err) => err.to_string(),
-            Error::TaskJoin(ref err) => err.to_string(),
+            Error::InvalidTopology(t) => format!("Invalid topology: {}", t),
+            Error::InvalidUpdateStrategy(s) => format!("Invalid update strategy: {}", s),
+            Error::Io(err) => err.to_string(),
+            Error::TaskJoin(err) => err.to_string(),
             Error::LauncherIPCCommand(err) => {
                 let mut chain: Vec<String> = vec![format!("{}", err)];
                 let mut root = err.source();
@@ -207,67 +207,67 @@ impl fmt::Display for Error {
                 format!("Supervisor failed to try executing launcher command via IPC: {}",
                         chain.join(", "))
             }
-            Error::MissingRequiredBind(ref e) => {
+            Error::MissingRequiredBind(e) => {
                 format!("Missing required bind(s), {}", e.join(", "))
             }
             Error::MissingRequiredIdent => {
                 "Missing required ident field: (example: ident = \"core/redis\")".to_string()
             }
-            Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
-            Error::NetErr(ref err) => err.to_string(),
-            Error::NetParseError(ref e) => {
+            Error::NameLookup(e) => format!("Error resolving a name or IP address: {}", e),
+            Error::NetErr(err) => err.to_string(),
+            Error::NetParseError(e) => {
                 format!("Can't parse IP address or socket address: {}", e)
             }
-            Error::NoActiveMembers(ref g) => format!("No active members in service group {}", g),
+            Error::NoActiveMembers(g) => format!("No active members in service group {}", g),
             Error::NoLauncher => "Supervisor must be run from `hab-launch`".to_string(),
-            Error::NoSuchBind(ref b) => format!("No such bind: {}", b),
-            Error::NotifyCreateError(ref e) => format!("Notify create error: {}", e),
-            Error::NotifyError(ref e) => format!("Notify error: {}", e),
-            Error::NulError(ref e) => e.to_string(),
-            Error::OneshotCanceled(ref e) => e.to_string(),
-            Error::PackageNotFound(ref pkg) => {
+            Error::NoSuchBind(b) => format!("No such bind: {}", b),
+            Error::NotifyCreateError(e) => format!("Notify create error: {}", e),
+            Error::NotifyError(e) => format!("Notify error: {}", e),
+            Error::NulError(e) => e.to_string(),
+            Error::OneshotCanceled(e) => e.to_string(),
+            Error::PackageNotFound(pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package: {}", pkg)
                 } else {
                     format!("Cannot find a release of package: {}", pkg)
                 }
             }
-            Error::PackageNotRunnable(ref pkg) => format!("Package is not runnable: {}", pkg),
-            Error::RecvError(ref err) => err.to_string(),
-            Error::RecvTimeoutError(ref err) => err.to_string(),
-            Error::ServiceDeserializationError(ref e) => {
+            Error::PackageNotRunnable(pkg) => format!("Package is not runnable: {}", pkg),
+            Error::RecvError(err) => err.to_string(),
+            Error::RecvTimeoutError(err) => err.to_string(),
+            Error::ServiceDeserializationError(e) => {
                 format!("Can't deserialize service status: {}", e)
             }
-            Error::ServiceNotLoaded(ref ident) => format!("Service {} not loaded", ident),
-            Error::ServiceSerializationError(ref e) => {
+            Error::ServiceNotLoaded(ident) => format!("Service {} not loaded", ident),
+            Error::ServiceSerializationError(e) => {
                 format!("Can't serialize service to file: {}", e)
             }
-            Error::ServiceSpecFileIO(ref path, ref err) => {
+            Error::ServiceSpecFileIO(path, err) => {
                 format!("Unable to write or read to a service spec file at {}, {}",
                         path.display(),
                         err)
             }
-            Error::ServiceSpecParse(ref err) => {
+            Error::ServiceSpecParse(err) => {
                 format!("Unable to parse contents of service spec file, {}", err)
             }
-            Error::ServiceSpecRender(ref err) => {
+            Error::ServiceSpecRender(err) => {
                 format!("Service spec could not be rendered successfully: {}", err)
             }
             Error::SignalFailed => "Failed to send a signal to the child process".to_string(),
             Error::SpecWatcherNotCreated => "Failed to create a SpecWatcher".to_string(),
-            Error::SpecDirNotFound(ref path) => {
+            Error::SpecDirNotFound(path) => {
                 format!("Spec directory '{}' not created or is not a directory",
                         path)
             }
-            Error::SpecWatcherGlob(ref e) => e.to_string(),
-            Error::StrFromUtf8Error(ref e) => e.to_string(),
-            Error::StringFromUtf8Error(ref e) => e.to_string(),
-            Error::TLSError(ref e) => e.to_string(),
-            Error::TomlEncode(ref e) => format!("Failed to encode TOML: {}", e),
-            Error::TryRecvError(ref err) => err.to_string(),
+            Error::SpecWatcherGlob(e) => e.to_string(),
+            Error::StrFromUtf8Error(e) => e.to_string(),
+            Error::StringFromUtf8Error(e) => e.to_string(),
+            Error::TLSError(e) => e.to_string(),
+            Error::TomlEncode(e) => format!("Failed to encode TOML: {}", e),
+            Error::TryRecvError(err) => err.to_string(),
             Error::UnpackFailed => "Failed to unpack a package".to_string(),
-            Error::UserNotFound(ref e) => format!("No UID for user '{}' could be found", e),
-            Error::WithDuration(ref e, ref duration) => {
+            Error::UserNotFound(e) => format!("No UID for user '{}' could be found", e),
+            Error::WithDuration(e, duration) => {
                 format!("{} ({} s)", e, duration.as_secs_f64())
             }
         };
@@ -288,8 +288,8 @@ impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             // Nothing else implements source yet
-            Error::EventError(ref e) => e.source(),
-            Error::LockFileError(ref e) => e.source(),
+            Error::EventError(e) => e.source(),
+            Error::LockFileError(e) => e.source(),
             _ => None,
         }
     }

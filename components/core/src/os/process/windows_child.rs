@@ -100,7 +100,7 @@ lazy_static::lazy_static! {
 }
 
 #[link(name = "user32")]
-extern "system" {
+unsafe extern "system" {
     fn LogonUserW(lpszUsername: LPCWSTR,
                   lpszDomain: LPCWSTR,
                   lpszPassword: LPCWSTR,
@@ -770,11 +770,9 @@ impl RawHandle {
                                   -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         let mut amt = 0;
-        let res = cvt(fileapi::ReadFile(self.0,
-                                        buf.as_ptr() as LPVOID,
-                                        len,
-                                        &mut amt,
-                                        overlapped));
+        let res = cvt(unsafe {
+            fileapi::ReadFile(self.0, buf.as_ptr() as LPVOID, len, &mut amt, overlapped)
+        });
         match res {
             Ok(_) => Ok(Some(amt as usize)),
             Err(e) => {
@@ -798,10 +796,8 @@ impl RawHandle {
                                     -> io::Result<usize> {
         let mut bytes = 0;
         let wait = if wait { TRUE } else { FALSE };
-        let res = cvt(ioapiset::GetOverlappedResult(self.raw(),
-                                                    overlapped,
-                                                    &mut bytes,
-                                                    wait));
+        let res =
+            cvt(unsafe { ioapiset::GetOverlappedResult(self.raw(), overlapped, &mut bytes, wait) });
         match res {
             Ok(_) => Ok(bytes as usize),
             Err(e) => {
@@ -1170,8 +1166,9 @@ unsafe fn read_to_end_uninitialized(r: &mut impl Read, buf: &mut Vec<u8>) -> io:
             buf.reserve(1);
         }
 
-        let buf_slice =
-            from_raw_parts_mut(buf.as_mut_ptr().add(buf.len()), buf.capacity() - buf.len());
+        let buf_slice = unsafe {
+            from_raw_parts_mut(buf.as_mut_ptr().add(buf.len()), buf.capacity() - buf.len())
+        };
 
         match r.read(buf_slice) {
             Ok(0) => {
@@ -1179,7 +1176,7 @@ unsafe fn read_to_end_uninitialized(r: &mut impl Read, buf: &mut Vec<u8>) -> io:
             }
             Ok(n) => {
                 let len = buf.len() + n;
-                buf.set_len(len);
+                unsafe { buf.set_len(len) };
             }
             Err(ref e) if e.kind() == ErrorKind::Interrupted => {}
             Err(e) => {

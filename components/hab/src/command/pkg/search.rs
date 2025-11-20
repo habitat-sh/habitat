@@ -1,7 +1,7 @@
-use crate::{api_client::Client,
-            error::Result,
-            PRODUCT,
-            VERSION};
+use crate::{PRODUCT,
+            VERSION,
+            api_client::Client,
+            error::Result};
 
 pub async fn start(st: &str, bldr_url: &str, limit: usize, token: Option<&str>) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;

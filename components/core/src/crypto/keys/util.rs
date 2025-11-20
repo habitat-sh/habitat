@@ -149,11 +149,7 @@ macro_rules! try_from_bytes_for_key {
 
 #[cfg(test)]
 mod tests {
-    use crate::crypto::keys::{generate_origin_encryption_key_pair,
-                              generate_service_encryption_key_pair,
-                              generate_signing_key_pair,
-                              generate_user_encryption_key_pair,
-                              Key,
+    use crate::crypto::keys::{Key,
                               NamedRevision,
                               OriginPublicEncryptionKey,
                               OriginSecretEncryptionKey,
@@ -163,7 +159,11 @@ mod tests {
                               ServicePublicEncryptionKey,
                               ServiceSecretEncryptionKey,
                               UserPublicEncryptionKey,
-                              UserSecretEncryptionKey};
+                              UserSecretEncryptionKey,
+                              generate_origin_encryption_key_pair,
+                              generate_service_encryption_key_pair,
+                              generate_signing_key_pair,
+                              generate_user_encryption_key_pair};
 
     /// Validate the FromStr implementations
     mod from_str {

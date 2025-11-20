@@ -2,13 +2,13 @@ use clap_v4 as clap;
 
 use clap::Parser;
 
-use habitat_common::{ui::UI,
-                     FeatureFlag};
+use habitat_common::{FeatureFlag,
+                     ui::UI};
 
 use crate::command::sup::start;
 
-use crate::{error::Result as HabResult,
-            VERSION};
+use crate::{VERSION,
+            error::Result as HabResult};
 
 use crate::license::check_for_license_acceptance_and_prompt;
 

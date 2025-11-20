@@ -3,9 +3,9 @@ use habitat_common::output::{self,
                              OutputVerbosity};
 use habitat_core::os::signals;
 use habitat_launcher::server;
-use log::{error,
-          log,
-          Level};
+use log::{Level,
+          error,
+          log};
 use std::{env,
           process};
 

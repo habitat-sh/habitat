@@ -120,7 +120,9 @@ impl ServiceUpdater {
         self.updates.lock().get(service_group).cloned()
     }
 
-    fn at_once_worker(&mut self, service: &Service) -> impl Future<Output = ()> + Send + 'static {
+    fn at_once_worker(&mut self,
+                      service: &Service)
+                      -> impl Future<Output = ()> + Send + 'static + use<> {
         debug!("'{}' service updater spawning at-once worker watching for changes to '{}' from \
                 channel '{}'",
                service.service_group,
@@ -142,7 +144,7 @@ impl ServiceUpdater {
     fn rolling_worker(&mut self,
                       service: &Service,
                       census_ring: Arc<RwLock<CensusRing>>)
-                      -> impl Future<Output = ()> + Send + 'static {
+                      -> impl Future<Output = ()> + Send + 'static + use<> {
         debug!("'{}' service updater spawning rolling worker watching for changes to '{}' from \
                 channel '{}'",
                service.service_group,

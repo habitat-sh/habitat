@@ -25,9 +25,9 @@ mod signing;
 pub use cache::KeyCache;
 pub use encryption::*;
 pub use ring_key::RingKey;
-pub use signing::{generate_signing_key_pair,
-                  PublicOriginSigningKey,
-                  SecretOriginSigningKey};
+pub use signing::{PublicOriginSigningKey,
+                  SecretOriginSigningKey,
+                  generate_signing_key_pair};
 
 ////////////////////////////////////////////////////////////////////////
 

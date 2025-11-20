@@ -14,6 +14,6 @@ pub fn hostname() -> io::Result<String> {
     }
 }
 
-extern "C" {
+unsafe extern "C" {
     pub fn gethostname(name: *mut libc::c_char, size: libc::size_t) -> libc::c_int;
 }

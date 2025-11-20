@@ -12,17 +12,17 @@
 //!
 //! //! Note: This command does not remove the package from disk
 
-use crate::{api_client::{self,
+use crate::{PRODUCT,
+            VERSION,
+            api_client::{self,
                          Client},
             common::ui::{Status,
-                         UIWriter,
-                         UI},
+                         UI,
+                         UIWriter},
             error::{Error,
                     Result},
             hcore::package::{PackageIdent,
-                             PackageTarget},
-            PRODUCT,
-            VERSION};
+                             PackageTarget}};
 use reqwest::StatusCode;
 
 /// Delete a package from Builder.

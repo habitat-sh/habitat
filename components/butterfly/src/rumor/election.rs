@@ -11,14 +11,14 @@
 use log::debug;
 use serde::Serialize;
 
-pub use crate::protocol::newscast::{election::Status as ElectionStatus,
-                                    Election as ProtoElection};
+pub use crate::protocol::newscast::{Election as ProtoElection,
+                                    election::Status as ElectionStatus};
 use crate::{error::{Error,
                     Result},
             protocol::{self,
+                       FromProto,
                        newscast::{self,
-                                  Rumor as ProtoRumor},
-                       FromProto},
+                                  Rumor as ProtoRumor}},
             rumor::{ConstIdRumor,
                     Rumor,
                     RumorPayload,
@@ -299,12 +299,12 @@ impl ConstIdRumor for ElectionUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::rumor::{election::{Election,
-                                  ElectionUpdate,
-                                  Term},
-                       ConstIdRumor as _,
+    use crate::rumor::{ConstIdRumor as _,
                        Rumor,
-                       RumorStore};
+                       RumorStore,
+                       election::{Election,
+                                  ElectionUpdate,
+                                  Term}};
     use habitat_core::service::ServiceGroup;
 
     fn create_election_rumor_store() -> RumorStore<Election> { RumorStore::default() }

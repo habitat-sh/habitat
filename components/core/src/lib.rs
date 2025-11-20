@@ -52,9 +52,9 @@ impl fmt::Display for ChannelIdent {
 }
 
 pub mod base64 {
-    use ::base64::{engine::{general_purpose::STANDARD,
-                            Engine},
-                   DecodeError};
+    use ::base64::{DecodeError,
+                   engine::{Engine,
+                            general_purpose::STANDARD}};
 
     pub fn encode<T: AsRef<[u8]>>(input: T) -> String { STANDARD.encode(input) }
 

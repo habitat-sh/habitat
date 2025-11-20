@@ -1,5 +1,5 @@
-use crate::{crypto::keys::{encryption::primitives,
-                           NamedRevision},
+use crate::{crypto::keys::{NamedRevision,
+                           encryption::primitives},
             error::{Error,
                     Result}};
 use std::{fmt,

@@ -6,10 +6,10 @@ use futures::{channel::{mpsc as futures_mpsc,
               stream::StreamExt};
 use log::{error,
           trace};
-use rants::{error::Error as RantsError,
-            native_tls::TlsConnector,
-            Client,
-            Subject};
+use rants::{Client,
+            Subject,
+            error::Error as RantsError,
+            native_tls::TlsConnector};
 use tokio::time;
 
 /// The subject and payload of a NATS message.

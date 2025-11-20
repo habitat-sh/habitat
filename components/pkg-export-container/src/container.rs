@@ -3,11 +3,11 @@ use crate::{build::BuildRoot,
             naming::{ImageIdentifiers,
                      Naming},
             util};
-use anyhow::{anyhow,
-             Result};
+use anyhow::{Result,
+             anyhow};
 use habitat_common::ui::{Status,
-                         UIWriter,
-                         UI};
+                         UI,
+                         UIWriter};
 use habitat_core::package::PackageIdent;
 use handlebars::Handlebars;
 use log::{debug,

@@ -1,7 +1,7 @@
-use anyhow::{anyhow,
-             bail,
-             Context,
-             Result};
+use anyhow::{Context,
+             Result,
+             anyhow,
+             bail};
 #[cfg(any(all(target_os = "linux",
                   any(target_arch = "x86_64", target_arch = "aarch64")),
               all(target_os = "windows", target_arch = "x86_64")))]
@@ -186,10 +186,10 @@ impl FileSnapshot {
                                    self.path.display()));
             }
             let modified_at = self.path.metadata().ok().and_then(|p| p.modified().ok());
-            if let Some(modified_at) = modified_at {
-                if modified_at != self.last_modified_at {
-                    return FileSnapshot::new(self.path.clone());
-                }
+            if let Some(modified_at) = modified_at
+               && modified_at != self.last_modified_at
+            {
+                return FileSnapshot::new(self.path.clone());
             }
             tokio::time::sleep(Duration::from_secs(1)).await;
         }

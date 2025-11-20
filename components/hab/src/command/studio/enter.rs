@@ -1,15 +1,15 @@
-use crate::{common::ui::{UIWriter,
-                         UI},
+use crate::{BLDR_URL_ENVVAR,
+            ORIGIN_ENVVAR,
+            common::ui::{UI,
+                         UIWriter},
             error::{Error,
                     Result},
             hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
                     env as henv,
-                    fs},
-            BLDR_URL_ENVVAR,
-            ORIGIN_ENVVAR};
+                    fs}};
 use habitat_common::cli_config::CliConfig;
-use habitat_core::{package::target::PackageTarget,
-                   AUTH_TOKEN_ENVVAR};
+use habitat_core::{AUTH_TOKEN_ENVVAR,
+                   package::target::PackageTarget};
 use log::{debug,
           warn};
 use same_file::is_same_file;
@@ -33,16 +33,17 @@ enum Sensitivity {
 }
 
 fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive: Sensitivity) {
-    if henv::var(env_var).is_err() {
-        if let Some(val) = config_val {
-            match sensitive {
-                Sensitivity::NoPrintValue => {
-                    debug!("Setting {}=REDACTED (sensitive) via config file", env_var)
-                }
-                Sensitivity::PrintValue => debug!("Setting {}={} via config file", env_var, val),
+    if henv::var(env_var).is_err()
+       && let Some(val) = config_val
+    {
+        match sensitive {
+            Sensitivity::NoPrintValue => {
+                debug!("Setting {}=REDACTED (sensitive) via config file", env_var)
             }
-            env::set_var(env_var, val);
+            Sensitivity::PrintValue => debug!("Setting {}={} via config file", env_var, val),
         }
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var(env_var, val) };
     }
 }
 
@@ -50,8 +51,11 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
 //  hab studio.  It must be set outside of studio and passed in through
 //  the environment variable defined in STUDIO_HOST_ARCH_ENVVAR.
 fn set_arch_env_var() {
-    env::set_var(STUDIO_HOST_ARCH_ENVVAR,
-                 format!("{}", PackageTarget::active_target()));
+    // TODO: Audit that the environment access only happens in single-threaded code.
+    unsafe {
+        env::set_var(STUDIO_HOST_ARCH_ENVVAR,
+                     format!("{}", PackageTarget::active_target()))
+    };
 }
 
 fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
@@ -98,7 +102,8 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     if henv::var(CACHE_KEY_PATH_ENV_VAR).is_err() {
         let path = &*fs::CACHE_KEY_PATH;
         debug!("Setting {}={}", CACHE_KEY_PATH_ENV_VAR, path.display());
-        env::set_var(CACHE_KEY_PATH_ENV_VAR, path);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var(CACHE_KEY_PATH_ENV_VAR, path) };
     };
 
     let artifact_path = match henv::var(ARTIFACT_PATH_ENVVAR) {
@@ -106,7 +111,8 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         Err(_) => {
             let path = fs::cache_artifact_path(None::<&str>);
             debug!("Setting {}={}", ARTIFACT_PATH_ENVVAR, path.display());
-            env::set_var(ARTIFACT_PATH_ENVVAR, &path);
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { env::set_var(ARTIFACT_PATH_ENVVAR, &path) };
             path
         }
     };
@@ -120,7 +126,8 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         Err(_) => {
             let path = fs::cache_ssl_path(None::<&str>);
             debug!("Setting {}={}", CERT_PATH_ENVVAR, path.display());
-            env::set_var(CERT_PATH_ENVVAR, &path);
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { env::set_var(CERT_PATH_ENVVAR, &path) };
             path
         }
     };
@@ -129,10 +136,10 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         stdfs::create_dir_all(&ssl_path)?;
     }
 
-    if let Ok(ssl_cert_file) = env::var(SSL_CERT_FILE_ENVVAR) {
-        if let Err(err) = cache_ssl_cert_file(&ssl_cert_file, &ssl_path) {
-            warn!("Unable to cache SSL_CERT_FILE: {}", err);
-        }
+    if let Ok(ssl_cert_file) = env::var(SSL_CERT_FILE_ENVVAR)
+       && let Err(err) = cache_ssl_cert_file(&ssl_cert_file, &ssl_path)
+    {
+        warn!("Unable to cache SSL_CERT_FILE: {}", err);
     }
 
     inner::start(ui, args).await
@@ -140,14 +147,14 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
 
 #[cfg(target_os = "linux")]
 mod inner {
-    use crate::{command::studio::{docker,
+    use crate::{VERSION,
+                command::studio::{docker,
                                   native},
-                common::ui::{UIWriter,
-                             UI},
+                common::ui::{UI,
+                             UIWriter},
                 error::{Error,
                         Result},
-                exec,
-                VERSION};
+                exec};
     use habitat_core::{crypto::init,
                        env as henv,
                        fs::{am_i_root,
@@ -192,7 +199,9 @@ mod inner {
                         let cmd_env = pkg_install.environment_for_command()?;
                         for (key, value) in cmd_env.into_iter() {
                             debug!("Setting: {}='{}'", key, value);
-                            env::set_var(key, value);
+                            // TODO: Audit that the environment access only happens in
+                            // single-threaded code.
+                            unsafe { env::set_var(key, value) };
                         }
 
                         let mut display_args = STUDIO_CMD.to_string();
@@ -279,7 +288,8 @@ mod inner {
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 mod inner {
-    use crate::{command::studio::docker,
+    use crate::{VERSION,
+                command::studio::docker,
                 common::ui::UI,
                 error::{Error,
                         Result},
@@ -287,8 +297,7 @@ mod inner {
                 hcore::{crypto::init,
                         fs::find_command,
                         os::process,
-                        package::PackageIdent},
-                VERSION};
+                        package::PackageIdent}};
     use std::{ffi::OsString,
               str::FromStr};
 

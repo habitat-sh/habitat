@@ -13,10 +13,10 @@ use habitat_common::{package_graph::PackageGraph,
 use habitat_core::{error as herror,
                    fs::{self as hfs,
                         FS_ROOT_PATH},
-                   package::{list::temp_package_directory,
-                             Identifiable,
+                   package::{Identifiable,
                              PackageIdent,
-                             PackageInstall}};
+                             PackageInstall,
+                             list::temp_package_directory}};
 use habitat_sup_client::{SrvClient,
                          SrvClientError};
 use log::warn;
@@ -271,7 +271,8 @@ async fn supervisor_services() -> Result<Vec<PackageIdent>> {
     let msg = habitat_sup_protocol::ctl::SvcStatus::default();
 
     let mut out: Vec<PackageIdent> = vec![];
-    let mut response = SrvClient::request(&ResolvedListenCtlAddr::default(), msg).await?;
+    let addr = ResolvedListenCtlAddr::default();
+    let mut response = SrvClient::request(&addr, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {

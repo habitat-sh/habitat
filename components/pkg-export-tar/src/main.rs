@@ -1,7 +1,7 @@
 use habitat_pkg_export_tar as export_tar;
 
-use habitat_common::ui::{UIWriter,
-                         UI};
+use habitat_common::ui::{UI,
+                         UIWriter};
 
 use anyhow::Result;
 

@@ -10,8 +10,8 @@ use clap::{ArgAction,
 use habitat_common::{cli::clap_validators::FileExistsValueParser,
                      ui::UI};
 
-use habitat_core::{crypto::keys::KeyCache,
-                   ChannelIdent};
+use habitat_core::{ChannelIdent,
+                   crypto::keys::KeyCache};
 
 use crate::{cli_v4::utils::{AuthToken,
                             BldrUrl,

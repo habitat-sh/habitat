@@ -39,9 +39,9 @@ use super::{config::Cfg,
 use crate::hcore::package::{FullyQualifiedPackageIdent,
                             Identifiable,
                             PackageIdent};
-use serde::{ser::SerializeMap,
-            Serialize,
-            Serializer};
+use serde::{Serialize,
+            Serializer,
+            ser::SerializeMap};
 use std::{borrow::Cow,
           collections::BTreeMap,
           result};
@@ -193,10 +193,10 @@ mod tests {
     use crate::hcore::package::PackageIdent;
     use tempfile::TempDir;
 
-    use crate::templating::{config::{Cfg,
+    use crate::templating::{TemplateRenderer,
+                            config::{Cfg,
                                      PackageConfigPaths},
-                            test_helpers::*,
-                            TemplateRenderer};
+                            test_helpers::*};
 
     ////////////////////////////////////////////////////////////////////////
 

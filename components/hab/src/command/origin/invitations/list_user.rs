@@ -1,11 +1,11 @@
-use crate::{api_client::Client,
+use crate::{PRODUCT,
+            VERSION,
+            api_client::Client,
             common::ui::{Status,
-                         UIWriter,
-                         UI},
+                         UI,
+                         UIWriter},
             error::{Error,
-                    Result},
-            PRODUCT,
-            VERSION};
+                    Result}};
 
 use habitat_core::util::text_render::TabularText;
 

@@ -4,8 +4,8 @@ use std::{env,
 
 #[cfg(windows)]
 fn main() {
-    use base64::{engine::general_purpose::STANDARD,
-                 Engine};
+    use base64::{Engine,
+                 engine::general_purpose::STANDARD};
     use std::{fs::File,
               io::prelude::*};
 

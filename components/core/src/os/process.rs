@@ -15,16 +15,16 @@ use unix as implementation;
 pub mod exec;
 
 // Common platform-independent interface
-pub use implementation::{become_command,
+pub use implementation::{Pid,
+                         become_command,
                          can_run_services_as_svc_user,
                          current_pid,
-                         is_alive,
-                         Pid};
+                         is_alive};
 
 #[cfg(unix)]
-pub use unix::signal;
-#[cfg(unix)]
 pub(crate) use unix::SignalCode;
+#[cfg(unix)]
+pub use unix::signal;
 
 #[cfg(windows)]
 pub use windows::{handle_from_pid,

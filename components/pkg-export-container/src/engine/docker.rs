@@ -1,6 +1,6 @@
-use super::{resolve_engine_binary,
-            Engine,
-            EngineError};
+use super::{Engine,
+            EngineError,
+            resolve_engine_binary};
 use std::{path::{Path,
                  PathBuf},
           process::Command,

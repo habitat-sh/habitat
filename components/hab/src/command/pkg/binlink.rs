@@ -1,6 +1,6 @@
 use crate::{common::ui::{Status,
-                         UIWriter,
-                         UI},
+                         UI,
+                         UIWriter},
             error::{Error,
                     Result},
             hcore::{fs as hfs,
@@ -243,9 +243,9 @@ fn is_dest_on_path(dest_dir: &Path) -> bool {
 #[cfg(test)]
 #[cfg(not(target_os = "macos"))]
 mod test {
-    use super::{binlink_all_in_pkg,
-                start,
-                Binlink};
+    use super::{Binlink,
+                binlink_all_in_pkg,
+                start};
     use crate::{common::ui::UI,
                 hcore::{self,
                         package::{PackageIdent,

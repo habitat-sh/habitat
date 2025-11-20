@@ -4,7 +4,7 @@ use habitat_win_users::account::Account;
 use std::path::PathBuf;
 use windows_acl::helper;
 
-extern "C" {
+unsafe extern "C" {
     pub fn GetUserTokenStatus() -> u32;
 }
 

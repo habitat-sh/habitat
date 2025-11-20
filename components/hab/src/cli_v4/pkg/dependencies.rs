@@ -10,9 +10,9 @@ use habitat_common::cli::clap_validators::HabPkgIdentValueParser;
 use habitat_core::{fs::FS_ROOT_PATH,
                    package::PackageIdent};
 
-use crate::{command::pkg::{dependencies,
-                           DependencyRelation,
-                           Scope},
+use crate::{command::pkg::{DependencyRelation,
+                           Scope,
+                           dependencies},
             error::Result as HabResult};
 
 #[derive(Debug, Clone, Parser)]

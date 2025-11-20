@@ -1,17 +1,17 @@
 use habitat_butterfly::{error::Error,
                         member::{Health,
                                  Member},
-                        rumor::{departure::Departure,
+                        rumor::{ConstIdRumor as _,
+                                Election,
+                                departure::Departure,
                                 election::ElectionStatus,
                                 service::{Service,
                                           SysInfo},
                                 service_config::ServiceConfig,
-                                service_file::ServiceFile,
-                                ConstIdRumor as _,
-                                Election},
-                        server::{timing::Timing,
-                                 Server,
-                                 Suitability}};
+                                service_file::ServiceFile},
+                        server::{Server,
+                                 Suitability,
+                                 timing::Timing}};
 use habitat_core::{crypto::keys::RingKey,
                    package::{Identifiable,
                              PackageIdent},
@@ -399,10 +399,10 @@ impl SwimNet {
                                   -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {
-            if let Some(real_health) = self.health_of_mlr(from_entry, to_check) {
-                if real_health == health {
-                    return true;
-                }
+            if let Some(real_health) = self.health_of_mlr(from_entry, to_check)
+               && real_health == health
+            {
+                return true;
             }
             if self.check_rounds(&rounds_in) {
                 println!("MEMBERS: {:#?}", self.members);
@@ -423,7 +423,7 @@ impl SwimNet {
                 return true;
             } else if self.check_rounds(&rounds_in) {
                 for (i, some_health) in network_health.iter().enumerate() {
-                    if let Some(ref health) = some_health {
+                    if let Some(health) = some_health {
                         println!("{}: {:?}", i, health);
                     }
                 }
@@ -473,6 +473,7 @@ impl SwimNet {
     }
 }
 
+// TODO: This macro appears to be unused. Consider removing it.
 #[macro_export]
 macro_rules! assert_health_of {
     ($network:expr, $to:expr, $health:expr) => {

@@ -40,12 +40,12 @@ use crate::{census::{CensusGroup,
                      ServiceFile},
             error::{Error,
                     Result},
-            manager::{event,
-                      sync::GatewayState,
-                      FsCfg,
+            manager::{FsCfg,
                       ServicePidSource,
                       ShutdownConfig,
-                      Sys}};
+                      Sys,
+                      event,
+                      sync::GatewayState}};
 use futures::future::{self,
                       AbortHandle};
 use habitat_butterfly::rumor::service::Service as ServiceRumor;
@@ -55,28 +55,28 @@ pub use habitat_common::templating::{config::{Cfg,
                                               UserConfigPath},
                                      package::{Env,
                                                Pkg}};
-use habitat_common::{outputln,
+use habitat_common::{FeatureFlag,
+                     outputln,
                      templating::{config::CfgRenderer,
                                   hooks::Hook,
-                                  package::PkgQueryModel},
-                     FeatureFlag};
+                                  package::PkgQueryModel}};
 #[cfg(windows)]
 use habitat_core::os::users;
-use habitat_core::{crypto::Blake2bHash,
+use habitat_core::{ChannelIdent,
+                   crypto::Blake2bHash,
                    flowcontrol::Backoff,
-                   fs::{atomic_write,
-                        svc_hooks_path,
+                   fs::{FS_ROOT_PATH,
                         SvcDir,
-                        FS_ROOT_PATH},
+                        atomic_write,
+                        svc_hooks_path},
                    os::process::{Pid,
                                  ShutdownTimeout},
-                   package::{metadata::Bind,
-                             PackageIdent,
-                             PackageInstall},
+                   package::{PackageIdent,
+                             PackageInstall,
+                             metadata::Bind},
                    service::{HealthCheckInterval,
                              ServiceBind,
-                             ServiceGroup},
-                   ChannelIdent};
+                             ServiceGroup}};
 use habitat_launcher_client::LauncherCli;
 use habitat_sup_protocol::types::BindingMode;
 pub use habitat_sup_protocol::types::{ProcessState,
@@ -86,14 +86,14 @@ pub use habitat_sup_protocol::types::{ProcessState,
 use log::{debug,
           trace};
 use parking_lot::RwLock;
-use prometheus::{register_histogram_vec,
-                 HistogramTimer,
-                 HistogramVec};
-use serde::{ser::{Error as _,
-                  SerializeStruct},
-            Deserialize,
+use prometheus::{HistogramTimer,
+                 HistogramVec,
+                 register_histogram_vec};
+use serde::{Deserialize,
             Serialize,
-            Serializer};
+            Serializer,
+            ser::{Error as _,
+                  SerializeStruct}};
 use std::{self,
           collections::HashSet,
           convert::TryFrom,
@@ -438,7 +438,7 @@ impl PersistentServiceWrapper {
 
     pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
         match &mut self.inner {
-            Some(ref mut service) => {
+            Some(service) => {
                 trace!("Starting service tick with persistent state: {:?}",
                        self.run_state);
                 service.tick(&mut self.run_state, census_ring, launcher)
@@ -606,10 +606,11 @@ impl Service {
     #[cfg(windows)]
     async fn resolve_pkg(package: &PackageInstall, spec: &ServiceSpec) -> Result<Pkg> {
         let mut pkg = Pkg::from_install(package).await?;
-        if spec.svc_encrypted_password.is_none() && pkg.svc_user == DEFAULT_USER {
-            if let Some(user) = users::get_current_username()? {
-                pkg.svc_user = user;
-            }
+        if spec.svc_encrypted_password.is_none()
+           && pkg.svc_user == DEFAULT_USER
+           && let Some(user) = users::get_current_username()?
+        {
+            pkg.svc_user = user;
         }
         Ok(pkg)
     }
@@ -800,10 +801,10 @@ impl Service {
             .expect("Couldn't lock supervisor")
             .stop(shutdown_config);
 
-        if let Some(hook) = self.post_stop() {
-            if let Err(e) = hook.into_future().await {
-                outputln!(preamble service_group, "Service stop failed: {}", e);
-            }
+        if let Some(hook) = self.post_stop()
+           && let Err(e) = hook.into_future().await
+        {
+            outputln!(preamble service_group, "Service stop failed: {}", e);
         }
     }
 
@@ -1369,13 +1370,13 @@ impl Service {
     fn file_updated(&self) -> bool {
         let _timer = hook_timer("file-updated");
 
-        if self.initialized() {
-            if let Some(ref hook) = self.hooks.file_updated {
-                return hook.run(&self.service_group,
-                                &self.pkg,
-                                self.spec.svc_encrypted_password.as_ref())
-                           .unwrap_or(false);
-            }
+        if self.initialized()
+           && let Some(ref hook) = self.hooks.file_updated
+        {
+            return hook.run(&self.service_group,
+                            &self.pkg,
+                            self.spec.svc_encrypted_password.as_ref())
+                       .unwrap_or(false);
         }
 
         false
@@ -1473,10 +1474,10 @@ impl Service {
         };
         let new_checksum = Blake2bHash::from_bytes(contents);
 
-        if let Some(current_checksum) = current_checksum {
-            if new_checksum == current_checksum {
-                return false;
-            }
+        if let Some(current_checksum) = current_checksum
+           && new_checksum == current_checksum
+        {
+            return false;
         }
 
         if let Err(e) = atomic_write(file.as_ref(), contents) {

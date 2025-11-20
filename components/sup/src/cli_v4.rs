@@ -13,28 +13,28 @@ use log::{info,
 
 use clap::Parser;
 
-use hab::{shared_load_cli_to_ctl,
-          SupRunOptions};
+use hab::{SupRunOptions,
+          shared_load_cli_to_ctl};
 
-use habitat_common::{command::package::install::InstallSource,
+use habitat_common::{FeatureFlag,
+                     command::package::install::InstallSource,
                      liveliness_checker,
                      output::{self,
                               OutputFormat,
                               OutputVerbosity},
                      outputln,
                      types::GossipListenAddr,
-                     ui,
-                     FeatureFlag};
+                     ui};
 use habitat_core::{self,
+                   ChannelIdent,
                    crypto::keys::{KeyCache,
                                   RingKey},
                    package::{Identifiable,
                              PackageIdent},
                    tls::rustls_wrapper::{CertificateChainCli,
-                                         RootCertificateStoreCli},
-                   ChannelIdent};
-use habitat_launcher_client::{LauncherCli,
-                              ERR_NO_RETRY_EXCODE,
+                                         RootCertificateStoreCli}};
+use habitat_launcher_client::{ERR_NO_RETRY_EXCODE,
+                              LauncherCli,
                               OK_NO_RETRY_EXCODE};
 use habitat_sup::{error::{Error,
                           Result},

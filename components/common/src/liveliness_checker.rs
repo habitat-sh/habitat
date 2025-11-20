@@ -237,9 +237,7 @@ fn threads_missing_heartbeat(statuses: &ThreadStatusMap,
                     Status::Alive { last_heartbeat } => {
                         let time_since_last_heartbeat = last_heartbeat.elapsed();
                         trace!("{:?} {:?} last heartbeat: {:?} ago",
-                               thread_id,
-                               thread_name,
-                               time_since_last_heartbeat);
+                               thread_id, thread_name, time_since_last_heartbeat);
                         if time_since_last_heartbeat < threshold {
                             None
                         } else {
@@ -261,9 +259,7 @@ fn threads_exited_with_error(statuses: &ThreadStatusMap) -> Vec<NameAndErrorExit
                                             error, } => {
                         let time_since_exit = time_of_death.elapsed();
                         trace!("{:?} {:?} time of death: {:?} ago",
-                               thread_id,
-                               thread_name,
-                               time_since_exit);
+                               thread_id, thread_name, time_since_exit);
                         Some((thread_name.clone(), *time_of_death, error.as_ref()))
                     }
                 }
@@ -275,9 +271,9 @@ fn threads_exited_with_error(statuses: &ThreadStatusMap) -> Vec<NameAndErrorExit
 mod test {
     use super::*;
     use lazy_static::lazy_static;
-    use std::sync::{atomic::{AtomicBool,
-                             Ordering},
-                    Arc};
+    use std::sync::{Arc,
+                    atomic::{AtomicBool,
+                             Ordering}};
 
     const TEST_THRESHOLD: Duration = Duration::from_secs(1);
 

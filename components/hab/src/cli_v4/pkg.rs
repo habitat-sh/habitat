@@ -4,8 +4,8 @@ use clap_v4 as clap;
 
 use clap::Subcommand;
 
-use habitat_common::{ui::UI,
-                     FeatureFlag};
+use habitat_common::{FeatureFlag,
+                     ui::UI};
 
 use crate::error::Result as HabResult;
 

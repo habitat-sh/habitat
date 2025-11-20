@@ -2,13 +2,13 @@ use clap_v4 as clap;
 
 use clap::Parser;
 
-use crate::{cli_v4::utils::{origin_param_or_env,
-                            AuthToken},
+use crate::{cli_v4::utils::{AuthToken,
+                            origin_param_or_env},
             command::bldr::channel::create::start,
             error::Result as HabResult};
 use habitat_common::ui::UI;
-use habitat_core::{origin::Origin,
-                   ChannelIdent};
+use habitat_core::{ChannelIdent,
+                   origin::Origin};
 #[derive(Debug, Clone, Parser)]
 #[command(arg_required_else_help = true,
           help_template = "{name} {version} {author-section} \

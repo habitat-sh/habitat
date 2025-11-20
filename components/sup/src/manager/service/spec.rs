@@ -4,15 +4,15 @@ use super::{BindingMode,
             UpdateStrategy};
 use crate::error::{Error,
                    Result};
-use habitat_core::{fs::atomic_write,
+use habitat_core::{ChannelIdent,
+                   fs::atomic_write,
                    os::process::ShutdownTimeout,
                    package::{PackageIdent,
                              PackageInstall},
                    service::{HealthCheckInterval,
                              ServiceBind},
                    url::DEFAULT_BLDR_URL,
-                   util,
-                   ChannelIdent};
+                   util};
 use habitat_sup_protocol::{self,
                            net};
 use log::{debug,

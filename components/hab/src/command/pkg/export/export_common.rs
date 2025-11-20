@@ -1,6 +1,7 @@
 use log::debug;
 
-use crate::{command,
+use crate::{VERSION,
+            command,
             common::ui::UI,
             error::{Error,
                     Result},
@@ -9,8 +10,7 @@ use crate::{command,
                     env as henv,
                     fs::find_command,
                     os::process,
-                    package::PackageIdent},
-            VERSION};
+                    package::PackageIdent}};
 use std::{ffi::OsString,
           path::PathBuf,
           str::FromStr};

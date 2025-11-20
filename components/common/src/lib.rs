@@ -114,11 +114,11 @@ impl FeatureFlag {
         let mut flags = FeatureFlag::empty();
 
         for (feature, env_var) in ENV_VARS.iter() {
-            if let Some(val) = env::var_os(env_var) {
-                if !val.is_empty() {
-                    flags.insert(*feature);
-                    ui.warn(format!("Enabling feature: {:?}", feature)).unwrap();
-                }
+            if let Some(val) = env::var_os(env_var)
+               && !val.is_empty()
+            {
+                flags.insert(*feature);
+                ui.warn(format!("Enabling feature: {:?}", feature)).unwrap();
             }
         }
 

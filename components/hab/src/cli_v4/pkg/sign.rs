@@ -13,8 +13,8 @@ use habitat_core::{crypto,
 use habitat_common::{cli::clap_validators::FileExistsValueParser,
                      ui::UI};
 
-use crate::{cli_v4::utils::{origin_param_or_env,
-                            CacheKeyPath},
+use crate::{cli_v4::utils::{CacheKeyPath,
+                            origin_param_or_env},
             command::pkg::sign,
             error::Result as HabResult};
 

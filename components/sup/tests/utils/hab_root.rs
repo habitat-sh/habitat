@@ -5,8 +5,8 @@
 //! instance is dropped.
 
 use crate::hcore::{fs::PKG_PATH,
-                   package::{metadata::MetaFile,
-                             PackageIdent}};
+                   package::{PackageIdent,
+                             metadata::MetaFile}};
 
 use std::{path::{Path,
                  PathBuf},

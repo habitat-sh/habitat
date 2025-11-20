@@ -14,17 +14,17 @@
 use crate::{api_client::{self,
                          Client},
             common::ui::{Status,
-                         UIWriter,
-                         UI},
-            hcore::{package::{PackageIdent,
-                              PackageTarget},
-                    ChannelIdent}};
+                         UI,
+                         UIWriter},
+            hcore::{ChannelIdent,
+                    package::{PackageIdent,
+                              PackageTarget}}};
 use reqwest::StatusCode;
 
-use crate::{error::{Error,
-                    Result},
-            PRODUCT,
-            VERSION};
+use crate::{PRODUCT,
+            VERSION,
+            error::{Error,
+                    Result}};
 
 /// Demote a package from the specified channel.
 ///

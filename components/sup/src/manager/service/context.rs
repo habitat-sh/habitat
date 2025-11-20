@@ -46,9 +46,9 @@ use habitat_core::{package::{FullyQualifiedPackageIdent,
                              PackageIdent},
                    service::{ServiceBind,
                              ServiceGroup}};
-use serde::{ser::SerializeMap,
-            Serialize,
-            Serializer};
+use serde::{Serialize,
+            Serializer,
+            ser::SerializeMap};
 use std::{borrow::Cow,
           collections::BTreeMap,
           net::IpAddr,
@@ -386,8 +386,8 @@ mod tests {
                 manager::service::Cfg,
                 test_helpers::*};
     use habitat_butterfly::rumor::service::SysInfo;
-    use habitat_common::templating::{config::PackageConfigPaths,
-                                     TemplateRenderer};
+    use habitat_common::templating::{TemplateRenderer,
+                                     config::PackageConfigPaths};
     use habitat_core::package::PackageIdent;
     use std::{fs,
               io::{Read,

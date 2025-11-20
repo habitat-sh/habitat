@@ -328,8 +328,8 @@ mod tests {
     use super::*;
     use std::path::{Path,
                     PathBuf};
-    use tempfile::{tempdir,
-                   TempDir};
+    use tempfile::{TempDir,
+                   tempdir};
 
     /// Create a directory to put lock files in, and create a `PathBuf` that
     /// points to a location in that directory.

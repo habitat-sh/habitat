@@ -1,7 +1,7 @@
 use crate::error::{Error,
                    Result};
-use anyhow::{anyhow,
-             Context};
+use anyhow::{Context,
+             anyhow};
 use habitat_common::ui::UI;
 use habitat_core::fs::cache_build_path;
 use log::debug;

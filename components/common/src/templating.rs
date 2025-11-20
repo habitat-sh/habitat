@@ -6,14 +6,14 @@ pub mod package;
 pub mod test_helpers;
 
 pub use self::context::RenderContext;
-use crate::{error::{Error,
+use crate::{FeatureFlag,
+            error::{Error,
                     Result},
             hcore::{fs,
                     package::PackageInstall},
             templating::hooks::{Hook,
                                 InstallHook,
-                                UninstallHook},
-            FeatureFlag};
+                                UninstallHook}};
 use handlebars::{Handlebars,
                  RenderError,
                  TemplateError,
@@ -174,8 +174,8 @@ fn fix_handlebars_syntax(text: &str) -> String {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{hcore::{fs::{pkg_root_path,
-                             FS_ROOT_PATH},
+    use crate::{hcore::{fs::{FS_ROOT_PATH,
+                             pkg_root_path},
                         package::PackageIdent},
                 templating::test_helpers::*};
     #[cfg(not(any(all(target_os = "linux",
@@ -434,7 +434,8 @@ mod test {
     #[tokio::test]
     async fn render_package_install() {
         let root = TempDir::new().expect("create temp dir").keep();
-        env::set_var(fs::FS_ROOT_ENVVAR, &root);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var(fs::FS_ROOT_ENVVAR, &root) };
         let pg_id = PackageIdent::new("testing", "test", Some("1.0.0"), Some("20170712000000"));
 
         let pkg_install =
@@ -475,7 +476,8 @@ mod test {
         assert_eq!(file_content(fs::svc_hooks_path(&pkg_install.ident().name).join("uninstall")),
                    "uninstall message is Hello");
 
-        env::remove_var(fs::FS_ROOT_ENVVAR);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::remove_var(fs::FS_ROOT_ENVVAR) };
         std::fs::remove_dir_all(root).expect("removing temp root");
     }
 

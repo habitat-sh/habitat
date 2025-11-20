@@ -3,9 +3,9 @@
 
 use crate::util;
 use habitat_common::command::package::install::InstallSource;
-use habitat_core::{package::{PackageIdent,
-                             PackageInstall},
-                   ChannelIdent};
+use habitat_core::{ChannelIdent,
+                   package::{PackageIdent,
+                             PackageInstall}};
 use log::{debug,
           trace,
           warn};
@@ -14,9 +14,9 @@ use std::{borrow::Borrow,
           time::Duration};
 use tokio::{self,
             sync::oneshot::{self,
-                            error::TryRecvError,
                             Receiver,
-                            Sender},
+                            Sender,
+                            error::TryRecvError},
             time as tokiotime};
 
 pub const SUP_PKG_IDENT: &str = "chef/hab-sup";
