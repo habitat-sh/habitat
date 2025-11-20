@@ -10,6 +10,7 @@ use clap::{ArgGroup,
            Args,
            Parser};
 use lazy_static::lazy_static;
+#[cfg(not(target_os = "macos"))]
 use rustls::pki_types::DnsName;
 use url::{ParseError,
           Url};
@@ -358,6 +359,7 @@ impl std::fmt::Display for SubjectAlternativeName {
     }
 }
 
+#[cfg(not(target_os = "macos"))]
 impl SubjectAlternativeName {
     pub fn dns_name(&self) -> Result<DnsName<'_>, Error> {
         DnsName::try_from(self.0.to_owned()).map_err(|_| Error::InvalidDnsName(self.0.to_owned()))
