@@ -1211,7 +1211,7 @@ mod test {
         /// `test_name` (because macros can't create functions with
         /// generated names).
         macro_rules! reconcile {
-            ($test_name:ident,restart, $field:ident, $value:expr_2021) => {
+            ($test_name:ident,restart, $field:ident, $value:expr) => {
                 #[test]
                 fn $test_name() {
                     let running = spec("core/blah", DesiredState::Up);
@@ -1226,7 +1226,7 @@ mod test {
                                                                 to_start: disk, }))
                 }
             };
-            ($test_name:ident,update, $field:ident, $value:expr_2021, $ops:expr_2021) => {
+            ($test_name:ident,update, $field:ident, $value:expr, $ops:expr) => {
                 #[test]
                 fn $test_name() {
                     let running = spec("core/blah", DesiredState::Up);

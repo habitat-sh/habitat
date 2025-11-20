@@ -22,12 +22,14 @@ use std::{io::{self,
                BufRead},
           mem};
 
+// TODO: All of these ok_xxx macros appear to be unused
+
 /// Same as `Result::ok()`, but logs the error case. Useful for
 /// ignoring error cases, while still leaving a paper trail.
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __ok_log {
-    ($log_level:expr_2021, $result:expr_2021) => {
+    ($log_level:expr, $result:expr) => {
         match $result {
             Ok(val) => Some(val),
             Err(e) => {
@@ -45,7 +47,7 @@ macro_rules! __ok_log {
 /// Same as `Result::ok()`, but logs the error case at the `error` level.
 #[macro_export]
 macro_rules! ok_error {
-    ($result:expr_2021) => {
+    ($result:expr) => {
         $crate::__ok_log!(log::Level::Error, $result)
     };
 }
@@ -53,7 +55,7 @@ macro_rules! ok_error {
 /// Same as `Result::ok()`, but logs the error case at the `warn` level.
 #[macro_export]
 macro_rules! ok_warn {
-    ($result:expr_2021) => {
+    ($result:expr) => {
         $crate::__ok_log!(log::Level::Warn, $result)
     };
 }
@@ -61,7 +63,7 @@ macro_rules! ok_warn {
 /// Same as `Result::ok()`, but logs the error case at the `info` level.
 #[macro_export]
 macro_rules! ok_info {
-    ($result:expr_2021) => {
+    ($result:expr) => {
         $crate::__ok_log!(log::Level::Info, $result)
     };
 }
@@ -69,7 +71,7 @@ macro_rules! ok_info {
 /// Same as `Result::ok()`, but logs the error case at the `debug` level.
 #[macro_export]
 macro_rules! ok_debug {
-    ($result:expr_2021) => {
+    ($result:expr) => {
         $crate::__ok_log!(log::Level::Debug, $result)
     };
 }
@@ -77,7 +79,7 @@ macro_rules! ok_debug {
 /// Same as `Result::ok()`, but logs the error case at the `trace` level.
 #[macro_export]
 macro_rules! ok_trace {
-    ($result:expr_2021) => {
+    ($result:expr) => {
         $crate::__ok_log!(log::Level::Trace, $result)
     };
 }

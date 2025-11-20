@@ -473,9 +473,10 @@ impl SwimNet {
     }
 }
 
+// TODO: This macro appears to be unused. Consider removing it.
 #[macro_export]
 macro_rules! assert_health_of {
-    ($network:expr_2021, $to:expr_2021, $health:expr_2021) => {
+    ($network:expr, $to:expr, $health:expr) => {
         assert!($network.network_health_of_mlr($to)
                         .into_iter()
                         .all(|x| x == $health),
@@ -483,7 +484,7 @@ macro_rules! assert_health_of {
                 $to,
                 $health)
     };
-    ($network:expr_2021, $from:expr_2021, $to:expr_2021, $health:expr_2021) => {
+    ($network:expr, $from:expr, $to:expr, $health:expr) => {
         assert!($network.health_of($from, $to) == $health,
                 "Member {} does not see {} as {}",
                 $from,
@@ -494,7 +495,7 @@ macro_rules! assert_health_of {
 
 #[macro_export]
 macro_rules! assert_wait_for_health_of_mlr {
-    ($network:expr_2021,[$from:expr_2021, $to:expr_2021], $health:expr_2021) => {
+    ($network:expr,[$from:expr, $to:expr], $health:expr) => {
         let left: Vec<usize> = $from.collect();
         let right: Vec<usize> = $to.collect();
         for l in left.iter() {
@@ -515,13 +516,13 @@ macro_rules! assert_wait_for_health_of_mlr {
             }
         }
     };
-    ($network:expr_2021, $to:expr_2021, $health:expr_2021) => {
+    ($network:expr, $to:expr, $health:expr) => {
         assert!($network.wait_for_network_health_of_mlr($to, $health),
                 "Member {} does not always have health {}",
                 $to,
                 $health);
     };
-    ($network:expr_2021, $from:expr_2021, $to:expr_2021, $health:expr_2021) => {
+    ($network:expr, $from:expr, $to:expr, $health:expr) => {
         assert!($network.wait_for_health_of_mlr($from, $to, $health),
                 "Member {} does not see {} as {}",
                 $from,
@@ -532,22 +533,22 @@ macro_rules! assert_wait_for_health_of_mlr {
 
 #[macro_export]
 macro_rules! assert_wait_for_election_status {
-    ($network:expr_2021,[$range:expr_2021], $key:expr_2021, $status:expr_2021) => {
+    ($network:expr,[$range:expr], $key:expr, $status:expr) => {
         for x in $range {
             assert!($network.wait_for_election_status(x, $key, $status));
         }
     };
-    ($network:expr_2021, $to:expr_2021, $key:expr_2021, $status:expr_2021) => {
+    ($network:expr, $to:expr, $key:expr, $status:expr) => {
         assert!($network.wait_for_election_status($to, $key, $status));
     };
 }
 
 #[macro_export]
 macro_rules! assert_wait_for_equal_election {
-    ($network:expr_2021, $left:expr_2021, $right:expr_2021, $key:expr_2021) => {
+    ($network:expr, $left:expr, $right:expr, $key:expr) => {
         assert!($network.wait_for_equal_election($left, $right, $key));
     };
-    ($network:expr_2021,[$from:expr_2021, $to:expr_2021], $key:expr_2021) => {
+    ($network:expr,[$from:expr, $to:expr], $key:expr) => {
         let left: Vec<usize> = $from.collect();
         let right: Vec<usize> = $to.collect();
         for l in left.iter() {

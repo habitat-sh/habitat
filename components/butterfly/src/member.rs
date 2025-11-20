@@ -1122,7 +1122,7 @@ mod tests {
             macro_rules! lower_incarnation {
                 // Unfortunately, Rust macros currently can't be used to generate
                 // the name of a function, so we have to provide one :(
-                ($fn_name:ident, $from:expr_2021, $to:expr_2021) => {
+                ($fn_name:ident, $from:expr, $to:expr) => {
                     #[test]
                     fn $fn_name() {
                         assert_cannot_insert_member_rumor_of_lower_incarnation($from, $to);
@@ -1200,7 +1200,7 @@ mod tests {
             macro_rules! higher_incarnation {
                 // Unfortunately, Rust macros currently can't be used to generate
                 // the name of a function, so we have to provide one :(
-                ($fn_name:ident, $from:expr_2021, $to:expr_2021) => {
+                ($fn_name:ident, $from:expr, $to:expr) => {
                     #[test]
                     fn $fn_name() {
                         assert_always_insert_member_rumor_of_higher_incarnation($from, $to);
@@ -1291,7 +1291,7 @@ mod tests {
             macro_rules! same_incarnation {
                 // Unfortunately, Rust macros currently can't be used to generate
                 // the name of a function, so we have to provide one :(
-                ($fn_name:ident, $from:expr_2021, $to:expr_2021) => {
+                ($fn_name:ident, $from:expr, $to:expr) => {
                     #[test]
                     fn $fn_name() {
                         assert_only_insert_member_rumor_of_same_incarnation_if_health_is_worse(
@@ -1404,7 +1404,7 @@ mod tests {
             macro_rules! transition {
                 // Unfortunately, Rust macros currently can't be used to generate
                 // the name of a function, so we have to provide one :(
-                ($fn_name:ident, $from:expr_2021, $to:expr_2021) => {
+                ($fn_name:ident, $from:expr, $to:expr) => {
                     #[test]
                     fn $fn_name() { assert_insert_health_by_id_transition($from, $to); }
                 };

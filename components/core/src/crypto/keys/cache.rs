@@ -441,7 +441,7 @@ mod test {
     /// Helper macro to assert that a given key can be saved and
     /// retrieved from the cache in different ways.
     macro_rules! assert_cache_round_trip {
-        ($t:ty, $key:expr_2021, $cache:expr_2021) => {
+        ($t:ty, $key:expr, $cache:expr) => {
             $cache.write_key::<$t>(&$key).unwrap();
             let fetched_latest: $t = $cache.fetch_latest_revision($key.named_revision().name())
                                            .unwrap();

@@ -97,10 +97,10 @@ macro_rules! env_config {
         $vis:vis $wrapping_type:ident,
         $wrapped_type:ty,
         $env_var:ident,
-        $default_value:expr_2021,
+        $default_value:expr,
         $from_str_err_type:ty,
         $from_str_input:ident,
-        $from_str_return:expr_2021
+        $from_str_return:expr
     ) => {
         #[allow(unused_imports)]
         use $crate::env::Config as _;
@@ -150,7 +150,7 @@ macro_rules! env_config {
 /// ```
 #[macro_export]
 macro_rules! env_config_duration {
-    ($(#[$attr:meta])* $wrapping_type:ident, $env_var:ident => $from_str_fn:ident, $default_value:expr_2021) => {
+    ($(#[$attr:meta])* $wrapping_type:ident, $env_var:ident => $from_str_fn:ident, $default_value:expr) => {
         $crate::env_config!($(#[$attr])*
                             $wrapping_type,
                             std::time::Duration,
@@ -179,7 +179,7 @@ macro_rules! env_config_duration {
 /// ```
 #[macro_export]
 macro_rules! env_config_int {
-    ($(#[$attr:meta])* $wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr_2021) => {
+    ($(#[$attr:meta])* $wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr) => {
         $crate::env_config!($(#[$attr])*
                             $wrapping_type,
                             $type,
@@ -190,7 +190,7 @@ macro_rules! env_config_int {
                             Ok(Self((s.parse()?))));
     };
 
-    ($wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr_2021) => {
+    ($wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr) => {
         $crate::env_config!(#[derive(Debug)],
                             $wrapping_type,
                             $type,
@@ -220,7 +220,7 @@ macro_rules! env_config_int {
 /// ```
 #[macro_export]
 macro_rules! env_config_string {
-    ($(#[$attr:meta])* $vis:vis $wrapping_type:ident, $env_var:ident, $default_value:expr_2021) => {
+    ($(#[$attr:meta])* $vis:vis $wrapping_type:ident, $env_var:ident, $default_value:expr) => {
         $crate::env_config!($(#[$attr])*
                             $vis $wrapping_type,
                             String,
@@ -279,7 +279,7 @@ macro_rules! default_as_str {
 /// ```
 #[macro_export]
 macro_rules! env_config_socketaddr {
-    ($(#[$attr:meta])* $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip:expr_2021, $default_port:expr_2021) => {
+    ($(#[$attr:meta])* $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip:expr, $default_port:expr) => {
         $crate::env_config!($(#[$attr])*
                             $vis $wrapping_type,
                             std::net::SocketAddr,
@@ -302,7 +302,7 @@ macro_rules! env_config_socketaddr {
         }
     };
 
-    ($(#[$attr:meta])* $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip_a:literal, $default_ip_b:literal, $default_ip_c:literal, $default_ip_d:literal, $default_port:expr_2021) => {
+    ($(#[$attr:meta])* $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip_a:literal, $default_ip_b:literal, $default_ip_c:literal, $default_ip_d:literal, $default_port:expr) => {
         $crate::env_config!($(#[$attr])*
                             $vis $wrapping_type,
                             std::net::SocketAddr,
