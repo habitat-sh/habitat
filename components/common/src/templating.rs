@@ -6,14 +6,14 @@ pub mod package;
 pub mod test_helpers;
 
 pub use self::context::RenderContext;
-use crate::{error::{Error,
+use crate::{FeatureFlag,
+            error::{Error,
                     Result},
             hcore::{fs,
                     package::PackageInstall},
             templating::hooks::{Hook,
                                 InstallHook,
-                                UninstallHook},
-            FeatureFlag};
+                                UninstallHook}};
 use handlebars::{Handlebars,
                  RenderError,
                  TemplateError,
@@ -174,8 +174,8 @@ fn fix_handlebars_syntax(text: &str) -> String {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{hcore::{fs::{pkg_root_path,
-                             FS_ROOT_PATH},
+    use crate::{hcore::{fs::{FS_ROOT_PATH,
+                             pkg_root_path},
                         package::PackageIdent},
                 templating::test_helpers::*};
     #[cfg(not(any(all(target_os = "linux",

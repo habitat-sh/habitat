@@ -13,9 +13,9 @@ use std::{io::{self,
           path::Path};
 
 use crate::hcore::{self,
-                   package::{metadata::Bind,
-                             PackageIdent,
-                             PackageInstall}};
+                   package::{PackageIdent,
+                             PackageInstall,
+                             metadata::Bind}};
 
 use crate::error::Result;
 

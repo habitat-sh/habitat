@@ -1,0 +1,60 @@
+# Due to our desire to enable certain
+# rustfmt features that are only available
+# in nightly builds of rustfmt, we set
+# this flag to true.
+unstable_features = true
+
+# stable options
+edition = "2024"
+fn_params_layout = "Tall"
+force_explicit_abi = true
+format_code_in_doc_comments = true
+hard_tabs = false
+max_width = 100
+merge_derives = false
+newline_style = "Auto"
+remove_nested_parens = true
+reorder_imports = true
+reorder_modules = true
+tab_spaces = 4
+use_field_init_shorthand = true
+use_small_heuristics = "Default"
+use_try_shorthand = true
+
+# unstable options
+style_edition = "2024"
+binop_separator = "Front"
+blank_lines_lower_bound = 0
+blank_lines_upper_bound = 1
+brace_style = "SameLineWhere"
+combine_control_expr = false
+comment_width = 100
+condense_wildcard_suffixes = true
+control_brace_style = "AlwaysSameLine"
+empty_item_single_line = true
+enum_discrim_align_threshold = 50
+fn_single_line = true
+force_multiline_blocks = true
+format_macro_bodies = true
+format_macro_matchers = true
+format_strings = true
+imports_indent = "Visual"
+imports_layout = "Vertical"
+indent_style = "Visual"
+match_arm_blocks = true
+match_block_trailing_comma = false
+imports_granularity="Crate"
+normalize_comments = true
+normalize_doc_attributes = true
+overflow_delimited_expr = false
+reorder_impl_items = true
+space_after_colon = true
+space_before_colon = false
+spaces_around_ranges = false
+struct_field_align_threshold = 20
+struct_lit_single_line = true
+trailing_comma = "Vertical"
+trailing_semicolon = true
+type_punctuation_density = "Wide"
+where_single_line = false
+wrap_comments = true

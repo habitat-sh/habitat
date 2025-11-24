@@ -6,8 +6,8 @@ use crate::{error::{Error,
                     fs::{self,
                          USER_CONFIG_FILE}},
             outputln,
-            templating::{package::Pkg,
-                         TemplateRenderer}};
+            templating::{TemplateRenderer,
+                         package::Pkg}};
 use log::{debug,
           trace};
 use serde::{Deserialize,
@@ -789,11 +789,14 @@ mod test {
             "#,
         );
 
-        match toml_merge(&mut me, &other) { Err(Error::TomlMergeError(_)) => {
-            // expected result
-        } _ => {
-            panic!("Should fail with Error::TomlMergeError");
-        }}
+        match toml_merge(&mut me, &other) {
+            Err(Error::TomlMergeError(_)) => {
+                // expected result
+            }
+            _ => {
+                panic!("Should fail with Error::TomlMergeError");
+            }
+        }
     }
 
     struct TestPkg {

@@ -1,10 +1,9 @@
-use super::{block_helpers::{create_block,
+use super::{JsonTruthy,
+            block_helpers::{create_block,
                             set_block_param,
-                            update_block_context},
-            JsonTruthy};
+                            update_block_context}};
 
-use handlebars::{to_json,
-                 Context,
+use handlebars::{Context,
                  Handlebars,
                  Helper,
                  HelperDef,
@@ -12,7 +11,8 @@ use handlebars::{to_json,
                  Output,
                  RenderContext,
                  RenderErrorReason,
-                 Renderable};
+                 Renderable,
+                 to_json};
 use serde_json::Value as Json;
 
 #[derive(Clone, Copy)]

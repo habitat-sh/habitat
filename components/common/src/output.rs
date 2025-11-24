@@ -20,16 +20,16 @@
 
 use crate::PROGRAM_NAME;
 use lazy_static::lazy_static;
-use serde::{ser::SerializeMap,
-            Serialize,
-            Serializer};
+use serde::{Serialize,
+            Serializer,
+            ser::SerializeMap};
 use std::{fmt,
           io::{self,
                Write},
           result,
-          sync::{atomic::{AtomicBool,
-                          Ordering},
-                 Mutex}};
+          sync::{Mutex,
+                 atomic::{AtomicBool,
+                          Ordering}}};
 use termcolor::{BufferWriter,
                 Color,
                 ColorChoice,

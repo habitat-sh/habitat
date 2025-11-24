@@ -1,12 +1,12 @@
-use super::{package::Pkg,
-            TemplateRenderer};
-use crate::{error::{Error,
+use super::{TemplateRenderer,
+            package::Pkg};
+use crate::{FeatureFlag,
+            error::{Error,
                     Result},
             outputln,
             templating,
             ui::{Status,
-                 UIWriter},
-            FeatureFlag};
+                 UIWriter}};
 #[cfg(windows)]
 use habitat_core::os::process::windows_child::{Child,
                                                ExitStatus};
@@ -27,8 +27,8 @@ use std::process::{Child,
 use std::{ffi::OsStr,
           fmt,
           fs::File,
-          io::{prelude::*,
-               BufReader},
+          io::{BufReader,
+               prelude::*},
           path::{Path,
                  PathBuf},
           result};
@@ -306,41 +306,42 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
         let feature_flags = FeatureFlag::from_env(ui);
         let package_name = &package.ident.name;
         match Self::load(package_name,
-                                           svc_hooks_path(package_name),
-                                           package.installed_path.join("hooks"),
-                                           feature_flags)
-        { Some(ref hook) => {
-            let hook_name = Self::FILE_NAME;
-            ui.status(Status::Executing,
-                      format!("{} hook for '{}'", hook_name, package.ident()))?;
-            templating::compile_for_package_install(package, feature_flags).await?;
+                         svc_hooks_path(package_name),
+                         package.installed_path.join("hooks"),
+                         feature_flags)
+        {
+            Some(ref hook) => {
+                let hook_name = Self::FILE_NAME;
+                ui.status(Status::Executing,
+                          format!("{} hook for '{}'", hook_name, package.ident()))?;
+                templating::compile_for_package_install(package, feature_flags).await?;
 
-            // Only windows uses svc_password
-            #[cfg(target_os = "windows")]
-            let pkg = {
-                let mut pkg = Pkg::from_install(package).await?;
-                // Hooks do not have access to svc_passwords so we execute them under the current
-                // user account.
-                if let Some(user) = habitat_core::os::users::get_current_username()? {
-                    pkg.svc_user = user;
-                }
-                pkg
-            };
-            #[cfg(not(target_os = "windows"))]
-            let pkg = Pkg::from_install(package).await?;
+                // Only windows uses svc_password
+                #[cfg(target_os = "windows")]
+                let pkg = {
+                    let mut pkg = Pkg::from_install(package).await?;
+                    // Hooks do not have access to svc_passwords so we execute them under the
+                    // current user account.
+                    if let Some(user) = habitat_core::os::users::get_current_username()? {
+                        pkg.svc_user = user;
+                    }
+                    pkg
+                };
+                #[cfg(not(target_os = "windows"))]
+                let pkg = Pkg::from_install(package).await?;
 
-            match hook.run(package_name, &pkg, None::<&str>) {
-                Ok(exit_status) if exit_status.success() => Ok(()),
-                Ok(exit_status) => {
-                    Err(Error::hook_exit_status(pkg.ident.clone(),
-                                                hook_name,
-                                                exit_status))
+                match hook.run(package_name, &pkg, None::<&str>) {
+                    Ok(exit_status) if exit_status.success() => Ok(()),
+                    Ok(exit_status) => {
+                        Err(Error::hook_exit_status(pkg.ident.clone(),
+                                                    hook_name,
+                                                    exit_status))
+                    }
+                    Err(error) => Err(Error::hook_run_error(pkg.ident.clone(), hook_name, error)),
                 }
-                Err(error) => Err(Error::hook_run_error(pkg.ident.clone(), hook_name, error)),
             }
-        } _ => {
-            Ok(())
-        }}
+            _ => Ok(()),
+        }
     }
 }
 
@@ -372,22 +373,25 @@ impl Hook for InstallHook {
         let name = &pkg.name;
         if let Some(code) = status.code() {
             let path = pkg.path.join(InstallHook::STATUS_FILE);
-            match File::create(&path) { Ok(mut f) => {
-                if let Err(err) = write!(f, "{}", code) {
+            match File::create(&path) {
+                Ok(mut f) => {
+                    if let Err(err) = write!(f, "{}", code) {
+                        outputln!(
+                            preamble name,
+                            "failed to write install hook status file to {:?}: {}",
+                            path,
+                            err
+                        );
+                    }
+                }
+                _ => {
                     outputln!(
                         preamble name,
-                        "failed to write install hook status file to {:?}: {}",
-                        path,
-                        err
+                        "failed to write install hook status file to {:?}",
+                        path
                     );
                 }
-            } _ => {
-                outputln!(
-                    preamble name,
-                    "failed to write install hook status file to {:?}",
-                    path
-                );
-            }}
+            }
         }
         match status.code() {
             Some(code) if !status.success() => {
