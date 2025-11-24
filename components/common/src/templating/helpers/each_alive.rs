@@ -51,8 +51,8 @@ impl HelperDef for EachAliveHelper {
 
                     let mut alive_idx = 0;
                     for (i, member) in list.iter().enumerate() {
-                        if let Some(m) = member.as_object() {
-                            if m.contains_key("alive") && m["alive"].as_bool().unwrap() {
+                        if let Some(m) = member.as_object()
+                            && m.contains_key("alive") && m["alive"].as_bool().unwrap() {
                                 alive_idx += 1;
                                 if let Some(ref mut block) = rc.block_mut() {
                                     let is_first = first_alive_idx == Some(i);
@@ -73,7 +73,6 @@ impl HelperDef for EachAliveHelper {
 
                                 template.render(r, ctx, rc, out)?;
                             }
-                        }
                     }
 
                     rc.pop_block();
