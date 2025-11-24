@@ -1,3 +1,4 @@
+
 [profile.dev]
 # Incremental builds seem to be causing consistent compiler crashes on M1 macs
 # This was observed in version 1.58.1. Please remove if no longer relevant.
@@ -7,6 +8,8 @@ incremental = false
 debug = true
 
 [workspace]
+resolver = "1"
+
 members = [
   "components/builder-api-client",
   "components/butterfly",
