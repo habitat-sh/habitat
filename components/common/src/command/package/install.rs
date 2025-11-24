@@ -146,9 +146,10 @@ impl FromStr for InstallSource {
             }
         } else {
             if let Some(extension) = path.extension()
-                && extension == "hart" {
-                    return Err(habitat_core::Error::FileNotFound(s.to_string()));
-                }
+               && extension == "hart"
+            {
+                return Err(habitat_core::Error::FileNotFound(s.to_string()));
+            }
 
             match s.parse::<PackageIdent>() {
                 // TODO fn: I would have preferred to explicitly choose a `PackageTarget` here, but
@@ -1019,14 +1020,15 @@ impl InstallTask<'_> {
     {
         if let Ok(recommendations) = self.get_channel_recommendations((ident, target), token)
                                          .await
-            && !recommendations.is_empty() {
-                ui.warn(format!("No releases of {} exist in the '{}' channel",
-                                &ident, self.channel))?;
-                ui.warn("The following releases were found:")?;
-                for r in recommendations {
-                    ui.warn(format!("  {} in the '{}' channel", r.1, r.0))?;
-                }
+           && !recommendations.is_empty()
+        {
+            ui.warn(format!("No releases of {} exist in the '{}' channel",
+                            &ident, self.channel))?;
+            ui.warn("The following releases were found:")?;
+            for r in recommendations {
+                ui.warn(format!("  {} in the '{}' channel", r.1, r.0))?;
             }
+        }
 
         Ok(())
     }

@@ -492,9 +492,10 @@ fn write_hook<T>(content: &str, path: T) -> Result<bool>
     let content_hash = Blake2bHash::from_bytes(content);
     let existing_hash = hash_content(path.as_ref())?;
     if let Some(existing_hash) = existing_hash
-        && existing_hash == content_hash {
-            return Ok(false);
-        }
+       && existing_hash == content_hash
+    {
+        return Ok(false);
+    }
 
     let mut file = File::create(path.as_ref())?;
     file.write_all(content.as_bytes())?;

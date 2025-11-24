@@ -115,8 +115,9 @@ impl CliConfig {
 
 fn cli_config_path() -> PathBuf {
     if !am_i_root()
-        && let Some(home) = dirs::home_dir() {
-            return home.join(format!(".{}", CLI_CONFIG_PATH_POSTFIX));
-        }
+       && let Some(home) = dirs::home_dir()
+    {
+        return home.join(format!(".{}", CLI_CONFIG_PATH_POSTFIX));
+    }
     PathBuf::from(&*FS_ROOT_PATH).join(CLI_CONFIG_PATH_POSTFIX)
 }

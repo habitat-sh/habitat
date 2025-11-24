@@ -52,27 +52,29 @@ impl HelperDef for EachAliveHelper {
                     let mut alive_idx = 0;
                     for (i, member) in list.iter().enumerate() {
                         if let Some(m) = member.as_object()
-                            && m.contains_key("alive") && m["alive"].as_bool().unwrap() {
-                                alive_idx += 1;
-                                if let Some(ref mut block) = rc.block_mut() {
-                                    let is_first = first_alive_idx == Some(i);
-                                    let is_last = last_alive_idx == Some(i);
-                                    let index = to_json(alive_idx);
+                           && m.contains_key("alive")
+                           && m["alive"].as_bool().unwrap()
+                        {
+                            alive_idx += 1;
+                            if let Some(ref mut block) = rc.block_mut() {
+                                let is_first = first_alive_idx == Some(i);
+                                let is_last = last_alive_idx == Some(i);
+                                let index = to_json(alive_idx);
 
-                                    block.set_local_var("first", to_json(is_first));
-                                    block.set_local_var("last", to_json(is_last));
-                                    block.set_local_var("index", to_json(index.clone()));
+                                block.set_local_var("first", to_json(is_first));
+                                block.set_local_var("last", to_json(is_last));
+                                block.set_local_var("index", to_json(index.clone()));
 
-                                    update_block_context(block,
-                                                         array_path,
-                                                         i.to_string(),
-                                                         is_first,
-                                                         member);
-                                    set_block_param(block, h, array_path, &index, member)?;
-                                }
-
-                                template.render(r, ctx, rc, out)?;
+                                update_block_context(block,
+                                                     array_path,
+                                                     i.to_string(),
+                                                     is_first,
+                                                     member);
+                                set_block_param(block, h, array_path, &index, member)?;
                             }
+
+                            template.render(r, ctx, rc, out)?;
+                        }
                     }
 
                     rc.pop_block();
