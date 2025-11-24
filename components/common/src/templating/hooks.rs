@@ -305,11 +305,11 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
                                                         -> Result<()> {
         let feature_flags = FeatureFlag::from_env(ui);
         let package_name = &package.ident.name;
-        if let Some(ref hook) = Self::load(package_name,
+        match Self::load(package_name,
                                            svc_hooks_path(package_name),
                                            package.installed_path.join("hooks"),
                                            feature_flags)
-        {
+        { Some(ref hook) => {
             let hook_name = Self::FILE_NAME;
             ui.status(Status::Executing,
                       format!("{} hook for '{}'", hook_name, package.ident()))?;
@@ -338,9 +338,9 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
                 }
                 Err(error) => Err(Error::hook_run_error(pkg.ident.clone(), hook_name, error)),
             }
-        } else {
+        } _ => {
             Ok(())
-        }
+        }}
     }
 }
 
@@ -372,7 +372,7 @@ impl Hook for InstallHook {
         let name = &pkg.name;
         if let Some(code) = status.code() {
             let path = pkg.path.join(InstallHook::STATUS_FILE);
-            if let Ok(mut f) = File::create(&path) {
+            match File::create(&path) { Ok(mut f) => {
                 if let Err(err) = write!(f, "{}", code) {
                     outputln!(
                         preamble name,
@@ -381,13 +381,13 @@ impl Hook for InstallHook {
                         err
                     );
                 }
-            } else {
+            } _ => {
                 outputln!(
                     preamble name,
                     "failed to write install hook status file to {:?}",
                     path
                 );
-            }
+            }}
         }
         match status.code() {
             Some(code) if !status.success() => {
