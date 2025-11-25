@@ -24,7 +24,13 @@ use crate::{error::{Error,
                      MemberListProxy},
             message,
             probe_list::ProbeList,
-            rumor::{dat_file::{DatFileReader,
+            rumor::{ConstIdRumor,
+                    Rumor,
+                    RumorKey,
+                    RumorStore,
+                    RumorStoreProxy,
+                    RumorType,
+                    dat_file::{DatFileReader,
                                DatFileWriter},
                     departure::Departure,
                     election::{Election,
@@ -33,18 +39,12 @@ use crate::{error::{Error,
                     heat::sync::RumorHeat,
                     service::Service,
                     service_config::ServiceConfig,
-                    service_file::ServiceFile,
-                    ConstIdRumor,
-                    Rumor,
-                    RumorKey,
-                    RumorStore,
-                    RumorStoreProxy,
-                    RumorType},
+                    service_file::ServiceFile},
             swim::Ack};
 
-use habitat_common::{liveliness_checker,
-                     sync::Lock,
-                     FeatureFlag};
+use habitat_common::{FeatureFlag,
+                     liveliness_checker,
+                     sync::Lock};
 use habitat_core::crypto::keys::RingKey;
 use lazy_static::lazy_static;
 use log::{debug,
@@ -52,15 +52,15 @@ use log::{debug,
           info,
           trace,
           warn};
-use prometheus::{opts,
-                 register_histogram_vec,
-                 register_int_gauge,
-                 HistogramTimer,
+use prometheus::{HistogramTimer,
                  HistogramVec,
-                 IntGauge};
-use serde::{ser::SerializeStruct,
-            Serialize,
-            Serializer};
+                 IntGauge,
+                 opts,
+                 register_histogram_vec,
+                 register_int_gauge};
+use serde::{Serialize,
+            Serializer,
+            ser::SerializeStruct};
 use std::{collections::{HashMap,
                         HashSet},
           fmt::{self,
@@ -73,13 +73,13 @@ use std::{collections::{HashMap,
           path::{Path,
                  PathBuf},
           result,
-          sync::{atomic::{AtomicBool,
+          sync::{Arc,
+                 Mutex,
+                 atomic::{AtomicBool,
                           AtomicIsize,
                           Ordering},
                  mpsc::{self,
-                        channel},
-                 Arc,
-                 Mutex},
+                        channel}},
           thread,
           time::{Duration,
                  Instant}};
@@ -254,11 +254,11 @@ pub(crate) mod sync {
         fn refute_incarnation(&mut self, incoming: Incarnation) {
             self.member.incarnation = incoming + 1;
             INCARNATION.set(self.member.incarnation.to_i64());
-            if let Some(ref mut s) = self.incarnation_store {
-                if let Err(e) = s.store(self.member.incarnation) {
-                    error!("Error persisting incarnation '{}' to disk: {:?}",
-                           self.member.incarnation, e);
-                }
+            if let Some(ref mut s) = self.incarnation_store
+               && let Err(e) = s.store(self.member.incarnation)
+            {
+                error!("Error persisting incarnation '{}' to disk: {:?}",
+                       self.member.incarnation, e);
             }
         }
 
@@ -1340,18 +1340,21 @@ impl Server {
     pub fn persist_data_rsr_mlr(&self) {
         if let Some(ref dat_file_lock) = self.dat_file {
             let dat_file = dat_file_lock.lock().expect("DatFile lock poisoned");
-            if let Some(err) = dat_file.write_rsr_mlr(&self.member_list,
-                                                      &self.service_store,
-                                                      &self.service_config_store,
-                                                      &self.service_file_store,
-                                                      &self.election_store,
-                                                      &self.update_store,
-                                                      &self.departure_store)
-                                       .err()
+            match dat_file.write_rsr_mlr(&self.member_list,
+                                         &self.service_store,
+                                         &self.service_config_store,
+                                         &self.service_file_store,
+                                         &self.election_store,
+                                         &self.update_store,
+                                         &self.departure_store)
+                          .err()
             {
-                error!("Error persisting rumors to disk, {}", err);
-            } else {
-                info!("Rumors persisted to disk: {}", dat_file.path().display());
+                Some(err) => {
+                    error!("Error persisting rumors to disk, {}", err);
+                }
+                _ => {
+                    info!("Rumors persisted to disk: {}", dat_file.path().display());
+                }
             }
         }
     }
@@ -1798,9 +1801,9 @@ mod tests {
     mod server {
         use super::*;
         use crate::{member::Member,
-                    server::{timing::Timing,
-                             Server,
-                             Suitability}};
+                    server::{Server,
+                             Suitability,
+                             timing::Timing}};
         use std::{fs::File,
                   io::prelude::*,
                   net::{IpAddr,

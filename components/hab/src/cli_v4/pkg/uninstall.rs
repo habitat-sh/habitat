@@ -10,10 +10,10 @@ use habitat_core::{fs::FS_ROOT_PATH,
 use habitat_common::{cli::clap_validators::HabPkgIdentValueParser,
                      ui::UI};
 
-use crate::{command::pkg::{uninstall,
-                           uninstall::UninstallHookMode,
-                           ExecutionStrategy,
-                           Scope},
+use crate::{command::pkg::{ExecutionStrategy,
+                           Scope,
+                           uninstall,
+                           uninstall::UninstallHookMode},
             error::Result as HabResult};
 
 #[derive(Debug, Clone, Parser)]

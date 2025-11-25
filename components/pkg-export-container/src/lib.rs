@@ -8,12 +8,12 @@ use crate::{build::BuildSpec,
 
 use anyhow::Result;
 use aws_config::BehaviorVersion;
-use aws_credential_types::{provider::SharedCredentialsProvider,
-                           Credentials as AwsCredentials};
+use aws_credential_types::{Credentials as AwsCredentials,
+                           provider::SharedCredentialsProvider};
 use aws_sdk_ecr as ecr;
 use habitat_common::ui::{Status,
-                         UIWriter,
-                         UI};
+                         UI,
+                         UIWriter};
 use log::debug;
 use serde_json::json;
 use std::{convert::TryFrom,

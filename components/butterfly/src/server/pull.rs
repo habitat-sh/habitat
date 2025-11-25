@@ -2,20 +2,20 @@
 //!
 //! This module handles pulling all the pushed rumors from every member off a ZMQ socket.
 
-use crate::{rumor::{RumorEnvelope,
+use crate::{ZMQ_CONTEXT,
+            rumor::{RumorEnvelope,
                     RumorKind},
-            server::Server,
-            ZMQ_CONTEXT};
+            server::Server};
 use habitat_common::liveliness_checker;
 use habitat_core::util::ToI64;
 use lazy_static::lazy_static;
 use log::{error,
           trace,
           warn};
-use prometheus::{register_int_counter_vec,
-                 register_int_gauge_vec,
-                 IntCounterVec,
-                 IntGaugeVec};
+use prometheus::{IntCounterVec,
+                 IntGaugeVec,
+                 register_int_counter_vec,
+                 register_int_gauge_vec};
 use std::{thread,
           time::Duration};
 

@@ -5,9 +5,9 @@
 //! This allows us to swap out the `docker` CLI for `buildah` if we
 //! want to create containers as a non-root user, for instance.
 use anyhow::Result;
-use clap::{value_parser,
-           Arg,
-           ArgMatches};
+use clap::{Arg,
+           ArgMatches,
+           value_parser};
 use habitat_core::fs::find_command;
 use log::debug;
 use std::{convert::TryFrom,

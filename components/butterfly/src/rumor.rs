@@ -21,19 +21,19 @@ use crate::{error::{Error,
                        Message},
             rumor::election::ElectionRumor};
 use bytes::BytesMut;
-use prometheus::{register_int_counter_vec,
-                 IntCounterVec};
+use prometheus::{IntCounterVec,
+                 register_int_counter_vec};
 use prost::Message as ProstMessage;
 use serde::Serialize;
-use std::{collections::{hash_map::Entry,
-                        HashMap},
+use std::{collections::{HashMap,
+                        hash_map::Entry},
           convert::TryFrom,
           default::Default,
           fmt,
           result,
-          sync::{atomic::{AtomicUsize,
-                          Ordering},
-                 Arc}};
+          sync::{Arc,
+                 atomic::{AtomicUsize,
+                          Ordering}}};
 
 pub use self::{departure::Departure,
                election::{Election,
@@ -148,11 +148,11 @@ mod storage {
     use super::*;
     use habitat_common::sync::{Lock,
                                ReadGuard};
-    use serde::{ser::{SerializeMap,
+    use serde::{Serialize,
+                Serializer,
+                ser::{SerializeMap,
                       SerializeSeq,
-                      SerializeStruct},
-                Serialize,
-                Serializer};
+                      SerializeStruct}};
 
     /// Provides access to the rumors for a particular service group bounded by the
     /// lifetime of the service group key.

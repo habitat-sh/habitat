@@ -4,13 +4,13 @@ use clap_v4 as clap;
 
 use clap::Parser;
 
-use habitat_common::{cli::{clap_validators::HabPkgIdentValueParser,
-                           PACKAGE_TARGET_ENVVAR},
+use habitat_common::{cli::{PACKAGE_TARGET_ENVVAR,
+                           clap_validators::HabPkgIdentValueParser},
                      ui::UI};
 
-use habitat_core::package::{target,
-                            PackageIdent,
-                            PackageTarget};
+use habitat_core::package::{PackageIdent,
+                            PackageTarget,
+                            target};
 
 use crate::{cli_v4::utils::{AuthToken,
                             BldrUrl},

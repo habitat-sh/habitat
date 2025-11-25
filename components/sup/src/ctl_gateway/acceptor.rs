@@ -3,8 +3,8 @@
 
 use super::handler::CtlHandler;
 use crate::{ctl_gateway::server::MgrReceiver,
-            manager::{action::ActionSender,
-                      ManagerState}};
+            manager::{ManagerState,
+                      action::ActionSender}};
 use futures::{channel::oneshot,
               future::FutureExt,
               stream::{Stream,

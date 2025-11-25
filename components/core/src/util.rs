@@ -22,6 +22,8 @@ use std::{io::{self,
                BufRead},
           mem};
 
+// TODO: All of these ok_xxx macros appear to be unused
+
 /// Same as `Result::ok()`, but logs the error case. Useful for
 /// ignoring error cases, while still leaving a paper trail.
 #[doc(hidden)]
@@ -155,29 +157,29 @@ fn with_ps_module_path(env: &mut HashMap<String, String>) {
             }
         }
 
-        if let Some(pwsh_path) = pwsh_path {
-            if let Some(pwsh_parent) = pwsh_path.parent() {
-                let psmodulepath = pwsh_parent.join("Modules");
-                let mut new_psmodulepath = psmodulepath.clone().into_os_string();
-                let path_to_inherit = if let Some(path) = env.remove("PSModulePath") {
-                    Some(path)
-                } else {
-                    henv::var_os("PSModulePath").map(|path| path.to_string_lossy().to_string())
-                };
+        if let Some(pwsh_path) = pwsh_path
+           && let Some(pwsh_parent) = pwsh_path.parent()
+        {
+            let psmodulepath = pwsh_parent.join("Modules");
+            let mut new_psmodulepath = psmodulepath.clone().into_os_string();
+            let path_to_inherit = if let Some(path) = env.remove("PSModulePath") {
+                Some(path)
+            } else {
+                henv::var_os("PSModulePath").map(|path| path.to_string_lossy().to_string())
+            };
 
-                if let Some(path) = path_to_inherit {
-                    let mut paths = vec![psmodulepath.clone()];
-                    for entry in env::split_paths(&path) {
-                        if entry != psmodulepath {
-                            paths.push(entry);
-                        }
+            if let Some(path) = path_to_inherit {
+                let mut paths = vec![psmodulepath.clone()];
+                for entry in env::split_paths(&path) {
+                    if entry != psmodulepath {
+                        paths.push(entry);
                     }
-                    new_psmodulepath = env::join_paths(paths).unwrap();
                 }
-
-                env.insert("PSModulePath".to_string(),
-                           new_psmodulepath.to_string_lossy().to_string());
+                new_psmodulepath = env::join_paths(paths).unwrap();
             }
+
+            env.insert("PSModulePath".to_string(),
+                       new_psmodulepath.to_string_lossy().to_string());
         }
     }
 }

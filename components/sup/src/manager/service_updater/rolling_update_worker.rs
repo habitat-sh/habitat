@@ -1,5 +1,5 @@
-use super::{package_update_worker::PackageUpdateWorker,
-            IncarnatedPackageIdent};
+use super::{IncarnatedPackageIdent,
+            package_update_worker::PackageUpdateWorker};
 use crate::{census::{CensusGroup,
                      CensusRing},
             manager::service::{Service,
@@ -267,7 +267,7 @@ impl RollingUpdateWorker {
     async fn follower_wait_for_update_turn(&self) -> FollowerUpdateTurnEvent {
         let update_to = match self.follower_wait_for_update_start().await {
             FollowerUpdateStartEvent::PromotedToLeader => {
-                return FollowerUpdateTurnEvent::PromotedToLeader
+                return FollowerUpdateTurnEvent::PromotedToLeader;
             }
             FollowerUpdateStartEvent::UpdateTo(ident) => ident,
         };

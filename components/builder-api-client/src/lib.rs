@@ -1,8 +1,8 @@
 use habitat_core::{self as hab_core,
                    util,
-                   util::text_render::{tabify,
-                                       tabw,
-                                       TabularText}};
+                   util::text_render::{TabularText,
+                                       tabify,
+                                       tabw}};
 use habitat_http_client as hab_http;
 
 pub mod builder;
@@ -24,9 +24,9 @@ use serde::{Deserialize,
             Serialize};
 
 use crate::hab_core::package::PackageIdent;
-pub use crate::{builder::{BuilderAPIClient,
-                          API_RETRY_COUNT,
-                          API_RETRY_DELAY},
+pub use crate::{builder::{API_RETRY_COUNT,
+                          API_RETRY_DELAY,
+                          BuilderAPIClient},
                 error::{APIFailure,
                         Error,
                         Result}};
@@ -62,11 +62,11 @@ impl fmt::Display for Project {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut s = format!("{:50} {}", self.ident, self.state);
 
-        if let Ok(j) = self.job_id.parse::<i64>() {
-            if j > 0 {
-                let job_ids = format!(" (Job ID {})", self.job_id);
-                s = s + &job_ids;
-            }
+        if let Ok(j) = self.job_id.parse::<i64>()
+           && j > 0
+        {
+            let job_ids = format!(" (Job ID {})", self.job_id);
+            s = s + &job_ids;
         }
 
         write!(f, "{}", s)

@@ -4,8 +4,8 @@
 
 use crate::{rumor::{RumorKey,
                     RumorType},
-            server::{timing::Timing,
-                     Server}};
+            server::{Server,
+                     timing::Timing}};
 use habitat_common::liveliness_checker;
 use log::trace;
 use std::{thread,

@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use rand::{rng,
-           Rng};
+use rand::{Rng,
+           rng};
 use tokio::time::Instant;
 
 /// A stateful object that can be used to maintain the current state of a backoff operation

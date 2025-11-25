@@ -20,18 +20,18 @@ use habitat_common::{cli_config::CliConfig,
                              ListenCtlAddr,
                              ResolvedListenCtlAddr}};
 
-use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
+use habitat_core::{AUTH_TOKEN_ENVVAR,
+                   ChannelIdent,
+                   crypto::CACHE_KEY_PATH_ENV_VAR,
                    env as hcore_env,
                    fs::CACHE_KEY_PATH,
                    origin::Origin as CoreOrigin,
                    os::process::ShutdownTimeout,
                    package::PackageIdent,
                    service::ServiceBind,
-                   url::{bldr_url_from_env,
-                         BLDR_URL_ENVVAR,
-                         DEFAULT_BLDR_URL},
-                   ChannelIdent,
-                   AUTH_TOKEN_ENVVAR};
+                   url::{BLDR_URL_ENVVAR,
+                         DEFAULT_BLDR_URL,
+                         bldr_url_from_env}};
 
 use hab_common_derive::GenConfig;
 

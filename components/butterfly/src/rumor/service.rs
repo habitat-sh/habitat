@@ -5,16 +5,16 @@
 use crate::{error::{Error,
                     Result},
             protocol::{self,
-                       newscast,
-                       FromProto},
+                       FromProto,
+                       newscast},
             rumor::{Rumor,
                     RumorPayload,
                     RumorType}};
 use habitat_core::{package::Identifiable,
                    service::ServiceGroup};
-use serde::{ser::SerializeStruct,
-            Serialize,
-            Serializer};
+use serde::{Serialize,
+            Serializer,
+            ser::SerializeStruct};
 use std::{cmp::Ordering,
           fmt,
           mem,
@@ -236,8 +236,8 @@ mod tests {
                        service::ServiceGroup};
 
     use super::Service;
-    use crate::rumor::{service::SysInfo,
-                       Rumor};
+    use crate::rumor::{Rumor,
+                       service::SysInfo};
 
     fn create_service(member_id: &str) -> Service {
         let pkg = PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap();

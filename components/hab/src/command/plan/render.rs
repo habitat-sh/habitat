@@ -1,17 +1,17 @@
 use serde_json::{self,
-                 json,
-                 Value as Json};
-use std::{fs::{create_dir_all,
-               read_to_string,
-               File},
+                 Value as Json,
+                 json};
+use std::{fs::{File,
+               create_dir_all,
+               read_to_string},
           io::Write,
           path::Path};
 use toml::Value;
 
 use crate::{common::{templating::TemplateRenderer,
                      ui::{Status,
-                          UIWriter,
-                          UI}},
+                          UI,
+                          UIWriter}},
             error::Result};
 
 #[allow(clippy::too_many_arguments)]
@@ -127,13 +127,13 @@ fn toml_to_json(cfg: &str) -> Result<Json> {
 
 // merge two Json structs
 fn merge(a: &mut Json, b: Json) {
-    if let Json::Object(a_map) = a {
-        if let Json::Object(b_map) = b {
-            for (k, v) in b_map {
-                merge(a_map.entry(k).or_insert(Json::Null), v);
-            }
-            return;
+    if let Json::Object(a_map) = a
+       && let Json::Object(b_map) = b
+    {
+        for (k, v) in b_map {
+            merge(a_map.entry(k).or_insert(Json::Null), v);
         }
+        return;
     }
     *a = b;
 }

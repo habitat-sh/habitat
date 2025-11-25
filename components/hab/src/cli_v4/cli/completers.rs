@@ -2,8 +2,8 @@ use crate::{cli_v4::Hab,
             error::Result as HabResult};
 use clap::{CommandFactory,
            Parser};
-use clap_complete::{generate,
-                    Shell};
+use clap_complete::{Shell,
+                    generate};
 use clap_v4 as clap;
 use habitat_common::FeatureFlag;
 use std::io;

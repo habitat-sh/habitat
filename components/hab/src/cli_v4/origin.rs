@@ -2,8 +2,8 @@ use clap_v4 as clap;
 
 use crate::error::Result as HabResult;
 use clap::Subcommand;
-use habitat_common::{ui::UI,
-                     FeatureFlag};
+use habitat_common::{FeatureFlag,
+                     ui::UI};
 
 mod create;
 mod delete;

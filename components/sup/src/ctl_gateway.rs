@@ -13,12 +13,12 @@ pub mod server;
 use crate::error::{Error,
                    Result};
 use habitat_api_client::DisplayProgress;
-use habitat_common::{output::{self,
+use habitat_common::{PROGRAM_NAME,
+                     output::{self,
                               OutputContext,
                               OutputFormat,
                               StructuredOutput},
-                     ui::UIWriter,
-                     PROGRAM_NAME};
+                     ui::UIWriter};
 use log::warn;
 use std::{fmt,
           fs::{self,

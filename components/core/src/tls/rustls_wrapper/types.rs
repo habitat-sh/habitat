@@ -9,9 +9,9 @@
 use crate::{error::Error,
             tls::{ctl_gateway,
                   rustls_wrapper}};
-use rustls::{pki_types::{CertificateDer,
-                         PrivatePkcs8KeyDer},
-             RootCertStore};
+use rustls::{RootCertStore,
+             pki_types::{CertificateDer,
+                         PrivatePkcs8KeyDer}};
 use serde::{Deserialize,
             Serialize};
 use std::{path::PathBuf,

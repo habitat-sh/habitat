@@ -4,9 +4,9 @@ use rand::prelude::IndexedRandom;
 
 use crate::btest;
 use habitat_butterfly::{member::Health,
-                        rumor::{election::ElectionStatus,
-                                ConstIdRumor as _,
-                                Election}};
+                        rumor::{ConstIdRumor as _,
+                                Election,
+                                election::ElectionStatus}};
 use habitat_common::FeatureFlag;
 
 #[test]
@@ -57,10 +57,10 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
 
     let mut paused = 0;
     for (index, server) in net.iter_mut().enumerate() {
-        if let Some(ref leader_id) = leader_id {
-            if server.member_id() == leader_id {
-                paused = index;
-            }
+        if let Some(ref leader_id) = leader_id
+           && server.member_id() == leader_id
+        {
+            paused = index;
         }
     }
     net[paused].pause();
@@ -122,10 +122,10 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
 
     let mut leader_index = 0;
     for (index, server) in net.iter_mut().enumerate() {
-        if let Some(ref leader_id) = leader_id {
-            if server.member_id() == leader_id {
-                leader_index = index;
-            }
+        if let Some(ref leader_id) = leader_id
+           && server.member_id() == leader_id
+        {
+            leader_index = index;
         }
     }
     println!("Leader index: {}", leader_index);

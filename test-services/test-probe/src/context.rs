@@ -3,9 +3,9 @@
 
 use crate::{config,
             error::Result};
-use actix_web::{web,
-                HttpRequest,
-                HttpResponse};
+use actix_web::{HttpRequest,
+                HttpResponse,
+                web};
 use std::{borrow::Cow,
           fs,
           path::Path};

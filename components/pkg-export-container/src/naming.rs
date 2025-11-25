@@ -1,10 +1,10 @@
 use crate::RegistryType;
-use anyhow::{anyhow,
-             Result};
+use anyhow::{Result,
+             anyhow};
 use clap::ArgMatches;
-use habitat_core::{package::{FullyQualifiedPackageIdent,
-                             Identifiable},
-                   ChannelIdent};
+use habitat_core::{ChannelIdent,
+                   package::{FullyQualifiedPackageIdent,
+                             Identifiable}};
 use handlebars::Handlebars;
 use serde::Serialize;
 use serde_json::json;
@@ -225,7 +225,7 @@ impl Naming {
 
     fn rendering_context(ident: &FullyQualifiedPackageIdent,
                          channel: &ChannelIdent)
-                         -> impl Serialize {
+                         -> impl Serialize + use<> {
         json!({
             "pkg_origin": ident.origin(),
             "pkg_name": ident.name(),

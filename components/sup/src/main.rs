@@ -20,8 +20,8 @@ fn main() {
     use tokio::{self,
                 runtime::Builder as RuntimeBuilder};
 
-    use habitat_common::{ui::UI,
-                         FeatureFlag};
+    use habitat_common::{FeatureFlag,
+                         ui::UI};
 
     use habitat_core::env::Config;
     use habitat_launcher_client::ERR_NO_RETRY_EXCODE;

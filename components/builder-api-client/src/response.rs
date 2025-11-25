@@ -1,9 +1,9 @@
 use crate::error::{Error,
                    Result};
 use log::debug;
-use reqwest::{header::AsHeaderName,
-              Response,
-              StatusCode};
+use reqwest::{Response,
+              StatusCode,
+              header::AsHeaderName};
 use serde::Deserialize;
 use std::fmt;
 

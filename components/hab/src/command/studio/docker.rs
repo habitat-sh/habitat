@@ -1,11 +1,12 @@
 use log::{debug,
           warn};
 
-use crate::{command::studio::enter::{ARTIFACT_PATH_ENVVAR,
+use crate::{VERSION,
+            command::studio::enter::{ARTIFACT_PATH_ENVVAR,
                                      CERT_PATH_ENVVAR,
                                      SSL_CERT_FILE_ENVVAR},
-            common::ui::{tty,
-                         UI},
+            common::ui::{UI,
+                         tty},
             error::{Error,
                     Result},
             hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
@@ -17,8 +18,7 @@ use crate::{command::studio::enter::{ARTIFACT_PATH_ENVVAR,
                     os::process,
                     package::target,
                     util::docker},
-            license,
-            VERSION};
+            license};
 use std::{env,
           ffi::{OsStr,
                 OsString},
@@ -128,7 +128,8 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
         args.remove(index);
         let refresh_channel_key = format!("{}{}", HAB_STUDIO_SECRET, "HAB_REFRESH_CHANNEL");
         env_vars.push(refresh_channel_key.clone());
-        env::set_var(refresh_channel_key, args.remove(index));
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var(refresh_channel_key, args.remove(index)) };
     }
 
     // When a user sets SSL_CERT_FILE, we need to modify the absolute
@@ -154,8 +155,11 @@ fn update_ssl_cert_file_envvar(mnt_prefix: &str) {
             if let Some(cert_file_name) = cert_file_name.to_str() {
                 // Don't use Path::join here in order to work around platform
                 // differences with paths on Windows with linux containers enabled
-                env::set_var(SSL_CERT_FILE_ENVVAR,
-                             format!("{}/{}/{}", mnt_prefix, CACHE_SSL_PATH, cert_file_name));
+                // TODO: Audit that the environment access only happens in single-threaded code.
+                unsafe {
+                    env::set_var(SSL_CERT_FILE_ENVVAR,
+                                 format!("{}/{}/{}", mnt_prefix, CACHE_SSL_PATH, cert_file_name))
+                };
             } else {
                 warn!("Unable to format {:?} for use inside studio", ssl_cert_file);
             }
@@ -320,7 +324,8 @@ fn unset_proxy_env_vars() {
     for var in &["http_proxy", "https_proxy"] {
         if henv::var(var).is_ok() {
             debug!("Unsetting process environment variable '{}'", var);
-            env::remove_var(var);
+            // TODO: Audit that the environment access only happens in single-threaded code.
+            unsafe { env::remove_var(var) };
         }
     }
 }
@@ -378,10 +383,10 @@ fn studio_target(windows: bool, target: target::PackageTarget) -> target::Packag
 
 #[cfg(test)]
 mod tests {
-    use super::{image_identifier,
-                update_ssl_cert_file_envvar,
-                DOCKER_IMAGE,
-                DOCKER_WINDOWS_IMAGE};
+    use super::{DOCKER_IMAGE,
+                DOCKER_WINDOWS_IMAGE,
+                image_identifier,
+                update_ssl_cert_file_envvar};
     use crate::VERSION;
 
     use crate::{command::studio::enter::SSL_CERT_FILE_ENVVAR,

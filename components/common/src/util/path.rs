@@ -1,25 +1,25 @@
-use crate::{command::package::install::{self,
+use crate::{PROGRAM_NAME,
+            command::package::install::{self,
                                         InstallHookMode,
                                         InstallMode,
                                         LocalPackageUsage},
             error::{Error,
                     Result},
-            ui,
-            PROGRAM_NAME};
+            ui};
 use habitat_core::{self,
-                   fs::{cache_artifact_path,
-                        fs_rooted_path,
-                        FS_ROOT_PATH},
+                   ChannelIdent,
+                   fs::{FS_ROOT_PATH,
+                        cache_artifact_path,
+                        fs_rooted_path},
                    package::{PackageIdent,
                              PackageInstall,
                              PackageTarget},
-                   url::default_bldr_url,
-                   ChannelIdent};
+                   url::default_bldr_url};
 use std::{env,
           fs::File,
           io::{self,
-               prelude::*,
-               BufReader},
+               BufReader,
+               prelude::*},
           path::PathBuf,
           str::FromStr};
 
@@ -112,7 +112,7 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
                     {
                         Ok(pkg_install) => pkg_install.paths()?,
                         Err(err) => {
-                            return Err(Error::PackageFailedToInstall(ident, Box::new(err)))
+                            return Err(Error::PackageFailedToInstall(ident, Box::new(err)));
                         }
                     }
                 }

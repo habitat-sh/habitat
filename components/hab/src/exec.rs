@@ -1,25 +1,25 @@
 use crate::cli_v4::utils::maybe_bldr_auth_token_from_args_or_load;
 
-use crate::{common::{self,
+use crate::{PRODUCT,
+            VERSION,
+            common::{self,
                      command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  LocalPackageUsage},
                      ui::{Status,
-                          UIWriter,
-                          UI}},
+                          UI,
+                          UIWriter}},
             error::{Error,
                     Result},
             hcore::{self,
+                    ChannelIdent,
                     fs::{self,
-                         cache_artifact_path,
-                         FS_ROOT_PATH},
+                         FS_ROOT_PATH,
+                         cache_artifact_path},
                     package::{PackageIdent,
                               PackageInstall,
                               PackageTarget},
-                    url::default_bldr_url,
-                    ChannelIdent},
-            PRODUCT,
-            VERSION};
+                    url::default_bldr_url}};
 use habitat_common::error::Error as CommonError;
 use retry::delay;
 use std::path::PathBuf;

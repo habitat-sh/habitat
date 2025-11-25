@@ -2,8 +2,8 @@
 //! `hab svc stop`, etc.)
 
 use crate::{ctl_gateway::server::CtlCommand,
-            manager::{action::ActionSender,
-                      ManagerState}};
+            manager::{ManagerState,
+                      action::ActionSender}};
 use futures::{future::Future,
               task::{Context,
                      Poll}};

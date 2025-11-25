@@ -4,9 +4,9 @@ pub use crate::protocol::swim::Health;
 use crate::{error::{Error,
                     Result},
             protocol::{self,
+                       FromProto,
                        newscast,
-                       swim as proto,
-                       FromProto},
+                       swim as proto},
             rumor::{RumorKey,
                     RumorPayload,
                     RumorType}};
@@ -17,20 +17,20 @@ use habitat_core::util::ToI64;
 use lazy_static::lazy_static;
 use log::{debug,
           trace};
-use prometheus::{register_int_gauge_vec,
-                 IntGaugeVec};
+use prometheus::{IntGaugeVec,
+                 register_int_gauge_vec};
 use rand::{rng,
            seq::{IteratorRandom,
                  SliceRandom}};
-use serde::{de,
-            ser::{SerializeMap,
-                  SerializeStruct},
-            Deserialize,
+use serde::{Deserialize,
             Deserializer,
             Serialize,
-            Serializer};
-use std::{collections::{hash_map,
-                        HashMap},
+            Serializer,
+            de,
+            ser::{SerializeMap,
+                  SerializeStruct}};
+use std::{collections::{HashMap,
+                        hash_map},
           convert::TryFrom,
           fmt,
           net::SocketAddr,
@@ -517,8 +517,7 @@ impl MemberList {
         // Is this clone necessary, or can a key be a reference to a field contained in the value?
         // Maybe the members we store should not contain the ID to reduce the duplication?
         trace!("insert_membership_mlw: Member: {}, Health: {}",
-               member_id,
-               incoming.health);
+               member_id, incoming.health);
         let modified = match self.write_entries().entry(member_id.clone()) {
             hash_map::Entry::Occupied(mut entry) => {
                 let val = entry.get_mut();
@@ -526,8 +525,7 @@ impl MemberList {
                    || (ignore_incarnation_and_health && val.health != incoming.health)
                 {
                     trace!("++ current health: {}, incoming health: {}",
-                           val.health,
-                           incoming.health);
+                           val.health, incoming.health);
                     *val = member_list::Entry { member:            incoming.member,
                                                 health:            incoming.health,
                                                 health_updated_at: Instant::now(), };
@@ -535,9 +533,7 @@ impl MemberList {
                     true
                 } else {
                     trace!("-- current health: {}, incoming health: {}, incarnation: {}, ",
-                           val.health,
-                           incoming.health,
-                           val.member.incarnation);
+                           val.health, incoming.health, val.member.incarnation);
                     trace!("Occupied: Not Updated");
                     false
                 }

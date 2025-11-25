@@ -24,38 +24,38 @@ pub fn start(filename: &str,
     for entry in WalkDir::new(pkg_root).into_iter()
                                        .filter_map(std::result::Result::ok)
     {
-        if let Some(f) = entry.path().file_name().and_then(OsStr::to_str) {
-            if filename == f {
-                found_any = true;
-                let mut comps = entry.path().components();
+        if let Some(f) = entry.path().file_name().and_then(OsStr::to_str)
+           && filename == f
+        {
+            found_any = true;
+            let mut comps = entry.path().components();
 
-                // skip prefix_count segments of the path
-                let _ = comps.nth(prefix_count)
-                             .ok_or_else(|| Error::FileNotFound(f.to_string()))?;
+            // skip prefix_count segments of the path
+            let _ = comps.nth(prefix_count)
+                         .ok_or_else(|| Error::FileNotFound(f.to_string()))?;
 
-                let segments = if full_releases {
-                    // take all 4 segments of the path
-                    // ex: core/busybox-static/1.24.2/20160708162350
-                    comps.take(4)
-                } else {
-                    // only take 2 segments of the path
-                    // ex: core/busybox-static
-                    comps.take(2)
-                };
+            let segments = if full_releases {
+                // take all 4 segments of the path
+                // ex: core/busybox-static/1.24.2/20160708162350
+                comps.take(4)
+            } else {
+                // only take 2 segments of the path
+                // ex: core/busybox-static
+                comps.take(2)
+            };
 
-                let mapped_segs: Vec<String> =
-                    segments.map(|c| c.as_os_str().to_string_lossy().into_owned())
-                            .collect();
-                let pkg_name = mapped_segs.join("/");
+            let mapped_segs: Vec<String> =
+                segments.map(|c| c.as_os_str().to_string_lossy().into_owned())
+                        .collect();
+            let pkg_name = mapped_segs.join("/");
 
-                // if we show the full path, then don't bother stuffing
-                // the result into the found HashSet, as we want to
-                // print out each path we find.
-                if full_path {
-                    println!("{}: {}", &pkg_name, &entry.path().to_string_lossy());
-                } else {
-                    found.insert(pkg_name);
-                }
+            // if we show the full path, then don't bother stuffing
+            // the result into the found HashSet, as we want to
+            // print out each path we find.
+            if full_path {
+                println!("{}: {}", &pkg_name, &entry.path().to_string_lossy());
+            } else {
+                found.insert(pkg_name);
             }
         }
     }

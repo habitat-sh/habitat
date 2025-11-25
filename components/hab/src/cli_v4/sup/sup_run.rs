@@ -4,11 +4,11 @@ use clap_v4 as clap;
 
 use clap::Args;
 
-use crate::{cli_v4::utils::{is_default,
-                            CacheKeyPath,
+use crate::{cli_v4::utils::{CacheKeyPath,
                             DurationProxy,
                             SharedLoad,
-                            SocketAddrProxy},
+                            SocketAddrProxy,
+                            is_default},
             error::{Error as HabError,
                     Result as HabResult}};
 
@@ -17,10 +17,10 @@ use habitat_core::{fs::HAB_CTL_KEYS_CACHE,
                                          PrivateKeyCli,
                                          RootCertificateStoreCli}};
 
-use habitat_common::{cli::{clap_validators::FileExistsValueParser,
-                           is_toml_file,
-                           RING_ENVVAR,
-                           RING_KEY_ENVVAR},
+use habitat_common::{cli::{RING_ENVVAR,
+                           RING_KEY_ENVVAR,
+                           clap_validators::FileExistsValueParser,
+                           is_toml_file},
                      command::package::install::InstallSource,
                      types::{EventStreamConnectMethod,
                              EventStreamMetaPair,
@@ -34,8 +34,8 @@ use habitat_common::{cli::{clap_validators::FileExistsValueParser,
 
 use hab_common_derive::GenConfig;
 
-use rants::{error::Error as RantsError,
-            Address as NatsAddress};
+use rants::{Address as NatsAddress,
+            error::Error as RantsError};
 
 use serde::{Deserialize,
             Serialize};

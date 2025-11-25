@@ -94,7 +94,7 @@ impl SpecDir {
     }
 
     /// Return the list of all spec files in the directory
-    fn spec_files(&self) -> impl IntoIterator<Item = PathBuf> {
+    fn spec_files(&self) -> impl IntoIterator<Item = PathBuf> + use<> {
         glob::glob(&self.0.join(SPEC_FILE_GLOB).display().to_string())
             .expect("Invalid spec file glob pattern!")
             .filter_map(glob::GlobResult::ok)

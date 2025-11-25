@@ -17,7 +17,7 @@ use winapi::{shared::{minwindef::{BOOL,
 
 use super::sid::Sid;
 
-extern "system" {
+unsafe extern "system" {
     fn LookupAccountNameW(lpSystemName: LPCWSTR,
                           lpAccountName: LPCWSTR,
                           Sid: PSID,

@@ -65,14 +65,17 @@ pub fn certificates_as_der(fs_root_path: Option<&Path>) -> Result<Vec<Vec<u8>>> 
 fn installed_cacerts(fs_root_path: Option<&Path>) -> Result<Option<PathBuf>> {
     let cacerts_ident = PackageIdent::from_str(CACERTS_PKG_IDENT)?;
 
-    if let Ok(pkg_install) = PackageInstall::load(&cacerts_ident, fs_root_path) {
-        let cert_path = pkg_install.installed_path().join("ssl/cert.pem");
-        debug!("Found an installed Habitat core/cacerts package at: {}",
-               cert_path.display());
-        Ok(Some(cert_path))
-    } else {
-        debug!("No installed Habitat core/cacerts package found");
-        Ok(None)
+    match PackageInstall::load(&cacerts_ident, fs_root_path) {
+        Ok(pkg_install) => {
+            let cert_path = pkg_install.installed_path().join("ssl/cert.pem");
+            debug!("Found an installed Habitat core/cacerts package at: {}",
+                   cert_path.display());
+            Ok(Some(cert_path))
+        }
+        _ => {
+            debug!("No installed Habitat core/cacerts package found");
+            Ok(None)
+        }
     }
 }
 

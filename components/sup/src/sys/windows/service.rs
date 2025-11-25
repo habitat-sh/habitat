@@ -1,9 +1,9 @@
 use crate::{manager::ShutdownConfig,
             sys::ShutdownMethod};
-use habitat_core::os::process::{handle_from_pid,
+use habitat_core::os::process::{Pid,
+                                handle_from_pid,
                                 windows_child::{ExitStatus,
-                                                Handle},
-                                Pid};
+                                                Handle}};
 use log::{debug,
           error,
           trace};
@@ -171,12 +171,12 @@ fn terminate_process_descendants(table: &ProcessTable, pid: DWORD) {
         }
     }
     unsafe {
-        if let Some(h) = handle_from_pid(pid) {
-            if processthreadsapi::TerminateProcess(h, 1) == 0 {
-                error!("Failed to call TerminateProcess on pid {}: {}",
-                       pid,
-                       io::Error::last_os_error());
-            }
+        if let Some(h) = handle_from_pid(pid)
+           && processthreadsapi::TerminateProcess(h, 1) == 0
+        {
+            error!("Failed to call TerminateProcess on pid {}: {}",
+                   pid,
+                   io::Error::last_os_error());
         }
     }
 }

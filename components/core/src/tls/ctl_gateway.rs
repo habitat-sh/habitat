@@ -11,10 +11,10 @@ use rcgen::{CertificateParams,
             KeyPair,
             PKCS_ECDSA_P256_SHA256};
 
-use rustls::{pki_types::{CertificateDer,
+use rustls::{RootCertStore,
+             pki_types::{CertificateDer,
                          DnsName,
-                         PrivatePkcs8KeyDer},
-             RootCertStore};
+                         PrivatePkcs8KeyDer}};
 use std::{fs::{self,
                File},
           io::{Error as IoError,

@@ -9,24 +9,24 @@
 //!
 //! Will upload all packages in cache to Builder.
 
-use crate::{api_client::{self,
+use crate::{PRODUCT,
+            VERSION,
+            api_client::{self,
                          Client},
             command,
             common::ui::{Glyph,
                          Status,
+                         UI,
                          UIReader,
-                         UIWriter,
-                         UI},
+                         UIWriter},
             error::{Error,
-                    Result},
-            PRODUCT,
-            VERSION};
+                    Result}};
 use glob::glob_with;
-use habitat_core::{crypto::{keys::{Key,
+use habitat_core::{ChannelIdent,
+                   crypto::{PUBLIC_KEY_SUFFIX,
+                            keys::{Key,
                                    KeyCache,
-                                   PublicOriginSigningKey},
-                            PUBLIC_KEY_SUFFIX},
-                   ChannelIdent};
+                                   PublicOriginSigningKey}}};
 use log::debug;
 use reqwest::StatusCode;
 use std::{collections::BTreeSet,

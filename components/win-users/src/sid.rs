@@ -22,8 +22,7 @@ use winapi::{shared::{minwindef::{BOOL,
                   processthreadsapi,
                   securitybaseapi::GetTokenInformation,
                   winbase,
-                  winnt::{TokenUser,
-                          ACCESS_MASK,
+                  winnt::{ACCESS_MASK,
                           ACL,
                           DACL_SECURITY_INFORMATION,
                           LPCWSTR,
@@ -34,7 +33,8 @@ use winapi::{shared::{minwindef::{BOOL,
                           PSECURITY_INFORMATION,
                           PSID,
                           PTOKEN_USER,
-                          TOKEN_READ}}};
+                          TOKEN_READ,
+                          TokenUser}}};
 
 #[repr(C)]
 struct ACL_SIZE_INFORMATION {
@@ -58,12 +58,12 @@ struct ACCESS_ALLOWED_ACE {
     sidStart: DWORD,
 }
 
-extern "system" {
+unsafe extern "system" {
     fn ObtainSid(hToken: HANDLE, psid: *mut PSID) -> BOOL;
 }
 
 #[link(name = "user32")]
-extern "system" {
+unsafe extern "system" {
     fn AddAccessAllowedAceEx(pAcl: PACL,
                              dwAceRevision: DWORD,
                              aceFlags: DWORD,
@@ -260,15 +260,14 @@ impl Sid {
                                      0,
                                      &mut needed_len)
                == 0
+               && let Some(error) = io::Error::last_os_error().raw_os_error()
             {
-                if let Some(error) = io::Error::last_os_error().raw_os_error() {
-                    match error as u32 {
-                        winerror::ERROR_INSUFFICIENT_BUFFER => {
-                            sd = Vec::with_capacity((needed_len) as usize);
-                            sd_new = Vec::with_capacity((needed_len) as usize);
-                        }
-                        _ => return Err(io::Error::last_os_error()),
+                match error as u32 {
+                    winerror::ERROR_INSUFFICIENT_BUFFER => {
+                        sd = Vec::with_capacity((needed_len) as usize);
+                        sd_new = Vec::with_capacity((needed_len) as usize);
                     }
+                    _ => return Err(io::Error::last_os_error()),
                 }
             }
 

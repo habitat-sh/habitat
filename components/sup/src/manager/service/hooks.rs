@@ -1,15 +1,15 @@
 #[cfg(windows)]
 use super::pipe_hook_client::PipeHookClient;
-use habitat_common::{error::Result,
+use habitat_common::{FeatureFlag,
+                     error::Result,
                      outputln,
-                     templating::{hooks::{self,
+                     templating::{TemplateRenderer,
+                                  hooks::{self,
                                           ExitCode,
                                           Hook,
                                           HookOutput,
                                           RenderPair},
-                                  package::Pkg,
-                                  TemplateRenderer},
-                     FeatureFlag};
+                                  package::Pkg}};
 #[cfg(windows)]
 use habitat_core::os::process::windows_child::ExitStatus;
 use log::debug;
@@ -575,29 +575,30 @@ impl HookTable {
               T: AsRef<Path>
     {
         let mut table = HookTable::default();
-        if let Ok(meta) = std::fs::metadata(templates.as_ref()) {
-            if meta.is_dir() {
-                table.file_updated =
-                    FileUpdatedHook::load(package_name, &hooks_path, &templates, feature_flags);
-                table.health_check = HealthCheckHook::load(package_name,
-                                                           &hooks_path,
-                                                           &templates,
-                                                           feature_flags).map(Arc::new);
-                table.suitability =
-                    SuitabilityHook::load(package_name, &hooks_path, &templates, feature_flags);
-                table.init = InitHook::load(package_name, &hooks_path, &templates, feature_flags).map(Arc::new);
-                table.reconfigure =
-                    ReconfigureHook::load(package_name, &hooks_path, &templates, feature_flags);
-                table.run = RunHook::load(package_name, &hooks_path, &templates, feature_flags);
-                table.post_run = PostRunHook::load(package_name,
-                                                   &hooks_path,
-                                                   &templates,
-                                                   feature_flags).map(Arc::new);
-                table.post_stop = PostStopHook::load(package_name,
-                                                     &hooks_path,
-                                                     &templates,
-                                                     feature_flags).map(Arc::new);
-            }
+        if let Ok(meta) = std::fs::metadata(templates.as_ref())
+           && meta.is_dir()
+        {
+            table.file_updated =
+                FileUpdatedHook::load(package_name, &hooks_path, &templates, feature_flags);
+            table.health_check = HealthCheckHook::load(package_name,
+                                                       &hooks_path,
+                                                       &templates,
+                                                       feature_flags).map(Arc::new);
+            table.suitability =
+                SuitabilityHook::load(package_name, &hooks_path, &templates, feature_flags);
+            table.init =
+                InitHook::load(package_name, &hooks_path, &templates, feature_flags).map(Arc::new);
+            table.reconfigure =
+                ReconfigureHook::load(package_name, &hooks_path, &templates, feature_flags);
+            table.run = RunHook::load(package_name, &hooks_path, &templates, feature_flags);
+            table.post_run = PostRunHook::load(package_name,
+                                               &hooks_path,
+                                               &templates,
+                                               feature_flags).map(Arc::new);
+            table.post_stop = PostStopHook::load(package_name,
+                                                 &hooks_path,
+                                                 &templates,
+                                                 feature_flags).map(Arc::new);
         }
         debug!("{}, Hooks loaded, destination={}, templates={}",
                package_name,
@@ -661,14 +662,14 @@ mod tests {
     use crate::{census::CensusRing,
                 manager::sys::Sys};
     use habitat_butterfly::{member::MemberList,
-                            rumor::{election::{self,
+                            rumor::{RumorStore,
+                                    election::{self,
                                                Election as ElectionRumor,
                                                ElectionUpdate as ElectionUpdateRumor},
                                     service::{Service as ServiceRumor,
                                               SysInfo},
                                     service_config::ServiceConfig as ServiceConfigRumor,
-                                    service_file::ServiceFile as ServiceFileRumor,
-                                    RumorStore}};
+                                    service_file::ServiceFile as ServiceFileRumor}};
     use habitat_common::{templating::{config::Cfg,
                                       package::Pkg,
                                       test_helpers::*},

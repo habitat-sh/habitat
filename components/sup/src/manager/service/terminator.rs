@@ -1,6 +1,6 @@
 use crate::{manager::ShutdownConfig,
-            sys::{service,
-                  ShutdownMethod}};
+            sys::{ShutdownMethod,
+                  service}};
 use habitat_common::outputln;
 use habitat_core::{os::process::Pid,
                    service::ServiceGroup};

@@ -1,17 +1,17 @@
-use crate::{engine,
-            RegistryType,
-            VERSION};
-use clap::{builder::Str,
-           value_parser,
-           Arg,
+use crate::{RegistryType,
+            VERSION,
+            engine};
+use clap::{Arg,
            ArgAction,
-           Command};
-use habitat_common::{cli::clap_validators::{HabPackageInstallSourceValueParser,
+           Command,
+           builder::Str,
+           value_parser};
+use habitat_common::{PROGRAM_NAME,
+                     cli::clap_validators::{HabPackageInstallSourceValueParser,
                                             UrlValueParser},
                      consts::{DEFAULT_HAB_LAUNCHER_PKG_IDENT,
                               DEFAULT_HAB_PKG_IDENT,
-                              DEFAULT_HAB_SUP_PKG_IDENT},
-                     PROGRAM_NAME};
+                              DEFAULT_HAB_SUP_PKG_IDENT}};
 use habitat_core::url::default_bldr_url;
 
 /// Create the Clap CLI for the container exporter

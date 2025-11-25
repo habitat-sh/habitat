@@ -1,13 +1,13 @@
 [package]
 name = "test-probe"
 version = "0.1.0"
-edition = "2018"
+edition = "2024"
 authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 
 [dependencies]
 actix-rt = "*"
-actix-web = { version = "*", default-features = false, features = [ "rustls-0_21" ] }
+actix-web = { version = "*", default-features = false, features = ["rustls-0_21"] }
 clap = { version = "4", features = ["env", "derive", "string", "wrap_help"] }
 serde = { version = "*", features = ["derive"] }
 serde_json = "*"

@@ -29,13 +29,13 @@
 //! https://github.com/chef/license-acceptance
 
 use crate::{common::ui::{self,
+                         UI,
                          UIReader,
-                         UIWriter,
-                         UI},
+                         UIWriter},
             error::{Error,
                     Result},
-            hcore::{fs::{am_i_root,
-                         FS_ROOT_PATH},
+            hcore::{fs::{FS_ROOT_PATH,
+                         am_i_root},
                     users::get_current_username}};
 use chrono::{DateTime,
              Utc};

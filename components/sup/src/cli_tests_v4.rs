@@ -42,9 +42,9 @@ mod manager_config {
     use tempfile::TempDir;
 
     use habitat_common::FeatureFlag;
-    use habitat_core::{fs::CACHE_KEY_PATH,
-                       package::PackageIdent,
-                       ChannelIdent};
+    use habitat_core::{ChannelIdent,
+                       fs::CACHE_KEY_PATH,
+                       package::PackageIdent};
     use habitat_sup::{event::EventStreamConfig,
                       manager::{ManagerConfig,
                                 ServiceRestartConfig,
@@ -69,8 +69,8 @@ mod manager_config {
                                      NamedRevision,
                                      RingKey};
 
-    use crate::cli_v4::{split_apart_sup_run,
-                        HabSup};
+    use crate::cli_v4::{HabSup,
+                        split_apart_sup_run};
 
     use hab::SupRunOptions;
 
@@ -282,7 +282,8 @@ mod manager_config {
         let lock = lock_var();
         lock.set(key_cache.path());
 
-        env::set_var("HAB_CACHE_KEY_PATH", key_cache.path());
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("HAB_CACHE_KEY_PATH", key_cache.path()) };
         let cmd_vec = vec![
                            "hab-sup",
                            "run",

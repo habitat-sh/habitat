@@ -15,14 +15,14 @@
 //! we limit what we do with them according to our actual requirements
 //! for them in the system. Thus, they only deal with anonymous
 //! messages.
-use crate::{crypto::keys::{encryption::{primitives,
-                                        PUBLIC_BOX_KEY_VERSION,
+use crate::{crypto::keys::{AnonymousBox,
+                           Key,
+                           NamedRevision,
+                           encryption::{PUBLIC_BOX_KEY_VERSION,
                                         PUBLIC_KEY_SUFFIX,
                                         SECRET_BOX_KEY_SUFFIX,
-                                        SECRET_BOX_KEY_VERSION},
-                           AnonymousBox,
-                           Key,
-                           NamedRevision},
+                                        SECRET_BOX_KEY_VERSION,
+                                        primitives}},
             error::{Error,
                     Result},
             fs::Permissions,

@@ -1,10 +1,5 @@
 use crate::{crypto::{hash::Blake2bHash,
-                     keys::{encryption::{generate_origin_encryption_key_pair,
-                                         generate_service_encryption_key_pair,
-                                         generate_user_encryption_key_pair,
-                                         BUILDER_KEY_NAME},
-                            generate_signing_key_pair,
-                            BuilderSecretEncryptionKey,
+                     keys::{BuilderSecretEncryptionKey,
                             KeyFile,
                             NamedRevision,
                             OriginPublicEncryptionKey,
@@ -15,7 +10,12 @@ use crate::{crypto::{hash::Blake2bHash,
                             ServicePublicEncryptionKey,
                             ServiceSecretEncryptionKey,
                             UserPublicEncryptionKey,
-                            UserSecretEncryptionKey}},
+                            UserSecretEncryptionKey,
+                            encryption::{BUILDER_KEY_NAME,
+                                         generate_origin_encryption_key_pair,
+                                         generate_service_encryption_key_pair,
+                                         generate_user_encryption_key_pair},
+                            generate_signing_key_pair}},
             error::{Error,
                     Result},
             fs::AtomicWriter,
@@ -315,7 +315,7 @@ impl KeyCache {
     fn get_all_paths_for(&self,
                          name: &str,
                          key_extension: &str)
-                         -> Result<impl Iterator<Item = PathBuf>> {
+                         -> Result<impl Iterator<Item = PathBuf> + use<>> {
         // Ideally, we'd want that `*` to be `\d{14}` to match the
         // structure of our revisions... perhaps that can be an
         // additional filter later on with an actual regex?
@@ -339,13 +339,13 @@ impl KeyCache {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::crypto::{keys::{generate_origin_encryption_key_pair,
+    use crate::crypto::{keys::{Key,
+                               KeyFile,
+                               OriginSecretEncryptionKey,
+                               generate_origin_encryption_key_pair,
                                generate_service_encryption_key_pair,
                                generate_signing_key_pair,
-                               generate_user_encryption_key_pair,
-                               Key,
-                               KeyFile,
-                               OriginSecretEncryptionKey},
+                               generate_user_encryption_key_pair},
                         test_support::*};
     static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
     static VALID_NAME_WITH_REV: &str = "ring-key-valid-20160504220722";
@@ -377,7 +377,7 @@ mod test {
         assert!(paths.contains(&k1.own_filename()));
 
         wait_1_sec(); // ensure new revision
-                      // will be different.
+        // will be different.
 
         let k2 = RingKey::new(ring_name);
         cache.write_key(&k2).unwrap();

@@ -136,12 +136,10 @@ pub fn run(msg: protocol::Spawn) -> Result<Service, ServiceRunError> {
             let mut username = u.to_string();
             if get_current_username().map_err(ServiceRunError::GetCurrentUsername)?
                == Some("system".to_string())
+               && let Ok(cn) = env::var("COMPUTERNAME")
+               && u == &(cn.to_lowercase() + "$")
             {
-                if let Ok(cn) = env::var("COMPUTERNAME") {
-                    if u == &(cn.to_lowercase() + "$") {
-                        username = "system".to_string();
-                    }
-                }
+                username = "system".to_string();
             }
             username
         }
@@ -234,12 +232,12 @@ fn terminate_process_descendants(table: &ProcessTable, pid: DWORD) {
         }
     }
     unsafe {
-        if let Some(h) = handle_from_pid(pid) {
-            if processthreadsapi::TerminateProcess(h, 1) == 0 {
-                error!("Failed to call TerminateProcess on pid {}: {}",
-                       pid,
-                       io::Error::last_os_error());
-            }
+        if let Some(h) = handle_from_pid(pid)
+           && processthreadsapi::TerminateProcess(h, 1) == 0
+        {
+            error!("Failed to call TerminateProcess on pid {}: {}",
+                   pid,
+                   io::Error::last_os_error());
         }
     }
 }

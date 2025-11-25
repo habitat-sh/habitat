@@ -2,21 +2,21 @@
 
 use clap_v4 as clap;
 
-use crate::{api_client::{self,
+use crate::{PRODUCT,
+            VERSION,
+            api_client::{self,
                          Client},
             cli_v4::utils::{AuthToken,
                             BldrUrl},
             error::{Error,
-                    Result as HabResult},
-            PRODUCT,
-            VERSION};
+                    Result as HabResult}};
 use clap::Parser;
 
 use habitat_core::origin::Origin;
 
 use habitat_common::ui::{Status,
-                         UIWriter,
-                         UI};
+                         UI,
+                         UIWriter};
 use reqwest::StatusCode;
 
 #[derive(Debug, Clone, Parser)]

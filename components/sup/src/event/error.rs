@@ -39,9 +39,9 @@ impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Error::ConnectNatsServer => None,
-            Error::HabitatCore(ref e) => Some(e),
-            Error::Rants(ref e) => Some(e),
-            Error::NativeTls(ref e) => Some(e),
+            Error::HabitatCore(e) => Some(e),
+            Error::Rants(e) => Some(e),
+            Error::NativeTls(e) => Some(e),
         }
     }
 }

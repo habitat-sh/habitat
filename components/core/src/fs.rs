@@ -604,7 +604,9 @@ impl<'a> SvcDir<'a> {
 /// let second_path = PathBuf::from("tests/fixtures/bin");
 /// let path_bufs = vec![first_path, second_path];
 /// let new_path = env::join_paths(path_bufs).unwrap();
-/// env::set_var("PATH", &new_path);
+/// unsafe {
+///     env::set_var("PATH", &new_path);
+/// }
 ///
 /// let result = find_command("bin_with_no_extension");
 /// assert_eq!(result.is_some(), true);
@@ -621,7 +623,9 @@ impl<'a> SvcDir<'a> {
 /// let second_path = PathBuf::from("tests/fixtures/bin");
 /// let path_bufs = vec![first_path, second_path];
 /// let new_path = env::join_paths(path_bufs).unwrap();
-/// env::set_var("PATH", &new_path);
+/// unsafe {
+///     env::set_var("PATH", &new_path);
+/// }
 ///
 /// let result = find_command("missing");
 /// assert_eq!(result.is_some(), false);
@@ -726,19 +730,19 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
 // Path extensions are found in the PATHEXT environment variable.
 // We should only search with PATHEXT if the file does not already have an extension.
 fn find_command_with_pathext(candidate: &Path) -> Option<PathBuf> {
-    if candidate.extension().is_none() {
-        if let Some(pathexts) = henv::var_os("PATHEXT") {
-            for pathext in env::split_paths(&pathexts) {
-                let mut source_candidate = candidate.to_path_buf();
-                let extension = pathext.to_str().unwrap().trim_matches('.');
-                source_candidate.set_extension(extension);
-                let current_candidate = source_candidate.to_path_buf();
-                if current_candidate.is_file() {
-                    return Some(current_candidate);
-                }
+    if candidate.extension().is_none()
+       && let Some(pathexts) = henv::var_os("PATHEXT")
+    {
+        for pathext in env::split_paths(&pathexts) {
+            let mut source_candidate = candidate.to_path_buf();
+            let extension = pathext.to_str().unwrap().trim_matches('.');
+            source_candidate.set_extension(extension);
+            let current_candidate = source_candidate.to_path_buf();
+            if current_candidate.is_file() {
+                return Some(current_candidate);
             }
-        };
-    }
+        }
+    };
     None
 }
 
@@ -1004,7 +1008,8 @@ mod test_find_command {
         let mut path_bufs = vec![first_path, second_path];
         path_bufs.append(&mut os_paths);
         let new_path = env::join_paths(path_bufs).unwrap();
-        env::set_var("PATH", new_path);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { env::set_var("PATH", new_path) };
     }
 
     mod without_pathext_set {
@@ -1211,8 +1216,8 @@ mod test_find_command {
 
 #[cfg(test)]
 mod test_atomic_writer {
-    use super::{atomic_write,
-                AtomicWriter};
+    use super::{AtomicWriter,
+                atomic_write};
     use std::{fs::File,
               io::{Read,
                    Seek,

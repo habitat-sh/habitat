@@ -1,7 +1,7 @@
-use crate::{error::{Error,
-                    Result},
-            PRODUCT,
-            VERSION};
+use crate::{PRODUCT,
+            VERSION,
+            error::{Error,
+                    Result}};
 use hab::{command::pkg::{self,
                          uninstall::{self,
                                      UninstallHookMode,
@@ -17,14 +17,14 @@ use habitat_common::{cli_config::CliConfig,
                      outputln,
                      ui::{NullUi,
                           UIWriter}};
-use habitat_core::{env as henv,
+use habitat_core::{AUTH_TOKEN_ENVVAR,
+                   ChannelIdent,
+                   env as henv,
                    fs::{self,
                         FS_ROOT_PATH},
                    package::{PackageIdent,
                              PackageInstall,
-                             PackageTarget},
-                   ChannelIdent,
-                   AUTH_TOKEN_ENVVAR};
+                             PackageTarget}};
 use std::path::Path;
 
 static LOGKEY: &str = "UT";

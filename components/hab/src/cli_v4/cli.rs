@@ -1,8 +1,8 @@
 use crate::error::Result as HabResult;
 use clap::Subcommand;
 use clap_v4 as clap;
-use habitat_common::{ui::UI,
-                     FeatureFlag};
+use habitat_common::{FeatureFlag,
+                     ui::UI};
 mod completers;
 mod setup;
 

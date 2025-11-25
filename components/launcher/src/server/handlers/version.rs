@@ -1,8 +1,8 @@
 use super::{HandleResult,
             Handler};
-use crate::{protocol,
-            server::ServiceTable,
-            VERSION};
+use crate::{VERSION,
+            protocol,
+            server::ServiceTable};
 
 pub struct VersionHandler;
 

@@ -4,8 +4,8 @@
 
 use super::AckSender;
 use crate::{member::Health,
-            server::{outbound,
-                     Server},
+            server::{Server,
+                     outbound},
             swim::{Ack,
                    Ping,
                    PingReq,
@@ -18,10 +18,10 @@ use lazy_static::lazy_static;
 use log::{debug,
           error,
           trace};
-use prometheus::{register_int_counter_vec,
-                 register_int_gauge_vec,
-                 IntCounterVec,
-                 IntGaugeVec};
+use prometheus::{IntCounterVec,
+                 IntGaugeVec,
+                 register_int_counter_vec,
+                 register_int_gauge_vec};
 use std::{net::{SocketAddr,
                 UdpSocket},
           thread,
@@ -210,10 +210,7 @@ fn process_ack_mlw_smw_rhw(server: &Server,
                 }
             };
             trace!("Forwarding Ack from {}@{} to {}@{}",
-                   msg.from.id,
-                   addr,
-                   forward_to.id,
-                   forward_to.address,);
+                   msg.from.id, addr, forward_to.id, forward_to.address,);
             (forward_to_addr, addr.ip().to_string())
         };
         msg.from.address = from_addr;

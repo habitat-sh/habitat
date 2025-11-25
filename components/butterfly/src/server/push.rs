@@ -3,25 +3,25 @@
 //! This is the thread for distributing rumors to members. It distributes to `FANOUT` members, no
 //! more often than `Timing::GOSSIP_PERIOD_DEFAULT_MS`.
 
-use crate::{member::{Member,
+use crate::{ZMQ_CONTEXT,
+            member::{Member,
                      Membership},
             rumor::{RumorEnvelope,
                     RumorKey,
                     RumorKind,
                     RumorType},
-            server::{timing::Timing,
-                     Server},
-            ZMQ_CONTEXT};
+            server::{Server,
+                     timing::Timing}};
 use habitat_common::liveliness_checker;
 use habitat_core::util::ToI64;
 use lazy_static::lazy_static;
 use log::{debug,
           error,
           warn};
-use prometheus::{register_int_counter_vec,
-                 register_int_gauge_vec,
-                 IntCounterVec,
-                 IntGaugeVec};
+use prometheus::{IntCounterVec,
+                 IntGaugeVec,
+                 register_int_counter_vec,
+                 register_int_gauge_vec};
 use std::{thread,
           time::{Duration,
                  Instant}};
