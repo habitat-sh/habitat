@@ -968,6 +968,9 @@ mod tests {
 
         #[test]
         fn test_refresh_channel_precedence() {
+            // Clean any existing env var first 
+            env::remove_var("HAB_REFRESH_CHANNEL");
+            
             // Set env var
             env::set_var("HAB_REFRESH_CHANNEL", "env_channel");
             
