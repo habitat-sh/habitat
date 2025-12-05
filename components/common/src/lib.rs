@@ -80,6 +80,9 @@ bitflags::bitflags! {
         const OFFLINE_INSTALL            = 0b0000_0100_0000;
         const TRIGGER_ELECTION           = 0b0010_0000_0000;
         const NO_NAMED_PIPE_HEALTH_CHECK = 0b1000_0000_0000;
+
+        #[cfg(target_family = "unix")]
+        const MACOS_NATIVE_SUPPORT = 0b0000_0001_0000;
     }
 }
 
@@ -94,7 +97,9 @@ lazy_static! {
                  (FeatureFlag::TRIGGER_ELECTION, "HAB_FEAT_TRIGGER_ELECTION"),
                  (FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK, "HAB_FEAT_NO_NAMED_PIPE_HEALTH_CHECK"),
                  #[cfg(target_family = "unix")]
-                 (FeatureFlag::NATIVE_PACKAGE_SUPPORT, "HAB_FEAT_NATIVE_PACKAGE_SUPPORT")];
+                 (FeatureFlag::NATIVE_PACKAGE_SUPPORT, "HAB_FEAT_NATIVE_PACKAGE_SUPPORT"),
+                 #[cfg(target_family = "unix")]
+                 (FeatureFlag::MACOS_NATIVE_SUPPORT, "HAB_FEAT_MACOS_NATIVE_SUPPORT")];
 
         HashMap::from_iter(mapping)
     };

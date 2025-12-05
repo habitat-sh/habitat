@@ -9,7 +9,7 @@ studio_type="default"
 studio_env_command="/usr/bin/env"
 studio_enter_environment="STUDIO_ENTER=true"
 # shellcheck disable=SC2154
-studio_enter_command="$libexec_path/hab pkg exec chef/hab-backline bash --rcfile $HAB_STUDIO_ROOT/etc/profile"
+studio_enter_command="$libexec_path/hab pkg exec ${HAB_STUDIO_BACKLINE_PKG}  bash --rcfile $HAB_STUDIO_ROOT/etc/profile"
 studio_build_environment=
 studio_build_command="${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}/bin/build"
 studio_run_environment=
