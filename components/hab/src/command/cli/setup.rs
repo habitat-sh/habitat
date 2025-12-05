@@ -172,23 +172,22 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
                  variable when issuing commands to a remote Supervisor.")?;
     }
     ui.heading("Habitat Refresh Channel")?;
-    ui.para("The Habitat refresh channel determines which channel to use when refreshing \
-             packages during builds and other operations. Common values include 'stable' for \
-             stable releases and 'unstable' for latest development builds. If you set a \
-             refresh channel here, it will be used as the default when no other channel is \
-             specified.")?;
+    ui.para("The Habitat refresh channel determines which channel to use for core packages \
+             during a build. Common values include 'stable' for stable releases and 'base' \
+             for latest development builds. If you set a refresh channel here, it will be used \
+             as the default when no other channel is specified.")?;
     ui.para("If you would like to save a default refresh channel for use by the Habitat \
              client, please enter your preferred channel. Otherwise, just enter No.")?;
     ui.para("For more information on Habitat channels, please read the documentation at \
              https://www.habitat.sh/docs/using-habitat/#using-channels")?;
     if ask_default_refresh_channel(ui)? {
         ui.br()?;
-        ui.para("Enter your default Habitat refresh channel (e.g., 'stable', 'unstable').")?;
+        ui.para("Enter your default Habitat refresh channel (e.g., 'stable', 'base').")?;
         let refresh_channel = prompt_refresh_channel(ui)?;
         write_cli_config_refresh_channel(&refresh_channel)?;
     } else {
         ui.para("Alright, maybe another time. You can also set a `HAB_REFRESH_CHANNEL` \
-                 environment variable or use the `--channel` flag when using the cli.")?;
+                 environment variable or use the `--refresh-channel` flag when using the cli.")?;
     }
     #[cfg(windows)]
     {
