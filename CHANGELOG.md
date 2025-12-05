@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.332 -->
-## [2.0.332](https://github.com/habitat-sh/habitat/tree/2.0.332) (2025-12-05)
+<!-- latest_release 2.0.333 -->
+## [2.0.333](https://github.com/habitat-sh/habitat/tree/2.0.333) (2025-12-05)
 
 #### Merged Pull Requests
-- &#39;test-probe&#39; to use the rust pkg in `rust-toolchain` [#10081](https://github.com/habitat-sh/habitat/pull/10081) ([agadgil-progress](https://github.com/agadgil-progress))
+- Fixes test-probe plan.ps1 [#10082](https://github.com/habitat-sh/habitat/pull/10082) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Fixes test-probe plan.ps1 [#10082](https://github.com/habitat-sh/habitat/pull/10082) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.333 -->
 - &#39;test-probe&#39; to use the rust pkg in `rust-toolchain` [#10081](https://github.com/habitat-sh/habitat/pull/10081) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.332 -->
 - rust edition upgrade [#10062](https://github.com/habitat-sh/habitat/pull/10062) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.331 -->
 - Start &#39;docker&#39; studio on MacOS with `hab studio` [#10066](https://github.com/habitat-sh/habitat/pull/10066) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.330 -->
