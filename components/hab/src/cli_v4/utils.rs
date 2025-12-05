@@ -688,8 +688,9 @@ pub(crate) fn refresh_channel_from_args_env_or_load(opt: Option<String>) -> Resu
                                                        Error::ArgumentError("No refresh channel \
                                                                              specified. Please \
                                                                              specify with \
-                                                                             --refresh-channel or \
-                                                                             set HAB_REFRESH_CHANNEL"
+                                                                             --refresh-channel, \
+                                                                             set HAB_REFRESH_CHANNEL or \
+                                                                             add refresh_channel to ~/.hab/etc/cli.toml"
                                                                                              .into())
                                                    })
             }
@@ -929,11 +930,8 @@ mod tests {
     }
 
     mod refresh_channel_tests {
-        use super::*;
-        use std::env;
-        use tempfile::NamedTempFile;
-        use habitat_common::cli_config::CliConfig;
         use crate::cli_v4::utils::maybe_refresh_channel_from_args_env_or_load;
+        use std::env;
 
         #[test]
         fn test_refresh_channel_from_cli_arg() {
@@ -944,42 +942,41 @@ mod tests {
         #[test]
         fn test_refresh_channel_from_env() {
             // Clean any existing env var
-            env::remove_var("HAB_REFRESH_CHANNEL");
+            unsafe { env::remove_var("HAB_REFRESH_CHANNEL") };
             
             // Set env var
-            env::set_var("HAB_REFRESH_CHANNEL", "staging");
+            unsafe { env::set_var("HAB_REFRESH_CHANNEL", "staging") };
             
             let result = maybe_refresh_channel_from_args_env_or_load(None);
             assert_eq!(result, Some("staging".to_string()));
             
             // Clean up
-            env::remove_var("HAB_REFRESH_CHANNEL");
+            unsafe { env::remove_var("HAB_REFRESH_CHANNEL") };
         }
 
         #[test]
         fn test_refresh_channel_fallback_to_none() {
             // Clean env var to ensure fallback behavior
-            env::remove_var("HAB_REFRESH_CHANNEL");
+            unsafe { env::remove_var("HAB_REFRESH_CHANNEL") };
             
             let result = maybe_refresh_channel_from_args_env_or_load(None);
-            // Should return None since there's no config file and no env var
             assert!(result.is_none());
         }
 
         #[test]
         fn test_refresh_channel_precedence() {
             // Clean any existing env var first 
-            env::remove_var("HAB_REFRESH_CHANNEL");
+            unsafe { env::remove_var("HAB_REFRESH_CHANNEL") };
             
             // Set env var
-            env::set_var("HAB_REFRESH_CHANNEL", "env_channel");
+            unsafe { env::set_var("HAB_REFRESH_CHANNEL", "env_channel") };
             
             // CLI arg should take precedence over env
             let result = maybe_refresh_channel_from_args_env_or_load(Some("cli_channel".to_string()));
             assert_eq!(result, Some("cli_channel".to_string()));
             
             // Clean up
-            env::remove_var("HAB_REFRESH_CHANNEL");
+            unsafe { env::remove_var("HAB_REFRESH_CHANNEL") };
         }
     }
 }
