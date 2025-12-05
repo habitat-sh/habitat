@@ -452,7 +452,7 @@ download_archive() {
 
   dl_file "${url}/hab-${_target}.${ext}" "${workdir}/hab-${_version}.${ext}"
   dl_file "${url}/hab-${_target}.${ext}.sha256sum" "${workdir}/hab-${_version}.${ext}.sha256sum"
-  
+
   # Download manifest.json to extract origin information
   manifest_file="manifest.json"
   dl_file "${url}/manifest.json" "${workdir}/manifest.json" || {
@@ -531,7 +531,7 @@ install_hab() {
       info "Installing hab into /usr/local/bin"
       mkdir -pv /usr/local/bin
       install -v "${archive_dir}"/hab /usr/local/bin/hab
-      
+
       # Copy NOTICES.txt if it exists in the archive
       if [ -f "${archive_dir}/NOTICES.txt" ]; then
         info "Installing NOTICES.txt into /usr/local/share/habitat"
@@ -681,12 +681,12 @@ get_origin_from_manifest() {
   origin=$(grep -o '"[^"]*\/[^"]*\/[^"]*\/[^"]*"' "$manifest_file" 2>/dev/null | \
             head -1 | \
             sed 's/^"\([^/]*\)\/.*$/\1/' 2>/dev/null)
-  
+
   # Validate that we got a non-empty origin
   if [ -z "$origin" ] || [ "$origin" = "null" ]; then
     origin="core"
   fi
-  
+
   echo "$origin"
 }
 
