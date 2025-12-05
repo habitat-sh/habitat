@@ -65,7 +65,7 @@ impl KeyCache {
     pub fn new_signing_pair(&self,
                             origin: &Origin)
                             -> Result<(PublicOriginSigningKey, SecretOriginSigningKey)> {
-        let (public, secret) = generate_signing_key_pair(origin);
+        let (public, secret) = generate_signing_key_pair(origin)?;
         self.write_pair(&public, &secret)?;
         Ok((public, secret))
     }
@@ -75,7 +75,7 @@ impl KeyCache {
         &self,
         origin: &Origin)
         -> Result<(OriginPublicEncryptionKey, OriginSecretEncryptionKey)> {
-        let (public, secret) = generate_origin_encryption_key_pair(origin);
+        let (public, secret) = generate_origin_encryption_key_pair(origin)?;
         self.write_pair(&public, &secret)?;
         Ok((public, secret))
     }
@@ -85,7 +85,7 @@ impl KeyCache {
         &self,
         user: &str)
         -> Result<(UserPublicEncryptionKey, UserSecretEncryptionKey)> {
-        let (public, secret) = generate_user_encryption_key_pair(user);
+        let (public, secret) = generate_user_encryption_key_pair(user)?;
         self.write_pair(&public, &secret)?;
         Ok((public, secret))
     }
@@ -96,7 +96,7 @@ impl KeyCache {
         org: &str,
         service_group: &str)
         -> Result<(ServicePublicEncryptionKey, ServiceSecretEncryptionKey)> {
-        let (public, secret) = generate_service_encryption_key_pair(org, service_group);
+        let (public, secret) = generate_service_encryption_key_pair(org, service_group)?;
         self.write_pair(&public, &secret)?;
         Ok((public, secret))
     }
@@ -490,7 +490,7 @@ mod test {
     fn user_keys_round_trip() {
         let (cache, _dir) = new_cache();
         populate_cache(&cache);
-        let (public, secret) = generate_user_encryption_key_pair("my-user");
+        let (public, secret) = generate_user_encryption_key_pair("my-user").unwrap();
         assert_cache_round_trip!(UserPublicEncryptionKey, public, cache);
         assert_cache_round_trip!(UserSecretEncryptionKey, secret, cache);
     }
@@ -500,7 +500,7 @@ mod test {
         let (cache, _dir) = new_cache();
         populate_cache(&cache);
         let origin = "my-origin".parse().unwrap();
-        let (public, secret) = generate_origin_encryption_key_pair(&origin);
+        let (public, secret) = generate_origin_encryption_key_pair(&origin).unwrap();
         assert_cache_round_trip!(OriginPublicEncryptionKey, public, cache);
         assert_cache_round_trip!(OriginSecretEncryptionKey, secret, cache);
     }
@@ -509,7 +509,8 @@ mod test {
     fn service_keys_round_trip() {
         let (cache, _dir) = new_cache();
         populate_cache(&cache);
-        let (public, secret) = generate_service_encryption_key_pair("my-org", "foo.default");
+        let (public, secret) =
+            generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
         assert_cache_round_trip!(ServicePublicEncryptionKey, public, cache);
         assert_cache_round_trip!(ServiceSecretEncryptionKey, secret, cache);
     }
@@ -519,7 +520,7 @@ mod test {
         let (cache, _dir) = new_cache();
         populate_cache(&cache);
         let origin = "my-org".parse().unwrap();
-        let (public, secret) = generate_signing_key_pair(&origin);
+        let (public, secret) = generate_signing_key_pair(&origin).unwrap();
         assert_cache_round_trip!(PublicOriginSigningKey, public, cache);
         assert_cache_round_trip!(SecretOriginSigningKey, secret, cache);
     }
@@ -531,8 +532,8 @@ mod test {
         fn pair_must_actually_be_a_pair_in_order_to_save() {
             let (cache, _dir) = new_cache();
 
-            let (me_public, _me_secret) = generate_user_encryption_key_pair("me");
-            let (_you_public, you_secret) = generate_user_encryption_key_pair("you");
+            let (me_public, _me_secret) = generate_user_encryption_key_pair("me").unwrap();
+            let (_you_public, you_secret) = generate_user_encryption_key_pair("you").unwrap();
 
             let result = cache.write_pair(&me_public, &you_secret);
             assert!(result.is_err(), "Threw an error: {:?}", result);

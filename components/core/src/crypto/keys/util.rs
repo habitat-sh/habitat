@@ -78,8 +78,8 @@ macro_rules! from_str_impl_for_key {
                     .map(str::trim)
                     .map(crate::base64::decode)?
                     .map_err(|_| Error::CryptoError("Invalid base64 key material".to_string()))
-                    .map(|b| <Self as crate::crypto::keys::Key>::Crypto::from_slice(&b))?
-                    .ok_or_else(|| {
+                    .map(|b| <Self as crate::crypto::keys::Key>::Crypto::from_bytes(&b))?
+                    .map_err(|_| {
                         Error::CryptoError(format!("Could not parse bytes as key for {}",
                                                    named_revision))
                     })?;
@@ -191,7 +191,7 @@ mod tests {
 
         #[test]
         fn user_keys() {
-            let (public, secret) = generate_user_encryption_key_pair("my-user");
+            let (public, secret) = generate_user_encryption_key_pair("my-user").unwrap();
             assert_parse_round_trip!(UserPublicEncryptionKey, public);
             assert_parse_round_trip!(UserSecretEncryptionKey, secret);
         }
@@ -199,14 +199,15 @@ mod tests {
         #[test]
         fn origin_keys() {
             let origin = "my-origin".parse().unwrap();
-            let (public, secret) = generate_origin_encryption_key_pair(&origin);
+            let (public, secret) = generate_origin_encryption_key_pair(&origin).unwrap();
             assert_parse_round_trip!(OriginPublicEncryptionKey, public);
             assert_parse_round_trip!(OriginSecretEncryptionKey, secret);
         }
 
         #[test]
         fn service_keys() {
-            let (public, secret) = generate_service_encryption_key_pair("my-org", "foo.default");
+            let (public, secret) =
+                generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
             assert_parse_round_trip!(ServicePublicEncryptionKey, public);
             assert_parse_round_trip!(ServiceSecretEncryptionKey, secret);
         }
@@ -214,7 +215,7 @@ mod tests {
         #[test]
         fn signing_keys() {
             let origin = "my-origin".parse().unwrap();
-            let (public, secret) = generate_signing_key_pair(&origin);
+            let (public, secret) = generate_signing_key_pair(&origin).unwrap();
             assert_parse_round_trip!(PublicOriginSigningKey, public);
             assert_parse_round_trip!(SecretOriginSigningKey, secret);
         }
@@ -317,7 +318,8 @@ mod tests {
 
                 #[test]
                 fn user_encryption_keys_can_parse_as_all_other_encryption_keys() {
-                    let (user_public, user_secret) = generate_user_encryption_key_pair("test-user");
+                    let (user_public, user_secret) =
+                        generate_user_encryption_key_pair("test-user").unwrap();
                     assert_public_key_equivalence!(user_public);
                     assert_secret_key_equivalence!(user_secret);
                 }
@@ -325,7 +327,7 @@ mod tests {
                 #[test]
                 fn service_encryption_keys_can_parse_as_all_other_encryption_keys() {
                     let (service_public, service_secret) =
-                        generate_service_encryption_key_pair("org", "testing.default");
+                        generate_service_encryption_key_pair("org", "testing.default").unwrap();
                     assert_public_key_equivalence!(service_public);
                     assert_secret_key_equivalence!(service_secret);
                 }
@@ -334,7 +336,7 @@ mod tests {
                 fn origin_encryption_keys_can_parse_as_all_other_encryption_keys() {
                     let origin = "test-origin".parse().unwrap();
                     let (origin_public, origin_secret) =
-                        generate_origin_encryption_key_pair(&origin);
+                        generate_origin_encryption_key_pair(&origin).unwrap();
                     assert_public_key_equivalence!(origin_public);
                     assert_secret_key_equivalence!(origin_secret);
                 }
@@ -355,7 +357,7 @@ mod tests {
 
         #[test]
         fn user_keys() {
-            let (public, secret) = generate_user_encryption_key_pair("my-user");
+            let (public, secret) = generate_user_encryption_key_pair("my-user").unwrap();
             assert_eq!(format!("UserPublicEncryptionKey my-user-{}",
                                public.named_revision().revision()),
                        format!("{:?}", public));
@@ -367,7 +369,7 @@ mod tests {
         #[test]
         fn origin_keys() {
             let origin = "my-origin".parse().unwrap();
-            let (public, secret) = generate_origin_encryption_key_pair(&origin);
+            let (public, secret) = generate_origin_encryption_key_pair(&origin).unwrap();
 
             assert_eq!(format!("OriginPublicEncryptionKey my-origin-{}",
                                public.named_revision().revision()),
@@ -379,7 +381,8 @@ mod tests {
 
         #[test]
         fn service_keys() {
-            let (public, secret) = generate_service_encryption_key_pair("my-org", "foo.default");
+            let (public, secret) =
+                generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
 
             assert_eq!(format!("ServicePublicEncryptionKey foo.default@my-org-{}",
                                public.named_revision().revision()),
@@ -392,7 +395,7 @@ mod tests {
         #[test]
         fn signing_keys() {
             let origin = "my-origin".parse().unwrap();
-            let (public, secret) = generate_signing_key_pair(&origin);
+            let (public, secret) = generate_signing_key_pair(&origin).unwrap();
             assert_eq!(format!("PublicOriginSigningKey my-origin-{}",
                                public.named_revision().revision()),
                        format!("{:?}", public));
@@ -458,7 +461,7 @@ mod tests {
 
             #[test]
             fn user_keys() {
-                let (public, secret) = generate_user_encryption_key_pair("my-user");
+                let (public, secret) = generate_user_encryption_key_pair("my-user").unwrap();
                 assert_eq!(PathBuf::from(&format!("{}.pub", public.named_revision())),
                            public.own_filename());
                 assert_eq!(PathBuf::from(&format!("{}.box.key", secret.named_revision())),
@@ -468,7 +471,7 @@ mod tests {
             #[test]
             fn origin_keys() {
                 let origin = "my-origin".parse().unwrap();
-                let (public, secret) = generate_origin_encryption_key_pair(&origin);
+                let (public, secret) = generate_origin_encryption_key_pair(&origin).unwrap();
                 assert_eq!(PathBuf::from(&format!("{}.pub", public.named_revision())),
                            public.own_filename());
                 assert_eq!(PathBuf::from(&format!("{}.box.key", secret.named_revision())),
@@ -478,7 +481,7 @@ mod tests {
             #[test]
             fn service_keys() {
                 let (public, secret) =
-                    generate_service_encryption_key_pair("my-org", "foo.default");
+                    generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
                 assert_eq!(PathBuf::from(&format!("{}.pub", public.named_revision())),
                            public.own_filename());
                 assert_eq!(PathBuf::from(&format!("{}.box.key", secret.named_revision())),
@@ -488,7 +491,7 @@ mod tests {
             #[test]
             fn signing_keys() {
                 let origin = "my-origin".parse().unwrap();
-                let (public, secret) = generate_signing_key_pair(&origin);
+                let (public, secret) = generate_signing_key_pair(&origin).unwrap();
                 assert_eq!(PathBuf::from(&format!("{}.pub", public.named_revision())),
                            public.own_filename());
                 assert_eq!(PathBuf::from(&format!("{}.sig.key", secret.named_revision())),

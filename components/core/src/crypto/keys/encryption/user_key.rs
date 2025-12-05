@@ -28,15 +28,16 @@ use crate::{crypto::keys::{Key,
 ///
 /// The resulting keys will need to be saved to a cache in order to
 /// persist.
-pub fn generate_user_encryption_key_pair(user_name: &str)
-                                         -> (UserPublicEncryptionKey, UserSecretEncryptionKey) {
+pub fn generate_user_encryption_key_pair(
+    user_name: &str)
+    -> Result<(UserPublicEncryptionKey, UserSecretEncryptionKey)> {
     let named_revision = NamedRevision::new(user_name.to_string());
-    let (pk, sk) = primitives::gen_keypair();
+    let (pk, sk) = primitives::gen_keypair()?;
     let public = UserPublicEncryptionKey { named_revision: named_revision.clone(),
                                            key:            pk, };
     let secret = UserSecretEncryptionKey { named_revision,
                                            key: sk };
-    (public, secret)
+    Ok((public, secret))
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -61,13 +62,13 @@ impl UserSecretEncryptionKey {
     pub fn encrypt_for_service(&self,
                                data: &[u8],
                                receiving_service: &ServicePublicEncryptionKey)
-                               -> SignedBox {
+                               -> Result<SignedBox> {
         let nonce = primitives::gen_nonce();
-        let ciphertext = primitives::seal(data, &nonce, receiving_service.key(), self.key());
-        SignedBox::new(self.named_revision.clone(),
-                       receiving_service.named_revision().clone(),
-                       ciphertext,
-                       nonce)
+        let ciphertext = primitives::seal(data, &nonce, receiving_service.key(), self.key())?;
+        Ok(SignedBox::new(self.named_revision.clone(),
+                          receiving_service.named_revision().clone(),
+                          ciphertext,
+                          nonce))
     }
 }
 
@@ -84,7 +85,8 @@ mod tests {
 
         let message = "HOT, HOT, HAAAAAWWT!".to_string();
 
-        let signed = user.encrypt_for_service(message.as_bytes(), &service);
+        let signed = user.encrypt_for_service(message.as_bytes(), &service)
+                         .unwrap();
 
         // Not a whole lot we can specifically test here, since the
         // ciphertext will be different each time. If we've got the

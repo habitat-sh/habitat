@@ -31,16 +31,16 @@ use crate::{crypto::keys::{Key,
 pub fn generate_service_encryption_key_pair(
     org_name: &str,
     service_group_name: &str)
-    -> (ServicePublicEncryptionKey, ServiceSecretEncryptionKey) {
+    -> Result<(ServicePublicEncryptionKey, ServiceSecretEncryptionKey)> {
     let key_name = service_key_name(org_name, service_group_name);
     let named_revision = NamedRevision::new(key_name);
-    let (pk, sk) = primitives::gen_keypair();
+    let (pk, sk) = primitives::gen_keypair()?;
 
     let public = ServicePublicEncryptionKey { named_revision: named_revision.clone(),
                                               key:            pk, };
     let secret = ServiceSecretEncryptionKey { named_revision,
                                               key: sk };
-    (public, secret)
+    Ok((public, secret))
 }
 
 /// Generate the name of a service key.
@@ -130,7 +130,8 @@ mod tests {
         let message = "Korben, sweetheart, what was that? IT WAS BAD! It had nothing! No fire, no \
                        energy, no nothin'!"
                                            .to_string();
-        let signed = user_secret.encrypt_for_service(message.as_bytes(), &service_public);
+        let signed = user_secret.encrypt_for_service(message.as_bytes(), &service_public)
+                                .unwrap();
 
         let decrypted_message = service_secret.decrypt_user_message(&signed, &user_public)
                                               .unwrap();

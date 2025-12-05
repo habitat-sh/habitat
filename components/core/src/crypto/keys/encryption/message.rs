@@ -99,7 +99,7 @@ impl FromStr for AnonymousBox {
 /// `encryptor` identifies the sender's key pair, while `decryptor`
 /// identifies the recipient's key pair.
 ///
-/// See `sodiumoxide::crypto::box_` for further details.
+/// See `libsodium-rs::crypto_box` for further details.
 #[derive(Debug)]
 pub struct SignedBox {
     /// The identity of the keypair of the sender of this
@@ -158,7 +158,7 @@ impl fmt::Display for SignedBox {
                BOX_FORMAT_VERSION,
                self.encryptor,
                self.decryptor,
-               crate::base64::encode(self.nonce),
+               crate::base64::encode(self.nonce.clone()),
                crate::base64::encode(&self.ciphertext))
     }
 }
@@ -200,8 +200,11 @@ impl FromStr for SignedBox {
                  .ok_or_else(|| Error::CryptoError("Corrupt payload, can't read nonce".to_string()))
                  .map(crate::base64::decode)?
                  .map_err(|e| Error::CryptoError(format!("Can't decode nonce: {}", e)))
-                 .map(|bytes| primitives::Nonce::from_slice(bytes.as_ref()))?
-                 .ok_or_else(|| Error::CryptoError("Invalid size of nonce".to_string()))?;
+                 .and_then(|bytes| {
+                     let array: [u8; 24] = bytes.try_into()
+                         .map_err(|_| Error::CryptoError("Invalid size of nonce".to_string()))?;
+                     Ok(primitives::Nonce::from_bytes_exact(array))
+                 })?;
 
         let ciphertext =
             lines.next()
@@ -287,8 +290,7 @@ mod tests {
 
             assert_eq!(signed.encryptor(), &expected_encryptor);
             assert_eq!(signed.decryptor(), &expected_receiver);
-            assert_eq!(signed.nonce(),
-                       &primitives::Nonce::from_slice(&NONCE).unwrap());
+            assert_eq!(signed.nonce(), &primitives::Nonce::from_bytes_exact(NONCE));
             assert_eq!(signed.ciphertext().to_vec(), CIPHERTEXT.to_vec());
         }
 
@@ -297,7 +299,7 @@ mod tests {
             let encryptor = "ruby-rhod-20200813204159".parse().unwrap();
             let decryptor = "service-key-valid.default@acme-20160509181736".parse()
                                                                            .unwrap();
-            let nonce = primitives::Nonce::from_slice(&NONCE).unwrap();
+            let nonce = primitives::Nonce::from_bytes_exact(NONCE);
             let ciphertext = CIPHERTEXT.to_vec();
 
             let signed = SignedBox { encryptor,

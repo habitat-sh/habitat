@@ -4,15 +4,21 @@ use crate::{crypto::{SECRET_SYM_KEY_VERSION,
                     Result},
             fs::Permissions};
 
-/// Private module to re-export the various sodiumoxide concepts we
+/// Private module to re-export the various libsodium-rs concepts we
 /// use, to keep them all consolidated and abstracted.
 mod primitives {
-    pub use sodiumoxide::crypto::secretbox::{Key,
+    pub use libsodium_rs::crypto_secretbox::{Key,
                                              Nonce,
-                                             gen_key,
-                                             gen_nonce,
                                              open,
                                              seal};
+
+    pub fn gen_key() -> libsodium_rs::crypto_secretbox::Key {
+        libsodium_rs::crypto_secretbox::Key::generate()
+    }
+
+    pub fn gen_nonce() -> libsodium_rs::crypto_secretbox::Nonce {
+        libsodium_rs::crypto_secretbox::Nonce::generate()
+    }
 }
 
 gen_key!(
@@ -50,11 +56,7 @@ impl RingKey {
     ///
     /// The returns the original unencrypted bytes.
     pub fn decrypt(&self, nonce: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
-        let nonce = primitives::Nonce::from_slice(nonce).ok_or_else(|| {
-                                                            Error::CryptoError("Invalid size of \
-                                                                                nonce"
-                                                                                      .to_string())
-                                                        })?;
+        let nonce = primitives::Nonce::try_from_slice(nonce)?;
 
         primitives::open(ciphertext, &nonce, &self.key).map_err(|_| {
             Error::CryptoError("Secret key and nonce could not decrypt ciphertext".to_string())
@@ -120,7 +122,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Invalid size of nonce")]
+    #[should_panic(expected = "nonce must be exactly 24 bytes")]
     fn decrypt_invalid_nonce_length() {
         let key = RingKey::new("beyonce");
         let (_, ciphertext) = key.encrypt(b"Ringonit");

@@ -9,14 +9,17 @@ use crate::{crypto::{Blake2bHash,
 use std::{io::Read,
           path::Path};
 
-/// Private module to re-export the various sodiumoxide concepts we
+/// Private module to re-export the various libsodium concepts we
 /// use, to keep them all consolidated and abstracted.
 mod primitives {
-    pub use sodiumoxide::crypto::sign::{ed25519::{PublicKey,
-                                                  SecretKey},
-                                        gen_keypair,
+    pub use libsodium_rs::crypto_sign::{PublicKey,
+                                        SecretKey,
                                         sign,
                                         verify};
+
+    pub fn gen_keypair() -> crate::Result<(PublicKey, SecretKey)> {
+        Ok(libsodium_rs::crypto_sign::KeyPair::generate()?.into_tuple())
+    }
 }
 
 /// Given the name of an origin, generate a new signing key pair.
@@ -24,15 +27,15 @@ mod primitives {
 /// The resulting keys will need to be saved to a cache in order to
 /// persist.
 pub fn generate_signing_key_pair(origin: &Origin)
-                                 -> (PublicOriginSigningKey, SecretOriginSigningKey) {
+                                 -> Result<(PublicOriginSigningKey, SecretOriginSigningKey)> {
     let named_revision = NamedRevision::new(origin.to_string());
-    let (pk, sk) = primitives::gen_keypair();
+    let (pk, sk) = primitives::gen_keypair()?;
 
     let public = PublicOriginSigningKey { named_revision: named_revision.clone(),
                                           key:            pk, };
     let secret = SecretOriginSigningKey { named_revision,
                                           key: sk };
-    (public, secret)
+    Ok((public, secret))
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -54,7 +57,7 @@ impl PublicOriginSigningKey {
     /// Returns the verified, Blake2b hash of the contents.
     pub fn verify(&self, signed_hash: &[u8], content: &mut dyn Read) -> Result<Blake2bHash> {
         let expected_blake2b_hash = primitives::verify(signed_hash, &self.key)
-            .map_err(|_| Error::CryptoError("Verification failed".to_string()))
+            .ok_or_else(|| Error::CryptoError("Verification failed".to_string()))
             .map(String::from_utf8)? // get the hex-encoded hash
             .map_err(|_| Error::CryptoError("Error parsing artifact hash".to_string()))?
             .parse()?; // convert to Blake2bHash
@@ -97,16 +100,16 @@ impl SecretOriginSigningKey {
         // have implications if we ever want to change in the future
         // :(
         let hex_encoded_hash = Blake2bHash::from_file(&path)?;
-        Ok(self.sign_inner(hex_encoded_hash.to_string().as_bytes()))
+        self.sign_inner(hex_encoded_hash.to_string().as_bytes())
     }
 
     /// Does the actual heavy lifting of signing a string of bytes.
     ///
     /// Mainly separate to facilitate testing.
-    fn sign_inner<B>(&self, bytes: B) -> Vec<u8>
+    fn sign_inner<B>(&self, bytes: B) -> Result<Vec<u8>>
         where B: AsRef<[u8]>
     {
-        primitives::sign(bytes.as_ref(), &self.key)
+        Ok(primitives::sign(bytes.as_ref(), &self.key)?)
     }
 }
 
@@ -194,7 +197,7 @@ mod tests {
     #[test]
     fn signing_inputs_case_is_significant() {
         let origin = "test-origin".parse().unwrap();
-        let (_public, secret) = generate_signing_key_pair(&origin);
+        let (_public, secret) = generate_signing_key_pair(&origin).unwrap();
 
         let lower_case = "20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233";
         let upper_case = "20590A52C4F00588C500328B16D466C982A26FABAA5FA4DCC83052DD0A84F233";
@@ -204,8 +207,8 @@ mod tests {
         assert_eq!(lower_case.parse::<Blake2bHash>().unwrap(),
                    upper_case.parse::<Blake2bHash>().unwrap());
 
-        let lc_signed = secret.sign_inner(lower_case.as_bytes());
-        let uc_signed = secret.sign_inner(upper_case.as_bytes());
+        let lc_signed = secret.sign_inner(lower_case.as_bytes()).unwrap();
+        let uc_signed = secret.sign_inner(upper_case.as_bytes()).unwrap();
 
         // But since we're signing the hex-encoding of the bytes, and
         // not the bytes themselves, we will end up with different
@@ -214,7 +217,7 @@ mod tests {
 
         // This just confirms that repeated signing is equivalent in
         // the first place (e.g., there isn't a nonce involved)
-        let lc_signed_2 = secret.sign_inner(lower_case.as_bytes());
+        let lc_signed_2 = secret.sign_inner(lower_case.as_bytes()).unwrap();
         assert_eq!(lc_signed, lc_signed_2);
     }
 }
