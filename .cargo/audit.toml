@@ -13,6 +13,7 @@
 # advisory IDs to ignore e.g. ["RUSTSEC-2019-0001", ...]
 ignore = [
     "RUSTSEC-2021-0137", # Unmaintained: sodiumoxide
+    "RUSTSEC-2025-0134", # Unmaintained: rustls-pemfile, pending AWS SDK updates
 ]
 informational_warnings = [
     "notice",
