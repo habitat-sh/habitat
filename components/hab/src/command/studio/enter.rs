@@ -146,7 +146,7 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     inner::start(ui, args).await
 }
 
-#[cfg(target_family = "unix")]
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 mod inner {
     use crate::{VERSION,
                 command::studio::{docker,
@@ -227,7 +227,7 @@ mod inner {
                 }
             }
         } else {
-            // MacOS and no FeatureFlag - Run docker studio
+            // Fallback to docker studio when not on Linux and feature flag not enabled
             docker::start_docker_studio(ui, args)
         }
     }
