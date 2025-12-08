@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.337 -->
-## [2.0.337](https://github.com/habitat-sh/habitat/tree/2.0.337) (2025-12-08)
+<!-- latest_release 2.0.338 -->
+## [2.0.338](https://github.com/habitat-sh/habitat/tree/2.0.338) (2025-12-08)
 
 #### Merged Pull Requests
-- CHEF-25194: Replace the unmaintained sodiumoxide crate with the maintained libsodium-rs crate [#9891](https://github.com/habitat-sh/habitat/pull/9891) ([jasonheath](https://github.com/jasonheath))
+- Bump cc from 1.2.47 to 1.2.49 [#10083](https://github.com/habitat-sh/habitat/pull/10083) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.47 to 1.2.49 [#10083](https://github.com/habitat-sh/habitat/pull/10083) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.338 -->
 - CHEF-25194: Replace the unmaintained sodiumoxide crate with the maintained libsodium-rs crate [#9891](https://github.com/habitat-sh/habitat/pull/9891) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.337 -->
 - Deals with a pair of RUSTSEC issues [#10084](https://github.com/habitat-sh/habitat/pull/10084) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.336 -->
 - Bump flate2 from 1.1.5 to 1.1.6 [#10079](https://github.com/habitat-sh/habitat/pull/10079) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.335 -->
