@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.335 -->
-## [2.0.335](https://github.com/habitat-sh/habitat/tree/2.0.335) (2025-12-05)
+<!-- latest_release 2.0.336 -->
+## [2.0.336](https://github.com/habitat-sh/habitat/tree/2.0.336) (2025-12-08)
 
 #### Merged Pull Requests
-- Bump flate2 from 1.1.5 to 1.1.6 [#10079](https://github.com/habitat-sh/habitat/pull/10079) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Deals with a pair of RUSTSEC issues [#10084](https://github.com/habitat-sh/habitat/pull/10084) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Deals with a pair of RUSTSEC issues [#10084](https://github.com/habitat-sh/habitat/pull/10084) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.336 -->
 - Bump flate2 from 1.1.5 to 1.1.6 [#10079](https://github.com/habitat-sh/habitat/pull/10079) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.335 -->
 - Bump log from 0.4.28 to 0.4.29 [#10077](https://github.com/habitat-sh/habitat/pull/10077) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.335 -->
 - Bump mio from 1.1.0 to 1.1.1 [#10078](https://github.com/habitat-sh/habitat/pull/10078) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.335 -->
