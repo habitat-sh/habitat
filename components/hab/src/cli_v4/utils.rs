@@ -677,7 +677,7 @@ pub(crate) fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Op
     bldr_auth_token_from_args_env_or_load(opt).ok()
 }
 
-pub(crate) fn refresh_channel_from_args_env_or_load(opt: Option<String>) -> Result<String, Error> {
+pub(crate) fn refresh_channel_from_args_env_or_config(opt: Option<String>) -> Result<String, Error> {
     if let Some(channel) = opt {
         Ok(channel)
     } else {
@@ -699,7 +699,7 @@ pub(crate) fn refresh_channel_from_args_env_or_load(opt: Option<String>) -> Resu
 }
 
 pub(crate) fn maybe_refresh_channel_from_args_env_or_load(opt: Option<String>) -> Option<String> {
-    refresh_channel_from_args_env_or_load(opt).ok()
+    refresh_channel_from_args_env_or_config(opt).ok()
 }
 
 pub(crate) fn is_default<T: Default + PartialEq>(val: &T) -> bool { val == &T::default() }

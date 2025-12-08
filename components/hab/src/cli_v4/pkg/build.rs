@@ -67,8 +67,9 @@ pub(crate) struct PkgBuildOptions {
     #[arg(name = "DOCKER", short = 'D', long = "docker", action = ArgAction::SetTrue)]
     docker: bool,
 
-    /// Channel used to retrieve plan dependencies for Chef supported origins
-    /// Uses value from the `HAB_REFRESH_CHANNEL` env variable or cli.toml config file if not set
+    /// Channel used to retrieve plan dependencies for Chef supported origins.
+    /// Uses value from the `HAB_REFRESH_CHANNEL` env variable or cli.toml config file if env not set.
+    /// Defaults to "base" if nothing is set.
     #[arg(name = "REFRESH_CHANNEL",
           short = 'f',
           long = "refresh-channel")]
