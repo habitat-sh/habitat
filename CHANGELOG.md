@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.338 -->
-## [2.0.338](https://github.com/habitat-sh/habitat/tree/2.0.338) (2025-12-08)
+<!-- latest_release 2.0.339 -->
+## [2.0.339](https://github.com/habitat-sh/habitat/tree/2.0.339) (2025-12-09)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.47 to 1.2.49 [#10083](https://github.com/habitat-sh/habitat/pull/10083) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- remove vestigial attributes application and environment [#10085](https://github.com/habitat-sh/habitat/pull/10085) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- remove vestigial attributes application and environment [#10085](https://github.com/habitat-sh/habitat/pull/10085) ([mwrock](https://github.com/mwrock)) <!-- 2.0.339 -->
 - Bump cc from 1.2.47 to 1.2.49 [#10083](https://github.com/habitat-sh/habitat/pull/10083) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.338 -->
 - CHEF-25194: Replace the unmaintained sodiumoxide crate with the maintained libsodium-rs crate [#9891](https://github.com/habitat-sh/habitat/pull/9891) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.337 -->
 - Deals with a pair of RUSTSEC issues [#10084](https://github.com/habitat-sh/habitat/pull/10084) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.336 -->
