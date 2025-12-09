@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.340 -->
-## [2.0.340](https://github.com/habitat-sh/habitat/tree/2.0.340) (2025-12-09)
+<!-- latest_release 2.0.341 -->
+## [2.0.341](https://github.com/habitat-sh/habitat/tree/2.0.341) (2025-12-09)
 
 #### Merged Pull Requests
-- Bump reqwest from 0.12.24 to 0.12.25 [#10087](https://github.com/habitat-sh/habitat/pull/10087) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- removing the deprecated user.toml path [#10086](https://github.com/habitat-sh/habitat/pull/10086) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- removing the deprecated user.toml path [#10086](https://github.com/habitat-sh/habitat/pull/10086) ([mwrock](https://github.com/mwrock)) <!-- 2.0.341 -->
 - Bump reqwest from 0.12.24 to 0.12.25 [#10087](https://github.com/habitat-sh/habitat/pull/10087) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.340 -->
 - remove vestigial attributes application and environment [#10085](https://github.com/habitat-sh/habitat/pull/10085) ([mwrock](https://github.com/mwrock)) <!-- 2.0.339 -->
 - Bump cc from 1.2.47 to 1.2.49 [#10083](https://github.com/habitat-sh/habitat/pull/10083) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.338 -->
