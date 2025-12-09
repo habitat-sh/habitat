@@ -15,7 +15,7 @@ This is a list of all environment variables that can be used to modify the opera
 
 | Variable | Context | Default | Description |
 |----------|----------|----------|-----------|
-| `HAB_AUTH_TOKEN` | build system | no default | Authorization token used to perform privileged operations against the depot, e.g. uploading packages or keys.
+| `HAB_AUTH_TOKEN` | build system | no default | Authorization token used to perform privileged operations against the depot, e.g. uploading packages or keys. Can also be configured in `~/.hab/etc/cli.toml` as `auth_token`.
 | `HAB_BINLINK_DIR` | build system | `/hab/bin` | Allows you to change the target directory for the symlink created when you run `hab pkg binlink`. The default value is already included in the `$PATH` variable inside the Studio. |
 | `HAB_CACHE_KEY_PATH` | build system, Supervisor | `/hab/cache/keys` if running as root; `$HOME/.hab/cache/keys` if running as non-root | Cache directory for origin signing keys |
 | `HAB_CTL_SECRET` | Supervisor | no default | Shared secret used for [communicating with a Supervisor]({{< relref "sup_remote_control" >}}). |
@@ -32,7 +32,7 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_ORG` | Supervisor | no default | Organization to use when running with [service group encryption]({{< relref "sup_secure" >}})
 | `HAB_ORIGIN` | build system | no default | Origin used to build packages. The signing key for this origin is passed to the build system. |
 | `HAB_ORIGIN_KEYS` | build system | no default | Comma-separated list of origin keys to automatically share with the build system |
-| `HAB_REFRESH_CHANNEL` | build system | `stable` | Channel used to retrieve plan dependencies for Chef supported origins. |
+| `HAB_REFRESH_CHANNEL` | build system | `base` | Channel used to retrieve plan dependencies for Chef supported origins. Can also be configured in `~/.hab/etc/cli.toml` as `refresh_channel`. |
 | `HAB_RING` | Supervisor | no default | The name of the ring used by the Supervisor when running with [wire encryption]({{< relref "sup_secure" >}}) |
 | `HAB_RING_KEY` | Supervisor | no default | The contents of the ring key when running with [wire encryption]({{< relref "sup_secure" >}}). Useful when running in a container. |
 | `HAB_STUDIO_SECRET_<VARIABLE>` | build system | no default | Prefix to allow environment variables into the Studio. The prefix will be removed and your variable will be passed into the Studio at build time. |
