@@ -84,18 +84,8 @@ impl UserConfigWatcher {
         // return value, which we need to return the error from `Worker::run`.
         let mut states = self.states.lock().expect("states lock was poisoned");
         if states.get(service.name()).is_none() {
-            let user_toml_path = match service.user_config_path() {
-                UserConfigPath::Recommended(p) => p.join(USER_CONFIG_FILE),
-                UserConfigPath::Deprecated(p) => {
-                    outputln!(
-                        preamble service.service_group(),
-                        "Not watching {}, because it is located in deprecated path ({}).",
-                        USER_CONFIG_FILE,
-                        p.display(),
-                    );
-                    return Ok(());
-                }
-            };
+            let user_toml_path = service.user_config_path().get_path().join(USER_CONFIG_FILE);
+
             // Establish bi-directional communication with the worker by creating two channels.
             // The sync_channel's buffer size is 1 because we want to use it as a boolean, i.e. we
             // are not interested in the events themselves, but only whether at least one has
@@ -476,11 +466,11 @@ mod tests {
     impl Default for TestService {
         fn default() -> Self {
             let tmp = TempDir::new().expect("creating temp dir");
-            let path = UserConfigPath::Recommended(tmp.path().to_path_buf());
+            let path = UserConfigPath::new(tmp.path().to_path_buf());
             Self { tmp,
                    name: String::from("foo"),
                    user_config_path: path,
-                   service_group: ServiceGroup::from_str("foo.bar@yoyodine").unwrap() }
+                   service_group: ServiceGroup::from_str("foo.bar@yoyodyne").unwrap() }
         }
     }
 }
