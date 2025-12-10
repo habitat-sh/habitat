@@ -48,7 +48,6 @@ rand = "*"
 rants = { version = "0.6.1", git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
 regex = "*"
 rustls = "*"
-rustls-pemfile = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = { version = "*", features = ["preserve_order"] }
@@ -67,6 +66,7 @@ url = "*"
 valico = "*"
 
 clap_v4 = { version = "4", package = "clap", features = ["env", "derive", "string", "wrap_help"] }
+rustls-pki-types = "*"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
