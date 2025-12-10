@@ -1,7 +1,7 @@
 # Test the at-once service update strategy
 # The timing of this test assumes the following environment variables are set:
-# HAB_UPDATE_STRATEGY_FREQUENCY_MS=3000
-# HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK=1
+# HAB_UPDATE_STRATEGY_PERIOD_MS=3000
+# HAB_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK=1
 
 $supLog = New-SupervisorLogFile("test_at_once_service_updater")
 Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `

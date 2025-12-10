@@ -805,8 +805,8 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_UPDATE_STRATEGY_FREQUENCY_MS=3000
-            - HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK=1
+            - HAB_UPDATE_STRATEGY_PERIOD_MS=3000
+            - HAB_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK=1
 
   - label: "[:linux: test_self_keep_latest_packages]"
     command:

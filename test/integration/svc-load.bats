@@ -192,7 +192,7 @@ teardown() {
 
     stop_supervisor
 
-    HAB_UPDATE_STRATEGY_FREQUENCY_MS=5000 background ${hab} run
+    HAB_UPDATE_STRATEGY_PERIOD_MS=5000 background ${hab} run
     retry 5 1 launcher_is_alive
 
     run ${hab} svc load "${vsn}"

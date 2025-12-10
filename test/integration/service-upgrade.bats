@@ -19,7 +19,7 @@ teardown() {
     # Start up an empty Supervisor in the background. The update
     # frequency is important for this test, otherwise we'll be waiting
     # too long.
-    HAB_UPDATE_STRATEGY_FREQUENCY_MS=5000 ${hab} run &
+    HAB_UPDATE_STRATEGY_PERIOD_MS=5000 ${hab} run &
     retry 5 1 launcher_is_alive
 
     # Load up our older Redis and ensure that it's running before
