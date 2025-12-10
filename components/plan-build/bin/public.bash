@@ -308,22 +308,6 @@ join_by() {
   echo "$*"
 }
 
-add_env() {
-    exit_with "DEPRECATED: use 'set_runtime_env' instead!"
-}
-
-add_path_env() {
-    exit_with "DEPRECATED: use 'push_runtime_env' instead!"
-}
-
-add_build_env() {
-    exit_with "DEPRECATED: use 'set_buildtime_env' instead!"
-}
-
-add_build_path_env() {
-    exit_with "DEPRECATED: use 'push_buildtime_env' instead!"
-}
-
 # Downloads a file from a source URL to a local file and uses an optional
 # shasum to determine if an existing file can be used.
 #
