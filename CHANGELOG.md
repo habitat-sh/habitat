@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.342 -->
-## [2.0.342](https://github.com/habitat-sh/habitat/tree/2.0.342) (2025-12-10)
+<!-- latest_release 2.0.343 -->
+## [2.0.343](https://github.com/habitat-sh/habitat/tree/2.0.343) (2025-12-10)
 
 #### Merged Pull Requests
-- Bump aws-config from 1.8.11 to 1.8.12 [#10090](https://github.com/habitat-sh/habitat/pull/10090) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- removing some redundant test code left over from a previous pr [#10088](https://github.com/habitat-sh/habitat/pull/10088) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- removing some redundant test code left over from a previous pr [#10088](https://github.com/habitat-sh/habitat/pull/10088) ([mwrock](https://github.com/mwrock)) <!-- 2.0.343 -->
+- Bump aws-sdk-ecr from 1.102.0 to 1.103.0 [#10091](https://github.com/habitat-sh/habitat/pull/10091) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.343 -->
+- Bump aws-credential-types from 1.2.10 to 1.2.11 [#10092](https://github.com/habitat-sh/habitat/pull/10092) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.343 -->
 - Bump aws-config from 1.8.11 to 1.8.12 [#10090](https://github.com/habitat-sh/habitat/pull/10090) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.342 -->
 - removing the deprecated user.toml path [#10086](https://github.com/habitat-sh/habitat/pull/10086) ([mwrock](https://github.com/mwrock)) <!-- 2.0.341 -->
 - Bump reqwest from 0.12.24 to 0.12.25 [#10087](https://github.com/habitat-sh/habitat/pull/10087) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.340 -->
