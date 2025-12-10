@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.345 -->
-## [2.0.345](https://github.com/habitat-sh/habitat/tree/2.0.345) (2025-12-10)
+<!-- latest_release 2.0.346 -->
+## [2.0.346](https://github.com/habitat-sh/habitat/tree/2.0.346) (2025-12-10)
 
 #### Merged Pull Requests
-- no longer support hooks file names with underscores [#10089](https://github.com/habitat-sh/habitat/pull/10089) ([mwrock](https://github.com/mwrock))
+- Updated habitat version to 2.0.345 for blackduck [#10093](https://github.com/habitat-sh/habitat/pull/10093) ([sougata-progress](https://github.com/sougata-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Updated habitat version to 2.0.345 for blackduck [#10093](https://github.com/habitat-sh/habitat/pull/10093) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.346 -->
 - no longer support hooks file names with underscores [#10089](https://github.com/habitat-sh/habitat/pull/10089) ([mwrock](https://github.com/mwrock)) <!-- 2.0.345 -->
 - FeatureFlag for MacOs Support  [#10080](https://github.com/habitat-sh/habitat/pull/10080) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.344 -->
 - removing some redundant test code left over from a previous pr [#10088](https://github.com/habitat-sh/habitat/pull/10088) ([mwrock](https://github.com/mwrock)) <!-- 2.0.343 -->
