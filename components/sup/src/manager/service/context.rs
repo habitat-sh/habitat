@@ -411,8 +411,6 @@ mod tests {
         fn new(tmp: &TempDir) -> Self {
             let pkg = Self { base_path: tmp.path().to_owned(), };
 
-            fs::create_dir_all(pkg.default_config_dir()).expect("create deprecated user config \
-                                                                 dir");
             fs::create_dir_all(pkg.user_config_dir()).expect("create user config dir");
             fs::create_dir_all(pkg.default_config_dir()).expect("create default config dir");
             pkg
