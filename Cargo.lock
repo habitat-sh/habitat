@@ -1924,7 +1924,6 @@ dependencies = [
  "log",
  "nix",
  "prost",
- "semver",
  "thiserror 2.0.17",
  "winapi",
 ]

@@ -5,7 +5,6 @@
 
 $env:HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS=2
 $env:HAB_FEAT_BOOT_FAIL=1
-$env:HAB_LAUNCH_NO_SUP_VERSION_CHECK="true"
 
 Add-Type -TypeDefinition (Get-Content "$PSScriptroot/../../.expeditor/scripts/end_to_end/SupervisorRunner.cs" | Out-String)
 

@@ -1,7 +1,6 @@
-use crate::{core::{os::{process::{handle_from_pid,
-                                  windows_child::{ExitStatus,
-                                                  Handle}},
-                        users::get_current_username},
+use crate::{core::{os::process::{handle_from_pid,
+                                 windows_child::{ExitStatus,
+                                                 Handle}},
                    util},
             error::ServiceRunError,
             protocol::{self,
@@ -11,7 +10,6 @@ use anyhow::Result;
 use log::{debug,
           error};
 use std::{collections::HashMap,
-          env,
           io,
           mem,
           time::{Duration,
@@ -122,27 +120,7 @@ pub fn run(msg: protocol::Spawn) -> Result<Service, ServiceRunError> {
     let password = msg.svc_password.clone();
 
     let user = match msg.svc_user.as_ref() {
-        Some(u) => {
-            // In the case where we are spawning on behalf of an older Supervisor
-            // we will need to revert to older 'get_current_username' behavior. When
-            // running as the Local System account, the former behavior would return
-            // the host name followed by a dollar sign. The new behavior returns
-            // 'system'. Both the supervisor and the launcher behavior must match.
-            // Otherwise if we are running under system, we will interpret the user
-            // to spawn as different from ourselves and thus attempt to logon as ourselves
-            // which will fail since you cannot simply logon as system. One day we can
-            // remove this when we are confident everyone is on a recent supervisor
-            // and launcher.
-            let mut username = u.to_string();
-            if get_current_username().map_err(ServiceRunError::GetCurrentUsername)?
-               == Some("system".to_string())
-               && let Ok(cn) = env::var("COMPUTERNAME")
-               && u == &(cn.to_lowercase() + "$")
-            {
-                username = "system".to_string();
-            }
-            username
-        }
+        Some(u) => u.to_string(),
         None => {
             return Err(ServiceRunError::UserNotFound(String::from("")));
         }
