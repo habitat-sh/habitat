@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.348 -->
-## [2.0.348](https://github.com/habitat-sh/habitat/tree/2.0.348) (2025-12-11)
+<!-- latest_release 2.0.349 -->
+## [2.0.349](https://github.com/habitat-sh/habitat/tree/2.0.349) (2025-12-11)
 
 #### Merged Pull Requests
-- remove deprecation from a couple deprecated env vars that actually seem useful [#10094](https://github.com/habitat-sh/habitat/pull/10094) ([mwrock](https://github.com/mwrock))
+- no longer need to deal with supervisor version compatibility [#10097](https://github.com/habitat-sh/habitat/pull/10097) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- no longer need to deal with supervisor version compatibility [#10097](https://github.com/habitat-sh/habitat/pull/10097) ([mwrock](https://github.com/mwrock)) <!-- 2.0.349 -->
 - remove deprecation from a couple deprecated env vars that actually seem useful [#10094](https://github.com/habitat-sh/habitat/pull/10094) ([mwrock](https://github.com/mwrock)) <!-- 2.0.348 -->
 - remove deprecated build functions [#10095](https://github.com/habitat-sh/habitat/pull/10095) ([mwrock](https://github.com/mwrock)) <!-- 2.0.348 -->
 - Fixes RUSTSEC-2025-0134 (rustls-pemfile is unmaintained) [#10096](https://github.com/habitat-sh/habitat/pull/10096) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.347 -->
