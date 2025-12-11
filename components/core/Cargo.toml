@@ -32,7 +32,6 @@ rand = { version = "*", features = ["thread_rng"] }
 regex = "*"
 rcgen = "*"
 rustls = "*"
-rustls-pemfile = "*"
 serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*", features = ["preserve_order"] }
 tabwriter = "*"
@@ -45,6 +44,7 @@ toml = { version = "*", features = ["preserve_order"] }
 url = "*"
 rustls-webpki = "*"
 xz2 = "*"
+rustls-pki-types = "*"
 
 [target.'cfg(not(windows))'.dependencies]
 nix = { version = "*", features = ["signal", "user", "fs"] }

@@ -7,9 +7,7 @@
 [advisories]
 
 # advisory IDs to ignore e.g. ["RUSTSEC-2019-0001", ...]
-ignore = [
-    "RUSTSEC-2025-0134", # Unmaintained: rustls-pemfile, pending AWS SDK updates
-]
+ignore = []
 informational_warnings = [
     "notice",
     "unmaintained",
