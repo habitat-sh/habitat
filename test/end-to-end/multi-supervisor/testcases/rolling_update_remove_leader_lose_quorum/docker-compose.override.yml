@@ -29,14 +29,14 @@ services:
 
   alpha:
     environment:
-      HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
-      HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      HAB_UPDATE_STRATEGY_PERIOD_MS: 3000
+      HAB_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK: 1
       RUST_LOG: habitat_sup::manager::service_updater=debug
 
   beta:
     environment:
-      HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
-      HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      HAB_UPDATE_STRATEGY_PERIOD_MS: 3000
+      HAB_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK: 1
       RUST_LOG: habitat_sup::manager::service_updater=debug
 
   gamma:
@@ -48,8 +48,8 @@ services:
       HAB_NONINTERACTIVE: '1'
       TESTCASE: ${TESTCASE}
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
-      HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
-      HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      HAB_UPDATE_STRATEGY_PERIOD_MS: 3000
+      HAB_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK: 1
       RUST_LOG: habitat_sup::manager::service_updater=debug
     volumes:
       - source: ./CTL_SECRET

@@ -21,7 +21,6 @@ use tokio::{self,
 
 pub const SUP_PKG_IDENT: &str = "chef/hab-sup";
 
-// TODO (DM): Remove this deprecated env var
 const DEFAULT_PERIOD: Duration = Duration::from_secs(60);
 habitat_core::env_config_duration!(
     /// Represents how far apart checks for updates are, in milliseconds.
@@ -35,8 +34,6 @@ impl SelfUpdatePeriod {
         if habitat_core::env::var(SelfUpdatePeriod::ENVVAR).is_err() {
             return None;
         }
-        warn!("Using deprecated environment variable `HAB_SUP_UPDATE_MS`. Prefer using the `hab \
-               sup run --auto-update-period` argument or config file setting.");
         Some(SelfUpdatePeriod::configured_value().into())
     }
 }
