@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.347 -->
-## [2.0.347](https://github.com/habitat-sh/habitat/tree/2.0.347) (2025-12-11)
+<!-- latest_release 2.0.348 -->
+## [2.0.348](https://github.com/habitat-sh/habitat/tree/2.0.348) (2025-12-11)
 
 #### Merged Pull Requests
-- Fixes RUSTSEC-2025-0134 (rustls-pemfile is unmaintained) [#10096](https://github.com/habitat-sh/habitat/pull/10096) ([jasonheath](https://github.com/jasonheath))
+- remove deprecation from a couple deprecated env vars that actually seem useful [#10094](https://github.com/habitat-sh/habitat/pull/10094) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- remove deprecation from a couple deprecated env vars that actually seem useful [#10094](https://github.com/habitat-sh/habitat/pull/10094) ([mwrock](https://github.com/mwrock)) <!-- 2.0.348 -->
+- remove deprecated build functions [#10095](https://github.com/habitat-sh/habitat/pull/10095) ([mwrock](https://github.com/mwrock)) <!-- 2.0.348 -->
 - Fixes RUSTSEC-2025-0134 (rustls-pemfile is unmaintained) [#10096](https://github.com/habitat-sh/habitat/pull/10096) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.347 -->
 - Updated habitat version to 2.0.345 for blackduck [#10093](https://github.com/habitat-sh/habitat/pull/10093) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.346 -->
 - no longer support hooks file names with underscores [#10089](https://github.com/habitat-sh/habitat/pull/10089) ([mwrock](https://github.com/mwrock)) <!-- 2.0.345 -->
