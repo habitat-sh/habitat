@@ -32,7 +32,6 @@ x-service: &srv
     HAB_LICENSE: "accept"
     # HAB_SUP_BINARY: "/bin/hab-sup"
     # HAB_LAUNCH_BINARY: "/bin/hab-launch"
-    # HAB_LAUNCH_NO_SUP_VERSION_CHECK: "1"
   entrypoint: /bin/hab
   deploy:
     resources:
