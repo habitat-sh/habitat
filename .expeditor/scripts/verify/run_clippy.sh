@@ -41,25 +41,20 @@ export PROTOC
 PROTOC=$(hab pkg path core/protobuf)/bin/protoc
 
 # Lints we need to work through and decide as a team whether to allow or fix
-mapfile -t unexamined_lints < "$1"
-
+mapfile -t unexamined_lints <"$1"
 # Lints we disagree with and choose to keep in our code with no warning
-mapfile -t allowed_lints < "$2"
-
+mapfile -t allowed_lints <"$2"
 # Known failing lints we want to receive warnings for, but not fail the build
-mapfile -t lints_to_fix < "$3"
-
-# Lints we don't expect to have in our code at all and want to avoid adding
-# even at the cost of failing the build
-mapfile -t denied_lints < "$4"
+mapfile -t lints_to_fix <"$3"
+# Lints we want to avoid adding even at the cost of failing the build
+mapfile -t denied_lints <"$4"
 
 clippy_args=()
 
 add_lints_to_clippy_args() {
   flag=$1
   shift
-  for lint
-  do
+  for lint; do
     clippy_args+=("$flag" "${lint}")
   done
 }
