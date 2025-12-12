@@ -179,11 +179,20 @@ build-launcher-for-supervisor-tests:
 unit-sup: build-launcher-for-supervisor-tests
 .PHONY: build-launcher-for-supervisor-tests
 
-lint: image ## executes the $1 component's linter checks
-	$(run) .expeditor/scripts/verify/run_clippy.sh support/unexamined_lints.txt \
-										   support/allowed_lints.txt \
-										   support/lints_to_fix.txt \
-										   support/denied_lints.txt
+lint: image ## runs clippy; set fix=true for auto-fix
+	@if [ -n "${fix}" ]; then \
+	  echo "Running clippy in fix mode"; \
+	  $(run) .expeditor/scripts/verify/run_clippy.sh -f support/unexamined_lints.txt \
+								   support/allowed_lints.txt \
+								   support/lints_to_fix.txt \
+								   support/denied_lints.txt; \
+	else \
+	  echo "Running clippy in check mode"; \
+	  $(run) .expeditor/scripts/verify/run_clippy.sh support/unexamined_lints.txt \
+								   support/allowed_lints.txt \
+								   support/lints_to_fix.txt \
+								   support/denied_lints.txt; \
+	fi
 .PHONY: lint
 
 define FUNCTIONAL

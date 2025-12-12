@@ -29,6 +29,47 @@ export PROTOC_NO_VENDOR=1
 PROTOC=$(hab pkg path core/protobuf)/bin/protoc
 export PROTOC
 
+# Usage helper
+usage() {
+  echo "Usage: $0 [-h] [-f] <unexamined_lints> <allowed_lints> <lints_to_fix> <denied_lints>"
+  echo ""
+  echo "Options:"
+  echo "  -h   Show this help and exit"
+  echo "  -f   Run clippy with --fix to automatically apply fixes"
+}
+
+# Parse options
+fix_mode=false
+while getopts ":hf" opt; do
+  case "$opt" in
+  h)
+    usage
+    exit 0
+    ;;
+  f)
+    fix_mode=true
+    ;;
+  :)
+    echo "Option -$OPTARG requires an argument" >&2
+    usage
+    exit 2
+    ;;
+  \?)
+    echo "Invalid option: -$OPTARG" >&2
+    usage
+    exit 2
+    ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+# Validate required positional arguments
+if [ $# -ne 4 ]; then
+  echo "Error: Expected 4 lint list files, got $#" >&2
+  usage
+  exit 2
+fi
+
 # Lints we need to work through and decide as a team whether to allow or fix
 mapfile -t unexamined_lints <"$1"
 # Lints we disagree with and choose to keep in our code with no warning
@@ -57,6 +98,12 @@ set -u
 
 echo "--- Running clippy!"
 cargo version
-cargo-clippy --version
-echo "Clippy rules: cargo clippy --all-targets --tests -- ${clippy_args[*]}"
-cargo-clippy clippy --all-targets --tests -- "${clippy_args[@]}"
+cargo clippy --version
+if [ "$fix_mode" = true ]; then
+  echo "EXECUTING: cargo clippy --fix --allow-staged -- ${clippy_args[*]}"
+  # --fix implies --all-targets and --no-deps
+  cargo clippy --fix --allow-staged -- "${clippy_args[@]}"
+else
+  echo "EXECUTING: cargo clippy --all-targets --no-deps -- ${clippy_args[*]}"
+  cargo clippy --all-targets --no-deps -- "${clippy_args[@]}"
+fi
