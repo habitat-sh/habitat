@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@1.89.0
+      - uses: dtolnay/rust-toolchain@1.91.1
         id: toolchain
       - run: rustup override set ${{steps.toolchain.outputs.name}}
       - uses: ClementTsang/cargo-action@v0.0.7
