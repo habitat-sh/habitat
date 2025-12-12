@@ -4,41 +4,30 @@ set -euo pipefail
 
 source .expeditor/scripts/verify/shared.sh
 
-export RUSTFLAGS="-D warnings"
+if ${BUILDKITE:-false}; then
+  toolchain=$(get_toolchain)
+  sudo -E hab pkg install core/rust/"$toolchain"
+  PATH="$(hab pkg path core/rust/"$toolchain")/bin:$PATH"
+  export PATH
+fi
 
-toolchain=$(get_toolchain)
-install_rustup
-install_rust_toolchain "$toolchain"
+RUSTFLAGS="-D warnings "
+RUSTFLAGS+="-Clink-arg=-Wl,--dynamic-linker=/hab/pkgs/core/glibc/2.41/20250627111239/lib64/ld-linux-x86-64.so.2 "
+RUSTFLAGS+="-Clink-arg=-Wl,-rpath,/hab/pkgs/core/gcc-base/14.3.0/20250627114133/lib64 "
+readonly RUSTFLAGS
+export RUSTFLAGS
 
-# Install clippy
-echo "--- :rust: Installing clippy"
-rustup component add --toolchain "$toolchain" clippy
+install_hab_pkg core/zeromq core/protobuf
 
-# TODO: these should be in a shared script?
-install_hab_pkg core/zeromq core/protobuf core/patchelf
-sudo -E hab pkg install core/rust/"$toolchain"
-
-# Yes, this is terrible but we need the clippy binary to run under our glibc.
-# This became an issue with the latest refresh and can likely be dropped in
-# the future when rust and supporting components are build against a later
-# glibc.
-sudo cp "$HOME"/.rustup/toolchains/"$toolchain"-x86_64-unknown-linux-gnu/bin/cargo-clippy "$(hab pkg path core/rust/"$toolchain")/bin"
-sudo cp "$HOME"/.rustup/toolchains/"$toolchain"-x86_64-unknown-linux-gnu/bin/clippy-driver "$(hab pkg path core/rust/"$toolchain")/bin"
-sudo hab pkg exec core/patchelf patchelf -- --set-interpreter "$(hab pkg path core/glibc)/lib/ld-linux-x86-64.so.2" "$(hab pkg path core/rust/"$toolchain")/bin/clippy-driver"
-sudo hab pkg exec core/patchelf patchelf -- --set-interpreter "$(hab pkg path core/glibc)/lib/ld-linux-x86-64.so.2" "$(hab pkg path core/rust/"$toolchain")/bin/cargo-clippy"
-
-export LIBZMQ_PREFIX
 LIBZMQ_PREFIX=$(hab pkg path core/zeromq)
-# now include zeromq so it exists in the runtime library path when cargo test is run
+export LIBZMQ_PREFIX
+
+LD_LIBRARY_PATH="$(hab pkg path core/zeromq)/lib"
 export LD_LIBRARY_PATH
-LD_LIBRARY_PATH="$(hab pkg path core/gcc-base)/lib64:$(hab pkg path core/zeromq)/lib"
-old_path=$PATH
-eval "$(hab pkg env core/rust/"$toolchain")"
-export PATH=$PATH:$old_path
 
 export PROTOC_NO_VENDOR=1
-export PROTOC
 PROTOC=$(hab pkg path core/protobuf)/bin/protoc
+export PROTOC
 
 # Lints we need to work through and decide as a team whether to allow or fix
 mapfile -t unexamined_lints <"$1"
