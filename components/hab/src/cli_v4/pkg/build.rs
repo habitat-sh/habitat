@@ -14,7 +14,7 @@ use habitat_core::{crypto,
                    crypto::keys::KeyCache,
                    origin::Origin};
 
-use crate::{cli_v4::utils::maybe_refresh_channel_from_args_env_or_load,
+use crate::{cli_v4::utils::maybe_refresh_channel_from_args_env_or_config,
             command::pkg::build,
             error::Result as HabResult};
 
@@ -112,7 +112,7 @@ impl PkgBuildOptions {
         let (reuse_flag, docker_flag) = (self.reuse, self.docker);
 
         // Resolve refresh channel from CLI arg, env var, config file, or default to "base"
-        let refresh_channel = maybe_refresh_channel_from_args_env_or_load(self.refresh_channel.clone())
+        let refresh_channel = maybe_refresh_channel_from_args_env_or_config(self.refresh_channel.clone())
                              .unwrap_or_else(|| "base".to_string());
 
         build::start(ui,
