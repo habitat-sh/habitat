@@ -217,21 +217,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[:linux: test_launcher_checks_supervisor_version]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_launcher_checks_supervisor_version
-    artifact_paths:
-      - "*.log"
-    soft_fail: true
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL="dev"
-            - HAB_STUDIO_SECRET_CI_OVERRIDE_CHANNEL="dev"
-
   - label: "[:linux: test_launcher_exits_on_supervisor_connection_failure]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_launcher_exits_on_supervisor_connection_failure
@@ -805,8 +790,8 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_UPDATE_STRATEGY_FREQUENCY_MS=3000
-            - HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK=1
+            - HAB_UPDATE_STRATEGY_PERIOD_MS=3000
+            - HAB_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK=1
 
   - label: "[:linux: test_self_keep_latest_packages]"
     command:

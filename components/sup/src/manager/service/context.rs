@@ -411,12 +411,8 @@ mod tests {
         fn new(tmp: &TempDir) -> Self {
             let pkg = Self { base_path: tmp.path().to_owned(), };
 
-            fs::create_dir_all(pkg.default_config_dir()).expect("create deprecated user config \
-                                                                 dir");
-            fs::create_dir_all(pkg.recommended_user_config_dir()).expect("create recommended \
-                                                                          user config dir");
-            fs::create_dir_all(pkg.deprecated_user_config_dir()).expect("create default config \
-                                                                         dir");
+            fs::create_dir_all(pkg.user_config_dir()).expect("create user config dir");
+            fs::create_dir_all(pkg.default_config_dir()).expect("create default config dir");
             pkg
         }
     }
@@ -426,9 +422,7 @@ mod tests {
 
         fn default_config_dir(&self) -> PathBuf { self.base_path.join("root") }
 
-        fn recommended_user_config_dir(&self) -> PathBuf { self.base_path.join("user") }
-
-        fn deprecated_user_config_dir(&self) -> PathBuf { self.base_path.join("svc") }
+        fn user_config_dir(&self) -> PathBuf { self.base_path.join("user") }
     }
 
     fn new_test_pkg() -> (TempDir, TestPkg) {

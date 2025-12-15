@@ -149,13 +149,15 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     inner::start(ui, args).await
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 mod inner {
     use crate::{VERSION,
                 command::studio::{docker,
                                   native},
-                common::ui::{UI,
-                             UIWriter},
+                common::{FEATURE_FLAGS,
+                         FeatureFlag,
+                         ui::{UI,
+                              UIWriter}},
                 error::{Error,
                         Result},
                 exec};
@@ -178,53 +180,58 @@ mod inner {
     const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 
     pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
-        if is_native_studio(args) {
-            rerun_with_sudo_if_needed(ui, args, true)?;
-            native::start_native_studio(ui, args)
-        } else {
-            rerun_with_sudo_if_needed(ui, args, false)?;
-            if is_docker_studio(args) {
-                docker::start_docker_studio(ui, args)
+        if cfg!(target_os = "linux") || FEATURE_FLAGS.contains(FeatureFlag::MACOS_NATIVE_SUPPORT) {
+            if is_native_studio(args) {
+                rerun_with_sudo_if_needed(ui, args, true)?;
+                native::start_native_studio(ui, args)
             } else {
-                let command = match henv::var(STUDIO_CMD_ENVVAR) {
-                    Ok(command) => PathBuf::from(command),
-                    Err(_) => {
-                        init()?;
-                        let version: Vec<&str> = VERSION.split('/').collect();
-                        let ident = PackageIdent::from_str(&format!("{}/{}",
+                rerun_with_sudo_if_needed(ui, args, false)?;
+                if is_docker_studio(args) {
+                    docker::start_docker_studio(ui, args)
+                } else {
+                    let command = match henv::var(STUDIO_CMD_ENVVAR) {
+                        Ok(command) => PathBuf::from(command),
+                        Err(_) => {
+                            init()?;
+                            let version: Vec<&str> = VERSION.split('/').collect();
+                            let ident = PackageIdent::from_str(&format!("{}/{}",
                                                                     super::STUDIO_PACKAGE_IDENT,
                                                                     version[0]))?;
-                        let command = exec::command_from_min_pkg(ui, STUDIO_CMD, &ident).await?;
-                        // This is a duplicate of the code in `hab pkg exec` and
-                        // should be refactored as part of or after:
-                        // https://github.com/habitat-sh/habitat/issues/6633
-                        // https://github.com/habitat-sh/habitat/issues/6634
-                        let pkg_install = PackageInstall::load(&ident, None)?;
-                        let cmd_env = pkg_install.environment_for_command()?;
-                        for (key, value) in cmd_env.into_iter() {
-                            debug!("Setting: {}='{}'", key, value);
-                            // TODO: Audit that the environment access only happens in
-                            // single-threaded code.
-                            unsafe { env::set_var(key, value) };
-                        }
+                            let command = exec::command_from_min_pkg(ui, STUDIO_CMD, &ident).await?;
+                            // This is a duplicate of the code in `hab pkg exec` and
+                            // should be refactored as part of or after:
+                            // https://github.com/habitat-sh/habitat/issues/6633
+                            // https://github.com/habitat-sh/habitat/issues/6634
+                            let pkg_install = PackageInstall::load(&ident, None)?;
+                            let cmd_env = pkg_install.environment_for_command()?;
+                            for (key, value) in cmd_env.into_iter() {
+                                debug!("Setting: {}='{}'", key, value);
+                                // TODO: Audit that the environment access only happens in
+                                // single-threaded code.
+                                unsafe { env::set_var(key, value) };
+                            }
 
-                        let mut display_args = STUDIO_CMD.to_string();
-                        for arg in args {
-                            display_args.push(' ');
-                            display_args.push_str(arg.to_string_lossy().as_ref());
-                        }
-                        debug!("Running: {}", display_args);
+                            let mut display_args = STUDIO_CMD.to_string();
+                            for arg in args {
+                                display_args.push(' ');
+                                display_args.push_str(arg.to_string_lossy().as_ref());
+                            }
+                            debug!("Running: {}", display_args);
 
-                        command
+                            command
+                        }
+                    };
+                    if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
+                        process::become_command(cmd, args)?;
+                        Ok(())
+                    } else {
+                        Err(Error::ExecCommandNotFound(command))
                     }
-                };
-                if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-                    process::become_command(cmd, args)?;
-                    Ok(())
-                } else {
-                    Err(Error::ExecCommandNotFound(command))
                 }
             }
+        } else {
+            // Fallback to docker studio when not on Linux and feature flag not enabled
+            docker::start_docker_studio(ui, args)
         }
     }
 
@@ -290,7 +297,7 @@ mod inner {
     }
 }
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(target_os = "windows")]
 mod inner {
     use crate::{VERSION,
                 command::studio::docker,

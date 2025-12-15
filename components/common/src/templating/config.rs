@@ -39,25 +39,18 @@ pub const CONFIG_DIR_PERMISSIONS: u32 = 0o770;
 /// Describes the path to user configuration that is used by the
 /// service.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum UserConfigPath {
-    Recommended(PathBuf),
-    Deprecated(PathBuf),
+pub struct UserConfigPath {
+    path: PathBuf,
 }
 
 impl UserConfigPath {
-    pub fn get_path(&self) -> &PathBuf {
-        match self {
-            UserConfigPath::Recommended(p) | UserConfigPath::Deprecated(p) => p,
-        }
-    }
+    pub fn new(path: PathBuf) -> Self { Self { path } }
+
+    pub fn get_path(&self) -> &PathBuf { &self.path }
 }
 
 impl From<UserConfigPath> for PathBuf {
-    fn from(ucp: UserConfigPath) -> Self {
-        match ucp {
-            UserConfigPath::Recommended(p) | UserConfigPath::Deprecated(p) => p,
-        }
-    }
+    fn from(ucp: UserConfigPath) -> Self { ucp.path }
 }
 
 /// Trait for getting paths to directories where various configuration
@@ -67,10 +60,8 @@ pub trait PackageConfigPaths {
     fn name(&self) -> String;
     /// Get path to directory which holds default.toml.
     fn default_config_dir(&self) -> PathBuf;
-    /// Get recommended path to directory which holds user.toml.
-    fn recommended_user_config_dir(&self) -> PathBuf;
-    /// Get deprecated path to directory which holds user.toml.
-    fn deprecated_user_config_dir(&self) -> PathBuf;
+    /// Get path to directory which holds user.toml.
+    fn user_config_dir(&self) -> PathBuf;
 }
 
 impl PackageConfigPaths for Pkg {
@@ -78,9 +69,7 @@ impl PackageConfigPaths for Pkg {
 
     fn default_config_dir(&self) -> PathBuf { self.path.clone() }
 
-    fn recommended_user_config_dir(&self) -> PathBuf { fs::user_config_path(&self.name) }
-
-    fn deprecated_user_config_dir(&self) -> PathBuf { self.svc_path.clone() }
+    fn user_config_dir(&self) -> PathBuf { fs::user_config_path(&self.name) }
 }
 
 #[derive(Clone, Debug)]
@@ -114,7 +103,7 @@ impl Cfg {
             };
             Self::load_default(pkg_root.as_ref())?
         };
-        let user_config_path = Self::determine_user_config_path(package);
+        let user_config_path = UserConfigPath::new(package.user_config_dir());
         let user = Self::load_user(user_config_path.get_path())?;
         let environment = Self::load_environment(&package.name())?;
         Ok(Self { default,
@@ -260,30 +249,6 @@ impl Cfg {
         where T: AsRef<Path>
     {
         Self::load_toml_file(config_from, "default.toml")
-    }
-
-    fn determine_user_config_path<P: PackageConfigPaths>(package: &P) -> UserConfigPath {
-        let recommended_dir = package.recommended_user_config_dir();
-        let recommended_path = recommended_dir.join(USER_CONFIG_FILE);
-        if recommended_path.exists() {
-            return UserConfigPath::Recommended(recommended_dir);
-        }
-        debug!("'{}' at {} does not exist",
-               USER_CONFIG_FILE,
-               recommended_path.display());
-        let deprecated_dir = package.deprecated_user_config_dir();
-        let deprecated_path = deprecated_dir.join(USER_CONFIG_FILE);
-        if deprecated_path.exists() {
-            outputln!("The user configuration location at {} is deprecated, consider putting it \
-                       in {}",
-                      deprecated_path.display(),
-                      recommended_path.display(),);
-            return UserConfigPath::Deprecated(deprecated_dir);
-        }
-        debug!("'{}' at {} does not exist",
-               USER_CONFIG_FILE,
-               deprecated_path.display());
-        UserConfigPath::Recommended(recommended_dir)
     }
 
     fn load_user<T>(path: T) -> Result<Option<toml::value::Table>>
@@ -807,12 +772,8 @@ mod test {
         fn new(tmp: &TempDir) -> Self {
             let pkg = Self { base_path: tmp.path().to_owned(), };
 
-            fs::create_dir_all(pkg.default_config_dir()).expect("create deprecated user config \
-                                                                 dir");
-            fs::create_dir_all(pkg.recommended_user_config_dir()).expect("create recommended \
-                                                                          user config dir");
-            fs::create_dir_all(pkg.deprecated_user_config_dir()).expect("create default config \
-                                                                         dir");
+            fs::create_dir_all(pkg.default_config_dir()).expect("create default config dir");
+            fs::create_dir_all(pkg.user_config_dir()).expect("create user config dir");
             pkg
         }
     }
@@ -822,9 +783,7 @@ mod test {
 
         fn default_config_dir(&self) -> PathBuf { self.base_path.join("root") }
 
-        fn recommended_user_config_dir(&self) -> PathBuf { self.base_path.join("user") }
-
-        fn deprecated_user_config_dir(&self) -> PathBuf { self.base_path.join("svc") }
+        fn user_config_dir(&self) -> PathBuf { self.base_path.join("user") }
     }
 
     struct CfgTestData {
@@ -834,19 +793,14 @@ mod test {
         tmp:  TempDir,
         pkg:  TestPkg,
         rucp: PathBuf,
-        ducp: PathBuf,
     }
 
     impl CfgTestData {
         fn new() -> Self {
             let tmp = TempDir::new().expect("create temp dir");
             let pkg = TestPkg::new(&tmp);
-            let rucp = pkg.recommended_user_config_dir().join(USER_CONFIG_FILE);
-            let ducp = pkg.deprecated_user_config_dir().join(USER_CONFIG_FILE);
-            Self { tmp,
-                   pkg,
-                   rucp,
-                   ducp }
+            let rucp = pkg.user_config_dir().join(USER_CONFIG_FILE);
+            Self { tmp, pkg, rucp }
         }
     }
 
@@ -867,20 +821,8 @@ mod test {
         let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
 
         assert_eq!(cfg.user_config_path,
-                   UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir()));
+                   UserConfigPath::new(cfg_data.pkg.user_config_dir()));
         assert!(cfg.user.is_none());
-    }
-
-    #[test]
-    fn load_deprecated_user_toml() {
-        let cfg_data = CfgTestData::new();
-        let toml = "foo = 42";
-        write_toml(&cfg_data.ducp, toml);
-        let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
-
-        assert_eq!(cfg.user_config_path,
-                   UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir()));
-        assert_eq!(cfg.user, Some(toml_from_str(toml)));
     }
 
     #[test]
@@ -891,41 +833,7 @@ mod test {
         let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
 
         assert_eq!(cfg.user_config_path,
-                   UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir()));
-        assert_eq!(cfg.user, Some(toml_from_str(toml)));
-    }
-
-    #[test]
-    fn prefer_recommended_to_deprecated() {
-        let cfg_data = CfgTestData::new();
-        let toml = "foo = 42";
-        write_toml(&cfg_data.rucp, toml);
-        write_toml(&cfg_data.ducp, "foo = 13");
-        let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
-
-        assert_eq!(cfg.user_config_path,
-                   UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir()));
-        assert_eq!(cfg.user, Some(toml_from_str(toml)));
-    }
-
-    #[test]
-    fn keep_loading_deprecated_after_initial_load() {
-        let cfg_data = CfgTestData::new();
-        let mut toml = "foo = 13";
-        write_toml(&cfg_data.ducp, toml);
-        let mut cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
-
-        assert_eq!(cfg.user_config_path,
-                   UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir()));
-        assert_eq!(cfg.user, Some(toml_from_str(toml)));
-
-        toml = "foo = 85";
-        write_toml(&cfg_data.ducp, toml);
-        write_toml(&cfg_data.rucp, "foo = 42");
-        cfg.reload_user().expect("reload user config");
-
-        assert_eq!(cfg.user_config_path,
-                   UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir()));
+                   UserConfigPath::new(cfg_data.pkg.user_config_dir()));
         assert_eq!(cfg.user, Some(toml_from_str(toml)));
     }
 
@@ -1102,21 +1010,6 @@ mod test {
             let str_key = key.to_string_lossy().into_owned();
             assert!(templates.contains_key(&str_key));
         }
-    }
-
-    #[test]
-    #[cfg(target_os = "linux")]
-    #[should_panic(expected = "Not a directory")]
-    #[cfg(target_os = "windows")]
-    #[should_panic(expected = "The directory name is invalid")]
-    /// Check we get an error if we pass in a file to `load_templates`
-    fn test_load_templates_file() {
-        let tmp = TempDir::new().expect("create temp dir");
-
-        let file = tmp.path().join("bar.txt");
-        create_with_content(&file, "Hello world!");
-
-        load_templates(&file, &PathBuf::new(), TemplateRenderer::new())?;
     }
 
     #[tokio::test]

@@ -4,7 +4,7 @@
 # rolled back. The package will "hang" upon receiving its SIGTERM which will trigger the supervisor
 # to forcefully terminate the service. This tests an edge case where the package incarnation was being
 # reset to 0 and causing nodes to get stuck and not update or roll back.
-# Note: we set HAB_UPDATE_STRATEGY_FREQUENCY_MS to 3000 in the docker-compose.override.yml.
+# Note: we set HAB_UPDATE_STRATEGY_PERIOD_MS to 3000 in the docker-compose.override.yml.
 
 $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
 switch ($arch) {

@@ -58,7 +58,7 @@ pub(crate) async fn sub_svc_set<U>(ui: &mut U,
                   format!("Encrypting config (user rev = {}, service rev = {})",
                           user_key.named_revision(),
                           svc_key.named_revision()))?;
-        set_msg.cfg = Some(user_key.encrypt_for_service(&buf, &svc_key)
+        set_msg.cfg = Some(user_key.encrypt_for_service(&buf, &svc_key)?
                                    .to_string()
                                    .into_bytes());
         set_msg.is_encrypted = Some(true);

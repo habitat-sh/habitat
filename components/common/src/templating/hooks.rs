@@ -67,9 +67,9 @@ pub trait Hook: fmt::Debug + Sized + Send {
 
     const FILE_NAME: &'static str;
 
-    /// Tries to load a hook if a (deprecated) hook file exists.
+    /// Tries to load a hook if a hook file exists.
     ///
-    /// Returns the hook if template file (deprecated or not) is found
+    /// Returns the hook if template file is found
     fn load<C, T>(package_name: &str,
                   concrete_path: C,
                   template_path: T,
@@ -79,43 +79,17 @@ pub trait Hook: fmt::Debug + Sized + Send {
               T: AsRef<Path>
     {
         let file_name = Self::FILE_NAME;
-        let deprecated_file_name = if Self::FILE_NAME.contains('-') {
-            Some(Self::FILE_NAME.replace('-', "_"))
-        } else {
-            None
-        };
         let concrete = concrete_path.as_ref().join(file_name);
         let template = template_path.as_ref().join(file_name);
-        let deprecated_template = deprecated_file_name.as_ref()
-                                                      .map(|n| template_path.as_ref().join(n));
 
-        let has_template = template.exists();
-        let has_deprecated_template = deprecated_template.as_ref().is_some_and(|t| t.exists());
-
-        let template_to_use = if has_template {
-            if has_deprecated_template {
-                outputln!(preamble package_name,
-                    "Deprecated hook file detected along with expected one. \
-                     You should remove {} and keep only {}.",
-                    deprecated_file_name.unwrap(),
-                    &file_name
-                );
-            }
-            template
-        } else if has_deprecated_template {
-            outputln!(preamble package_name,
-                "Deprecated hook file detected: {}. You should use {} instead.",
-                deprecated_file_name.unwrap(),
-                &file_name
-            );
-            deprecated_template.unwrap()
-        } else {
+        if !template.exists() {
             debug!("{} not found at {}, not loading",
                    &file_name,
                    template.display());
             return None;
-        };
-        match RenderPair::new(concrete, template_to_use, Self::FILE_NAME) {
+        }
+
+        match RenderPair::new(concrete, template, Self::FILE_NAME) {
             Ok(pair) => Some(Self::new(package_name, pair, feature_flags)),
             Err(err) => {
                 outputln!(preamble package_name, "Failed to load hook: {}", err);
@@ -133,7 +107,6 @@ pub trait Hook: fmt::Debug + Sized + Send {
         where T: Serialize
     {
         let content = self.renderer().0.render(Self::FILE_NAME, ctx)?;
-        // We make sure we don't use a deprecated file name
         let path = self.path().with_file_name(Self::FILE_NAME);
         if write_hook(&content, &path)? {
             outputln!(preamble service_group,

@@ -17,18 +17,13 @@ use std::{self,
 use tokio::{self,
             time};
 
-// TODO (CM): Yes, the variable value should be "period" and not
-// "frequency"... we need to fix that.
-const PERIOD_BYPASS_CHECK_ENVVAR: &str = "HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK";
+const PERIOD_BYPASS_CHECK_ENVVAR: &str = "HAB_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK";
 
-// TODO (DM): Remove this deprecated env var
 habitat_core::env_config_duration!(
     /// Represents how far apart checks for updates to individual services
     /// are, in milliseconds.
     PackageUpdateWorkerPeriod,
-    // TODO (CM): Yes, the variable value should be "period" and not
-    // "frequency"... we need to fix that.
-    HAB_UPDATE_STRATEGY_FREQUENCY_MS => from_millis,
+    HAB_UPDATE_STRATEGY_PERIOD_MS => from_millis,
     PackageUpdateWorkerPeriod::MIN_ALLOWED);
 
 impl PackageUpdateWorkerPeriod {
@@ -39,8 +34,6 @@ impl PackageUpdateWorkerPeriod {
         if habitat_core::env::var(PackageUpdateWorkerPeriod::ENVVAR).is_err() {
             return None;
         }
-        warn!("Using deprecated environment variable `HAB_UPDATE_STRATEGY_FREQUENCY_MS`. Prefer \
-               using the `hab sup run --service-update-period` argument or config file setting.");
         let val = PackageUpdateWorkerPeriod::configured_value().into();
         if val >= PackageUpdateWorkerPeriod::MIN_ALLOWED
            || habitat_core::env::var(PERIOD_BYPASS_CHECK_ENVVAR).is_ok()

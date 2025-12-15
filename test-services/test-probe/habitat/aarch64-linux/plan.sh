@@ -10,7 +10,7 @@ pkg_deps=(core/glibc
           core/procps-ng
           core/bash)
 pkg_build_deps=(core/coreutils
-                core/rust
+                core/rust/"$(tail -n 1 "$SRC_PATH/../../rust-toolchain"  | cut -d'"' -f 2)"
                 core/gcc
                 core/git
                 core/make)

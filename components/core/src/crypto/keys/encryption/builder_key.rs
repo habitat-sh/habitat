@@ -17,12 +17,12 @@ pub const BUILDER_KEY_NAME: &str = "bldr";
 /// Interestingly, based on how we use this key, we actually don't
 /// ever need the public key for this pair, so we only create the
 /// secret one.
-pub fn generate_builder_encryption_key() -> BuilderSecretEncryptionKey {
+pub fn generate_builder_encryption_key() -> Result<BuilderSecretEncryptionKey> {
     let named_revision = NamedRevision::new(BUILDER_KEY_NAME.to_string());
-    let (_pk, sk) = primitives::gen_keypair();
+    let (_pk, sk) = primitives::gen_keypair()?;
 
-    BuilderSecretEncryptionKey { named_revision,
-                                 key: sk }
+    Ok(BuilderSecretEncryptionKey { named_revision,
+                                    key: sk })
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -38,29 +38,29 @@ impl BuilderSecretEncryptionKey {
     /// consumption. This ensures that we are the only ones that could
     /// have encrypted the data, and we are the only ones that can
     /// decrypt it.
-    pub fn encrypt<B>(&self, bytes: B) -> SignedBox
+    pub fn encrypt<B>(&self, bytes: B) -> Result<SignedBox>
         where B: AsRef<[u8]>
     {
         let nonce = primitives::gen_nonce();
 
         // Recover the public key material from the secret key itself.
-        let my_public_key = self.key().public_key();
+        let my_public_key = self.key().public_key()?;
 
-        let ciphertext = primitives::seal(bytes.as_ref(), &nonce, &my_public_key, self.key());
+        let ciphertext = primitives::seal(bytes.as_ref(), &nonce, &my_public_key, self.key())?;
 
         // Even though we don't have a `BuilderPublicEncryptionKey`
         // here, we know its named revision would be the same as
         // `self.named_revision()`, so we'll just copy it.
-        SignedBox::new(self.named_revision.clone(),
-                       self.named_revision.clone(),
-                       ciphertext,
-                       nonce)
+        Ok(SignedBox::new(self.named_revision.clone(),
+                          self.named_revision.clone(),
+                          ciphertext,
+                          nonce))
     }
 
     /// Decrypt a signed message we sent to ourself.
     pub fn decrypt(&self, signed_box: &SignedBox) -> Result<Vec<u8>> {
         // Recover the public key material from the secret key itself.
-        let my_public_key = self.key().public_key();
+        let my_public_key = self.key().public_key()?;
 
         primitives::open(signed_box.ciphertext(),
                          signed_box.nonce(),
@@ -80,9 +80,9 @@ mod tests {
 
     #[test]
     fn encryption() {
-        let key = generate_builder_encryption_key();
+        let key = generate_builder_encryption_key().unwrap();
         let message = "He is the Kwisatz Haderach!";
-        let encrypted_message = key.encrypt(message);
+        let encrypted_message = key.encrypt(message).unwrap();
 
         // Can't assert much here since we've always got different
         // encrypted bits, but we can ensure that the encryptor and
@@ -112,10 +112,10 @@ mod tests {
 
     #[test]
     fn encryption_decryption_round_trip() {
-        let key = generate_builder_encryption_key();
+        let key = generate_builder_encryption_key().unwrap();
         let message = "Walk without rhythm and you won't attract the worm";
 
-        let encrypted = key.encrypt(message);
+        let encrypted = key.encrypt(message).unwrap();
         let decrypted = key.decrypt(&encrypted)
                            .map(String::from_utf8)
                            .unwrap()
