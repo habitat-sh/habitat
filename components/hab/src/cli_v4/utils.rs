@@ -33,7 +33,7 @@ use habitat_core::{AUTH_TOKEN_ENVVAR,
                          DEFAULT_BLDR_URL,
                          bldr_url_from_env}};
 
-const REFRESH_CHANNEL_ENVVAR: &str = "HAB_REFRESH_CHANNEL";
+use crate::REFRESH_CHANNEL_ENVVAR;
 
 use hab_common_derive::GenConfig;
 
@@ -951,17 +951,6 @@ mod tests {
 
             let result = maybe_refresh_channel_from_args_env_or_config(None);
             assert_eq!(result, Some("staging".to_string()));
-        }
-
-        #[test]
-        fn test_refresh_channel_fallback_to_none() {
-            let env_var = locked_refresh_channel();
-            env_var.unset();
-
-            let result = maybe_refresh_channel_from_args_env_or_config(None);
-            // This may return Some if config file exists, or None if no config file
-            // We can't control the config file in tests, so just verify it's consistent
-            assert!(result.is_some() || result.is_none());
         }
 
         #[test]
