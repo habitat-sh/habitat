@@ -173,12 +173,12 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
     }
     ui.heading("Habitat Refresh Channel")?;
     ui.para("The Habitat refresh channel determines which channel to use for core packages \
-             during a build. Common values include 'stable' for stable releases and 'base' \
-             for latest supported packages. If you set a refresh channel here, it will be used \
-             as the default when no other channel is specified.")?;
-    ui.para("If you would like to save a default refresh channel for use by the Habitat \
-             client, please enter your preferred channel. Otherwise, just enter No. Defaults to \
-             'base' if nothing is set.")?;
+             during a build. Common values include 'stable' for stable releases and 'base' for \
+             latest supported packages. If you set a refresh channel here, it will be used as \
+             the default when no other channel is specified.")?;
+    ui.para("If you would like to save a default refresh channel for use by the Habitat client, \
+             please enter your preferred channel. Otherwise, just enter No. Defaults to 'base' \
+             if nothing is set.")?;
     if ask_default_refresh_channel(ui)? {
         ui.br()?;
         ui.para("Enter your default Habitat refresh channel (e.g., 'stable', 'base').")?;
@@ -300,8 +300,7 @@ fn ask_default_ctl_secret(ui: &mut UI) -> Result<bool> {
 }
 
 fn ask_default_refresh_channel(ui: &mut UI) -> Result<bool> {
-    Ok(ui.prompt_yes_no("Set up a default Habitat refresh channel?",
-                        Some(false))?)
+    Ok(ui.prompt_yes_no("Set up a default Habitat refresh channel?", Some(false))?)
 }
 
 fn prompt_url(ui: &mut UI) -> Result<String> {
@@ -351,8 +350,8 @@ fn prompt_refresh_channel(ui: &mut UI) -> Result<String> {
     let config = CliConfig::load()?;
     let default = match config.refresh_channel {
         Some(o) => {
-            ui.para("You already have a default refresh channel set up, but feel free to \
-                     change it if you wish.")?;
+            ui.para("You already have a default refresh channel set up, but feel free to change \
+                     it if you wish.")?;
             Some(o)
         }
         None => henv::var(REFRESH_CHANNEL_ENVVAR).ok(),

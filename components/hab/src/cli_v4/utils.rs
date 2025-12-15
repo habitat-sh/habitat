@@ -196,10 +196,12 @@ impl AuthToken {
                     CliConfig::load()?.auth_token.ok_or_else(|| {
                                                      HabError::ArgumentError("No auth token \
                                                                               specified: please \
-                                                                              pass `-z/--auth`, set \
-                                                                              HAB_AUTH_TOKEN, or add \
-                                                                              auth_token to ~/.hab/etc/cli.toml"
-                                                                                        .into())
+                                                                              pass `-z/--auth`, \
+                                                                              set HAB_AUTH_TOKEN, \
+                                                                              or add auth_token \
+                                                                              to ~/.hab/etc/cli.\
+                                                                              toml"
+                                                                                   .into())
                                                  })
                 }
             }
@@ -222,9 +224,9 @@ impl AuthToken {
                 cfg.auth_token.clone().ok_or_else(|| {
                                           Error::ArgumentError("No auth token specified: please \
                                                                 pass `-z/--auth`, set \
-                                                                HAB_AUTH_TOKEN, or add \
-                                                                auth_token to ~/.hab/etc/cli.toml"
-                                                                               .into())
+                                                                HAB_AUTH_TOKEN, or add auth_token \
+                                                                to ~/.hab/etc/cli.toml"
+                                                                                       .into())
                                       })
             }
         }
@@ -663,9 +665,10 @@ pub(crate) fn bldr_auth_token_from_args_env_or_load(opt: Option<String>) -> Resu
                                                  Error::ArgumentError("No auth token specified. \
                                                                        Please check that you have \
                                                                        specified a valid Personal \
-                                                                       Access Token with: -z/--auth, \
-                                                                       HAB_AUTH_TOKEN, or \
-                                                                       auth_token in ~/.hab/etc/cli.toml"
+                                                                       Access Token with: \
+                                                                       -z/--auth, HAB_AUTH_TOKEN, \
+                                                                       or auth_token in \
+                                                                       ~/.hab/etc/cli.toml"
                                                                                            .into())
                                              })
             }
@@ -677,7 +680,8 @@ pub(crate) fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Op
     bldr_auth_token_from_args_env_or_load(opt).ok()
 }
 
-pub(crate) fn refresh_channel_from_args_env_or_config(opt: Option<String>) -> Result<String, Error> {
+pub(crate) fn refresh_channel_from_args_env_or_config(opt: Option<String>)
+                                                      -> Result<String, Error> {
     if let Some(channel) = opt {
         Ok(channel)
     } else {
@@ -944,7 +948,7 @@ mod tests {
         fn test_refresh_channel_from_env() {
             let env_var = locked_refresh_channel();
             env_var.set("staging");
-            
+
             let result = maybe_refresh_channel_from_args_env_or_config(None);
             assert_eq!(result, Some("staging".to_string()));
         }
@@ -953,7 +957,7 @@ mod tests {
         fn test_refresh_channel_fallback_to_none() {
             let env_var = locked_refresh_channel();
             env_var.unset();
-            
+
             let result = maybe_refresh_channel_from_args_env_or_config(None);
             // This may return Some if config file exists, or None if no config file
             // We can't control the config file in tests, so just verify it's consistent
@@ -964,9 +968,10 @@ mod tests {
         fn test_refresh_channel_precedence() {
             let env_var = locked_refresh_channel();
             env_var.set("env_channel");
-            
+
             // CLI arg should take precedence over env
-            let result = maybe_refresh_channel_from_args_env_or_config(Some("cli_channel".to_string()));
+            let result =
+                maybe_refresh_channel_from_args_env_or_config(Some("cli_channel".to_string()));
             assert_eq!(result, Some("cli_channel".to_string()));
         }
     }

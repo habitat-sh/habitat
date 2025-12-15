@@ -1,13 +1,13 @@
 use crate::{BLDR_URL_ENVVAR,
             ORIGIN_ENVVAR,
+            REFRESH_CHANNEL_ENVVAR,
             common::ui::{UI,
                          UIWriter},
             error::{Error,
                     Result},
             hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
                     env as henv,
-                    fs},
-            REFRESH_CHANNEL_ENVVAR};
+                    fs}};
 use habitat_common::cli_config::CliConfig;
 use habitat_core::{AUTH_TOKEN_ENVVAR,
                    package::target::PackageTarget};

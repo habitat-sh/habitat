@@ -138,16 +138,14 @@ mod tests {
 
     #[test]
     fn test_cli_config_serialization() {
-        let config = CliConfig {
-            auth_token: Some("test_token".to_string()),
-            refresh_channel: Some("stable".to_string()),
-            origin: None,
-            bldr_url: Some("https://bldr.example.com".to_string()),
-            ..Default::default()
-        };
+        let config = CliConfig { auth_token: Some("test_token".to_string()),
+                                 refresh_channel: Some("stable".to_string()),
+                                 origin: None,
+                                 bldr_url: Some("https://bldr.example.com".to_string()),
+                                 ..Default::default() };
 
         let toml_str = toml::ser::to_string(&config).expect("Failed to serialize config");
-        
+
         // Check that both auth_token and refresh_channel are serialized
         assert!(toml_str.contains(r#"auth_token = "test_token""#));
         assert!(toml_str.contains(r#"refresh_channel = "stable""#));
@@ -163,10 +161,11 @@ bldr_url = "https://bldr.example.com"
 "#;
 
         let config: CliConfig = toml::from_str(toml_str).expect("Failed to deserialize config");
-        
+
         assert_eq!(config.auth_token, Some("test_token".to_string()));
         assert_eq!(config.refresh_channel, Some("stable".to_string()));
-        assert_eq!(config.bldr_url, Some("https://bldr.example.com".to_string()));
+        assert_eq!(config.bldr_url,
+                   Some("https://bldr.example.com".to_string()));
         assert!(config.origin.is_none());
     }
 }

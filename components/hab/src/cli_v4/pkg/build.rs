@@ -73,9 +73,7 @@ pub(crate) struct PkgBuildOptions {
     /// 2. `HAB_REFRESH_CHANNEL` environment variable
     /// 3. `cli.toml` config file
     /// 4. Defaults to "base" if none of the above are set.
-    #[arg(name = "REFRESH_CHANNEL",
-          short = 'f',
-          long = "refresh-channel")]
+    #[arg(name = "REFRESH_CHANNEL", short = 'f', long = "refresh-channel")]
     refresh_channel: Option<String>,
 }
 
