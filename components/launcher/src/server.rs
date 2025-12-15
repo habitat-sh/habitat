@@ -29,8 +29,6 @@ use ipc_channel::ipc::{IpcOneShotServer,
 use log::{debug,
           error,
           warn};
-use semver::{Version,
-             VersionReq};
 #[cfg(unix)]
 use std::{cmp::Ordering,
           os::unix::process::ExitStatusExt};
@@ -53,12 +51,6 @@ const IPC_CONNECT_TIMEOUT_SECS: &str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
 const DEFAULT_IPC_CONNECT_TIMEOUT_SECS: u64 = 5;
 const SUP_CMD_ENVVAR: &str = "HAB_SUP_BINARY";
 static LOGKEY: &str = "SV";
-
-const SUP_VERSION_CHECK_DISABLE: &str = "HAB_LAUNCH_NO_SUP_VERSION_CHECK";
-// Version 0.56 is somewhat arbitrary. This functionality is for when we make
-// changes to the launcher that depend on supervisor behavior that hasn't
-// always existed such as https://github.com/habitat-sh/habitat/issues/5380
-const SUP_VERSION_REQ: &str = ">= 0.56";
 
 type Receiver = IpcReceiver<Vec<u8>>;
 type Sender = IpcSender<Vec<u8>>;
@@ -585,40 +577,6 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
     }
 }
 
-/// Return whether the given version string matches SUP_VERSION_REQ parsed as
-/// a semver::VersionReq.
-///
-/// Example inputs (that is `hab-sup --version` outputs):
-/// hab-sup 0.59.0/20180712161546
-/// hab-sup 0.62.0-dev
-fn is_supported_supervisor_version(version_output: &str) -> bool {
-    if let Some(version_str) = version_output
-        .split_whitespace()                 // ["hab-sup", <version-number>]
-        .last()                             // drop "hab-sup", keep <version-number>
-        .unwrap()                           // split() always returns an 1+ element iterator
-        .split(['/', '-'])                  // strip "-dev" or "/build"
-        .next()
-    {
-        debug!("Checking Supervisor version '{}' against requirement '{}'",
-               version_str, SUP_VERSION_REQ);
-        match Version::parse(version_str) {
-            Ok(version) => {
-                VersionReq::parse(SUP_VERSION_REQ).expect("invalid semantic version requirement")
-                                                  .matches(&version)
-            }
-            Err(e) => {
-                error!("{}: {}", e, version_str);
-                debug!("Original version command output: {}", version_output);
-                false
-            }
-        }
-    } else {
-        error!("Expected 'hab-sup <semantic-version>', found '{}'",
-               version_output);
-        false
-    }
-}
-
 /// Start a Supervisor as a child process.
 ///
 /// Passing a value of true to the `clean` argument will force the Supervisor to clean the
@@ -626,29 +584,6 @@ fn is_supported_supervisor_version(version_output: &str) -> bool {
 /// that terminated gracefully.
 fn spawn_supervisor(pipe: &str, args: &[String]) -> Result<Child> {
     let binary = supervisor_cmd().context("Failed to find supervisor binary")?;
-
-    if core::env::var(SUP_VERSION_CHECK_DISABLE).is_ok() {
-        warn!("Launching Supervisor {:?} without version checking", binary);
-    } else {
-        debug!("Checking Supervisor {:?} version", binary);
-        let version_check = Command::new(&binary).arg("--version")
-                                                 .env("RUST_LOG", "error")
-                                                 .output()
-                                                 .context("Failed to check supervisor version")?;
-        let sup_version = String::from_utf8_lossy(&version_check.stdout);
-        if !is_supported_supervisor_version(sup_version.trim()) {
-            error!("This Launcher requires Habitat version {}", SUP_VERSION_REQ);
-            error!("This check can be disabled by setting the {} environment variable to a \
-                    non-empty string when starting the supervisor",
-                   SUP_VERSION_CHECK_DISABLE);
-            error!("Disabling this check may result in undefined behavior; please update to a \
-                    newer Habitat version");
-            error!("For more information see https://github.com/habitat-sh/habitat/pull/5484");
-            return Err(anyhow!("This launcher does not support supervisor \
-                                version {}",
-                               sup_version.trim()));
-        }
-    }
 
     let mut command = Command::new(&binary);
 

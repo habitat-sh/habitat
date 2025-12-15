@@ -47,8 +47,8 @@ fi
 if [ -n "${HAB_STUDIO_SUP:-}" ]; then
 info "Exported: HAB_STUDIO_SUP=$HAB_STUDIO_SUP"
 fi
-if [ -n "${HAB_UPDATE_STRATEGY_FREQUENCY_MS:-}" ]; then
-info "Exported: HAB_UPDATE_STRATEGY_FREQUENCY_MS=$HAB_UPDATE_STRATEGY_FREQUENCY_MS"
+if [ -n "${HAB_UPDATE_STRATEGY_PERIOD_MS:-}" ]; then
+info "Exported: HAB_UPDATE_STRATEGY_PERIOD_MS=$HAB_UPDATE_STRATEGY_PERIOD_MS"
 fi
 if [ -n "${http_proxy:-}" ]; then
 info "Exported: http_proxy=$http_proxy"

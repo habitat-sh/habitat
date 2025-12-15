@@ -1,16 +1,39 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.331 -->
-## [2.0.331](https://github.com/habitat-sh/habitat/tree/2.0.331) (2025-11-25)
+<!-- latest_release 2.0.349 -->
+## [2.0.349](https://github.com/habitat-sh/habitat/tree/2.0.349) (2025-12-11)
 
 #### Merged Pull Requests
-- rust edition upgrade [#10062](https://github.com/habitat-sh/habitat/pull/10062) ([jasonheath](https://github.com/jasonheath))
+- no longer need to deal with supervisor version compatibility [#10097](https://github.com/habitat-sh/habitat/pull/10097) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- no longer need to deal with supervisor version compatibility [#10097](https://github.com/habitat-sh/habitat/pull/10097) ([mwrock](https://github.com/mwrock)) <!-- 2.0.349 -->
+- remove deprecation from a couple deprecated env vars that actually seem useful [#10094](https://github.com/habitat-sh/habitat/pull/10094) ([mwrock](https://github.com/mwrock)) <!-- 2.0.348 -->
+- remove deprecated build functions [#10095](https://github.com/habitat-sh/habitat/pull/10095) ([mwrock](https://github.com/mwrock)) <!-- 2.0.348 -->
+- Fixes RUSTSEC-2025-0134 (rustls-pemfile is unmaintained) [#10096](https://github.com/habitat-sh/habitat/pull/10096) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.347 -->
+- Updated habitat version to 2.0.345 for blackduck [#10093](https://github.com/habitat-sh/habitat/pull/10093) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.346 -->
+- no longer support hooks file names with underscores [#10089](https://github.com/habitat-sh/habitat/pull/10089) ([mwrock](https://github.com/mwrock)) <!-- 2.0.345 -->
+- FeatureFlag for MacOs Support  [#10080](https://github.com/habitat-sh/habitat/pull/10080) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.344 -->
+- removing some redundant test code left over from a previous pr [#10088](https://github.com/habitat-sh/habitat/pull/10088) ([mwrock](https://github.com/mwrock)) <!-- 2.0.343 -->
+- Bump aws-sdk-ecr from 1.102.0 to 1.103.0 [#10091](https://github.com/habitat-sh/habitat/pull/10091) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.343 -->
+- Bump aws-credential-types from 1.2.10 to 1.2.11 [#10092](https://github.com/habitat-sh/habitat/pull/10092) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.343 -->
+- Bump aws-config from 1.8.11 to 1.8.12 [#10090](https://github.com/habitat-sh/habitat/pull/10090) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.342 -->
+- removing the deprecated user.toml path [#10086](https://github.com/habitat-sh/habitat/pull/10086) ([mwrock](https://github.com/mwrock)) <!-- 2.0.341 -->
+- Bump reqwest from 0.12.24 to 0.12.25 [#10087](https://github.com/habitat-sh/habitat/pull/10087) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.340 -->
+- remove vestigial attributes application and environment [#10085](https://github.com/habitat-sh/habitat/pull/10085) ([mwrock](https://github.com/mwrock)) <!-- 2.0.339 -->
+- Bump cc from 1.2.47 to 1.2.49 [#10083](https://github.com/habitat-sh/habitat/pull/10083) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.338 -->
+- CHEF-25194: Replace the unmaintained sodiumoxide crate with the maintained libsodium-rs crate [#9891](https://github.com/habitat-sh/habitat/pull/9891) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.337 -->
+- Deals with a pair of RUSTSEC issues [#10084](https://github.com/habitat-sh/habitat/pull/10084) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.336 -->
+- Bump flate2 from 1.1.5 to 1.1.6 [#10079](https://github.com/habitat-sh/habitat/pull/10079) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.335 -->
+- Bump log from 0.4.28 to 0.4.29 [#10077](https://github.com/habitat-sh/habitat/pull/10077) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.335 -->
+- Bump mio from 1.1.0 to 1.1.1 [#10078](https://github.com/habitat-sh/habitat/pull/10078) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.335 -->
+- Bump libc from 0.2.177 to 0.2.178 [#10076](https://github.com/habitat-sh/habitat/pull/10076) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.334 -->
+- Fixes test-probe plan.ps1 [#10082](https://github.com/habitat-sh/habitat/pull/10082) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.333 -->
+- &#39;test-probe&#39; to use the rust pkg in `rust-toolchain` [#10081](https://github.com/habitat-sh/habitat/pull/10081) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.332 -->
 - rust edition upgrade [#10062](https://github.com/habitat-sh/habitat/pull/10062) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.331 -->
 - Start &#39;docker&#39; studio on MacOS with `hab studio` [#10066](https://github.com/habitat-sh/habitat/pull/10066) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.330 -->
 - Bump clap from 4.5.52 to 4.5.53 [#10064](https://github.com/habitat-sh/habitat/pull/10064) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.330 -->

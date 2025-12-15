@@ -891,8 +891,8 @@ chroot_env() {
   fi
   # If a Habitat update strategy frequency is set, then propagate it into the
   # Studio's environment.
-  if [ -n "${HAB_UPDATE_STRATEGY_FREQUENCY_MS:-}" ]; then
-    env="$env HAB_UPDATE_STRATEGY_FREQUENCY_MS=$HAB_UPDATE_STRATEGY_FREQUENCY_MS"
+  if [ -n "${HAB_UPDATE_STRATEGY_PERIOD_MS:-}" ]; then
+    env="$env HAB_UPDATE_STRATEGY_PERIOD_MS=$HAB_UPDATE_STRATEGY_PERIOD_MS"
   fi
   # If a Habitat studio binary is set, then propagate it into the Studio's
   # environment.
@@ -967,8 +967,8 @@ report_env_vars() {
   if [ -n "${HAB_STUDIO_SUP:-}" ]; then
     info "Exported: HAB_STUDIO_SUP=$HAB_STUDIO_SUP"
   fi
-  if [ -n "${HAB_UPDATE_STRATEGY_FREQUENCY_MS:-}" ]; then
-    info "Exported: HAB_UPDATE_STRATEGY_FREQUENCY_MS=$HAB_UPDATE_STRATEGY_FREQUENCY_MS"
+  if [ -n "${HAB_UPDATE_STRATEGY_PERIOD_MS:-}" ]; then
+    info "Exported: HAB_UPDATE_STRATEGY_PERIOD_MS=$HAB_UPDATE_STRATEGY_PERIOD_MS"
   fi
   if [ -n "${http_proxy:-}" ]; then
     info "Exported: http_proxy=$http_proxy"

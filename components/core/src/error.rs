@@ -143,6 +143,8 @@ pub enum Error {
     /// When an error occurs serializing rendering context
     RenderContextSerialization(serde_json::Error),
     RustlsReader(RustlsReaderError),
+    // Indicates that libsodium-rs returned an error
+    SodiumError(libsodium_rs::SodiumError),
     /// When an error occurs converting a `String` from a UTF-8 byte vector.
     StringFromUtf8Error(string::FromUtf8Error),
     /// When the system target (platform and architecture) do not match the package target.
@@ -355,6 +357,9 @@ impl fmt::Display for Error {
                 format!("Failed to send a signal to the child process: {}, {}", r, e)
             }
             Error::SodiumInitFailed => "Sodium library initialization failed".to_string(),
+            Error::SodiumError(ref e) => {
+                format!("libsodium-rs error: {}", e)
+            }
             Error::GetExitCodeProcessFailed(ref e) => e.to_string(),
             Error::CreateToolhelp32SnapshotFailed(ref e) => e.to_string(),
             Error::WaitForSingleObjectFailed(ref e) => e.to_string(),
@@ -420,4 +425,8 @@ impl From<regex::Error> for Error {
 
 impl From<RustlsReaderError> for Error {
     fn from(err: RustlsReaderError) -> Self { Error::RustlsReader(err) }
+}
+
+impl From<libsodium_rs::SodiumError> for Error {
+    fn from(err: libsodium_rs::SodiumError) -> Self { Error::SodiumError(err) }
 }

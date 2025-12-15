@@ -19,7 +19,6 @@ ipc-channel = { version = "*" }
 libc = "*"
 log = "0.4"
 prost = "*"
-semver = "*"
 thiserror = "*"
 anyhow = { version = "*", features = ["backtrace"] }
 
