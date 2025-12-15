@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.349 -->
-## [2.0.349](https://github.com/habitat-sh/habitat/tree/2.0.349) (2025-12-11)
+<!-- latest_release 2.0.350 -->
+## [2.0.350](https://github.com/habitat-sh/habitat/tree/2.0.350) (2025-12-15)
 
 #### Merged Pull Requests
-- no longer need to deal with supervisor version compatibility [#10097](https://github.com/habitat-sh/habitat/pull/10097) ([mwrock](https://github.com/mwrock))
+- Bump rcgen from 0.14.5 to 0.14.6 [#10099](https://github.com/habitat-sh/habitat/pull/10099) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump rcgen from 0.14.5 to 0.14.6 [#10099](https://github.com/habitat-sh/habitat/pull/10099) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.350 -->
 - no longer need to deal with supervisor version compatibility [#10097](https://github.com/habitat-sh/habitat/pull/10097) ([mwrock](https://github.com/mwrock)) <!-- 2.0.349 -->
 - remove deprecation from a couple deprecated env vars that actually seem useful [#10094](https://github.com/habitat-sh/habitat/pull/10094) ([mwrock](https://github.com/mwrock)) <!-- 2.0.348 -->
 - remove deprecated build functions [#10095](https://github.com/habitat-sh/habitat/pull/10095) ([mwrock](https://github.com/mwrock)) <!-- 2.0.348 -->
