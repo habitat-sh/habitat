@@ -1,5 +1,6 @@
 use crate::{BLDR_URL_ENVVAR,
             ORIGIN_ENVVAR,
+            REFRESH_CHANNEL_ENVVAR,
             common::ui::{UI,
                          UIWriter},
             error::{Error,
@@ -7,7 +8,6 @@ use crate::{BLDR_URL_ENVVAR,
             hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
                     env as henv,
                     fs}};
-
 use habitat_common::cli_config::CliConfig;
 use habitat_core::{AUTH_TOKEN_ENVVAR,
                    package::target::PackageTarget};
@@ -89,6 +89,9 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     set_env_var_from_config(BLDR_URL_ENVVAR, config.bldr_url, Sensitivity::PrintValue);
     set_env_var_from_config(ORIGIN_ENVVAR,
                             config.origin.map(|o| o.to_string()),
+                            Sensitivity::PrintValue);
+    set_env_var_from_config(REFRESH_CHANNEL_ENVVAR,
+                            config.refresh_channel,
                             Sensitivity::PrintValue);
 
     set_arch_env_var();

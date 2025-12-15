@@ -3,6 +3,7 @@ use crate::common::cli::DEFAULT_BINLINK_DIR;
 use crate::{AUTH_TOKEN_ENVVAR,
             BLDR_URL_ENVVAR,
             ORIGIN_ENVVAR,
+            REFRESH_CHANNEL_ENVVAR,
             command,
             common::ui::{UI,
                          UIReader,
@@ -170,6 +171,23 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
         ui.para("Alright, maybe another time. You can also set a `HAB_CTL_SECRET` environment \
                  variable when issuing commands to a remote Supervisor.")?;
     }
+    ui.heading("Habitat Refresh Channel")?;
+    ui.para("The Habitat refresh channel determines which channel to use for core packages \
+             during a build. Common values include 'stable' for stable releases and 'base' for \
+             latest supported packages. If you set a refresh channel here, it will be used as \
+             the default when no other channel is specified.")?;
+    ui.para("If you would like to save a default refresh channel for use by the Habitat client, \
+             please enter your preferred channel. Otherwise, just enter No. Defaults to 'base' \
+             if nothing is set.")?;
+    if ask_default_refresh_channel(ui)? {
+        ui.br()?;
+        ui.para("Enter your default Habitat refresh channel (e.g., 'stable', 'base').")?;
+        let refresh_channel = prompt_refresh_channel(ui)?;
+        write_cli_config_refresh_channel(&refresh_channel)?;
+    } else {
+        ui.para("Alright, maybe another time. You can also set a `HAB_REFRESH_CHANNEL` \
+                 environment variable or use the `--refresh-channel` flag when using the cli.")?;
+    }
     #[cfg(windows)]
     {
         let binlink_path =
@@ -240,6 +258,12 @@ fn write_cli_config_ctl_secret(value: &str) -> Result<()> {
     Ok(config.save()?)
 }
 
+fn write_cli_config_refresh_channel(refresh_channel: &str) -> Result<()> {
+    let mut config = CliConfig::load()?;
+    config.refresh_channel = Some(refresh_channel.to_string());
+    Ok(config.save()?)
+}
+
 fn is_origin_in_cache(origin: &Origin, key_cache: &KeyCache) -> bool {
     key_cache.latest_secret_origin_signing_key(origin).is_ok()
 }
@@ -273,6 +297,10 @@ fn ask_default_auth_token(ui: &mut UI) -> Result<bool> {
 fn ask_default_ctl_secret(ui: &mut UI) -> Result<bool> {
     Ok(ui.prompt_yes_no("Set up a default Habitat Supervisor control gateway secret?",
                         Some(false))?)
+}
+
+fn ask_default_refresh_channel(ui: &mut UI) -> Result<bool> {
+    Ok(ui.prompt_yes_no("Set up a default Habitat refresh channel?", Some(false))?)
 }
 
 fn prompt_url(ui: &mut UI) -> Result<String> {
@@ -316,6 +344,19 @@ fn prompt_ctl_secret(ui: &mut UI) -> Result<String> {
     };
     Ok(ui.prompt_ask("Habitat Supervisor control gateway secret",
                      default.as_deref())?)
+}
+
+fn prompt_refresh_channel(ui: &mut UI) -> Result<String> {
+    let config = CliConfig::load()?;
+    let default = match config.refresh_channel {
+        Some(o) => {
+            ui.para("You already have a default refresh channel set up, but feel free to change \
+                     it if you wish.")?;
+            Some(o)
+        }
+        None => henv::var(REFRESH_CHANNEL_ENVVAR).ok(),
+    };
+    Ok(ui.prompt_ask("Habitat refresh channel", default.as_deref())?)
 }
 
 fn valid_url(val: &str) -> result::Result<(), String> {

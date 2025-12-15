@@ -33,6 +33,8 @@ use habitat_core::{AUTH_TOKEN_ENVVAR,
                          DEFAULT_BLDR_URL,
                          bldr_url_from_env}};
 
+use crate::REFRESH_CHANNEL_ENVVAR;
+
 use hab_common_derive::GenConfig;
 
 #[cfg(not(target_os = "macos"))]
@@ -193,8 +195,13 @@ impl AuthToken {
                 Err(_) => {
                     CliConfig::load()?.auth_token.ok_or_else(|| {
                                                      HabError::ArgumentError("No auth token \
-                                                                              specified"
-                                                                                        .into())
+                                                                              specified: please \
+                                                                              pass `-z/--auth`, \
+                                                                              set HAB_AUTH_TOKEN, \
+                                                                              or add auth_token \
+                                                                              to ~/.hab/etc/cli.\
+                                                                              toml"
+                                                                                   .into())
                                                  })
                 }
             }
@@ -216,9 +223,10 @@ impl AuthToken {
                 let cfg = CliConfig::load()?;
                 cfg.auth_token.clone().ok_or_else(|| {
                                           Error::ArgumentError("No auth token specified: please \
-                                                                pass `-z/--auth` or set \
-                                                                HAB_AUTH_TOKEN"
-                                                                               .into())
+                                                                pass `-z/--auth`, set \
+                                                                HAB_AUTH_TOKEN, or add auth_token \
+                                                                to ~/.hab/etc/cli.toml"
+                                                                                       .into())
                                       })
             }
         }
@@ -657,8 +665,10 @@ pub(crate) fn bldr_auth_token_from_args_env_or_load(opt: Option<String>) -> Resu
                                                  Error::ArgumentError("No auth token specified. \
                                                                        Please check that you have \
                                                                        specified a valid Personal \
-                                                                       Access Token with:  -z, \
-                                                                       --auth <AUTH_TOKEN>"
+                                                                       Access Token with: \
+                                                                       -z/--auth, HAB_AUTH_TOKEN, \
+                                                                       or auth_token in \
+                                                                       ~/.hab/etc/cli.toml"
                                                                                            .into())
                                              })
             }
@@ -668,6 +678,32 @@ pub(crate) fn bldr_auth_token_from_args_env_or_load(opt: Option<String>) -> Resu
 
 pub(crate) fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Option<String> {
     bldr_auth_token_from_args_env_or_load(opt).ok()
+}
+
+pub(crate) fn refresh_channel_from_args_env_or_config(opt: Option<String>)
+                                                      -> Result<String, Error> {
+    if let Some(channel) = opt {
+        Ok(channel)
+    } else {
+        match hcore_env::var(REFRESH_CHANNEL_ENVVAR) {
+            Ok(v) => Ok(v),
+            Err(_) => {
+                CliConfig::load()?.refresh_channel.ok_or_else(|| {
+                                                       Error::ArgumentError("No refresh channel \
+                                                                             specified. Please \
+                                                                             specify with \
+                                                                             --refresh-channel, \
+                                                                             set HAB_REFRESH_CHANNEL or \
+                                                                             add refresh_channel to ~/.hab/etc/cli.toml"
+                                                                                             .into())
+                                                   })
+            }
+        }
+    }
+}
+
+pub(crate) fn maybe_refresh_channel_from_args_env_or_config(opt: Option<String>) -> Option<String> {
+    refresh_channel_from_args_env_or_config(opt).ok()
 }
 
 pub(crate) fn is_default<T: Default + PartialEq>(val: &T) -> bool { val == &T::default() }
@@ -894,6 +930,38 @@ mod tests {
             let test_bldr_url = result.unwrap();
             let bldr_url = test_bldr_url.u.to_string();
             assert_eq!(bldr_url.as_str(), test_bldr_url_val, "{:#?}", bldr_url);
+        }
+    }
+
+    mod refresh_channel_tests {
+        use crate::cli_v4::utils::maybe_refresh_channel_from_args_env_or_config;
+
+        habitat_core::locked_env_var!(HAB_REFRESH_CHANNEL, locked_refresh_channel);
+
+        #[test]
+        fn test_refresh_channel_from_cli_arg() {
+            let result = maybe_refresh_channel_from_args_env_or_config(Some("testing".to_string()));
+            assert_eq!(result, Some("testing".to_string()));
+        }
+
+        #[test]
+        fn test_refresh_channel_from_env() {
+            let env_var = locked_refresh_channel();
+            env_var.set("staging");
+
+            let result = maybe_refresh_channel_from_args_env_or_config(None);
+            assert_eq!(result, Some("staging".to_string()));
+        }
+
+        #[test]
+        fn test_refresh_channel_precedence() {
+            let env_var = locked_refresh_channel();
+            env_var.set("env_channel");
+
+            // CLI arg should take precedence over env
+            let result =
+                maybe_refresh_channel_from_args_env_or_config(Some("cli_channel".to_string()));
+            assert_eq!(result, Some("cli_channel".to_string()));
         }
     }
 }
