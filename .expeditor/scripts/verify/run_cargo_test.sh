@@ -5,7 +5,7 @@ set -eou pipefail
 # shellcheck source=.expeditor/scripts/shared.sh
 source .expeditor/scripts/verify/shared.sh
 
-if [[ ${1:-"--"} = "--" ]]; then
+if [[ ${1:-"--"} == "--" ]]; then
   scope="habitat workspace"
 else
   component="$1"
@@ -14,6 +14,17 @@ else
 fi
 
 toolchain=$(get_toolchain)
+install_hab_pkg core/glibc core/gcc-base core/xz core/zeromq core/protobuf core/rust/"$toolchain"
+
+RUSTFLAGS="-C link-arg=-Wl,--dynamic-linker=$(hab pkg path core/glibc)/lib/ld-linux-x86-64.so.2"
+export RUSTFLAGS
+RUSTDOCFLAGS="${RUSTFLAGS}" # because we're running tests doctests also get run
+export RUSTDOCFLAGS
+
+LD_LIBRARY_PATH="$(cat "$(hab pkg path core/gcc-base)"/LD_RUN_PATH)"
+LD_LIBRARY_PATH+=":$(cat "$(hab pkg path core/zeromq)"/LD_RUN_PATH)"
+LD_LIBRARY_PATH+=":$(cat "$(hab pkg path core/xz)"/LD_RUN_PATH)"
+export LD_LIBRARY_PATH
 
 # TODO: fix this upstream, it looks like it's not saving correctly.
 if ${BUILDKITE:-false}; then
@@ -21,25 +32,20 @@ if ${BUILDKITE:-false}; then
 fi
 
 # TODO: these should be in a shared script?
-sudo -E hab pkg install core/zeromq
-sudo -E hab pkg install core/protobuf
-sudo -E hab pkg install core/rust/"$toolchain"
-export LIBZMQ_PREFIX
 LIBZMQ_PREFIX=$(hab pkg path core/zeromq)
-# now include zeromq and gcc so they exist in the runtime library path when cargo test is run
-export LD_LIBRARY_PATH
-LD_LIBRARY_PATH="$(hab pkg path core/gcc-base)/lib64:$(hab pkg path core/zeromq)/lib"
+export LIBZMQ_PREFIX
+
 old_path=$PATH
 eval "$(hab pkg env core/rust/"$toolchain")"
 export PATH=$PATH:$old_path
 
 export PROTOC_NO_VENDOR=1
-export PROTOC
 PROTOC=$(hab pkg path core/protobuf)/bin/protoc
+export PROTOC
 
 # Set testing filesystem root
-export FS_ROOT
 FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
+export FS_ROOT
 
 export RUST_BACKTRACE=1
 
