@@ -69,7 +69,7 @@ pub(crate) struct PkgBuildOptions {
 
     /// Channel used to retrieve plan dependencies for Chef supported origins.
     /// The value is determined in the following precedence order:
-    /// 1. CLI argument (`--refresh-channel`)
+    /// 1. CLI argument (`--refresh-channel` or -f)
     /// 2. `HAB_REFRESH_CHANNEL` environment variable
     /// 3. `cli.toml` config file
     /// 4. Defaults to "base" if none of the above are set.
