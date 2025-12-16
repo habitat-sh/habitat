@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.352 -->
-## [2.0.352](https://github.com/habitat-sh/habitat/tree/2.0.352) (2025-12-15)
+<!-- latest_release 2.0.353 -->
+## [2.0.353](https://github.com/habitat-sh/habitat/tree/2.0.353) (2025-12-16)
 
 #### Merged Pull Requests
-- CHEF-25540: Add config file support for HAB_AUTH_TOKEN and HAB_REFRESH_CHANNEL [#9996](https://github.com/habitat-sh/habitat/pull/9996) ([dikshagupta1](https://github.com/dikshagupta1))
+- Bump reqwest from 0.12.25 to 0.12.26 [#10101](https://github.com/habitat-sh/habitat/pull/10101) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump reqwest from 0.12.25 to 0.12.26 [#10101](https://github.com/habitat-sh/habitat/pull/10101) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.353 -->
 - CHEF-25540: Add config file support for HAB_AUTH_TOKEN and HAB_REFRESH_CHANNEL [#9996](https://github.com/habitat-sh/habitat/pull/9996) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.352 -->
 - Bump os_info from 3.13.0 to 3.14.0 [#10100](https://github.com/habitat-sh/habitat/pull/10100) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.351 -->
 - Bump rcgen from 0.14.5 to 0.14.6 [#10099](https://github.com/habitat-sh/habitat/pull/10099) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.350 -->
