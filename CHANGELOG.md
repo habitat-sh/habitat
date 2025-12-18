@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.355 -->
-## [2.0.355](https://github.com/habitat-sh/habitat/tree/2.0.355) (2025-12-18)
+<!-- latest_release 2.0.356 -->
+## [2.0.356](https://github.com/habitat-sh/habitat/tree/2.0.356) (2025-12-18)
 
 #### Merged Pull Requests
-- Bump rustls-pki-types from 1.13.1 to 1.13.2 [#10104](https://github.com/habitat-sh/habitat/pull/10104) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump toml from 0.9.8 to 0.9.9+spec-1.0.0 [#10106](https://github.com/habitat-sh/habitat/pull/10106) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump toml from 0.9.8 to 0.9.9+spec-1.0.0 [#10106](https://github.com/habitat-sh/habitat/pull/10106) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.356 -->
+- Bump wincode from 0.2.2 to 0.2.3 [#10105](https://github.com/habitat-sh/habitat/pull/10105) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.356 -->
 - Bump rustls-pki-types from 1.13.1 to 1.13.2 [#10104](https://github.com/habitat-sh/habitat/pull/10104) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.355 -->
 - Removes usage of bincode by launcher-client [#10103](https://github.com/habitat-sh/habitat/pull/10103) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.354 -->
 - Bump reqwest from 0.12.25 to 0.12.26 [#10101](https://github.com/habitat-sh/habitat/pull/10101) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.353 -->
