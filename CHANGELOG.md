@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.354 -->
-## [2.0.354](https://github.com/habitat-sh/habitat/tree/2.0.354) (2025-12-17)
+<!-- latest_release 2.0.355 -->
+## [2.0.355](https://github.com/habitat-sh/habitat/tree/2.0.355) (2025-12-18)
 
 #### Merged Pull Requests
-- Removes usage of bincode by launcher-client [#10103](https://github.com/habitat-sh/habitat/pull/10103) ([jasonheath](https://github.com/jasonheath))
+- Bump rustls-pki-types from 1.13.1 to 1.13.2 [#10104](https://github.com/habitat-sh/habitat/pull/10104) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump rustls-pki-types from 1.13.1 to 1.13.2 [#10104](https://github.com/habitat-sh/habitat/pull/10104) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.355 -->
 - Removes usage of bincode by launcher-client [#10103](https://github.com/habitat-sh/habitat/pull/10103) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.354 -->
 - Bump reqwest from 0.12.25 to 0.12.26 [#10101](https://github.com/habitat-sh/habitat/pull/10101) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.353 -->
 - CHEF-25540: Add config file support for HAB_AUTH_TOKEN and HAB_REFRESH_CHANNEL [#9996](https://github.com/habitat-sh/habitat/pull/9996) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.352 -->
