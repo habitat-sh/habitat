@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.356 -->
-## [2.0.356](https://github.com/habitat-sh/habitat/tree/2.0.356) (2025-12-18)
+<!-- latest_release 2.0.357 -->
+## [2.0.357](https://github.com/habitat-sh/habitat/tree/2.0.357) (2025-12-19)
 
 #### Merged Pull Requests
-- Bump toml from 0.9.8 to 0.9.9+spec-1.0.0 [#10106](https://github.com/habitat-sh/habitat/pull/10106) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump aws-sdk-ecr from 1.103.0 to 1.104.0 [#10109](https://github.com/habitat-sh/habitat/pull/10109) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump aws-sdk-ecr from 1.103.0 to 1.104.0 [#10109](https://github.com/habitat-sh/habitat/pull/10109) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.357 -->
 - Bump toml from 0.9.8 to 0.9.9+spec-1.0.0 [#10106](https://github.com/habitat-sh/habitat/pull/10106) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.356 -->
 - Bump wincode from 0.2.2 to 0.2.3 [#10105](https://github.com/habitat-sh/habitat/pull/10105) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.356 -->
 - Bump rustls-pki-types from 1.13.1 to 1.13.2 [#10104](https://github.com/habitat-sh/habitat/pull/10104) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.355 -->
