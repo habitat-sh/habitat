@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.359 -->
-## [2.0.359](https://github.com/habitat-sh/habitat/tree/2.0.359) (2025-12-22)
+<!-- latest_release 2.0.360 -->
+## [2.0.360](https://github.com/habitat-sh/habitat/tree/2.0.360) (2025-12-22)
 
 #### Merged Pull Requests
-- Bump wincode from 0.2.3 to 0.2.4 [#10110](https://github.com/habitat-sh/habitat/pull/10110) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.49 to 1.2.50 [#10111](https://github.com/habitat-sh/habitat/pull/10111) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.49 to 1.2.50 [#10111](https://github.com/habitat-sh/habitat/pull/10111) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.360 -->
 - Bump wincode from 0.2.3 to 0.2.4 [#10110](https://github.com/habitat-sh/habitat/pull/10110) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.359 -->
 - Bump toml from 0.9.9+spec-1.0.0 to 0.9.10+spec-1.1.0 [#10107](https://github.com/habitat-sh/habitat/pull/10107) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.358 -->
 - Bump clap_complete from 4.5.61 to 4.5.62 [#10108](https://github.com/habitat-sh/habitat/pull/10108) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.358 -->
