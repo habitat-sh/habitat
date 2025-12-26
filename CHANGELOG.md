@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.362 -->
-## [2.0.362](https://github.com/habitat-sh/habitat/tree/2.0.362) (2025-12-23)
+<!-- latest_release 2.0.363 -->
+## [2.0.363](https://github.com/habitat-sh/habitat/tree/2.0.363) (2025-12-26)
 
 #### Merged Pull Requests
-- Bump wincode from 0.2.4 to 0.2.5 [#10114](https://github.com/habitat-sh/habitat/pull/10114) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_json from 1.0.145 to 1.0.147 [#10116](https://github.com/habitat-sh/habitat/pull/10116) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.145 to 1.0.147 [#10116](https://github.com/habitat-sh/habitat/pull/10116) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.363 -->
 - Bump wincode from 0.2.4 to 0.2.5 [#10114](https://github.com/habitat-sh/habitat/pull/10114) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.362 -->
 - Bump reqwest from 0.12.26 to 0.12.28 [#10112](https://github.com/habitat-sh/habitat/pull/10112) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.361 -->
 - Bump cc from 1.2.49 to 1.2.50 [#10111](https://github.com/habitat-sh/habitat/pull/10111) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.360 -->
