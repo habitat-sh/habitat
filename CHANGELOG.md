@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.364 -->
-## [2.0.364](https://github.com/habitat-sh/habitat/tree/2.0.364) (2025-12-26)
+<!-- latest_release 2.0.365 -->
+## [2.0.365](https://github.com/habitat-sh/habitat/tree/2.0.365) (2025-12-29)
 
 #### Merged Pull Requests
-- Bump tempfile from 3.23.0 to 3.24.0 [#10115](https://github.com/habitat-sh/habitat/pull/10115) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump proc-macro2 from 1.0.103 to 1.0.104 [#10117](https://github.com/habitat-sh/habitat/pull/10117) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump proc-macro2 from 1.0.103 to 1.0.104 [#10117](https://github.com/habitat-sh/habitat/pull/10117) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.365 -->
 - Bump tempfile from 3.23.0 to 3.24.0 [#10115](https://github.com/habitat-sh/habitat/pull/10115) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.364 -->
 - Bump serde_json from 1.0.145 to 1.0.147 [#10116](https://github.com/habitat-sh/habitat/pull/10116) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.363 -->
 - Bump wincode from 0.2.4 to 0.2.5 [#10114](https://github.com/habitat-sh/habitat/pull/10114) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.362 -->
