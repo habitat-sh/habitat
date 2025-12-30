@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.366 -->
-## [2.0.366](https://github.com/habitat-sh/habitat/tree/2.0.366) (2025-12-29)
+<!-- latest_release 2.0.367 -->
+## [2.0.367](https://github.com/habitat-sh/habitat/tree/2.0.367) (2025-12-30)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.147 to 1.0.148 [#10119](https://github.com/habitat-sh/habitat/pull/10119) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump clap_complete from 4.5.62 to 4.5.63 [#10120](https://github.com/habitat-sh/habitat/pull/10120) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump clap_complete from 4.5.62 to 4.5.63 [#10120](https://github.com/habitat-sh/habitat/pull/10120) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.367 -->
 - Bump serde_json from 1.0.147 to 1.0.148 [#10119](https://github.com/habitat-sh/habitat/pull/10119) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.366 -->
 - Bump proc-macro2 from 1.0.103 to 1.0.104 [#10117](https://github.com/habitat-sh/habitat/pull/10117) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.365 -->
 - Bump tempfile from 3.23.0 to 3.24.0 [#10115](https://github.com/habitat-sh/habitat/pull/10115) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.364 -->
