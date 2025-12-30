@@ -61,7 +61,7 @@ steps:
     expeditor:
       executor:
         macos:
-          os-version: "12"
+          os-version: "13"
           inherit-environment-vars: true
     timeout_in_minutes: 60
     retry:
@@ -78,7 +78,7 @@ steps:
     expeditor:
       executor:
         macos:
-          os-version: "12"
+          os-version: "13"
           inherit-environment-vars: true
     timeout_in_minutes: 60
     retry:
