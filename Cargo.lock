@@ -3170,6 +3170,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "maybe-dangling"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59dbb09ed53f8e4f314e353dc6c1853ae5b4c480a668a422657804a544ea9f65"
+
+[[package]]
 name = "memchr"
 version = "2.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4471,10 +4477,11 @@ checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
 
 [[package]]
 name = "safer_owning_ref"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af21b9de2df966f61c07b5b541c81c98225b86e48ababd43366a642654de30ef"
+checksum = "c1202383da87cfa1ab63f548bbb12e1dc22c256f885a7c30c4e433be49e6c1ba"
 dependencies = [
+ "maybe-dangling",
  "stable_deref_trait",
 ]
 
