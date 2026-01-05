@@ -127,14 +127,7 @@ When a Jira ID is provided:
    gh pr create --title "<JIRA-ID>: Brief title" --body "<HTML formatted description>" --label "ai-assisted"
    ```
 
-4. **Update JIRA Ticket** (MANDATORY): After successful PR creation, update the JIRA ticket with AI assistance field
-   ```
-   Use atlassian-mcp tools to update customfield_11170 ("Does this Work Include AI Assisted Code?") to "Yes"
-   Field format: {"customfield_11170": {"value": "Yes"}}
-   Verify the field update was successful
-   ```
-
-5. **PR Description Format** (HTML):
+4. **PR Description Format** (HTML):
    ```html
    <h2>Summary</h2>
    <p>Brief description of changes made</p>
