@@ -108,7 +108,7 @@ When a Jira ID is provided:
    cargo test --all
    ```
 
-### 5. Git Workflow, PR Creation, and JIRA Update
+### 5. Git Workflow, PR Creation, and Description
 
 1. **Branch Creation**: Use Jira ID as branch name
    ```bash
