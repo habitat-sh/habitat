@@ -19,6 +19,11 @@ run_user="hab"
 run_group="$run_user"
 
 # shellcheck disable=SC2154
+_pkgpath_for() {
+  "$system_hab_cmd" pkg path "$1" | $sed_cmd -e "s,^$HAB_STUDIO_ROOT,,g"
+}
+
+# shellcheck disable=SC2154
 finish_setup() {
     src_dir="$($pwd_cmd)"
     $mkdir_cmd -p "$HAB_STUDIO_ROOT"/etc
@@ -70,8 +75,4 @@ PROFILE_ENTER
     fi
 
     return 0
-}
-
-_pkgpath_for() {
-  "$system_hab_cmd" pkg path "$1" | $sed_cmd -e "s,^$HAB_STUDIO_ROOT,,g"
 }
