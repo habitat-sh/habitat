@@ -80,7 +80,16 @@ winapi = { version = "^0.3", features = ["namedpipeapi", "tlhelp32"] }
 [dev-dependencies]
 habitat_core = { path = "../core" }
 hyper = "*"
-reqwest = { version = "*", features = ["json"] }
+# reqwest 0.13.0 changed the default TLS support from native-tls to rustls
+# this feature configuration is about using the features that were in effect
+# when our code was still locked to 0.12.8 (so reqwest defaults + our additions)
+reqwest = { version = "*", default-features = false, features = [
+    "charset",
+    "http2",
+    "json",
+    "native-tls-no-alpn",
+    "system-proxy",
+] }
 
 [target.'cfg(not(windows))'.dev-dependencies]
 nix = { version = "*", features = ["signal", "user"] }

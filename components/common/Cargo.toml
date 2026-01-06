@@ -37,7 +37,18 @@ parking_lot = "*"
 pbr = "*"
 petgraph = "*"
 regex = "*"
-reqwest = { version = "*", features = ["blocking", "json", "stream"] }
+# reqwest 0.13.0 changed the default TLS support from native-tls to rustls
+# this feature configuration is about using the features that were in effect
+# when our code was still locked to 0.12.8 (so reqwest defaults + our additions)
+reqwest = { version = "*", default-features = false, features = [
+    "blocking",
+    "charset",
+    "http2",
+    "json",
+    "native-tls-no-alpn",
+    "stream",
+    "system-proxy",
+] }
 serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*", features = ["preserve_order"] }
 serde_yaml = "*"
