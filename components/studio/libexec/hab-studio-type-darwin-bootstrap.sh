@@ -19,6 +19,11 @@ run_user="hab"
 run_group="$run_user"
 
 # shellcheck disable=SC2154
+_pkgpath_for() {
+  "$system_hab_cmd" pkg path "$1" | $sed_cmd -e "s,^$HAB_STUDIO_ROOT,,g"
+}
+
+# shellcheck disable=SC2154
 finish_setup() {
     src_dir="$($pwd_cmd)"
     $mkdir_cmd -p "$HAB_STUDIO_ROOT"/etc
@@ -54,8 +59,20 @@ fi
 
 PROFILE_ENTER
 
+    coreutils_path=$(_pkgpath_for core/build-tools-coreutils)
+
     # Install the hab backline
     "$system_hab_cmd" pkg install "$HAB_STUDIO_BACKLINE_PKG"
+
+    # Install any local artifacts. This is required for the bootstrap to work in the incremental
+    # mode.
+    if [ -n "${HAB_STUDIO_INSTALL_PKGS:-}" ]; then
+      echo "Installing additional packages in bootstrap studio"
+      deps=$(echo "$HAB_STUDIO_INSTALL_PKGS" | "$coreutils_path"/bin/tr ":" "\n")
+      for dep in $deps; do
+        "$system_hab_cmd" pkg install "$dep"
+      done
+    fi
 
     return 0
 }
