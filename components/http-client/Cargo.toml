@@ -11,7 +11,18 @@ log = "0.4"
 native-tls = { version = "*", features = ["vendored"] }
 pem = "*"
 httparse = "*"
-reqwest = { version = "*", features = ["blocking", "json", "stream"] }
+# reqwest 0.13.0 changed the default TLS support from native-tls to rustls
+# this feature configuration is about using the features that were in effect
+# when our code was still locked to 0.12.8 (so reqwest defaults + our additions)
+reqwest = { version = "*", default-features = false, features = [
+    "blocking",
+    "charset",
+    "http2",
+    "json",
+    "native-tls-no-alpn",
+    "stream",
+    "system-proxy",
+] }
 env_proxy = "*"
 serde = "*"
 serde_json = { version = "*", features = ["preserve_order"] }
