@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.373 -->
-## [2.0.373](https://github.com/habitat-sh/habitat/tree/2.0.373) (2026-01-06)
+<!-- latest_release 2.0.374 -->
+## [2.0.374](https://github.com/habitat-sh/habitat/tree/2.0.374) (2026-01-07)
 
 #### Merged Pull Requests
-- Configure reqwest features to fix e2e pipeline [#10136](https://github.com/habitat-sh/habitat/pull/10136) ([jasonheath](https://github.com/jasonheath))
+- Bump url from 2.5.7 to 2.5.8 [#10131](https://github.com/habitat-sh/habitat/pull/10131) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump url from 2.5.7 to 2.5.8 [#10131](https://github.com/habitat-sh/habitat/pull/10131) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.374 -->
 - Configure reqwest features to fix e2e pipeline [#10136](https://github.com/habitat-sh/habitat/pull/10136) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.373 -->
 - Changes to MacOS studio for installing packages offline [#10125](https://github.com/habitat-sh/habitat/pull/10125) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.372 -->
 - Bump libc from 0.2.178 to 0.2.179 [#10130](https://github.com/habitat-sh/habitat/pull/10130) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.371 -->
