@@ -7,13 +7,21 @@
 [advisories]
 
 # advisory IDs to ignore e.g. ["RUSTSEC-2019-0001", ...]
-ignore = []
-informational_warnings = [
-    "notice",
-    "unmaintained",
-    "unsound",
-] # warn for categories of informational advisories
-severity_threshold = "none" # CVSS severity ("none", "low", "medium", "high", "critical")
+ignore = [
+    # Ignoring this for now as we removed bincode from habitat in
+    # https://github.com/habitat-sh/habitat/pull/10103 and this alert is based
+    # on a transitive dependency via the ipc-channel crate.  That team has
+    # https://github.com/servo/ipc-channel/pull/432 open which will remove
+    # bincode from their project.  When that future version of ipc-channel
+    # lands in habitat this security alert should clear and we can remove this
+    "RUSTSEC-2025-0141",
+]
+
+# warn for categories of informational advisories
+informational_warnings = ["notice", "unmaintained", "unsound"]
+
+# CVSS severity ("none", "low", "medium", "high", "critical")
+severity_threshold = "none"
 
 # Advisory Database Configuration
 [database]
