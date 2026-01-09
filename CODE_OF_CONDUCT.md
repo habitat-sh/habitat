@@ -1,3 +1,3 @@
-# Contributor Code of Conduct
+# Chef Code of Conduct
 
-Please refer to the [Chef Community Contributor Code of Conduct](https://github.com/chef/chef-oss-practices/blob/master/CODE_OF_CONDUCT.md).
+Participants in this project must adhere to the [Chef Code of Conduct](https://chef.github.io/chef-oss-practices/policies/code-of-conduct/).
