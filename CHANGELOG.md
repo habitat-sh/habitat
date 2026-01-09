@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.377 -->
-## [2.0.377](https://github.com/habitat-sh/habitat/tree/2.0.377) (2026-01-08)
+<!-- latest_release 2.0.378 -->
+## [2.0.378](https://github.com/habitat-sh/habitat/tree/2.0.378) (2026-01-09)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.148 to 1.0.149 [#10139](https://github.com/habitat-sh/habitat/pull/10139) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.50 to 1.2.52 [#10145](https://github.com/habitat-sh/habitat/pull/10145) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.50 to 1.2.52 [#10145](https://github.com/habitat-sh/habitat/pull/10145) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.378 -->
 - Bump serde_json from 1.0.148 to 1.0.149 [#10139](https://github.com/habitat-sh/habitat/pull/10139) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.377 -->
 - Bump clap_complete from 4.5.64 to 4.5.65 [#10138](https://github.com/habitat-sh/habitat/pull/10138) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.377 -->
 - Ignores RUSTSEC-2025-0141 in .cargo/audit.toml [#10142](https://github.com/habitat-sh/habitat/pull/10142) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.376 -->
