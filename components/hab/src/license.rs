@@ -70,21 +70,18 @@ impl LicenseData {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
 pub enum LicenseAcceptance {
     Accepted,
     /// Explicitly deny the license and do not prompt for license acceptance. This is useful for
     /// testing.
     Denied,
+    #[default]
     NotYetAccepted,
 }
 
 impl LicenseAcceptance {
     pub fn accepted(self) -> bool { self == Self::Accepted }
-}
-
-impl Default for LicenseAcceptance {
-    fn default() -> Self { Self::NotYetAccepted }
 }
 
 pub fn check_for_license_acceptance() -> Result<LicenseAcceptance> {

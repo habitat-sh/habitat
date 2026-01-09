@@ -926,22 +926,22 @@ mod tests {
     #[test]
     fn previous_peer_with_no_alive_members() {
         let me = test_census_member("me", Health::Alive);
-        let members = vec![test_census_member("left_of_me", Health::Confirmed),
-                           me.clone(),];
+        let members = &[test_census_member("left_of_me", Health::Confirmed),
+                        me.clone()];
         assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me), None);
     }
 
     #[test]
     fn previous_peer_with_only_me() {
         let me = test_census_member("me", Health::Alive);
-        let members = vec![me.clone()];
+        let members = std::slice::from_ref(&me);
         assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me), None);
     }
 
     #[test]
     fn previous_peer_simple() {
         let me = test_census_member("me", Health::Alive);
-        let members = vec![test_census_member("left_of_me", Health::Alive), me.clone()];
+        let members = &[test_census_member("left_of_me", Health::Alive), me.clone()];
         assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me),
                              Some("left_of_me"));
     }
@@ -949,8 +949,8 @@ mod tests {
     #[test]
     fn previous_peer_wraparound() {
         let me = test_census_member("me", Health::Alive);
-        let members = vec![me.clone(),
-                           test_census_member("left_of_me_with_wrapping", Health::Alive),];
+        let members = &[me.clone(),
+                        test_census_member("left_of_me_with_wrapping", Health::Alive)];
         assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me),
                              Some("left_of_me_with_wrapping"));
     }
@@ -958,10 +958,10 @@ mod tests {
     #[test]
     fn previous_peer_normal() {
         let me = test_census_member("me", Health::Alive);
-        let members = vec![test_census_member("2_left_of_me", Health::Alive),
-                           test_census_member("left_of_me", Health::Alive),
-                           me.clone(),
-                           test_census_member("right_of_me", Health::Alive),];
+        let members = &[test_census_member("2_left_of_me", Health::Alive),
+                        test_census_member("left_of_me", Health::Alive),
+                        me.clone(),
+                        test_census_member("right_of_me", Health::Alive)];
         assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me),
                              Some("left_of_me"));
     }
@@ -969,10 +969,10 @@ mod tests {
     #[test]
     fn previous_peer_with_confirmed() {
         let me = test_census_member("me", Health::Alive);
-        let members = vec![test_census_member("2_left_of_me", Health::Alive),
-                           test_census_member("left_of_me", Health::Confirmed),
-                           me.clone(),
-                           test_census_member("right_of_me", Health::Alive),];
+        let members = &[test_census_member("2_left_of_me", Health::Alive),
+                        test_census_member("left_of_me", Health::Confirmed),
+                        me.clone(),
+                        test_census_member("right_of_me", Health::Alive)];
         assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me),
                              Some("2_left_of_me"));
     }
@@ -980,10 +980,10 @@ mod tests {
     #[test]
     fn previous_peer_with_confirmed_and_wraparound() {
         let me = test_census_member("me", Health::Alive);
-        let members = vec![test_census_member("left_of_me", Health::Confirmed),
-                           me.clone(),
-                           test_census_member("left_of_me_with_wrapping", Health::Alive),
-                           test_census_member("2_right_of_me", Health::Confirmed),];
+        let members = &[test_census_member("left_of_me", Health::Confirmed),
+                        me.clone(),
+                        test_census_member("left_of_me_with_wrapping", Health::Alive),
+                        test_census_member("2_right_of_me", Health::Confirmed)];
         assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me),
                              Some("left_of_me_with_wrapping"));
     }
