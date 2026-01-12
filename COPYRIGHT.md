@@ -1,0 +1,1 @@
+Copyright ©  2015-2019 Chef Software Inc.and/or its subsidiaries or affiliates. All rights reserved.
