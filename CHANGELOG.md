@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.380 -->
-## [2.0.380](https://github.com/habitat-sh/habitat/tree/2.0.380) (2026-01-12)
+<!-- latest_release 2.0.381 -->
+## [2.0.381](https://github.com/habitat-sh/habitat/tree/2.0.381) (2026-01-12)
 
 #### Merged Pull Requests
-- Bump blake2b_simd from 1.0.3 to 1.0.4 [#10152](https://github.com/habitat-sh/habitat/pull/10152) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump prost-build from 0.14.1 to 0.14.3 [#10151](https://github.com/habitat-sh/habitat/pull/10151) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump prost-build from 0.14.1 to 0.14.3 [#10151](https://github.com/habitat-sh/habitat/pull/10151) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.381 -->
+- Bump toml from 0.9.10+spec-1.1.0 to 0.9.11+spec-1.1.0 [#10153](https://github.com/habitat-sh/habitat/pull/10153) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.381 -->
 - Bump blake2b_simd from 1.0.3 to 1.0.4 [#10152](https://github.com/habitat-sh/habitat/pull/10152) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.380 -->
 - CHEF-29547 - Create SECURITY.md with standard template [#10144](https://github.com/habitat-sh/habitat/pull/10144) ([nandanhegde73](https://github.com/nandanhegde73)) <!-- 2.0.379 -->
 - Bump libc from 0.2.179 to 0.2.180 [#10146](https://github.com/habitat-sh/habitat/pull/10146) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.379 -->
