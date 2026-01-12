@@ -61,20 +61,6 @@ do_prepare() {
 
   export LIBZMQ_PREFIX=$(pkg_path_for zeromq)
 
-  # TODO (CM, FN): This is not needed to build the supervisor,
-  # strictly speaking, but is instead a work-around for how we are
-  # currently building packages in Travis; we hypothesize that the
-  # build.rs program for habitat_http_client, built during a static
-  # hab package build, is being inadvertently used here. Without gcc
-  # libs on the LD_LIBRARY_PATH, the program can't find
-  # libgcc_s.so.1. This is merely a bandaid until we can overhaul our
-  # CI pipeline properly.
-  #
-  # Used to find libgcc_s.so.1 when compiling `build.rs` in dependencies. Since
-  # this used only at build time, we will use the version found in the gcc
-  # package proper--it won't find its way into the final binaries.
-  export LD_LIBRARY_PATH=$(pkg_path_for gcc)/lib
-
   # Prost (our Rust protobuf library) embeds a `protoc` binary, but
   # it's dynamically linked, which means it won't work in a
   # Studio. Prost does allow us to override that, though, so we can
