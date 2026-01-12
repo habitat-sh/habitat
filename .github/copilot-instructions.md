@@ -2,7 +2,7 @@
 
 ## Repository Overview
 
-Habitat is Chef's application automation framework that builds, deploys, and manages applications. This repository contains the core Habitat components written primarily in Rust.
+Habitat is Chef's application automation framework that builds, deploys, and manages the applications. This repository contains the core Habitat components written primarily in Rust.
 
 ## Repository Structure
 
