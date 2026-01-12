@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.379 -->
-## [2.0.379](https://github.com/habitat-sh/habitat/tree/2.0.379) (2026-01-09)
+<!-- latest_release 2.0.380 -->
+## [2.0.380](https://github.com/habitat-sh/habitat/tree/2.0.380) (2026-01-12)
 
 #### Merged Pull Requests
-- CHEF-29547 - Create SECURITY.md with standard template [#10144](https://github.com/habitat-sh/habitat/pull/10144) ([nandanhegde73](https://github.com/nandanhegde73))
+- Bump blake2b_simd from 1.0.3 to 1.0.4 [#10152](https://github.com/habitat-sh/habitat/pull/10152) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump blake2b_simd from 1.0.3 to 1.0.4 [#10152](https://github.com/habitat-sh/habitat/pull/10152) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.380 -->
 - CHEF-29547 - Create SECURITY.md with standard template [#10144](https://github.com/habitat-sh/habitat/pull/10144) ([nandanhegde73](https://github.com/nandanhegde73)) <!-- 2.0.379 -->
 - Bump libc from 0.2.179 to 0.2.180 [#10146](https://github.com/habitat-sh/habitat/pull/10146) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.379 -->
 - CHEF-29545 Remove SLA from readme [#10147](https://github.com/habitat-sh/habitat/pull/10147) ([Saburesh07](https://github.com/Saburesh07)) <!-- 2.0.379 -->
