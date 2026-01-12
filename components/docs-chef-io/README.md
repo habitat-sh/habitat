@@ -148,19 +148,13 @@ See:
 
 ## Release Notes
 
-Release notes allow product engineering to communicate the list of features that are shipping in the builds being promoted to `stable`. Remember release notes are not changelogs! The audience is our end-users, not other engineers. If you need a quick primer on what goes into good release notes, take a look at these excellent articles:
+Release notes allow product engineering to communicate the list of features that are shipping in the builds being promoted to `stable`. Remember release notes aren't changelogs! The audience is our end-users, not other engineers. If you need a quick primer on what goes into good release notes, take a look at these excellent articles:
 
+- [The Good Docs Project](https://www.thegooddocsproject.dev/template/release-notes)
 - [The Life-Changing Magic of Writing Release Notes](https://medium.com/@DigitalGov/the-life-changing-magic-of-writing-release-notes-4c460970565)
-- [Let’s All Appreciate These Great Release Notes Together](https://www.prodpad.com/blog/writing-release-notes/)
+- [Let's All Appreciate These Great Release Notes Together](https://www.prodpad.com/blog/release-notes/)
 
-Capture the release notes on the [Pending Release Notes wiki page](https://github.com/habitat-sh/habitat/wiki/Pending-Release-Notes). All edits should be completed and reviewed by a member of the Documentation Team before Habitat is promoted to `stable`. It is the responsibility of the _individual development teams_ to ensure the release notes are updated with any features and breaking changes that ship when Habitat is promoted to the `stable` channel. We encourage teams to make updating these release notes part of their weekly rituals. Whatever is in the wiki page at promotion time is what goes out with the release!
-
-During the promotion to the `stable` channel, the release notes will be extracted from the wiki page and published to an S3 bucket. The published release notes are then available at the following URLs:
-
-```text
-https://docs.chef.io/release_notes_habitat/
-https://packages.chef.io/release-notes/habitat/<VERSION>.md
-```
+Release notes are published from the [chef/chef-web-docs repository](https://github.com/chef/chef-web-docs/blob/main/content/release_notes/habitat.md).
 
 ## Documentation Feedback
 
@@ -169,7 +163,7 @@ We love getting feedback, questions, or comments.
 **Email**
 
 Send an email to Chef-Docs@progress.com for documentation bugs,
-ideas, thoughts, and suggestions. This email address is not a
+ideas, thoughts, and suggestions. This email address isn't a
 support email address. If you need support, contact [Chef Support](https://www.chef.io/support/).
 
 **GitHub issues**
