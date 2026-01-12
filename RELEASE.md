@@ -202,9 +202,15 @@ channel. Once again, we use the Slack command:
 This will result in the Supervisors in our Production Builder updating
 themselves to the release candidate.
 
-## Update Pending Release Notes
+## Publish Release Notes
 
-The `Pending Release Notes` on the habitat githib repo's wiki is a placeholder for content that is published to the chef.io release notes and the discource release announcement. The `finish_release` pipeline which runs after promoting habitat to stable in expeditor automates the process of extracting the pending notes and publishing to chef.io and discource. It is important to make sure that the [wiki page](https://github.com/habitat-sh/habitat/wiki/Pending-Release-Notes) is updated before promoting to stable.
+Release notes are published from the [chef/chef-web-docs repository](https://github.com/chef/chef-web-docs/blob/main/content/release_notes/habitat.md).
+
+If you need a quick primer on what goes into good release notes, take a look at these excellent articles:
+
+- [The Good Docs Project](https://www.thegooddocsproject.dev/template/release-notes)
+- [The Life-Changing Magic of Writing Release Notes](https://medium.com/@DigitalGov/the-life-changing-magic-of-writing-release-notes-4c460970565)
+- [Let's All Appreciate These Great Release Notes Together](https://www.prodpad.com/blog/release-notes/)
 
 ## Promote from Current to Stable
 
