@@ -81,24 +81,3 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-
-  - label: "Publish Release Notes"
-    command:
-      - .expeditor/scripts/release_notes/publish-release-notes.sh
-    expeditor:
-      account:
-        - github
-      secrets:
-        GITHUB_TOKEN:
-          account: github/habitat-sh
-          field: token
-      executor:
-        docker:
-          environment:
-            - GITHUB_USER
-
-  - wait
-
-  - label: "Announce Release"
-    command:
-      - .expeditor/scripts/release_notes/announce-release.sh
