@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.382 -->
-## [2.0.382](https://github.com/habitat-sh/habitat/tree/2.0.382) (2026-01-13)
+<!-- latest_release 2.0.383 -->
+## [2.0.383](https://github.com/habitat-sh/habitat/tree/2.0.383) (2026-01-13)
 
 #### Merged Pull Requests
-- Bump flate2 from 1.1.5 to 1.1.8 [#10156](https://github.com/habitat-sh/habitat/pull/10156) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- CHEF-29548 - Replace  CODE_OF_CONDUCT.md file  [#10148](https://github.com/habitat-sh/habitat/pull/10148) ([Saburesh07](https://github.com/Saburesh07))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- CHEF-29548 - Replace  CODE_OF_CONDUCT.md file  [#10148](https://github.com/habitat-sh/habitat/pull/10148) ([Saburesh07](https://github.com/Saburesh07)) <!-- 2.0.383 -->
+- Upgraded the `rust-toolchain` to 1.91.1 [#10143](https://github.com/habitat-sh/habitat/pull/10143) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.383 -->
 - Bump flate2 from 1.1.5 to 1.1.8 [#10156](https://github.com/habitat-sh/habitat/pull/10156) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.382 -->
 - Bump prost-build from 0.14.1 to 0.14.3 [#10151](https://github.com/habitat-sh/habitat/pull/10151) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.381 -->
 - Bump toml from 0.9.10+spec-1.1.0 to 0.9.11+spec-1.1.0 [#10153](https://github.com/habitat-sh/habitat/pull/10153) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.381 -->
