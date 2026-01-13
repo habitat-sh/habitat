@@ -2131,7 +2131,7 @@ fn get_fd_count() -> std::io::Result<usize> {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use habitat_core::fs::CACHE_KEY_PATH;
     use habitat_sup_protocol::STATE_PATH_PREFIX;

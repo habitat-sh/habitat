@@ -170,7 +170,7 @@ impl From<ShutdownSignal> for Signal {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]

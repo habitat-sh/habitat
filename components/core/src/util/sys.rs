@@ -44,7 +44,7 @@ fn ip_impl(connect_addr: impl ToSocketAddrs) -> io::Result<IpAddr> {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]

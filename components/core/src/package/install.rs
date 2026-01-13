@@ -657,7 +657,7 @@ impl fmt::Display for PackageInstall {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use crate::package::test_support::{fixture_path,
                                        testing_package_install};

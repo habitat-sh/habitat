@@ -29,7 +29,7 @@ pub fn resolve_socket_addr_with_default_port<S: AsRef<str>>(
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::resolve_socket_addr_with_default_port;
 
     #[test]

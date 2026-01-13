@@ -297,7 +297,7 @@ fn is_existing_dir(path: &Path) -> Result<bool> {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use crate::package::test_support::testing_package_install;
 

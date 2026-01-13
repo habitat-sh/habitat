@@ -402,7 +402,7 @@ impl clap_v4::ValueEnum for UpdateCondition {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use serde::{Deserialize,
                 Serialize};
 

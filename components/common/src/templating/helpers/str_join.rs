@@ -46,7 +46,7 @@ impl HelperDef for StrJoinHelper {
 pub static STR_JOIN: StrJoinHelper = StrJoinHelper;
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use serde_json::json;
 

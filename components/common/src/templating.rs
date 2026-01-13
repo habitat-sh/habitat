@@ -172,7 +172,7 @@ fn fix_handlebars_syntax(text: &str) -> String {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use crate::{hcore::{fs::{FS_ROOT_PATH,
                              pkg_root_path},

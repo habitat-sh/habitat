@@ -838,7 +838,7 @@ impl PkgIdentType {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     fn build_spec() -> BuildSpec {
         BuildSpec { hab:                "hab".to_string(),

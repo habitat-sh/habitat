@@ -516,7 +516,7 @@ impl<'a> Iterator for Iter<'a> {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use serde::{Deserialize,
                 Serialize};
