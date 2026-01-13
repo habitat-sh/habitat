@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.384 -->
-## [2.0.384](https://github.com/habitat-sh/habitat/tree/2.0.384) (2026-01-13)
+<!-- latest_release 2.0.385 -->
+## [2.0.385](https://github.com/habitat-sh/habitat/tree/2.0.385) (2026-01-13)
 
 #### Merged Pull Requests
-- Renames test modules to tests [#10157](https://github.com/habitat-sh/habitat/pull/10157) ([jasonheath](https://github.com/jasonheath))
+- Remove release notes Expeditor actions [#10155](https://github.com/habitat-sh/habitat/pull/10155) ([IanMadd](https://github.com/IanMadd))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Remove release notes Expeditor actions [#10155](https://github.com/habitat-sh/habitat/pull/10155) ([IanMadd](https://github.com/IanMadd)) <!-- 2.0.385 -->
 - Renames test modules to tests [#10157](https://github.com/habitat-sh/habitat/pull/10157) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.384 -->
 - CHEF-29548 - Replace  CODE_OF_CONDUCT.md file  [#10148](https://github.com/habitat-sh/habitat/pull/10148) ([Saburesh07](https://github.com/Saburesh07)) <!-- 2.0.383 -->
 - Upgraded the `rust-toolchain` to 1.91.1 [#10143](https://github.com/habitat-sh/habitat/pull/10143) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.383 -->
