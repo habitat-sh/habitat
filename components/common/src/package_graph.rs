@@ -210,7 +210,7 @@ impl Default for PackageGraph {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use std::str::FromStr;
 

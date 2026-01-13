@@ -564,7 +564,7 @@ impl TryFrom<habitat_sup_protocol::ctl::SvcLoad> for ServiceSpec {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use std::{fs::{self,
                    File},
               io::{BufReader,

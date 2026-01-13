@@ -57,7 +57,7 @@ impl Watcher for SupWatcher {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use habitat_core::locked_env_var;
     use std::{sync::mpsc::channel,

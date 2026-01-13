@@ -268,7 +268,7 @@ fn threads_exited_with_error(statuses: &ThreadStatusMap) -> Vec<NameAndErrorExit
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use lazy_static::lazy_static;
     use std::sync::{Arc,

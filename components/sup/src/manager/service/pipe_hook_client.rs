@@ -301,7 +301,7 @@ fn stream_output<T>(out: T, log_file: &Path, preamble_str: &str)
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use habitat_common::templating::{package::Pkg,
                                      test_helpers::{create_with_content,

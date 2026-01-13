@@ -463,7 +463,7 @@ impl PackageArchiveInfo {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::{super::target,
                 *};
     use std::path::PathBuf;

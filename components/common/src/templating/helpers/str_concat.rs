@@ -32,7 +32,7 @@ impl HelperDef for StrConcatHelper {
 pub static STR_CONCAT: StrConcatHelper = StrConcatHelper;
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use serde_json::json;
 

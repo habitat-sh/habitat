@@ -230,7 +230,7 @@ impl FromStr for PackageType {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use std::io::Write;
     use tempfile::Builder;

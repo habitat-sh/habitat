@@ -554,7 +554,7 @@ fn write_templated_file(path: &Path, compiled: &str, user: &str, group: &str) ->
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use crate::{error::Error,
                 hcore::{os::users,

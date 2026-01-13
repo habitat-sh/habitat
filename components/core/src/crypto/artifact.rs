@@ -182,7 +182,7 @@ pub fn artifact_signer<P>(hart_file_path: P) -> Result<NamedRevision>
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::{super::{HART_FORMAT_VERSION,
                         SIG_HASH_TYPE,
                         test_support::*},

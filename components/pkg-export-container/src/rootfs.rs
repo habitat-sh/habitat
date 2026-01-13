@@ -43,7 +43,7 @@ pub(crate) fn create<T>(root: T) -> Result<()>
 
 #[cfg(unix)]
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use std::{fs::File,
               io::Read};
