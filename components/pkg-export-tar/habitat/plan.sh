@@ -55,12 +55,6 @@ do_prepare() {
   export rustc_target="${pkg_target%%-*}-unknown-linux-musl"
   build_line "Setting rustc_target=$rustc_target"
 
-  # Used to find libgcc_s.so.1 when compiling `build.rs` in dependencies. Since
-  # this used only at build time, we will use the version found in the gcc
-  # package proper--it won't find its way into the final binaries.
-  export LD_LIBRARY_PATH=$(pkg_path_for gcc)/lib
-  build_line "Setting LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
-
   PLAN_TAR_PKG_IDENT=$(pkg_path_for tar | sed "s,^$HAB_PKG_PATH/,,")
   export PLAN_TAR_PKG_IDENT
   build_line "Setting PLAN_TAR_PKG_IDENT=$PLAN_TAR_PKG_IDENT"
