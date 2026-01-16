@@ -124,7 +124,12 @@ pub fn start(ui: &mut UI,
              fs_root_path: &Path,
              force: bool)
              -> Result<()> {
-    let dst_path = fs_root_path.join(dest_path.strip_prefix("/")?);
+    let dst_path = if cfg!(target_os = "macos") {
+        dest_path
+    } else {
+        &fs_root_path.join(dest_path.strip_prefix("/")?)
+    };
+
     ui.begin(format!("Binlinking {} from {} into {}",
                      binary,
                      ident,
@@ -141,6 +146,10 @@ pub fn start(ui: &mut UI,
     if cfg!(target_os = "windows") {
         src = fs_root_path.join(src.strip_prefix("/")?);
     }
+    if cfg!(target_os = "macos") {
+        src = fs_root_path.join(src.strip_prefix("/")?);
+    }
+
     if !dst_path.is_dir() {
         ui.status(Status::Creating,
                   format!("parent directory {}", dst_path.display()))?;
