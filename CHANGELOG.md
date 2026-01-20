@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.388 -->
-## [2.0.388](https://github.com/habitat-sh/habitat/tree/2.0.388) (2026-01-16)
+<!-- latest_release 2.0.389 -->
+## [2.0.389](https://github.com/habitat-sh/habitat/tree/2.0.389) (2026-01-20)
 
 #### Merged Pull Requests
-- Bump aws-sdk-ecr from 1.104.0 to 1.105.0 [#10159](https://github.com/habitat-sh/habitat/pull/10159) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.52 to 1.2.53 [#10162](https://github.com/habitat-sh/habitat/pull/10162) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.52 to 1.2.53 [#10162](https://github.com/habitat-sh/habitat/pull/10162) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.389 -->
 - Bump aws-sdk-ecr from 1.104.0 to 1.105.0 [#10159](https://github.com/habitat-sh/habitat/pull/10159) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.388 -->
 - Bump chrono from 0.4.42 to 0.4.43 [#10158](https://github.com/habitat-sh/habitat/pull/10158) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.387 -->
 - CHEF-29546 - Update and standardize copyright notices to Progress Software Corporation - copyright_update [#10137](https://github.com/habitat-sh/habitat/pull/10137) ([clintoncwolfe](https://github.com/clintoncwolfe)) <!-- 2.0.386 -->
