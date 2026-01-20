@@ -1921,7 +1921,7 @@ dependencies = [
  "reqwest",
  "retry",
  "rustls 0.23.35",
- "rustls-webpki 0.103.8",
+ "rustls-webpki 0.103.9",
  "same-file",
  "serde",
  "serde_json",
@@ -2166,7 +2166,7 @@ dependencies = [
  "reqwest",
  "rustls 0.23.35",
  "rustls-pki-types",
- "rustls-webpki 0.103.8",
+ "rustls-webpki 0.103.9",
  "serde",
  "serde_json",
  "serde_test",
@@ -4279,7 +4279,7 @@ dependencies = [
  "log",
  "once_cell",
  "rustls-pki-types",
- "rustls-webpki 0.103.8",
+ "rustls-webpki 0.103.9",
  "subtle",
  "zeroize",
 ]
@@ -4317,9 +4317,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-webpki"
-version = "0.103.8"
+version = "0.103.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ffdfa2f5286e2247234e03f680868ac2815974dc39e00ea15adc445d0aafe52"
+checksum = "d7df23109aa6c1567d1c575b9952556388da57401e4ace1d15f79eedad0d8f53"
 dependencies = [
  "aws-lc-rs",
  "ring",
