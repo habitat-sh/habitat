@@ -1,4 +1,4 @@
-// Implemenatation of `hab origin rbac`
+// Implementation of `hab origin rbac`
 
 use clap_v4 as clap;
 

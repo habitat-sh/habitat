@@ -1,4 +1,4 @@
-// Implemenatation of `hab origin invitations`
+// Implementation of `hab origin invitations`
 
 use clap_v4 as clap;
 

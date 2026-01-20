@@ -1,4 +1,4 @@
-// Implemenatation of `hab origin key`
+// Implementation of `hab origin key`
 
 use clap_v4 as clap;
 

@@ -1,4 +1,4 @@
-// Implemenatation of `hab pkg binds`
+// Implementation of `hab pkg binds`
 
 use clap_v4 as clap;
 

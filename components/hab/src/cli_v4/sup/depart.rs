@@ -1,4 +1,4 @@
-// Implemenatation of `hab sup depart`
+// Implementation of `hab sup depart`
 
 use clap_v4 as clap;
 

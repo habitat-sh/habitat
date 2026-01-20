@@ -1,4 +1,4 @@
-// Implemenatation of `hab pkg bulkupload`
+// Implementation of `hab pkg bulkupload`
 
 use clap_v4 as clap;
 

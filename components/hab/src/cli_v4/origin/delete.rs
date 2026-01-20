@@ -1,4 +1,4 @@
-// Implemenatation of `hab origin delete`
+// Implementation of `hab origin delete`
 
 use clap_v4 as clap;
 

@@ -1,4 +1,4 @@
-// Implemenatation of `hab sup restart`
+// Implementation of `hab sup restart`
 
 use clap_v4 as clap;
 

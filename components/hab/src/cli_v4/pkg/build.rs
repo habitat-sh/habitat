@@ -1,4 +1,4 @@
-// Implemenatation of `hab pkg build`
+// Implementation of `hab pkg build`
 use clap_v4 as clap;
 
 use std::path::PathBuf;

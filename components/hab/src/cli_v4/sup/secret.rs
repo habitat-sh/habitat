@@ -1,4 +1,4 @@
-// Implemenatation of `hab sup secret`
+// Implementation of `hab sup secret`
 /// Commands relating to a Habitat Supervisor's Control Gateway secret
 use clap_v4 as clap;
 

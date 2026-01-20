@@ -1,4 +1,4 @@
-// Implemenatation of `hab pkg binlink`
+// Implementation of `hab pkg binlink`
 
 use clap_v4 as clap;
 
