@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.389 -->
-## [2.0.389](https://github.com/habitat-sh/habitat/tree/2.0.389) (2026-01-20)
+<!-- latest_release 2.0.390 -->
+## [2.0.390](https://github.com/habitat-sh/habitat/tree/2.0.390) (2026-01-20)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.52 to 1.2.53 [#10162](https://github.com/habitat-sh/habitat/pull/10162) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- CHEF-29554 - Create CONTRIBUTING.md file with active template for habitat [#10165](https://github.com/habitat-sh/habitat/pull/10165) ([cgunasree08](https://github.com/cgunasree08))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- CHEF-29554 - Create CONTRIBUTING.md file with active template for habitat [#10165](https://github.com/habitat-sh/habitat/pull/10165) ([cgunasree08](https://github.com/cgunasree08)) <!-- 2.0.390 -->
+- Bump rustls-pki-types from 1.13.2 to 1.14.0 [#10163](https://github.com/habitat-sh/habitat/pull/10163) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.390 -->
+- Bump rustls-webpki from 0.103.8 to 0.103.9 [#10164](https://github.com/habitat-sh/habitat/pull/10164) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.390 -->
 - Bump cc from 1.2.52 to 1.2.53 [#10162](https://github.com/habitat-sh/habitat/pull/10162) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.389 -->
 - Bump aws-sdk-ecr from 1.104.0 to 1.105.0 [#10159](https://github.com/habitat-sh/habitat/pull/10159) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.388 -->
 - Bump chrono from 0.4.42 to 0.4.43 [#10158](https://github.com/habitat-sh/habitat/pull/10158) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.387 -->
