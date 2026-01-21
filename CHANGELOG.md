@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.391 -->
-## [2.0.391](https://github.com/habitat-sh/habitat/tree/2.0.391) (2026-01-21)
+<!-- latest_release 2.0.392 -->
+## [2.0.392](https://github.com/habitat-sh/habitat/tree/2.0.392) (2026-01-21)
 
 #### Merged Pull Requests
-- Corrects Implemenatation misspelling [#10168](https://github.com/habitat-sh/habitat/pull/10168) ([jasonheath](https://github.com/jasonheath))
+- Update copilot instructions - ai assisted [#10004](https://github.com/habitat-sh/habitat/pull/10004) ([dikshagupta1](https://github.com/dikshagupta1))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Update copilot instructions - ai assisted [#10004](https://github.com/habitat-sh/habitat/pull/10004) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.392 -->
 - Corrects Implemenatation misspelling [#10168](https://github.com/habitat-sh/habitat/pull/10168) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.391 -->
 - CHEF-29554 - Create CONTRIBUTING.md file with active template for habitat [#10165](https://github.com/habitat-sh/habitat/pull/10165) ([cgunasree08](https://github.com/cgunasree08)) <!-- 2.0.390 -->
 - Bump rustls-pki-types from 1.13.2 to 1.14.0 [#10163](https://github.com/habitat-sh/habitat/pull/10163) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.390 -->
