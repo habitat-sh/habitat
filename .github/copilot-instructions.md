@@ -2,7 +2,7 @@
 
 ## Repository Overview
 
-Habitat is Chef's application automation framework that builds, deploys, and manages applications. This repository contains the core Habitat components written primarily in Rust.
+Habitat is Chef's application automation framework that builds, deploys, and manages the applications. This repository contains the core Habitat components written primarily in Rust.
 
 ## Repository Structure
 
@@ -108,7 +108,7 @@ When a Jira ID is provided:
    cargo test --all
    ```
 
-### 5. Git Workflow and PR Creation
+### 5. Git Workflow, PR Creation, and Description
 
 1. **Branch Creation**: Use Jira ID as branch name
    ```bash
@@ -124,7 +124,7 @@ When a Jira ID is provided:
 3. **Push and Create PR**:
    ```bash
    git push origin <JIRA-ID>
-   gh pr create --title "<JIRA-ID>: Brief title" --body "<HTML formatted description>" --label "runtest:all:stable"
+   gh pr create --title "<JIRA-ID>: Brief title" --body "<HTML formatted description>" --label "ai-assisted"
    ```
 
 4. **PR Description Format** (HTML):
@@ -145,9 +145,32 @@ When a Jira ID is provided:
      <li>Coverage maintained > 80%</li>
    </ul>
 
+   <h2>AI Assistance</h2>
+   <p>This work was completed with AI assistance following Progress AI policies</p>
+
    <h2>Jira Link</h2>
    <p><a href="link-to-jira-issue">JIRA-ID</a></p>
    ```
+
+### 6. Update JIRA Ticket (MANDATORY)
+
+After successful PR creation, you MUST update the JIRA ticket to indicate AI assistance was used:
+
+1. **Use Atlassian MCP Server**: Use the `mcp_atlassian-mcp_editJiraIssue` tool to update the ticket
+2. **Target Field**: Update `customfield_11170` ("Does this Work Include AI Assisted Code?") 
+3. **Required Value**: Set to "Yes"
+4. **Correct Format**: Use exact format `{"customfield_11170": {"value": "Yes"}}`
+5. **Verification**: Confirm the field update was successful
+
+**Example MCP Call**:
+```
+mcp_atlassian-mcp_editJiraIssue with:
+- cloudId: [your-atlassian-cloud-id]
+- issueIdOrKey: [JIRA-ID]  
+- fields: {"customfield_11170": {"value": "Yes"}}
+```
+
+**CRITICAL**: This step is mandatory for all AI-assisted work and must be completed before declaring the task finished.
 
 ## Prompt-Based Workflow
 
@@ -179,7 +202,8 @@ Example format:
 3. **Implementation** → Summary + "Continue with testing?"
 4. **Testing** → Summary + "Continue with quality checks?"
 5. **Quality Assurance** → Summary + "Continue with PR creation?"
-6. **PR Creation** → Summary + "Task completed!"
+6. **PR Creation** → Summary + "Continue with JIRA update?"
+7. **JIRA Update** → Summary + "Task completed!"
 
 ## Development Guidelines
 
@@ -276,7 +300,8 @@ Before completing any task:
 - [ ] All tests passing
 - [ ] Code properly formatted and linted
 - [ ] Branch created with Jira ID
-- [ ] PR created with HTML description and "runtest:all:stable" label
+- [ ] PR created with HTML description and "ai-assisted" label
+- [ ] JIRA ticket updated with customfield_11170 set to "Yes"
 - [ ] All steps completed with user confirmation
 
 ## Emergency Contacts
