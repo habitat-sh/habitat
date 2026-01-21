@@ -1,4 +1,4 @@
-// Implemenatation of `hab origin info`
+// Implementation of `hab origin info`
 
 use clap_v4 as clap;
 

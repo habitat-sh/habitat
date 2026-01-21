@@ -1,4 +1,4 @@
-// Implemenatation of `hab origin transfer`
+// Implementation of `hab origin transfer`
 
 use clap_v4 as clap;
 

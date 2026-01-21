@@ -1,4 +1,4 @@
-// Implemenatation of `hab sup run`
+// Implementation of `hab sup run`
 
 use clap_v4 as clap;
 
