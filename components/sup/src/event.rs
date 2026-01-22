@@ -28,6 +28,8 @@ use crate::manager::{service::{HealthCheckHookStatus,
                                Service,
                                StandardStreams},
                      sys::Sys};
+use async_nats::{ServerAddr as NatsServerAddress,
+                 Subject as NatsSubject};
 pub use error::{Error,
                 Result};
 use habitat_common::types::{EventStreamConnectMethod,
@@ -36,37 +38,28 @@ use habitat_common::types::{EventStreamConnectMethod,
                             EventStreamToken};
 use habitat_core::{package::ident::PackageIdent,
                    service::HealthCheckInterval};
-use lazy_static::lazy_static;
 use log::debug;
 use nats_message_stream::{NatsMessage,
                           NatsMessageStream};
 use prost_types::Duration as ProstDuration;
-use rants::{Address,
-            Subject};
 use state::InitCell;
 use std::{convert::TryFrom,
           net::SocketAddr,
+          sync::LazyLock,
           time::Duration};
 
-lazy_static! {
-    // TODO (CM): When const fn support lands in stable, we can ditch
-    // this lazy_static call.
-
-    // NATS subject names
-    static ref SERVICE_STARTED_SUBJECT: Subject =
-        "habitat.event.service_started".parse().expect("valid NATS subject");
-    static ref SERVICE_STOPPED_SUBJECT: Subject =
-        "habitat.event.service_stopped".parse().expect("valid NATS subject");
-    static ref SERVICE_UPDATE_STARTED_SUBJECT: Subject =
-        "habitat.event.service_update_started".parse().expect("valid NATS subject");
-    static ref HEALTHCHECK_SUBJECT: Subject =
-        "habitat.event.healthcheck".parse().expect("valid NATS subject");
-
-    /// Reference to the event stream.
-    static ref NATS_MESSAGE_STREAM: InitCell<NatsMessageStream> = InitCell::new();
-    /// Core information that is shared between all events.
-    static ref EVENT_CORE: InitCell<EventCore> = InitCell::new();
-}
+static SERVICE_STARTED_SUBJECT: LazyLock<NatsSubject> =
+    LazyLock::new(|| NatsSubject::from("habitat.event.service_started"));
+static SERVICE_STOPPED_SUBJECT: LazyLock<NatsSubject> =
+    LazyLock::new(|| NatsSubject::from("habitat.event.service_stopped"));
+static SERVICE_UPDATE_STARTED_SUBJECT: LazyLock<NatsSubject> =
+    LazyLock::new(|| NatsSubject::from("habitat.event.service_update_started"));
+static HEALTHCHECK_SUBJECT: LazyLock<NatsSubject> =
+    LazyLock::new(|| NatsSubject::from("habitat.event.healthcheck"));
+/// Reference to the event stream.
+static NATS_MESSAGE_STREAM: InitCell<NatsMessageStream> = InitCell::new();
+/// Core information that is shared between all events.
+static EVENT_CORE: InitCell<EventCore> = InitCell::new();
 
 /// Starts a new task for sending events to a NATS Streaming
 /// server. Stashes the handle to the stream, as well as the core
@@ -96,7 +89,7 @@ pub struct EventStreamConfig {
     pub site:               Option<String>,
     pub meta:               EventStreamMetadata,
     pub token:              EventStreamToken,
-    pub url:                Address,
+    pub url:                NatsServerAddress,
     pub connect_method:     EventStreamConnectMethod,
     pub server_certificate: Option<EventStreamServerCertificate>,
 }
@@ -213,7 +206,7 @@ fn initialized() -> bool { NATS_MESSAGE_STREAM.try_get().is_some() }
 ///
 /// If `init_stream` has not been called already, this function will
 /// be a no-op.
-fn publish(subject: &'static Subject, mut event: impl EventMessage) {
+fn publish(subject: &'static NatsSubject, mut event: impl EventMessage) {
     if let Some(stream) = NATS_MESSAGE_STREAM.try_get() {
         // TODO (CM): Yeah... this is looking pretty gross. The
         // intention is to be able to timestamp the events right as
@@ -296,12 +289,20 @@ mod tests {
                      HealthCheckInterval::default());
         let events = rx.take(4).collect::<Vec<_>>().await;
 
-        let event = HealthCheckEvent::decode(events[0].payload()).unwrap();
+        let event = HealthCheckEvent::decode(&events[0].payload[..]).unwrap();
+        let metadata = event.event_metadata
+                            .as_ref()
+                            .expect("event metadata should be set");
         assert_eq!(event.result, 0);
         assert_eq!(event.execution, None);
         assert_eq!(event.exit_status, None);
         assert_eq!(event.stdout, None);
         assert_eq!(event.stderr, None);
+        assert_eq!(metadata.supervisor_id, "supervisor_id");
+        assert_eq!(metadata.fqdn, "fqdn");
+        assert_eq!(metadata.application, "application");
+        assert_eq!(metadata.environment, "environment");
+        assert!(metadata.occurred_at.is_some());
 
         let default_interval = HealthCheckInterval::default();
         let prost_interval =
@@ -310,14 +311,14 @@ mod tests {
 
         assert_eq!(event.interval, prost_interval_option);
 
-        let event = HealthCheckEvent::decode(events[1].payload()).unwrap();
+        let event = HealthCheckEvent::decode(&events[1].payload[..]).unwrap();
         assert_eq!(event.result, 1);
         assert_eq!(event.execution.unwrap().seconds, 5);
         assert_eq!(event.exit_status, None);
         assert_eq!(event.stdout, None);
         assert_eq!(event.stderr, None);
 
-        let event = HealthCheckEvent::decode(events[2].payload()).unwrap();
+        let event = HealthCheckEvent::decode(&events[2].payload[..]).unwrap();
         assert_eq!(event.result, 2);
         assert_eq!(event.execution.unwrap().seconds, 10);
         #[cfg(windows)]
@@ -328,7 +329,7 @@ mod tests {
         assert_eq!(event.stdout, Some(String::from("stdout")));
         assert_eq!(event.stderr, Some(String::from("stderr")));
 
-        let event = HealthCheckEvent::decode(events[3].payload()).unwrap();
+        let event = HealthCheckEvent::decode(&events[3].payload[..]).unwrap();
         assert_eq!(event.result, 3);
         assert_eq!(event.execution.unwrap().seconds, 15);
         #[cfg(windows)]

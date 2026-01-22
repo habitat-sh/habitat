@@ -1,5 +1,7 @@
 // Implementation of `hab sup run`
 
+use async_nats::ServerAddr as NatsServerAddress;
+
 use clap_v4 as clap;
 
 use clap::Args;
@@ -34,9 +36,6 @@ use habitat_common::{cli::{RING_ENVVAR,
 
 use hab_common_derive::GenConfig;
 
-use rants::{Address as NatsAddress,
-            error::Error as RantsError};
-
 use serde::{Deserialize,
             Serialize};
 
@@ -47,8 +46,7 @@ use std::{fmt,
                  PathBuf},
           str::FromStr};
 
-use habitat_core::{env::Config,
-                   util as core_util};
+use habitat_core::env::Config;
 
 #[cfg(not(target_os = "macos"))]
 use crate::command;
@@ -60,21 +58,42 @@ use std::{env,
 // TODO (DM): This is unnecessarily difficult due to this issue in serde
 // https://github.com/serde-rs/serde/issues/723. The easiest way to get around the issue is by
 // using a wrapper type since NatsAddress is not defined in this crate.
-#[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct EventStreamAddress(#[serde(with = "core_util::serde::string")] NatsAddress);
+#[derive(Debug, Clone)]
+pub struct EventStreamAddress(NatsServerAddress);
 
 impl fmt::Display for EventStreamAddress {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Use Debug formatting since ServerAddr doesn't implement Display
+        write!(f, "{:?}", self.0)
+    }
 }
 
 impl FromStr for EventStreamAddress {
-    type Err = RantsError;
+    type Err = async_nats::ConnectError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(EventStreamAddress(s.parse()?)) }
 }
 
-impl From<EventStreamAddress> for NatsAddress {
+impl From<EventStreamAddress> for NatsServerAddress {
     fn from(address: EventStreamAddress) -> Self { address.0 }
+}
+
+impl Serialize for EventStreamAddress {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: serde::Serializer
+    {
+        // Serialize using Display to maintain consistent formatting
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for EventStreamAddress {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: serde::Deserializer<'de>
+    {
+        let s = String::deserialize(deserializer)?;
+        s.parse().map_err(serde::de::Error::custom)
+    }
 }
 
 #[derive(GenConfig)]
