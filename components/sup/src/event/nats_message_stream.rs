@@ -8,6 +8,7 @@ use futures::{channel::{mpsc as futures_mpsc,
 use log::{error,
           trace,
           warn};
+use rustls_native_certs::CertificateResult;
 use tokio::time;
 
 /// The subject and payload of a NATS message.
@@ -98,8 +99,18 @@ fn get_connect_options(supervisor_id: &str,
     // Load native system certificates. Even if some fail to load, we proceed with those that
     // loaded successfully. This allows connections with partial certificate data rather than
     // failing entirely, while still logging warnings about failures.
-    let certificates = rustls_native_certs::load_native_certs()?;
-    root_cert_store.add_parsable_certificates(certificates);
+    let certificate_result: CertificateResult = rustls_native_certs::load_native_certs();
+    let (added, ignored) = root_cert_store.add_parsable_certificates(certificate_result.certs);
+    log::info!("Added {} certificates returned by rustls_native_certs::load_native_certs",
+               added);
+    log::info!("Ignored {} certificates returned by rustls_native_certs::load_native_certs",
+               ignored);
+    if !certificate_result.errors.is_empty() {
+        log::warn!("Errors reported by rustls_native_certs::load_native_certs");
+        for error in certificate_result.errors {
+            log::warn!("ERROR: {:?}", error);
+        }
+    }
 
     // This is kind of the "habitat way of finding certs", above may be extra
     // Failures to load habitat_core certs are logged as warnings but do not prevent connection.
