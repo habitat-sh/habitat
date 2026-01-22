@@ -51,6 +51,13 @@ rand = "*"
 rants = { version = "0.6.1", git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
 regex = "*"
 rustls = "*"
+<<<<<<< HEAD
+||||||| parent of 737575829 (Alphabetizes sections in several Cargo.toml files)
+rustls-native-certs = "*"
+=======
+rustls-native-certs = "*"
+rustls-pki-types = "*"
+>>>>>>> 737575829 (Alphabetizes sections in several Cargo.toml files)
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = { version = "*", features = ["preserve_order"] }
@@ -66,6 +73,16 @@ toml = { version = "*", features = ["preserve_order"] }
 url = "*"
 uuid = { version = "*", features = ["v4"] }
 valico = "*"
+<<<<<<< HEAD
+||||||| parent of 737575829 (Alphabetizes sections in several Cargo.toml files)
+webpki-roots = "*"
+
+clap_v4 = { version = "4", package = "clap", features = ["env", "derive", "string", "wrap_help"] }
+rustls-pki-types = "*"
+
+=======
+webpki-roots = "*"
+>>>>>>> 737575829 (Alphabetizes sections in several Cargo.toml files)
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
