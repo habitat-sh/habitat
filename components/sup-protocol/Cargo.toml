@@ -7,8 +7,10 @@ build = "./build.rs"
 workspace = "../../"
 
 [dependencies]
+# Please keep these alphabetized
 base64 = "*"
 bytes = "*"
+clap_v4 = { version = "4", package = "clap" }
 habitat_core = { path = "../core" }
 lazy_static = "*"
 log = "0.4"
@@ -17,8 +19,6 @@ rand = { version = "0.9", features = ["thread_rng"] }
 serde = { version = "*", features = ["derive"] }
 tokio = { version = "*", features = ["full"] }
 tokio-util = { version = "0.7", features = ["full"] }
-
-clap_v4 = { version = "4", package = "clap" }
 
 [build-dependencies]
 prost-build = "*"

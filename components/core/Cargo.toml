@@ -12,6 +12,7 @@ cc = "*"
 pem = "*"
 
 [dependencies]
+# Please keep these alphabetized
 base64 = "*"
 blake2b_simd = "*"
 chrono = "*"
@@ -29,9 +30,11 @@ os_info = "*"
 pem = "*"
 pin-project = "*"
 rand = { version = "*", features = ["thread_rng"] }
-regex = "*"
 rcgen = "*"
+regex = "*"
 rustls = "*"
+rustls-pki-types = "*"
+rustls-webpki = "*"
 serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*", features = ["preserve_order"] }
 tabwriter = "*"
@@ -42,12 +45,11 @@ tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
 toml = { version = "*", features = ["preserve_order"] }
 url = "*"
-rustls-webpki = "*"
 xz2 = "*"
-rustls-pki-types = "*"
 
 [target.'cfg(not(windows))'.dependencies]
 nix = { version = "*", features = ["signal", "user", "fs"] }
+
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
 
@@ -70,7 +72,6 @@ windows-sys = { version = "^0.61.2", features = ["Win32_Foundation", "Win32_Syst
 
 [dev-dependencies]
 num_cpus = "*"                                       # For doc tests
-serde_test = "*"
 # reqwest 0.13.0 changed the default TLS support from native-tls to rustls
 # this feature configuration is about using the features that were in effect
 # when our code was still locked to 0.12.8 (so reqwest defaults + our additions)
@@ -81,13 +82,14 @@ reqwest = { version = "*", default-features = false, features = [
   "native-tls-no-alpn",
   "system-proxy",
 ] }
+serde_test = "*"
 
 [features]
+aarch64-darwin = []
+aarch64-linux = []
 default = ["supported_targets"]
 functional = []
 supported_targets = ["x86_64-darwin", "x86_64-linux", "x86_64-windows", "aarch64-darwin", "aarch64-linux"]
 x86_64-darwin = []
 x86_64-linux = []
 x86_64-windows = []
-aarch64-darwin = []
-aarch64-linux = []

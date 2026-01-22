@@ -15,21 +15,24 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-bytes = "*"
-actix-web = { version = "*", default-features = false, features = ["rustls-0_23"] }
+# Please keep these alphabetized
 actix-http = { version = "3", features = ["rustls-0_23"] }
 actix-rt = "*"
+actix-web = { version = "*", default-features = false, features = ["rustls-0_23"] }
+anyhow = { version = "*", features = ["backtrace"] }
 async-nats = "*"
 byteorder = "*"
+bytes = "*"
+clap_v4 = { version = "4", package = "clap", features = ["env", "derive", "string", "wrap_help"] }
 cpu-time = "*"
 fs2 = "*"
 futures = "*"
 glob = "*"
 hab = { path = "../hab" }
+habitat_api_client = { path = "../builder-api-client" }
 habitat_butterfly = { path = "../butterfly", default-features = false }
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
-habitat_api_client = { path = "../builder-api-client" }
 habitat_http_client = { path = "../http-client" }
 habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
@@ -50,6 +53,7 @@ rand = "*"
 regex = "*"
 rustls = "*"
 rustls-native-certs = "*"
+rustls-pki-types = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = { version = "*", features = ["preserve_order"] }
@@ -58,18 +62,14 @@ state = "*"
 tempfile = "*"
 termcolor = "*"
 thiserror = "*"
-anyhow = { version = "*", features = ["backtrace"] }
-toml = { version = "*", features = ["preserve_order"] }
 tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
 tokio-util = { version = "0.7", features = ["full"] }
-uuid = { version = "*", features = ["v4"] }
+toml = { version = "*", features = ["preserve_order"] }
 url = "*"
+uuid = { version = "*", features = ["v4"] }
 valico = "*"
 webpki-roots = "*"
-
-clap_v4 = { version = "4", package = "clap", features = ["env", "derive", "string", "wrap_help"] }
-rustls-pki-types = "*"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
@@ -99,16 +99,15 @@ reqwest = { version = "*", default-features = false, features = [
 nix = { version = "*", features = ["signal", "user"] }
 
 [build-dependencies]
-prost-build = "*"
 handlebars = "*"
+prost-build = "*"
 serde = { version = "*", features = ["derive"] }
-serde_yaml = "*"
 serde_json = "*"
+serde_yaml = "*"
 
 [features]
-default = []
-
 apidocs = []
+default = []
 ignore_integration_tests = []
-lock_as_rwlock = ["habitat_common/lock_as_rwlock"]
 lock_as_mutex = ["habitat_common/lock_as_mutex"]
+lock_as_rwlock = ["habitat_common/lock_as_rwlock"]

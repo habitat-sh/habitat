@@ -11,24 +11,26 @@ name = "hab"
 doc = false
 
 [dependencies]
-# Can we keep these alphabetized? We're not savages.
+# Please keep these alphabetized
+anyhow = { version = "*", features = ["backtrace"] }
 async-nats = "*"
 base64 = "*"
 bitflags = "*"
 chrono = { version = "*", features = ["serde"] }
+clap_complete = "*"
+clap_v4 = { version = "4", package = "clap", features = ["env", "derive", "string", "wrap_help"] }
 ctrlc = "*"
 dirs = "*"
 env_logger = "*"
 flate2 = "*"
 futures = { version = "*" }
 glob = "*"
+hab-common-derive = { path = "../common-derive" }
 habitat_api_client = { path = "../builder-api-client" }
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
 habitat-sup-client = { path = "../sup-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
-hab-common-derive = { path = "../common-derive" }
-# We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.
 handlebars = { version = "*", default-features = false }
 lazy_static = "*"
 libc = "*"
@@ -48,26 +50,20 @@ reqwest = { version = "*", default-features = false, features = [
 ] }
 retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
 rustls = "*"
+rustls-webpki = { version = "*", features = ["alloc"] }
 same-file = "*"
 serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*", features = ["preserve_order"] }
 serde_yaml = "*"
 tabwriter = "*"
 tar = "*"
+tempfile = "*"
 termcolor = "*"
 thiserror = "*"
-anyhow = { version = "*", features = ["backtrace"] }
 tokio = { version = "*", features = ["full"] }
 toml = { version = "*", features = ["preserve_order"] }
 url = { version = "*", features = ["serde"] }
 walkdir = "*"
-rustls-webpki = { version = "*", features = ["alloc"] }
-tempfile = "*"
-
-
-clap_v4 = { version = "4", package = "clap", features = ["env", "derive", "string", "wrap_help"] }
-
-clap_complete = "*"
 
 [dependencies.uuid]
 version = "*"
@@ -79,7 +75,7 @@ winapi = { version = "^0.3", features = ["winuser", "windef"] }
 winreg = "*"
 
 [features]
+aarch64-linux = ["habitat_core/aarch64-linux"]
 default = ["supported_targets"]
 functional = []
 supported_targets = ["habitat_core/supported_targets"]
-aarch64-linux = ["habitat_core/aarch64-linux"]

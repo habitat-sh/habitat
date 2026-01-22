@@ -6,10 +6,11 @@ authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 
 [dependencies]
+# Please keep these alphabetized
 futures = { version = "*" }
-habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
+habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 log = "0.4"
 prost = "*"
 rustls = "*"
