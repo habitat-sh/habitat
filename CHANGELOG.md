@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.396 -->
-## [2.0.396](https://github.com/habitat-sh/habitat/tree/2.0.396) (2026-01-23)
+<!-- latest_release 2.0.397 -->
+## [2.0.397](https://github.com/habitat-sh/habitat/tree/2.0.397) (2026-01-23)
 
 #### Merged Pull Requests
-- Alphabetizes sections in several Cargo.toml files [#10170](https://github.com/habitat-sh/habitat/pull/10170) ([jasonheath](https://github.com/jasonheath))
+- Initialize rustls crypto provider in hab-sup main [#10174](https://github.com/habitat-sh/habitat/pull/10174) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Initialize rustls crypto provider in hab-sup main [#10174](https://github.com/habitat-sh/habitat/pull/10174) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.397 -->
 - Alphabetizes sections in several Cargo.toml files [#10170](https://github.com/habitat-sh/habitat/pull/10170) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.396 -->
 - Bump rustls-native-certs from 0.8.1 to 0.8.3 [#10173](https://github.com/habitat-sh/habitat/pull/10173) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.395 -->
 - Bump proc-macro2 from 1.0.104 to 1.0.106 [#10169](https://github.com/habitat-sh/habitat/pull/10169) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.394 -->
