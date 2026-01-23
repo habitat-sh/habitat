@@ -14,15 +14,15 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-habitat_common = { path = "../common" }
-habitat_core = { path = "../core" }
-
+# Please keep these alphabetized
+anyhow = { version = "*", features = ["backtrace"] }
 clap = { version = "4", features = ["derive", "wrap_help", "cargo", "env"] }
 env_logger = { version = "*" }
+flate2 = { version = "*" }
+habitat_common = { path = "../common" }
+habitat_core = { path = "../core" }
 log = { version = "0.4" }
 mktemp = { version = "*" }
-tokio = { version = "1", features = ["full"] }
-anyhow = { version = "*", features = ["backtrace"] }
-tempfile = { version = "*" }
 tar = { version = "*" }
-flate2 = { version = "*" }
+tempfile = { version = "*" }
+tokio = { version = "1", features = ["full"] }

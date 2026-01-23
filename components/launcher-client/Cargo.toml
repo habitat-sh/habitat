@@ -6,14 +6,15 @@ authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 
 [dependencies]
-wincode = "*"
+# Please keep these alphabetized
 env_logger = "*"
+habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
 habitat-launcher-protocol = { path = "../launcher-protocol" }
-habitat_common = { path = "../common" }
 ipc-channel = { version = "*" }
 libc = "*"
 log = "0.4"
 prost = "*"
 serde = "*"
 thiserror = "*"
+wincode = "*"

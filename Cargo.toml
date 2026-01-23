@@ -9,7 +9,7 @@ debug = true
 [workspace]
 # https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
 # https://doc.rust-lang.org/cargo/reference/workspaces.html#virtual-workspace
-# Summarizing, this being a virutal manifest we need to explicitly set the
+# Summarizing, this being a virtual manifest we need to explicitly set the
 # resolver because edition is not available here.
 resolver = "3"
 members = [

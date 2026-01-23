@@ -15,29 +15,28 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
+# Please keep these alphabetized
+anyhow = "*"
+aws-config = "*"
+aws-credential-types = "*"
+aws-sdk-ecr = { version = "*", default-features = false, features = ["default-https-client", "rt-tokio"] }
 base64 = "*"
 clap = { version = "4", features = ["env", "derive", "string", "wrap_help"] }
 env_logger = "*"
 hab = { path = "../hab" }
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
-# We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.
 handlebars = { version = "*", default-features = false }
 lazy_static = "*"
 linked-hash-map = "*"
 log = "0.4"
-# TODO: Move this to `aws-sdk-rust`
-aws-config = "*"
-aws-sdk-ecr = { version = "*", default-features = false, features = ["default-https-client", "rt-tokio"] }
-aws-credential-types = "*"
 serde = { version = "*", features = ["rc"] }
 serde_json = { version = "*", features = ["preserve_order"] }
 tempfile = "*"
 termcolor = "*"
+thiserror = "*"
 tokio = { version = "*", features = ["full"] }
 url = "*"
-thiserror = "*"
-anyhow = "*"
 
 [features]
 default = []

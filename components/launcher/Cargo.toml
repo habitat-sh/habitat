@@ -11,6 +11,8 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
+# Please keep these alphabetized
+anyhow = { version = "*", features = ["backtrace"] }
 env_logger = "*"
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
@@ -20,7 +22,6 @@ libc = "*"
 log = "0.4"
 prost = "*"
 thiserror = "*"
-anyhow = { version = "*", features = ["backtrace"] }
 
 [target.'cfg(not(windows))'.dependencies]
 nix = { version = "*", features = ["signal", "user"] }
