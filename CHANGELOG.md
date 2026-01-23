@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.395 -->
-## [2.0.395](https://github.com/habitat-sh/habitat/tree/2.0.395) (2026-01-23)
+<!-- latest_release 2.0.396 -->
+## [2.0.396](https://github.com/habitat-sh/habitat/tree/2.0.396) (2026-01-23)
 
 #### Merged Pull Requests
-- Bump rustls-native-certs from 0.8.1 to 0.8.3 [#10173](https://github.com/habitat-sh/habitat/pull/10173) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Alphabetizes sections in several Cargo.toml files [#10170](https://github.com/habitat-sh/habitat/pull/10170) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Alphabetizes sections in several Cargo.toml files [#10170](https://github.com/habitat-sh/habitat/pull/10170) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.396 -->
 - Bump rustls-native-certs from 0.8.1 to 0.8.3 [#10173](https://github.com/habitat-sh/habitat/pull/10173) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.395 -->
 - Bump proc-macro2 from 1.0.104 to 1.0.106 [#10169](https://github.com/habitat-sh/habitat/pull/10169) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.394 -->
 - CHEF-29764: Removes forked rants crate and replaces it with async-nats crate [#10167](https://github.com/habitat-sh/habitat/pull/10167) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.393 -->
