@@ -1244,7 +1244,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73736a89c4aff73035ba2ed2e565061954da00d4970fc9ac25dcc85a2a20d790"
 dependencies = [
  "dispatch2",
- "nix",
+ "nix 0.30.1",
  "windows-sys 0.61.2",
 ]
 
@@ -1956,7 +1956,7 @@ dependencies = [
  "ipc-channel",
  "libc",
  "log",
- "nix",
+ "nix 0.31.1",
  "prost",
  "thiserror 2.0.17",
  "winapi",
@@ -2103,7 +2103,7 @@ dependencies = [
  "libc",
  "log",
  "native-tls",
- "nix",
+ "nix 0.31.1",
  "parking_lot",
  "pbr",
  "petgraph 0.8.3",
@@ -2149,7 +2149,7 @@ dependencies = [
  "libsodium-rs",
  "log",
  "native-tls",
- "nix",
+ "nix 0.31.1",
  "num_cpus",
  "os_info",
  "pem",
@@ -2275,7 +2275,7 @@ dependencies = [
  "log4rs",
  "mio",
  "multimap",
- "nix",
+ "nix 0.31.1",
  "notify",
  "num_cpus",
  "parking_lot",
@@ -3177,7 +3177,7 @@ dependencies = [
  "libc",
  "log",
  "openssl",
- "openssl-probe",
+ "openssl-probe 0.1.6",
  "openssl-sys",
  "schannel",
  "security-framework 2.11.1",
@@ -3190,6 +3190,18 @@ name = "nix"
 version = "0.30.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74523f3a35e05aba87a1d978330aef40f67b0304ac79c1c00b294c9830543db6"
+dependencies = [
+ "bitflags 2.10.0",
+ "cfg-if",
+ "cfg_aliases",
+ "libc",
+]
+
+[[package]]
+name = "nix"
+version = "0.31.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "225e7cfe711e0ba79a68baeddb2982723e4235247aefce1482f2f16c27865b66"
 dependencies = [
  "bitflags 2.10.0",
  "cfg-if",
@@ -3521,6 +3533,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d05e27ee213611ffe7d6348b942e8f942b37114c00cc03cec254295a4a17852e"
 
 [[package]]
+name = "openssl-probe"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
+
+[[package]]
 name = "openssl-src"
 version = "300.5.2+3.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3565,7 +3583,7 @@ checksum = "e4022a17595a00d6a369236fdae483f0de7f0a339960a53118b818238e132224"
 dependencies = [
  "android_system_properties",
  "log",
- "nix",
+ "nix 0.30.1",
  "objc2",
  "objc2-foundation",
  "objc2-ui-kit",
@@ -3988,7 +4006,7 @@ dependencies = [
 [[package]]
 name = "rants"
 version = "0.6.1"
-source = "git+https://github.com/habitat-sh/rants.git#9f268782e17c93d35e24ca433f6a1297e23e22fe"
+source = "git+https://github.com/habitat-sh/rants.git#ac43e56b55151fa0e348d4e623ff505e2059a25d"
 dependencies = [
  "bytes",
  "futures",
@@ -4240,11 +4258,11 @@ dependencies = [
 
 [[package]]
 name = "rustls-native-certs"
-version = "0.8.1"
+version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fcff2dd52b58a8d98a70243663a0d234c4e2b79235637849d15913394a247d3"
+checksum = "612460d5f7bea540c490b2b6395d8e34a953e52b491accd6c86c8164c5932a63"
 dependencies = [
- "openssl-probe",
+ "openssl-probe 0.2.1",
  "rustls-pki-types",
  "schannel",
  "security-framework 3.5.1",
