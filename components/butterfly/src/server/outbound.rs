@@ -94,6 +94,7 @@ pub fn spawn_thread(name: String,
 /// before starting the next probe.
 fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timing: &Timing) -> ! {
     let mut have_members = false;
+    
     loop {
         liveliness_checker::mark_thread_alive().and_divergent();
 
@@ -104,17 +105,36 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
                 #[allow(clippy::integer_division)]
                 let min_to_start = num_initial / 2 + 1;
 
+                // Only ping initial members that are not already marked as alive
+                server.member_list.with_initial_members_imlr(|member| {
+                    // Check if this member is already alive in the member list
+                    let member_health = server.member_list.health_of_mlr(member);
+                    let should_ping = match member_health {
+                        Some(Health::Alive) => {
+                            trace!("Skipping ping to initial member {} - already marked as Alive", member.id);
+                            false
+                        },
+                        _ => {
+                            trace!("Pinging initial member {} - health status: {:?}", member.id, member_health);
+                            true
+                        }
+                    };
+                    
+                    if should_ping {
+                        ping_mlr_smr_rhw(server,
+                                         socket,
+                                         member,
+                                         member.swim_socket_address(),
+                                         None,
+                                         false);
+                    }
+                });
+                
+                // Check if we now have enough members to stop pinging initial members
                 if server.member_list.len_mlr() >= min_to_start {
+                    debug!("Reached min_to_start threshold ({} members), stopping initial member pings", 
+                           min_to_start);
                     have_members = true;
-                } else {
-                    server.member_list.with_initial_members_imlr(|member| {
-                                          ping_mlr_smr_rhw(server,
-                                                           socket,
-                                                           member,
-                                                           member.swim_socket_address(),
-                                                           None,
-                                                           false);
-                                      });
                 }
             }
         }
