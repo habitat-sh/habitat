@@ -545,11 +545,6 @@ impl Server {
         Ok(())
     }
 
-    /// # Locking (see locking.md)
-    /// * `MemberList::entries` (read) Additionally `with_closure` is called with this lock held, so
-    ///   the closure must not call any functions which take this lock.
-    pub fn need_peer_seeding_mlr(&self) -> bool { self.member_list.is_empty_mlr() }
-
     /// Persistently block a given address, causing no traffic to be seen.
     ///
     /// # Locking (see locking.md)
