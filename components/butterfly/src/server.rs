@@ -310,6 +310,8 @@ pub struct Server {
     gossip_rounds:            Arc<AtomicIsize>,
     block_list:               Arc<Lock<HashSet<String>>>,
     election_timers:          Arc<Mutex<HashMap<String, ElectionTimer>>>,
+    /// Flag to indicate that new initial members have been added and should be pinged
+    new_initial_members:      Arc<AtomicBool>,
 }
 
 impl Clone for Server {
@@ -338,7 +340,8 @@ impl Clone for Server {
                  gossip_rounds:        self.gossip_rounds.clone(),
                  block_list:           self.block_list.clone(),
                  socket:               None,
-                 election_timers:      self.election_timers.clone(), }
+                 election_timers:      self.election_timers.clone(),
+                 new_initial_members:  self.new_initial_members.clone(), }
     }
 }
 
@@ -401,7 +404,8 @@ impl Server {
                             gossip_rounds: Arc::new(AtomicIsize::new(0)),
                             block_list: Arc::new(Lock::new(HashSet::new())),
                             socket: None,
-                            election_timers: Arc::new(Mutex::new(HashMap::new())) })
+                            election_timers: Arc::new(Mutex::new(HashMap::new())),
+                            new_initial_members: Arc::new(AtomicBool::new(false)) })
             }
             (Err(e), _) | (_, Err(e)) => Err(Error::CannotBind(e)),
             (Ok(None), _) | (_, Ok(None)) => {
@@ -1352,6 +1356,13 @@ impl Server {
                 }
             }
         }
+    }
+
+    /// Signal that new initial members have been added and should be pinged on the next outbound
+    /// cycle
+    pub fn signal_new_initial_members(&self) {
+        self.new_initial_members.store(true, Ordering::Relaxed);
+        debug!("Signaled outbound thread that new initial members were added");
     }
 
     #[allow(dead_code)]
