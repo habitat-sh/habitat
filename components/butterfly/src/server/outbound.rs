@@ -33,7 +33,8 @@ use std::{collections::HashSet,
           iter::FromIterator,
           net::{SocketAddr,
                 UdpSocket},
-          sync::mpsc,
+          sync::{atomic::Ordering,
+                 mpsc},
           thread,
           time::{Duration,
                  Instant}};
@@ -94,11 +95,21 @@ pub fn spawn_thread(name: String,
 /// before starting the next probe.
 fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timing: &Timing) -> ! {
     let mut have_members = false;
-    
+
     loop {
         liveliness_checker::mark_thread_alive().and_divergent();
 
-        if !have_members {
+        // Check if new initial members have been added via peer watch file
+        let new_initial_members_added = server.new_initial_members.load(Ordering::Relaxed);
+        if new_initial_members_added {
+            // Reset the flag and force re-evaluation of initial member pinging
+            server.new_initial_members.store(false, Ordering::Relaxed);
+            debug!("New initial members detected, re-evaluating initial member ping logic");
+            // We don't set have_members = false here because we want to respect the existing
+            // min_to_start threshold logic, but we will allow the initial member ping to run again
+        }
+
+        if !have_members || new_initial_members_added {
             let num_initial = server.member_list.len_initial_members_imlr();
             if num_initial != 0 {
                 // The minimum that's strictly more than half
@@ -107,32 +118,38 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
 
                 // Only ping initial members that are not already marked as alive
                 server.member_list.with_initial_members_imlr(|member| {
-                    // Check if this member is already alive in the member list
-                    let member_health = server.member_list.health_of_mlr(member);
-                    let should_ping = match member_health {
-                        Some(Health::Alive) => {
-                            trace!("Skipping ping to initial member {} - already marked as Alive", member.id);
-                            false
-                        },
-                        _ => {
-                            trace!("Pinging initial member {} - health status: {:?}", member.id, member_health);
-                            true
-                        }
-                    };
-                    
-                    if should_ping {
-                        ping_mlr_smr_rhw(server,
-                                         socket,
-                                         member,
-                                         member.swim_socket_address(),
-                                         None,
-                                         false);
-                    }
-                });
-                
-                // Check if we now have enough members to stop pinging initial members
-                if server.member_list.len_mlr() >= min_to_start {
-                    debug!("Reached min_to_start threshold ({} members), stopping initial member pings", 
+                                      // Check if this member is already alive in the member list
+                                      let member_health = server.member_list.health_of_mlr(member);
+                                      let should_ping = match member_health {
+                                          Some(Health::Alive) => {
+                                              trace!("Skipping ping to initial member {} - \
+                                                      already marked as Alive",
+                                                     member.id);
+                                              false
+                                          }
+                                          _ => {
+                                              trace!("Pinging initial member {} - health status: \
+                                                      {:?}",
+                                                     member.id, member_health);
+                                              true
+                                          }
+                                      };
+
+                                      if should_ping {
+                                          ping_mlr_smr_rhw(server,
+                                                           socket,
+                                                           member,
+                                                           member.swim_socket_address(),
+                                                           None,
+                                                           false);
+                                      }
+                                  });
+
+                // Only set have_members = true if we're not already in steady state
+                // and we've reached the threshold
+                if !have_members && server.member_list.len_mlr() >= min_to_start {
+                    debug!("Reached min_to_start threshold ({} members), stopping initial member \
+                            pings",
                            min_to_start);
                     have_members = true;
                 }
