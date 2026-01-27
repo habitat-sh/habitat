@@ -33,23 +33,6 @@ fn main() {
     habitat_core::os::signals::init();
     habitat_sup::logger::init();
 
-    // Initialize rustls crypto provider. This must be done once before any TLS operations.
-    // The aws-lc-rs feature enables the crypto backend, but we must explicitly install it
-    // as the default provider for the process.
-    rustls::crypto::aws_lc_rs::default_provider().install_default()
-                                                 .expect("Failed to install rustls crypto \
-                                                          provider. This typically indicates \
-                                                          that a TLS crypto provider has already \
-                                                          been installed earlier in the process, \
-                                                          or that the configured aws-lc-rs \
-                                                          backend is incompatible with the \
-                                                          current runtime or build \
-                                                          configuration. Ensure no other rustls \
-                                                          crypto provider is installed before \
-                                                          the Habitat Supervisor starts, and \
-                                                          verify that the aws-lc-rs feature is \
-                                                          enabled and correctly linked.");
-
     let runtime = RuntimeBuilder::new_multi_thread()
         .worker_threads(TokioThreadCount::configured_value().into())
         .enable_all()

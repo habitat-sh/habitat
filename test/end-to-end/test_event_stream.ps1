@@ -1,7 +1,7 @@
 # Test the event stream connection to a NATS server
 
 Describe "event stream not connected to nats" {
-    $env:RUST_LOG = "async_nats=trace,habitat_sup=debug"
+    $env:RUST_LOG = "rants=trace"
 
     It "fails to start with --event-stream-connect-timeout set" {
         {
@@ -10,7 +10,7 @@ Describe "event stream not connected to nats" {
                     "--event-stream-application=MY_APP", `
                     "--event-stream-environment=MY_ENV", `
                     "--event-stream-site=MY_SITE", `
-                    "--event-stream-url=127.0.0.1:4222", `
+                    "--event-stream-url='127.0.0.1:4222'", `
                     "--event-stream-token=blah", `
                     "--event-stream-connect-timeout=2" `
             )
@@ -20,9 +20,7 @@ Describe "event stream not connected to nats" {
 
 Describe "event stream connected to automate" {
     BeforeAll {
-        # Ensure rustls provider is available for async_nats TLS connections
-        $env:RUST_BACKTRACE = "1"
-        $env:DOCKER_BUILDKIT = 1
+        $env:DOCKER_BUILDKIT=1
         try {
             Write-Host "Building automate image..."
             $output = docker build --progress=plain -t automate ./test/end-to-end/automate
@@ -48,9 +46,8 @@ Describe "event stream connected to automate" {
         Write-Host "Retrieved server certificate to $cert"
 
         # Start the supervisor but do not require an initial event stream connection
-        # async_nats uses background connection retry when timeout is not set
-        $supLog = New-SupervisorLogFile("test_event_stream")
-        Write-Host "Starting Supervisor with async_nats event stream..."
+        $supLog =  New-SupervisorLogFile("test_event_stream")
+        Write-Host "Starting Supervisor..."
         Start-Supervisor -Timeout 45 -LogFile $supLog -SupArgs @( `
                 "--event-stream-application=MY_APP", `
                 "--event-stream-environment=MY_ENV", `
@@ -72,10 +69,11 @@ Describe "event stream connected to automate" {
     }
 
     It "connects and sends a health check" {
-        # test-probe has a long init hook, and we want to let the health-check hook run
+        # test-probe has a long init hook, and we want
+        # to let the health-check hoo
         Start-Sleep -Seconds 20
 
-        # Check that the output contains a health check message (async_nats should deliver events)
+        # Check that the output contains a connect message and that the server received a health check message
         $out = (docker exec $cid chef-automate applications show-svcs --service-name test-probe)
         $out[1] | Should -BeLike "*OK"
         # This change to index into an array is a response to a change in Automate (linked below)
@@ -83,17 +81,4 @@ Describe "event stream connected to automate" {
         # array that needs to be navigated as opposed to a string that could be searched directly.
         # https://github.com/chef/automate/commit/5f5af20f562acb237668202992a76610c0a34896#diff-958adaffe8182cb66dec1ecbe75667e1052e051cc77b4e54f7d336ab427c1bfbL398
     }
-
-    It "recovers from temporary connection loss" {
-        # Verify async_nats reconnection behavior by testing graceful recovery
-        Write-Host "Testing async_nats reconnection behavior..."
-        docker exec $cid chef-automate stop
-        Start-Sleep -Seconds 5
-        docker exec $cid chef-automate start
-        docker exec $cid chef-automate status -w
-        Start-Sleep -Seconds 10
-        $out = (docker exec $cid chef-automate applications show-svcs --service-name test-probe)
-        $out[1] | Should -BeLike "*OK"
-    }
 }
-
