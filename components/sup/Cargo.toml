@@ -20,6 +20,7 @@ actix-http = { version = "3", features = ["rustls-0_23"] }
 actix-rt = "*"
 actix-web = { version = "*", default-features = false, features = ["rustls-0_23"] }
 anyhow = { version = "*", features = ["backtrace"] }
+async-nats = "*"
 byteorder = "*"
 bytes = "*"
 clap_v4 = { version = "4", package = "clap", features = ["env", "derive", "string", "wrap_help"] }
@@ -40,6 +41,7 @@ libc = "*"
 log = "0.4"
 log4rs = "*"
 multimap = "*"
+native-tls = "*"
 notify = "*"
 num_cpus = "*"
 parking_lot = "*"
@@ -48,9 +50,10 @@ prometheus = { version = "*", default-features = false }
 prost = { version = "*", features = ["derive"] }
 prost-types = "*"
 rand = "*"
-rants = { version = "0.6.1", git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
 regex = "*"
 rustls = "*"
+rustls-native-certs = "*"
+rustls-pki-types = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = { version = "*", features = ["preserve_order"] }
@@ -66,6 +69,7 @@ toml = { version = "*", features = ["preserve_order"] }
 url = "*"
 uuid = { version = "*", features = ["v4"] }
 valico = "*"
+webpki-roots = "*"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
@@ -79,6 +83,7 @@ winapi = { version = "^0.3", features = ["namedpipeapi", "tlhelp32"] }
 [dev-dependencies]
 habitat_core = { path = "../core" }
 hyper = "*"
+rcgen = "*"
 # reqwest 0.13.0 changed the default TLS support from native-tls to rustls
 # this feature configuration is about using the features that were in effect
 # when our code was still locked to 0.12.8 (so reqwest defaults + our additions)

@@ -13,6 +13,7 @@ doc = false
 [dependencies]
 # Please keep these alphabetized
 anyhow = { version = "*", features = ["backtrace"] }
+async-nats = "*"
 base64 = "*"
 bitflags = "*"
 chrono = { version = "*", features = ["serde"] }
@@ -35,7 +36,6 @@ lazy_static = "*"
 libc = "*"
 log = "0.4"
 pbr = "*"
-rants = { version = "0.6.1", git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
 # reqwest 0.13.0 changed the default TLS support from native-tls to rustls
 # this feature configuration is about using the features that were in effect
 # when our code was still locked to 0.12.8 (so reqwest defaults + our additions)
