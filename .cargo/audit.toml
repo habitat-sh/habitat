@@ -15,6 +15,12 @@ ignore = [
     # bincode from their project.  When that future version of ipc-channel
     # lands in habitat this security alert should clear and we can remove this
     "RUSTSEC-2025-0141",
+    # RUSTSEC-2025-0134 is an advisory that rustls-pemfile is unmaintained
+    # which we dealt with in https://github.com/habitat-sh/habitat/pull/10096.
+    # unfortunately, async-nats has a transitive dependency on rustls-pemfile
+    # as it currently pins rustls-native-certs = "0.7" in its Cargo.toml. So
+    # ignore for now but we should periodically evaluate and eventually remove.
+    "RUSTSEC-2025-0134",
 ]
 
 # warn for categories of informational advisories
