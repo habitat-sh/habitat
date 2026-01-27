@@ -1,29 +1,59 @@
 //! Event subsystem-specific error handling
 
-use std::result;
+use rants::{error::Error as RantsError,
+            native_tls};
+use std::{error,
+          fmt,
+          result};
 
 pub type Result<T> = result::Result<T, Error>;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug)]
 pub enum Error {
-    #[error("Could not establish connection to NATS server")]
-    NatsServerConnect(#[from] async_nats::ConnectError),
+    ConnectNatsServer,
+    HabitatCore(habitat_core::Error),
+    NativeTls(native_tls::Error),
+    Rants(RantsError),
+}
 
-    #[error(transparent)]
-    HabitatCore(#[from] habitat_core::Error),
+// TODO (CM): I would have like to have derived Fail on our Error
+// type, thus getting rid of these Display and error::Error
+// impls. However, until we can cleanly interoperate between Error and
+// Fail's source/cause methods in the top-level Supervisor Error,
+// we'll keep these for the time being.
+//
+// Perhaps if the Supervisor's Error became a Fail, we could do it?
 
-    #[error(transparent)]
-    Nats(#[from] async_nats::Error),
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::ConnectNatsServer => "Could not establish connection to NATS server".fmt(f),
+            Error::HabitatCore(_) => "{}".fmt(f),
+            Error::NativeTls(e) => format!("{}", e).fmt(f),
+            Error::Rants(e) => format!("{}", e).fmt(f),
+        }
+    }
+}
 
-    #[error(transparent)]
-    NatsSubscribeError(#[from] async_nats::SubscribeError),
+impl error::Error for Error {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Error::ConnectNatsServer => None,
+            Error::HabitatCore(e) => Some(e),
+            Error::Rants(e) => Some(e),
+            Error::NativeTls(e) => Some(e),
+        }
+    }
+}
 
-    #[error(transparent)]
-    TlsCertLoadError(#[from] std::io::Error),
+impl From<habitat_core::Error> for Error {
+    fn from(error: habitat_core::Error) -> Self { Error::HabitatCore(error) }
+}
 
-    #[error("Connection to NATS server timed out")]
-    ConnectionTimeout,
+impl From<RantsError> for Error {
+    fn from(error: RantsError) -> Self { Error::Rants(error) }
+}
 
-    #[error("Error from habitat's native_tls_wrapper: {0}")]
-    NativeTls(Box<dyn std::error::Error + Send + Sync>),
+impl From<native_tls::Error> for Error {
+    fn from(error: native_tls::Error) -> Self { Error::NativeTls(error) }
 }
