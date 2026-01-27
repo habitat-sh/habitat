@@ -51,7 +51,7 @@ prost = { version = "*", features = ["derive"] }
 prost-types = "*"
 rand = "*"
 regex = "*"
-rustls = { version = "*", features = ["aws-lc-rs"] }
+rustls = "*"
 rustls-native-certs = "*"
 rustls-pki-types = "*"
 serde = { version = "*", features = ["rc"] }
