@@ -5,8 +5,7 @@ use crate::event::{Error,
 use futures::{channel::{mpsc as futures_mpsc,
                         mpsc::UnboundedSender},
               stream::StreamExt};
-use log::{debug,
-          error,
+use log::{error,
           trace,
           warn};
 use rustls_native_certs::CertificateResult;
@@ -102,17 +101,15 @@ fn get_connect_options(supervisor_id: &str,
     // failing entirely, while still logging warnings about failures.
     let certificate_result: CertificateResult = rustls_native_certs::load_native_certs();
     let (added, ignored) = root_cert_store.add_parsable_certificates(certificate_result.certs);
-    debug!("Added {} certificates returned by rustls_native_certs::load_native_certs",
-           added);
-    debug!("Ignored {} certificates returned by rustls_native_certs::load_native_certs",
-           ignored);
+    log::info!("Added {} certificates returned by rustls_native_certs::load_native_certs",
+               added);
+    log::info!("Ignored {} certificates returned by rustls_native_certs::load_native_certs",
+               ignored);
     if !certificate_result.errors.is_empty() {
-        warn!("The following errors were reported by rustls_native_certs::load_native_certs()");
+        log::warn!("Errors reported by rustls_native_certs::load_native_certs");
         for error in certificate_result.errors {
-            warn!("ERROR: {:?}", error);
+            log::warn!("ERROR: {:?}", error);
         }
-        warn!("That's everything that was reported. Since we are also loading habitat_core certs \
-               we will treat these as warnings and continue");
     }
 
     // This is kind of the "habitat way of finding certs", above may be extra
