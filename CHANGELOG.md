@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.398 -->
-## [2.0.398](https://github.com/habitat-sh/habitat/tree/2.0.398) (2026-01-23)
+<!-- latest_release 2.0.399 -->
+## [2.0.399](https://github.com/habitat-sh/habitat/tree/2.0.399) (2026-01-27)
 
 #### Merged Pull Requests
-- Bump nix from 0.30.1 to 0.31.1 [#10172](https://github.com/habitat-sh/habitat/pull/10172) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Revert async nats [#10177](https://github.com/habitat-sh/habitat/pull/10177) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Revert async nats [#10177](https://github.com/habitat-sh/habitat/pull/10177) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.399 -->
 - Bump nix from 0.30.1 to 0.31.1 [#10172](https://github.com/habitat-sh/habitat/pull/10172) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.398 -->
 - Initialize rustls crypto provider in hab-sup main [#10174](https://github.com/habitat-sh/habitat/pull/10174) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.397 -->
 - Alphabetizes sections in several Cargo.toml files [#10170](https://github.com/habitat-sh/habitat/pull/10170) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.396 -->
