@@ -153,10 +153,10 @@ pub fn start(ui: &mut UI,
     if !dst_path.is_dir() {
         ui.status(Status::Creating,
                   format!("parent directory {}", dst_path.display()))?;
-        fs::create_dir_all(&dst_path)?
+        fs::create_dir_all(dst_path)?
     }
 
-    let binlink = Binlink::new(&src, &dst_path)?;
+    let binlink = Binlink::new(&src, dst_path)?;
     let ui_binlinked = format!("Binlinked {} from {} to {}",
                                binary,
                                pkg_install.ident(),
@@ -182,7 +182,7 @@ pub fn start(ui: &mut UI,
         }
     }
 
-    if cfg!(target_os = "windows") && !is_dest_on_path(&dst_path) {
+    if cfg!(target_os = "windows") && !is_dest_on_path(dst_path) {
         ui.warn(format!("Binlink destination '{}' is not on the PATH. Consider setting it \
                          manually or running 'hab setup' to add it to the machine PATH.",
                         dst_path.display(),))?;
