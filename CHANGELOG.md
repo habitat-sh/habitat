@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.400 -->
-## [2.0.400](https://github.com/habitat-sh/habitat/tree/2.0.400) (2026-01-28)
+<!-- latest_release 2.0.401 -->
+## [2.0.401](https://github.com/habitat-sh/habitat/tree/2.0.401) (2026-01-28)
 
 #### Merged Pull Requests
-- updating notices.txt [#10178](https://github.com/habitat-sh/habitat/pull/10178) ([mwrock](https://github.com/mwrock))
+- Bump clap from 4.5.54 to 4.5.55 [#10179](https://github.com/habitat-sh/habitat/pull/10179) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump clap from 4.5.54 to 4.5.55 [#10179](https://github.com/habitat-sh/habitat/pull/10179) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.401 -->
 - updating notices.txt [#10178](https://github.com/habitat-sh/habitat/pull/10178) ([mwrock](https://github.com/mwrock)) <!-- 2.0.400 -->
 - Revert async nats [#10177](https://github.com/habitat-sh/habitat/pull/10177) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.399 -->
 - Bump nix from 0.30.1 to 0.31.1 [#10172](https://github.com/habitat-sh/habitat/pull/10172) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.398 -->
