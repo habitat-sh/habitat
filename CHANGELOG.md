@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.401 -->
-## [2.0.401](https://github.com/habitat-sh/habitat/tree/2.0.401) (2026-01-28)
+<!-- latest_release 2.0.402 -->
+## [2.0.402](https://github.com/habitat-sh/habitat/tree/2.0.402) (2026-01-29)
 
 #### Merged Pull Requests
-- Bump clap from 4.5.54 to 4.5.55 [#10179](https://github.com/habitat-sh/habitat/pull/10179) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- CHEF-29549 - Remove MAINTAINERS.md [#10180](https://github.com/habitat-sh/habitat/pull/10180) ([cgunasree08](https://github.com/cgunasree08))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- CHEF-29549 - Remove MAINTAINERS.md [#10180](https://github.com/habitat-sh/habitat/pull/10180) ([cgunasree08](https://github.com/cgunasree08)) <!-- 2.0.402 -->
 - Bump clap from 4.5.54 to 4.5.55 [#10179](https://github.com/habitat-sh/habitat/pull/10179) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.401 -->
 - updating notices.txt [#10178](https://github.com/habitat-sh/habitat/pull/10178) ([mwrock](https://github.com/mwrock)) <!-- 2.0.400 -->
 - Revert async nats [#10177](https://github.com/habitat-sh/habitat/pull/10177) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.399 -->
