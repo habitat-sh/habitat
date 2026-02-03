@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.403 -->
-## [2.0.403](https://github.com/habitat-sh/habitat/tree/2.0.403) (2026-01-30)
+<!-- latest_release 2.0.404 -->
+## [2.0.404](https://github.com/habitat-sh/habitat/tree/2.0.404) (2026-02-03)
 
 #### Merged Pull Requests
-- Bump clap from 4.5.55 to 4.5.56 [#10181](https://github.com/habitat-sh/habitat/pull/10181) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.53 to 1.2.55 [#10183](https://github.com/habitat-sh/habitat/pull/10183) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.53 to 1.2.55 [#10183](https://github.com/habitat-sh/habitat/pull/10183) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.404 -->
 - Bump clap from 4.5.55 to 4.5.56 [#10181](https://github.com/habitat-sh/habitat/pull/10181) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.403 -->
 - CHEF-29549 - Remove MAINTAINERS.md [#10180](https://github.com/habitat-sh/habitat/pull/10180) ([cgunasree08](https://github.com/cgunasree08)) <!-- 2.0.402 -->
 - Bump clap from 4.5.54 to 4.5.55 [#10179](https://github.com/habitat-sh/habitat/pull/10179) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.401 -->
