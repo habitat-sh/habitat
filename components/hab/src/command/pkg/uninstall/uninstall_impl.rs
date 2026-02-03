@@ -20,7 +20,8 @@ use habitat_core::{error as herror,
 use habitat_sup_client::{SrvClient,
                          SrvClientError};
 use log::warn;
-use std::{fs,
+use std::{collections::HashSet,
+          fs,
           path::Path,
           str::FromStr};
 
@@ -204,38 +205,40 @@ async fn uninstall_many<U>(ui: &mut U,
                 ui.status(Status::Skipping, "dependencies (--no-deps specified)")?;
             }
             Scope::PackageAndDependencies => {
+                // Build a set of all packages that will be uninstalled (original package + all
+                // deps)
+                let mut packages_being_uninstalled = HashSet::new();
+                packages_being_uninstalled.insert(ident.clone());
+                for dep in &deps {
+                    packages_being_uninstalled.insert(dep.clone());
+                }
+
                 for p in &deps {
-                    match graph.count_rdeps(p) {
-                        None => {
-                            // package not in graph - this shouldn't happen but could be a race
-                            // condition in Step 2 with another hab uninstall. We can
-                            // continue as what we wanted (package to be removed) has already
-                            // happened. We're going to continue and try
-                            // and delete down through the dependency
-                            // tree anyway
-                            ui.warn(format!("Tried to find dependant packages of {} but it \
-                                             wasn't in graph.  Maybe another uninstall command \
-                                             was run at the same time?",
-                                            &p))?;
+                    // Check if this dependency has reverse dependencies that are NOT being
+                    // uninstalled
+                    let rdeps = graph.rdeps(p);
+                    let external_rdeps_count =
+                        rdeps.iter()
+                             .filter(|rdep| !packages_being_uninstalled.contains(*rdep))
+                             .count();
+
+                    if external_rdeps_count == 0 {
+                        let install = PackageInstall::load(p, Some(fs_root_path))?;
+                        if maybe_delete(ui,
+                                        fs_root_path,
+                                        &install,
+                                        execution_strategy,
+                                        excludes,
+                                        uninstall_hook_mode,
+                                        dependency_safety).await?
+                        {
+                            graph.remove(p);
+                            count += 1;
                         }
-                        Some(0) => {
-                            let install = PackageInstall::load(p, Some(fs_root_path))?;
-                            if maybe_delete(ui,
-                                            fs_root_path,
-                                            &install,
-                                            execution_strategy,
-                                            excludes,
-                                            uninstall_hook_mode,
-                                            dependency_safety).await?
-                            {
-                                graph.remove(p);
-                                count += 1;
-                            }
-                        }
-                        Some(c) => {
-                            ui.status(Status::Skipping,
-                                      format!("{}. It is a dependency of {} packages", &p, c))?;
-                        }
+                    } else {
+                        ui.status(Status::Skipping,
+                                  format!("{}. It is a dependency of {} external packages",
+                                          &p, external_rdeps_count))?;
                     }
                 }
             }
