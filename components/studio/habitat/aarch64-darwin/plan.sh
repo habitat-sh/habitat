@@ -24,10 +24,11 @@ pkg_version() {
 }
 
 do_before() {
-	build_line $PWD
+	build_line "$PWD"
 	do_default_before
 	update_pkg_version
 
+	# shellcheck disable=2154
 	pkg_filename=${pkg_name}-${pkg_version}.tar.gz
 }
 
@@ -35,12 +36,12 @@ do_download() {
 	local tar_binary
 	tar_binary=$(pkg_path_for tar)/bin/tar
 
-	pushd $INITIAL_PWD > /dev/null || exit
+	pushd "$INITIAL_PWD" > /dev/null || exit
 
 	build_line "Creating The source tar file. $pkg_filename in $PWD."
-	$tar_binary -czf $HAB_CACHE_SRC_PATH/$pkg_filename components/ test-services/ Cargo.toml Cargo.lock  || exit
+	$tar_binary -czf "$HAB_CACHE_SRC_PATH"/"$pkg_filename" components/ test-services/ Cargo.toml Cargo.lock  || exit
 
-	popd
+	popd || exit
 }
 
 do_verify() {
@@ -53,12 +54,13 @@ do_unpack() {
 
 	build_line "Unpacking the sources."
 
-	pushd $HAB_CACHE_SRC_PATH > /dev/null || exit
+	pushd "$HAB_CACHE_SRC_PATH" > /dev/null || exit
 
-	mkdir $pkg_dirname
-	tar -C $pkg_dirname -xzf $pkg_filename
+	# shellcheck disable=2154
+	mkdir "$pkg_dirname"
+	tar -C "$pkg_dirname" -xzf "$pkg_filename"
 
-	popd
+	popd || exit
 }
 
 do_build() {
@@ -90,5 +92,5 @@ do_install() {
 
 	fix_interpreter "${pkg_prefix}/bin/*" core/bash bin/sh
 
-	popd
+	popd || exit
 }
