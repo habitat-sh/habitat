@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.408 -->
-## [2.0.408](https://github.com/habitat-sh/habitat/tree/2.0.408) (2026-02-04)
+<!-- latest_release 2.0.409 -->
+## [2.0.409](https://github.com/habitat-sh/habitat/tree/2.0.409) (2026-02-04)
 
 #### Merged Pull Requests
-- update ipc-channel and remove audit.toml ignore of bincode [#10186](https://github.com/habitat-sh/habitat/pull/10186) ([mwrock](https://github.com/mwrock))
+- fix uninstall [#10184](https://github.com/habitat-sh/habitat/pull/10184) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- fix uninstall [#10184](https://github.com/habitat-sh/habitat/pull/10184) ([mwrock](https://github.com/mwrock)) <!-- 2.0.409 -->
 - update ipc-channel and remove audit.toml ignore of bincode [#10186](https://github.com/habitat-sh/habitat/pull/10186) ([mwrock](https://github.com/mwrock)) <!-- 2.0.408 -->
 - Bump regex from 1.12.2 to 1.12.3 [#10187](https://github.com/habitat-sh/habitat/pull/10187) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.407 -->
 - Bump bytes from 1.11.0 to 1.11.1 [#10185](https://github.com/habitat-sh/habitat/pull/10185) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.406 -->
