@@ -8,11 +8,11 @@ use crate::error::{ConnectError,
 use habitat_common::types::UserInfo;
 use habitat_core::os::process::Pid;
 use habitat_launcher_protocol as protocol;
-use ipc_channel::ipc::{IpcError,
-                       IpcOneShotServer,
-                       IpcReceiver,
-                       IpcSender,
-                       TryRecvError};
+use ipc_channel::{IpcError,
+                  TryRecvError,
+                  ipc::{IpcOneShotServer,
+                        IpcReceiver,
+                        IpcSender}};
 use log::{debug,
           error,
           trace,

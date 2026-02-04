@@ -10,7 +10,7 @@ pub enum ConnectError {
     #[error("Failed to start IPC server to listen for responses from launcher")]
     IPCServerStartup(#[source] io::Error),
     #[error("Failed to accept incoming IPC connection from the launcher")]
-    IPCIncomingConnection(#[source] ipc_channel::Error),
+    IPCIncomingConnection(#[source] ipc_channel::IpcError),
     #[error("Failed to send registration IPC command to the launcher")]
     LauncherRegisterSend(#[source] SendError),
     #[error("Failed to receive registration IPC command response from the launcher")]
@@ -54,7 +54,7 @@ pub enum SendError {
     #[error("Failed to serialize launcher protocol message payload: {0}")]
     PayloadSerialize(protocol::Error),
     #[error("Failed to send command to launcher")]
-    IPCSend(#[source] ipc_channel::Error),
+    IPCSend(#[source] ipc_channel::IpcError),
 }
 
 /// Errors that occur when attempting to blocking receive command responses from the Habitat
@@ -64,7 +64,7 @@ pub enum ReceiveError {
     #[error("Failed to read launcher command response")]
     IPCRead(#[from] IPCReadError),
     #[error("Failed to receive IPC command response from launcher")]
-    IPCReceive(#[from] ipc_channel::ipc::IpcError),
+    IPCReceive(#[from] ipc_channel::IpcError),
 }
 
 /// Errors that occur when attempting to non-blocking receive command responses from the Habitat
@@ -74,7 +74,7 @@ pub enum TryReceiveError {
     #[error("Failed to try reading launcher command response")]
     IPCRead(#[from] IPCReadError),
     #[error("Failed to try receiving IPC command response from launcher")]
-    IPCReceive(#[from] ipc_channel::ipc::IpcError),
+    IPCReceive(#[from] ipc_channel::IpcError),
     #[error("Timed out trying to receive IPC command response from launcher")]
     Timeout,
 }
