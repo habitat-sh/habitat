@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.409 -->
-## [2.0.409](https://github.com/habitat-sh/habitat/tree/2.0.409) (2026-02-04)
+<!-- latest_release 2.0.410 -->
+## [2.0.410](https://github.com/habitat-sh/habitat/tree/2.0.410) (2026-02-04)
 
 #### Merged Pull Requests
-- fix uninstall [#10184](https://github.com/habitat-sh/habitat/pull/10184) ([mwrock](https://github.com/mwrock))
+- Bump flate2 from 1.1.8 to 1.1.9 [#10189](https://github.com/habitat-sh/habitat/pull/10189) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump flate2 from 1.1.8 to 1.1.9 [#10189](https://github.com/habitat-sh/habitat/pull/10189) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.410 -->
+- Bump clap from 4.5.56 to 4.5.57 [#10188](https://github.com/habitat-sh/habitat/pull/10188) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.410 -->
+- Bump aws-sdk-ecr from 1.105.0 to 1.106.0 [#10190](https://github.com/habitat-sh/habitat/pull/10190) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.410 -->
 - fix uninstall [#10184](https://github.com/habitat-sh/habitat/pull/10184) ([mwrock](https://github.com/mwrock)) <!-- 2.0.409 -->
 - update ipc-channel and remove audit.toml ignore of bincode [#10186](https://github.com/habitat-sh/habitat/pull/10186) ([mwrock](https://github.com/mwrock)) <!-- 2.0.408 -->
 - Bump regex from 1.12.2 to 1.12.3 [#10187](https://github.com/habitat-sh/habitat/pull/10187) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.407 -->
