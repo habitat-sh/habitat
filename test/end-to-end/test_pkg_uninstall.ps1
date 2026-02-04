@@ -92,6 +92,32 @@ Describe "pkg uninstall" {
         hab pkg list "core/libedit" | Should -BeExactly @()
     }
 
+    It "uninstalls all package deps and transitive deps" {
+        Invoke-BuildAndInstall dep-pkg-1
+        Invoke-BuildAndInstall dep-pkg-2
+        Invoke-BuildAndInstall dep-pkg-4
+
+        hab pkg uninstall $env:HAB_ORIGIN/dep-pkg-4
+
+        hab pkg list "$env:HAB_ORIGIN/dep-pkg-4" | Should -BeExactly @()
+        hab pkg list "$env:HAB_ORIGIN/dep-pkg-2" | Should -BeExactly @()
+        hab pkg list "$env:HAB_ORIGIN/dep-pkg-1" | Should -BeExactly @()
+    }
+
+    It "Leaves package with reverse deps that are not being uninstalled" {
+        Invoke-BuildAndInstall dep-pkg-1
+        Invoke-BuildAndInstall dep-pkg-2
+        Invoke-BuildAndInstall dep-pkg-3
+        Invoke-BuildAndInstall dep-pkg-4
+
+        hab pkg uninstall $env:HAB_ORIGIN/dep-pkg-4
+
+        hab pkg list "$env:HAB_ORIGIN/dep-pkg-4" | Should -BeExactly @()
+        hab pkg list "$env:HAB_ORIGIN/dep-pkg-3" | Should -Not -BeNullOrEmpty
+        hab pkg list "$env:HAB_ORIGIN/dep-pkg-2" | Should -Not -BeNullOrEmpty
+        hab pkg list "$env:HAB_ORIGIN/dep-pkg-1" | Should -Not -BeNullOrEmpty
+    }
+
     AfterAll {
         Stop-Job -Job $job
         Remove-Job -Job $job
