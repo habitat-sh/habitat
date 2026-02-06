@@ -215,8 +215,8 @@ async fn uninstall_many<U>(ui: &mut U,
                 }
 
                 for p in &deps {
-                    // Check if this dependency has reverse dependencies, including transitive rdeps,
-                    // that are NOT being uninstalled
+                    // Check if this dependency has reverse dependencies, including transitive
+                    // rdeps, that are NOT being uninstalled
                     let rdeps = graph.ordered_reverse_deps(p);
                     if log::log_enabled!(log::Level::Debug) {
                         for rdep in rdeps.iter() {
