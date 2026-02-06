@@ -19,7 +19,8 @@ use habitat_core::{error as herror,
                              list::temp_package_directory}};
 use habitat_sup_client::{SrvClient,
                          SrvClientError};
-use log::warn;
+use log::{debug,
+          warn};
 use std::{collections::HashSet,
           fs,
           path::Path,
@@ -214,9 +215,14 @@ async fn uninstall_many<U>(ui: &mut U,
                 }
 
                 for p in &deps {
-                    // Check if this dependency has reverse dependencies that are NOT being
-                    // uninstalled
-                    let rdeps = graph.rdeps(p);
+                    // Check if this dependency has reverse dependencies, including transitive rdeps,
+                    // that are NOT being uninstalled
+                    let rdeps = graph.ordered_reverse_deps(p);
+                    if log::log_enabled!(log::Level::Debug) {
+                        for rdep in rdeps.iter() {
+                            debug!("{} reverse depends on {}", rdep, p);
+                        }
+                    }
                     let external_rdeps_count =
                         rdeps.iter()
                              .filter(|rdep| !packages_being_uninstalled.contains(*rdep))
