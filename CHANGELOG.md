@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.412 -->
-## [2.0.412](https://github.com/habitat-sh/habitat/tree/2.0.412) (2026-02-06)
+<!-- latest_release 2.0.413 -->
+## [2.0.413](https://github.com/habitat-sh/habitat/tree/2.0.413) (2026-02-06)
 
 #### Merged Pull Requests
-- Bump anyhow from 1.0.100 to 1.0.101 [#10194](https://github.com/habitat-sh/habitat/pull/10194) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump time from 0.3.41 to 0.3.47 [#10193](https://github.com/habitat-sh/habitat/pull/10193) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump time from 0.3.41 to 0.3.47 [#10193](https://github.com/habitat-sh/habitat/pull/10193) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.413 -->
 - Bump anyhow from 1.0.100 to 1.0.101 [#10194](https://github.com/habitat-sh/habitat/pull/10194) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.412 -->
 - Bump aws-config from 1.8.12 to 1.8.13 [#10191](https://github.com/habitat-sh/habitat/pull/10191) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.411 -->
 - Bump flate2 from 1.1.8 to 1.1.9 [#10189](https://github.com/habitat-sh/habitat/pull/10189) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.410 -->
