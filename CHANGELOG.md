@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.413 -->
-## [2.0.413](https://github.com/habitat-sh/habitat/tree/2.0.413) (2026-02-06)
+<!-- latest_release 2.0.414 -->
+## [2.0.414](https://github.com/habitat-sh/habitat/tree/2.0.414) (2026-02-07)
 
 #### Merged Pull Requests
-- Bump time from 0.3.41 to 0.3.47 [#10193](https://github.com/habitat-sh/habitat/pull/10193) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- check entire rdep tree and not just direct rdeps when deleting a package [#10195](https://github.com/habitat-sh/habitat/pull/10195) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- check entire rdep tree and not just direct rdeps when deleting a package [#10195](https://github.com/habitat-sh/habitat/pull/10195) ([mwrock](https://github.com/mwrock)) <!-- 2.0.414 -->
 - Bump time from 0.3.41 to 0.3.47 [#10193](https://github.com/habitat-sh/habitat/pull/10193) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.413 -->
 - Bump anyhow from 1.0.100 to 1.0.101 [#10194](https://github.com/habitat-sh/habitat/pull/10194) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.412 -->
 - Bump aws-config from 1.8.12 to 1.8.13 [#10191](https://github.com/habitat-sh/habitat/pull/10191) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.411 -->
