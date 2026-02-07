@@ -21,7 +21,8 @@ Wait-Supervisor -Timeout 120
 Describe "pkg uninstall" {
     It "installs core/redis" {
         foreach ($p in $pkgs) {
-            hab pkg install "$p"
+            Write-Host "Installing package $p"
+            Write-Host (hab pkg install "$p" | Out-String)
         }
         hab pkg list "$pkg" | Should -BeExactly $pkgs
     }
@@ -32,7 +33,7 @@ Describe "pkg uninstall" {
     }
 
     It "uninstall all but the two latest of version 3.2.4" {
-        hab pkg uninstall --keep-latest=2 "$pkg/3.2.4"
+        Write-Host (hab pkg uninstall --keep-latest=2 "$pkg/3.2.4" | Out-String)
         hab pkg list "$pkg" | Should -BeExactly $pkgs[,0+4..8]
     }
 
