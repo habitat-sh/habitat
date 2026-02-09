@@ -14,6 +14,8 @@ $pkgs = @(
 $nginxPkg = "core/nginx"
 $env:HAB_NOCOLORING="true"
 
+hab origin key generate $env:HAB_ORIGIN
+
 # Start the supervisor and load nginx
 $job = Start-Job { hab sup run }
 Wait-Supervisor -Timeout 120
@@ -71,13 +73,14 @@ Describe "pkg uninstall" {
         Wait-SupervisorService nginx -Timeout 20
 
         # Attempt to uninstall nginx
-        hab pkg uninstall $nginxPkg
+        Write-Host (hab pkg uninstall $nginxPkg | Out-String)
 
         # Verify nginx is still installed
         hab pkg list $nginxPkg | Should -Not -BeNullOrEmpty
 
         # Verify all nginx dependencies are still installed
         foreach($dep in $initialDeps) {
+            Write-Host "Checking dependency $dep"
             hab pkg list $dep | Should -Not -BeNullOrEmpty
         }
     }

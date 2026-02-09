@@ -192,6 +192,11 @@ async fn uninstall_many<U>(ui: &mut U,
                                 safety).await?
                 {
                     graph.remove(ident);
+                } else {
+                    // If the package isn't deleted (e.g. it's loaded by the supervisor), then we
+                    // shouldn't attempt to delete any of its dependencies either as they won't be
+                    // able to be deleted due to the same reason.
+                    continue;
                 }
             }
             Some(c) => {
