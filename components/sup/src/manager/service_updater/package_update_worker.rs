@@ -11,7 +11,7 @@ use habitat_sup_protocol::types::UpdateCondition;
 use log::{debug,
           trace,
           warn};
-use rand::Rng;
+use rand::RngExt;
 use std::{self,
           time::Duration};
 use tokio::{self,

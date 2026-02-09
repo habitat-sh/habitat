@@ -9,7 +9,7 @@ use crate::error::{Error,
 use habitat_win_users::sid::{self,
                              Sid};
 use rand::{self,
-           Rng};
+           RngExt};
 use std::{cmp,
           collections::HashMap,
           env,

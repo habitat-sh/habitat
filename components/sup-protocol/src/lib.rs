@@ -45,8 +45,7 @@ use std::{fs::File,
           path::{Path,
                  PathBuf}};
 
-use rand::{TryRngCore,
-           rngs::OsRng};
+use rand::RngExt;
 
 // Name of file containing the CtlGateway secret key.
 const CTL_SECRET_FILENAME: &str = "CTL_SECRET";
@@ -66,9 +65,9 @@ lazy_static! {
 
 /// Generate a new secret key used for authenticating clients to the `CtlGateway`.
 pub fn generate_secret_key(out: &mut String) {
-    let mut rng = OsRng;
+    let mut rng = rand::rng();
     let mut result = vec![0u8; CTL_SECRET_LEN];
-    let _ = rng.try_fill_bytes(&mut result);
+    rng.fill(&mut result[..]);
     *out = core::base64::encode(&result);
 }
 

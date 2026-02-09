@@ -11,7 +11,7 @@ use habitat_core::service::{HealthCheckInterval,
 use log::{debug,
           error,
           trace};
-use rand::Rng;
+use rand::RngExt;
 use serde::Serialize;
 use std::{cmp,
           convert::TryFrom,

@@ -724,7 +724,7 @@ impl MemberList {
                     && member.id != target_member_id
                     && *health == Health::Alive
                 })
-                .choose_multiple(&mut rng(), PINGREQ_TARGETS)
+                .sample(&mut rng(), PINGREQ_TARGETS)
         {
             with_closure(member);
         }
