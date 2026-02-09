@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.416 -->
-## [2.0.416](https://github.com/habitat-sh/habitat/tree/2.0.416) (2026-02-09)
+<!-- latest_release 2.0.417 -->
+## [2.0.417](https://github.com/habitat-sh/habitat/tree/2.0.417) (2026-02-09)
 
 #### Merged Pull Requests
-- Ts uninstall [#10199](https://github.com/habitat-sh/habitat/pull/10199) ([mwrock](https://github.com/mwrock))
+- Bump wincode from 0.3.1 to 0.4.1 [#10198](https://github.com/habitat-sh/habitat/pull/10198) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump wincode from 0.3.1 to 0.4.1 [#10198](https://github.com/habitat-sh/habitat/pull/10198) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.417 -->
 - Ts uninstall [#10199](https://github.com/habitat-sh/habitat/pull/10199) ([mwrock](https://github.com/mwrock)) <!-- 2.0.416 -->
 - Bump reqwest from 0.13.1 to 0.13.2 [#10196](https://github.com/habitat-sh/habitat/pull/10196) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.415 -->
 - check entire rdep tree and not just direct rdeps when deleting a package [#10195](https://github.com/habitat-sh/habitat/pull/10195) ([mwrock](https://github.com/mwrock)) <!-- 2.0.414 -->
