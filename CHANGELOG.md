@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.420 -->
-## [2.0.420](https://github.com/habitat-sh/habitat/tree/2.0.420) (2026-02-10)
+<!-- latest_release 2.0.421 -->
+## [2.0.421](https://github.com/habitat-sh/habitat/tree/2.0.421) (2026-02-10)
 
 #### Merged Pull Requests
-- Bump actix-web from 4.11.0 to 4.12.1 [#10205](https://github.com/habitat-sh/habitat/pull/10205) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tempfile from 3.24.0 to 3.25.0 [#10204](https://github.com/habitat-sh/habitat/pull/10204) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump tempfile from 3.24.0 to 3.25.0 [#10204](https://github.com/habitat-sh/habitat/pull/10204) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.421 -->
 - Bump actix-web from 4.11.0 to 4.12.1 [#10205](https://github.com/habitat-sh/habitat/pull/10205) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.420 -->
 - publish acceptance build to hab-2-rc2 [#10201](https://github.com/habitat-sh/habitat/pull/10201) ([mwrock](https://github.com/mwrock)) <!-- 2.0.419 -->
 - Bump rand from 0.9.2 to 0.10.0 [#10197](https://github.com/habitat-sh/habitat/pull/10197) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.418 -->
