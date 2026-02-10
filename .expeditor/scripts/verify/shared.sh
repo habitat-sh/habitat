@@ -7,7 +7,11 @@ source .expeditor/scripts/shared.sh
 # This script should contain all shared functions for the verify pipeline
 
 # Always accept habitat license
-sudo hab license accept
+if [[ -z "${HAB_LICENSE:-}" ]]; then
+  sudo hab license accept
+else
+  echo "Habitat license already accepted via HAB_LICENSE environment variable"
+fi
 
 get_rustfmt_toolchain() {
   # It turns out that every nightly version of rustfmt has slight tweaks from the previous version.
