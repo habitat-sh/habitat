@@ -4249,9 +4249,9 @@ dependencies = [
 [[package]]
 name = "retry"
 version = "1.0.0"
-source = "git+https://github.com/habitat-sh/retry#5c28be96c18e0f771720666cbbd74c5a8dc3c5bc"
+source = "git+https://github.com/habitat-sh/retry#f2fca07dac8c17820352ad329109a5652f19ff07"
 dependencies = [
- "rand 0.9.2",
+ "rand 0.10.0",
  "tokio",
 ]
 
