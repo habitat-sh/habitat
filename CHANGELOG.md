@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.418 -->
-## [2.0.418](https://github.com/habitat-sh/habitat/tree/2.0.418) (2026-02-10)
+<!-- latest_release 2.0.419 -->
+## [2.0.419](https://github.com/habitat-sh/habitat/tree/2.0.419) (2026-02-10)
 
 #### Merged Pull Requests
-- Bump rand from 0.9.2 to 0.10.0 [#10197](https://github.com/habitat-sh/habitat/pull/10197) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- publish acceptance build to hab-2-rc2 [#10201](https://github.com/habitat-sh/habitat/pull/10201) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- publish acceptance build to hab-2-rc2 [#10201](https://github.com/habitat-sh/habitat/pull/10201) ([mwrock](https://github.com/mwrock)) <!-- 2.0.419 -->
 - Bump rand from 0.9.2 to 0.10.0 [#10197](https://github.com/habitat-sh/habitat/pull/10197) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.418 -->
 - Bump wincode from 0.3.1 to 0.4.1 [#10198](https://github.com/habitat-sh/habitat/pull/10198) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.417 -->
 - Ts uninstall [#10199](https://github.com/habitat-sh/habitat/pull/10199) ([mwrock](https://github.com/mwrock)) <!-- 2.0.416 -->
