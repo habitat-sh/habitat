@@ -1361,7 +1361,7 @@ impl Server {
     /// Signal that new initial members have been added and should be pinged on the next outbound
     /// cycle
     pub fn signal_new_initial_members(&self) {
-        self.new_initial_members.store(true, Ordering::Relaxed);
+        self.new_initial_members.store(true, Ordering::Release);
         debug!("Signaled outbound thread that new initial members were added");
     }
 

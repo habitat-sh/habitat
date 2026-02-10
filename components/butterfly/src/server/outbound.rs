@@ -100,7 +100,7 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
         liveliness_checker::mark_thread_alive().and_divergent();
 
         // Check if new initial members have been added via peer watch file
-        let new_initial_members_added = server.new_initial_members.load(Ordering::Relaxed);
+        let new_initial_members_added = server.new_initial_members.load(Ordering::Acquire);
         if new_initial_members_added {
             // Reset the flag and force re-evaluation of initial member pinging
             server.new_initial_members.store(false, Ordering::Relaxed);

@@ -16,9 +16,6 @@ services:
       - run
       - --listen-ctl=0.0.0.0:9632
       - --peer-watch-file=/hab/PEERS
-    volumes:
-      - ./testcases/peer_watcher/PEERS:/hab/PEERS
-
 
   tester:
     image: ${TESTCASE}_image
