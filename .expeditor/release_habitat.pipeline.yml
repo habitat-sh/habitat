@@ -11,6 +11,8 @@ expeditor:
       timeout_in_minutes: 45
       env:
         HAB_ORIGIN: "chef"
+        HAB_RC_CHANNEL: "hab-2-rc2"
+        HAB_STUDIO_SECRET_HAB_RC_CHANNEL: "hab-2-rc2"
         PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
         # Necessary to prevent old studios from poisoning builds after core plans refreshes
         HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "base-2025"
