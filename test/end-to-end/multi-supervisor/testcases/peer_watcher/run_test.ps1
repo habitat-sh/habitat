@@ -8,7 +8,7 @@ Describe "Finding peers from watch file" {
     }
 
     It "adds beta to the peer watch file and finds it as a peer" {
-        Add-Content -Path "./testcases/peer_watcher/PEERS" -Value "beta.habitat.dev"
+        Add-Content -Path "/hab/PEERS" -Value "beta.habitat.dev"
         Start-Sleep -Seconds 5 # give butterfly some time to detect the change and update the census
         $json = (Invoke-WebRequest "http://bastion.habitat.dev:9631/census" | ConvertFrom-Json)
         $json.last_membership_counter | Should -Be 3
