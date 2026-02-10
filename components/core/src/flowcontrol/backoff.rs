@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use rand::{Rng,
+use rand::{RngExt,
            rng};
 use tokio::time::Instant;
 

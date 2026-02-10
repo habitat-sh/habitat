@@ -9,7 +9,7 @@ use habitat_core::{ChannelIdent,
 use log::{debug,
           trace,
           warn};
-use rand::Rng;
+use rand::RngExt;
 use std::{borrow::Borrow,
           time::Duration};
 use tokio::{self,
