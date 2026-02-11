@@ -5646,9 +5646,9 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "wincode"
-version = "0.4.1"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd358c35ea3fbf8590e8b9d9e7fe6450701c520c8b58c320aea0b8b75f8d9866"
+checksum = "6d1068d2b3145b56f47cd84e5eb99d3371bf03605bb4ee1b1efb519ff23d92f7"
 dependencies = [
  "pastey",
  "proc-macro2",
