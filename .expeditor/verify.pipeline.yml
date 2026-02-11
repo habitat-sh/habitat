@@ -1231,7 +1231,7 @@ steps:
 
   - label: "[build] :mac: aarch64 hab"
     command:
-      - .expeditor/scripts/verify/build_mac_package.sh components/hab
+      - .expeditor/scripts/verify/build_package-aarch64-darwin.sh components/hab
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-darwin"
@@ -1240,7 +1240,7 @@ steps:
     expeditor:
       executor:
         macos:
-          os-version: "12"
+          os-version: "13"
           inherit-environment-vars: true
     timeout_in_minutes: 60
     retry:

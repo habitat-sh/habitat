@@ -11,12 +11,12 @@ curlbash_hab() {
 
     echo "--- :habicat: Bootstrap installation of the current $_channel hab binary for $pkg_target using curl|bash"
 
-    sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel"
+    sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -b "aarch64-darwin"
     case "${pkg_target}" in
         x86_64-linux | aarch64-linux)
             hab_binary="/bin/hab"
             ;;
-        x86_64-darwin)
+        x86_64-darwin | aarch64-darwin)
             hab_binary="/usr/local/bin/hab"
             ;;
         *)
@@ -251,8 +251,8 @@ promote_packages_to_builder_channel() {
     fi
 }
 
-# Create a datadog event for the promotion of a Supervisor version to a builder channel. 
-# 
+# Create a datadog event for the promotion of a Supervisor version to a builder channel.
+#
 # e.g. send_channel_promotion_datadog_event 0.88.0 dev
 send_channel_promotion_datadog_event() {
     local version="${1}"
@@ -270,7 +270,7 @@ send_channel_promotion_datadog_event() {
       --header "DD-API-KEY: ${DD_CLIENT_API_KEY}" \
       --header 'Content-Type: application/json charset=utf-8' \
       --data-binary @- << EOF
-{   
+{
   "aggregation_key":"supervisor_promotion",
   "alert_type":"info",
   "date_happened":$(date "+%s"),
@@ -366,7 +366,7 @@ push_current_branch() {
   repo=$(git remote get-url origin | sed -rn  's/.+github\.com[\/\:](.*)\.git/\1/p')
   head=$(git rev-parse --abbrev-ref HEAD)
 
-  if [ "$head" == "main" ]; then 
+  if [ "$head" == "main" ]; then
     echo "Error: Attempting to push to main!"
     exit 1
   fi
@@ -386,7 +386,7 @@ macos_install_bootstrap_package() {
     sudo hdiutil detach "/Volumes/Habitat macOS Bootstrapper"
     brew install wget
     export PATH=/opt/mac-bootstrapper/embedded/bin:/usr/local/bin:$PATH
-    
+
 }
 
 macos_use_cert_file_from_linux_cacerts_package() {
@@ -438,6 +438,88 @@ macos_build() {
     local component="$1"
     echo "--- :habicat: Building $component"
     sudo -E bash \
-         components/plan-build/bin/hab-plan-build-linux.sh \
+          components/plan-build/bin/hab-plan-build-linux.sh \
          "$component"
+}
+
+
+
+#This function performs actions similar to the actions performed by the `install.sh`
+#script, except these actions are temporary that is we setup the `/hab` volume during
+#every invocation which builds `hab` packages and `tear_down` after the expected
+#`hab` package replated actions
+setup_hab_root_macos_pipeline() {
+
+    readonly HAB_DIR_NAME="hab"
+    readonly HAB_VOLUME_LABEL="Habitat Store"
+
+    setup_synthetic_conf() {
+        grep -q "%HAB_DIR_NAME" /etc/synthetic.conf || echo "Entry for Hab Mount Path /$HAB_DIR_NAME does not exist. Adding...";
+        echo "$HAB_DIR_NAME" >> /etc/synthetic.conf && \
+        /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -t || true
+        echo "Making sure the /$HAB_DIR_NAME Exists."
+        test -d "/$HAB_DIR_NAME"
+    }
+
+    await_volume() {
+        local timeout=30 # sufficiently long enough to mount the volume
+        local remaining_time=$timeout
+        while (( remaining_time > 0 )); do
+            /usr/sbin/diskutil info "/$HAB_DIR_NAME" &>/dev/null && return 0  # If the volume is found, return successfully
+            ((remaining_time--))
+            sleep 1
+        done
+        echo "Error: Volume did not appear within $timeout seconds."
+        exit 1
+    }
+
+    setup_hab_volume() {
+        # First Make sure the /hab directory exists or else create it
+        # We cannot simply create the "/hab" directory, instead we make an entry in the `/etc/synthetic.conf` and run the
+        # apfs.util -t to create the 'synthetic object'
+        if ! test -d "/$HAB_DIR_NAME" ; then
+        setup_synthetic_conf || {
+        echo "Failed to Find /$HAB_DIR_NAME path.";
+        exit 1
+        }
+        fi
+
+        echo "Setting Up the Habitat Store."
+        # Now create the Hab volume on the "Root Disk"
+        ROOT_VOLUME=$(/usr/sbin/diskutil info -plist / | xmllint --xpath "/plist/dict/key[text()='ParentWholeDisk']/following-sibling::string[1]/text()" -)
+        readonly ROOT_VOLUME
+        echo "Determined Root Volume to be $ROOT_VOLUME."
+
+        echo "Creating a Volume for Habitat Store."
+        /usr/sbin/diskutil apfs addVolume "$ROOT_VOLUME" "APFS" "$HAB_VOLUME_LABEL" -nomount
+
+        HAB_VOLUME_DEVICE=$(diskutil list | grep "$HAB_VOLUME_LABEL" | awk '{print $NF}')
+        readonly HAB_VOLUME_DEVICE
+
+        echo "Created Volum $HAB_VOLUME_DEVICE. Mounting the volume."
+        /usr/sbin/diskutil mount -mountOptions rw,noauto,nobrowse,owners -mountPoint /hab "$HAB_VOLUME_DEVICE" || \
+            macos_teardown_exit "Error Mounting the Volume"
+
+        echo "Waiting for the volume to be available."
+        await_volume
+
+    }
+
+    setup_hab_volume
+}
+
+
+teardown_hab_root_macos_pipeline() {
+    echo "Deleting Volume $HAB_VOLUME_DEVICE."
+    /usr/sbin/diskutil unmount force "$HAB_VOLUME_DEVICE" || true
+    /usr/sbin/diskutil apfs deleteVolume "$HAB_VOLUME_DEVICE"
+    echo "Volume $HAB_VOLUME_DEVICE deleted."
+}
+
+macos_teardown_exit() {
+    echo "xxx ERROR: ${1:-"Unknown"}. Exiting."
+
+    teardown_hab_root_macos_pipeline
+
+    exit "1"
 }
