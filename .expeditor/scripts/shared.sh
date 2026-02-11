@@ -11,7 +11,7 @@ curlbash_hab() {
 
     echo "--- :habicat: Bootstrap installation of the current $_channel hab binary for $pkg_target using curl|bash"
 
-    sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -b "aarch64-darwin"
+    sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -b "aarch64-darwin-test"
     case "${pkg_target}" in
         x86_64-linux | aarch64-linux)
             hab_binary="/bin/hab"
