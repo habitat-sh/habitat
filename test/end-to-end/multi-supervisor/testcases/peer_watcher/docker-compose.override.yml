@@ -27,7 +27,7 @@ services:
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
       HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
     volumes:
-      - source: ./testcases/peer_watcher/PEERS:/hab/PEERS
+      - source: ./testcases/peer_watcher/PEERS
         target: /hab/PEERS
         type: bind
       - source: ./CTL_SECRET
