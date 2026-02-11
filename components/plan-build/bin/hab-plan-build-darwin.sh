@@ -45,6 +45,7 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The first argument to the script is a Plan context directory, containing a
 # `plan.sh` file
 PLAN_CONTEXT=${1:-.}
+ORIG_PLAN_CONTEXT=${PLAN_CONTEXT}
 # The filename of the plan file
 HAB_PLAN_FILENAME="plan.sh"
 # The default Habitat Depot from where to download dependencies. If
@@ -1117,6 +1118,7 @@ if [[ "$pkg_target" == "@@pkg_target@@" ]]; then
   fi
 fi
 
+build_line "Plan Context is ----- $PLAN_CONTEXT"
 # Expand the context path to an absolute path
 PLAN_CONTEXT="$(abspath "$PLAN_CONTEXT")"
 # Set the initial source root to be the same as the Plan context directory.
@@ -1321,12 +1323,12 @@ if declare -f buildtime_sandbox >/dev/null; then
 fi
 
 build_line "Sandbox profile written to $SANDBOX_PROFILE"
+build_line "Plan Context is $PLAN_CONTEXT. SRC_PATH is $SRC_PATH"
 
-cd "$PLAN_CONTEXT"
 exec /usr/bin/sandbox-exec \
   -f "$SANDBOX_PROFILE" \
   -DSTUDIO_DIR="$HAB_STUDIO_ROOT" \
   -DSTUDIO_HAB="$HAB_STUDIO_HAB_BIN" \
-  -DPLAN_CONTEXT_DIR="$PLAN_CONTEXT" \
+  -DPLAN_CONTEXT_DIR="$PWD" \
   -DPKG_OUTPUT_PATH="$pkg_output_path" \
-  "${source_dir}/hab-plan-build-darwin-internal.bash" . "${@:2}"
+  "${source_dir}/hab-plan-build-darwin-internal.bash" "${ORIG_PLAN_CONTEXT}" "${@:2}"
