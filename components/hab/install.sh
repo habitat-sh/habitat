@@ -294,6 +294,10 @@ main() {
       bldrUrl="${OPTARG}"
       ;;
     b)
+      # We use this CLI switch to download the *bootstrap* packages
+      # from this channel on the builder. This applies only for *darwin*
+      # TODO: Once we start publishing packages on chef.io, this should go
+      # away
       bldrChannel="${OPTARG}" # for temporary use
       ;;
     \?)

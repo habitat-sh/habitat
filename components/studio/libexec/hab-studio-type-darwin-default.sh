@@ -59,7 +59,7 @@ fi
 
 PROFILE_ENTER
 
-    coreutils_path=$(_pkgpath_for core/build-tools-coreutils)
+    coreutils_path=$(_pkgpath_for core/coreutils)
 
     # Install the hab backline
     "$system_hab_cmd" pkg install "$HAB_STUDIO_BACKLINE_PKG"
