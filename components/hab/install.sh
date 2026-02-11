@@ -522,7 +522,7 @@ extract_archive() {
 }
 
 install_hab() {
-  local _origin="${1:-core}"
+  local _origin="${1:-chef}"
 
   case "${sys}" in
   darwin)
@@ -679,7 +679,7 @@ dl_file() {
 
 # Extract origin from manifest.json file
 get_origin_from_manifest() {
-  local origin="core"  # Default fallback
+  local origin="chef"  # Default fallback
 
   # Use basic text processing to extract origin from package identifiers
   # Look for package identifiers and extract the origin (first part before /)
@@ -690,7 +690,7 @@ get_origin_from_manifest() {
 
   # Validate that we got a non-empty origin
   if [ -z "$origin" ] || [ "$origin" = "null" ]; then
-    origin="core"
+    origin="chef"
   fi
 
   echo "$origin"
