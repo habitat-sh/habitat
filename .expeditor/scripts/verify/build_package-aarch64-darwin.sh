@@ -12,6 +12,8 @@ package_path=${1?package_path argument required}
 
 setup_hab_root_macos_pipeline
 
+export HAB_FEAT_MACOS_NATIVE_SUPPORT=1
+
 # Since we are using the *bootstrap* packages right now, we will need to 'install' `hab`
 # CLI twice - first get the original `hab` CLI and then use that to download the
 # 'bootstrap' version.

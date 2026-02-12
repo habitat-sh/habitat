@@ -497,7 +497,7 @@ setup_hab_root_macos_pipeline() {
         readonly HAB_VOLUME_DEVICE
 
         echo "Created Volum $HAB_VOLUME_DEVICE. Mounting the volume."
-        /usr/sbin/diskutil mount -mountOptions rw,noauto,nobrowse,owners -mountPoint /hab "$HAB_VOLUME_DEVICE" || \
+        /usr/sbin/diskutil mount -mountOptions rw,nobrowse,owners,suid -mountPoint /hab "$HAB_VOLUME_DEVICE" || \
             macos_teardown_exit "Error Mounting the Volume"
 
         echo "Waiting for the volume to be available."
