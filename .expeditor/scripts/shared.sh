@@ -493,16 +493,36 @@ setup_hab_root_macos_pipeline() {
         echo "Creating a Volume for Habitat Store."
         /usr/sbin/diskutil apfs addVolume "$ROOT_VOLUME" "APFS" "$HAB_VOLUME_LABEL" -nomount
 
-        HAB_VOLUME_DEVICE=$(diskutil list | grep "$HAB_VOLUME_LABEL" | awk '{print $NF}')
+        HAB_VOLUME_DEVICE=$(/usr/sbin/diskutil list | grep "$HAB_VOLUME_LABEL" | awk '{print $NF}')
         readonly HAB_VOLUME_DEVICE
 
         echo "Created Volum $HAB_VOLUME_DEVICE. Mounting the volume."
-        /usr/sbin/diskutil mount -mountOptions rw,noauto,nobrowse,owners -mountPoint /hab "$HAB_VOLUME_DEVICE" || \
+        /usr/sbin/diskutil mount -mountOptions rw,dev,nobrowse,owners,suid -mountPoint /hab "$HAB_VOLUME_DEVICE" || \
             macos_teardown_exit "Error Mounting the Volume"
 
         echo "Waiting for the volume to be available."
         await_volume
+	
+        /usr/sbin/diskutil apfs list 
 
+        echo "Current mounted directories."
+        /sbin/mount
+	
+        /sbin/mount -u -o dev,nobrowse,suid "/$HAB_DIR_NAME"
+
+        /sbin/mount
+
+        /bin/ls -ld "/hab"
+
+        echo "Waiting for 30 seconds."
+        sleep 30
+        /usr/sbin/diskutil info "/$HAB_DIR_NAME"
+        
+        echo "Software Versions ======"
+        sw_vers
+        uname -a
+        echo "Software Versions End ======"
+	sudo mkdir -p /hab/bin || touch /hab/test || macos_teardown_exit
     }
 
     check_if_prev_hab_volume() {
