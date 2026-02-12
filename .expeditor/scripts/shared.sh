@@ -455,7 +455,7 @@ setup_hab_root_macos_pipeline() {
 
     setup_synthetic_conf() {
         grep -q "%HAB_DIR_NAME" /etc/synthetic.conf || echo "Entry for Hab Mount Path /$HAB_DIR_NAME does not exist. Adding...";
-        echo "$HAB_DIR_NAME" >> /etc/synthetic.conf && \
+        echo "$HAB_DIR_NAME" >> /etc/synthetic.conf || return 1
         /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -t || true
         echo "Making sure the /$HAB_DIR_NAME Exists."
         test -d "/$HAB_DIR_NAME"
@@ -478,10 +478,10 @@ setup_hab_root_macos_pipeline() {
         # We cannot simply create the "/hab" directory, instead we make an entry in the `/etc/synthetic.conf` and run the
         # apfs.util -t to create the 'synthetic object'
         if ! test -d "/$HAB_DIR_NAME" ; then
-        setup_synthetic_conf || {
-        echo "Failed to Find /$HAB_DIR_NAME path.";
-        exit 1
-        }
+            setup_synthetic_conf || {
+                echo "Failed to Find /$HAB_DIR_NAME path.";
+                exit 1
+            }
         fi
 
         echo "Setting Up the Habitat Store."
@@ -504,6 +504,23 @@ setup_hab_root_macos_pipeline() {
         await_volume
 
     }
+
+    check_if_prev_hab_volume() {
+	if ! /usr/sbin/diskutil list | grep -q "$HAB_VOLUME_LABEL"; then
+            echo "No Pre-Existing Volume found for '$HAB_VOLUME_LABEL'."
+            return 0;
+        fi
+
+        for volume in $(/usr/sbin/diskutil list | grep "$HAB_VOLUME_LABEL" | awk '{print $NF}'); do
+            echo "An existing (possibly unused) volume '$volume' found. Deleting it."
+            /usr/sbin/diskutil apfs deleteVolume "$volume"
+            echo ""
+        done
+
+        return 0;
+     }
+
+    check_if_prev_hab_volume
 
     setup_hab_volume
 }
