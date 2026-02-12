@@ -16,12 +16,9 @@ setup_hab_root_macos_pipeline
 # CLI twice - first get the original `hab` CLI and then use that to download the
 # 'bootstrap' version.
 hab_binary=
-curlbash_hab "${BUILD_PKG_TARGET}" acceptance chef
+curlbash_hab "${BUILD_PKG_TARGET}" acceptance chef || macos_teardown_exit
 
-echo $hab_binary
-
-
-${hab_binary} pkg install chef/hab -c aarch64-darwin --binlink -f
+${hab_binary} pkg install chef/hab -c aarch64-darwin --binlink -f || macos_teardown_exit
 bootstrap_hab_binary=$(command -v hab)
 echo "Bootstrap Package Version is : $($bootstrap_hab_binary -V)."
 
@@ -31,12 +28,12 @@ export HAB_ORIGIN
 HAB_ORIGIN=throwaway
 
 echo "--- :key: Generating fake origin key"
-sudo -E "${bootstrap_hab_binary}" origin key generate
+sudo -E "${bootstrap_hab_binary}" origin key generate || macos_teardown_exit
 
 # Install hab-studio from the chef origin via the acceptance channel.
 # By default, it installs from the stable channel only,
 # so this may need updating to support other channels.
-${bootstrap_hab_binary} pkg install chef/hab-studio -c aarch64-darwin-test
+${bootstrap_hab_binary} pkg install chef/hab-studio -c aarch64-darwin-test || macos_teardown_exit
 
 export HAB_STUDIO_SECRET_HAB_BLDR_CHANNEL="aarch64-darwin"
 
