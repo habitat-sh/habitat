@@ -512,7 +512,7 @@ setup_hab_root_macos_pipeline() {
 
         /bin/ls -ld "/hab"
 
-	mkdir -p /hab/bin || macos_teardown_exit
+	sudo mkdir -p /hab/bin || macos_teardown_exit
         ls -rtl /hab/bin
     }
 
