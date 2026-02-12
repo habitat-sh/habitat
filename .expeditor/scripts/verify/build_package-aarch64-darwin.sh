@@ -15,8 +15,10 @@ setup_hab_root_macos_pipeline
 # Since we are using the *bootstrap* packages right now, we will need to 'install' `hab`
 # CLI twice - first get the original `hab` CLI and then use that to download the
 # 'bootstrap' version.
-declare -g hab_binary
+hab_binary=
 curlbash_hab "${BUILD_PKG_TARGET}" acceptance chef
+
+echo $hab_binary
 
 
 ${hab_binary} pkg install chef/hab -c aarch64-darwin --binlink -f
