@@ -506,9 +506,11 @@ setup_hab_root_macos_pipeline() {
         echo "Current mounted directories."
         /sbin/mount
 	
-        /sbin/mount -u -o dev "/$HAB_DIR_NAME"
+        /sbin/mount -u -o dev,nobrowse,suid "/$HAB_DIR_NAME"
 
         /sbin/mount
+
+        /bin/ls -ld "/hab"
 
 	mkdir -p /hab/bin || macos_teardown_exit
         ls -rtl /hab/bin
