@@ -502,6 +502,9 @@ setup_hab_root_macos_pipeline() {
 
         echo "Waiting for the volume to be available."
         await_volume
+	
+        echo "Current mounted directories."
+        /sbin/mount
 
     }
 
