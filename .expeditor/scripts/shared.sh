@@ -506,7 +506,7 @@ setup_hab_root_macos_pipeline() {
         echo "Current mounted directories."
         /sbin/mount
 	
-	mkdir -p /hab/bin
+	mkdir -p /hab/bin || macos_teardown_exit
         ls -rtl /hab/bin
     }
 
