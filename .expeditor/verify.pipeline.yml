@@ -1230,19 +1230,16 @@ steps:
         limit: 10 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[build] :mac: aarch64 hab"
+    agents:
+      queue: 'default-macos-arm64-privileged'
     command:
-      - .expeditor/scripts/verify/build_package-aarch64-darwin.sh components/hab
+      - sudo -E .expeditor/scripts/verify/build_package-aarch64-darwin.sh components/hab
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-darwin"
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
-    expeditor:
-      executor:
-        macos:
-          os-version: "12"
-          inherit-environment-vars: true
     timeout_in_minutes: 60
     retry:
       automatic:
-        limit: 10 # Addressing current Anka system timeouts due to oversubscription
+        limit: 1 # Addressing current Anka system timeouts due to oversubscription
