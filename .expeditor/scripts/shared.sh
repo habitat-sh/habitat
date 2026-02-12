@@ -493,7 +493,7 @@ setup_hab_root_macos_pipeline() {
         echo "Creating a Volume for Habitat Store."
         /usr/sbin/diskutil apfs addVolume "$ROOT_VOLUME" "APFS" "$HAB_VOLUME_LABEL" -nomount
 
-        HAB_VOLUME_DEVICE=$(diskutil list | grep "$HAB_VOLUME_LABEL" | awk '{print $NF}')
+        HAB_VOLUME_DEVICE=$(/usr/sbin/diskutil list | grep "$HAB_VOLUME_LABEL" | awk '{print $NF}')
         readonly HAB_VOLUME_DEVICE
 
         echo "Created Volum $HAB_VOLUME_DEVICE. Mounting the volume."
