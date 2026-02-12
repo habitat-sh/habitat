@@ -505,7 +505,9 @@ setup_hab_root_macos_pipeline() {
 	
         echo "Current mounted directories."
         /sbin/mount
-
+	
+	mkdir -p /hab/bin
+        ls -rtl /hab/bin
     }
 
     check_if_prev_hab_volume() {
