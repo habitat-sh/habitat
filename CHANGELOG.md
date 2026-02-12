@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.423 -->
-## [2.0.423](https://github.com/habitat-sh/habitat/tree/2.0.423) (2026-02-12)
+<!-- latest_release 2.0.424 -->
+## [2.0.424](https://github.com/habitat-sh/habitat/tree/2.0.424) (2026-02-12)
 
 #### Merged Pull Requests
-- Fixes to `hab-plan-build-darwin.sh` for MacOS build [#10209](https://github.com/habitat-sh/habitat/pull/10209) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump toml from 0.9.11+spec-1.1.0 to 1.0.0+spec-1.1.0 [#10210](https://github.com/habitat-sh/habitat/pull/10210) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump toml from 0.9.11+spec-1.1.0 to 1.0.0+spec-1.1.0 [#10210](https://github.com/habitat-sh/habitat/pull/10210) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.424 -->
+- Bump wincode from 0.4.1 to 0.4.4 [#10213](https://github.com/habitat-sh/habitat/pull/10213) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.424 -->
+- Bump clap from 4.5.57 to 4.5.58 [#10211](https://github.com/habitat-sh/habitat/pull/10211) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.424 -->
 - Fixes to `hab-plan-build-darwin.sh` for MacOS build [#10209](https://github.com/habitat-sh/habitat/pull/10209) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.423 -->
 - Bump retry from `5c28be9` to `f2fca07` [#10203](https://github.com/habitat-sh/habitat/pull/10203) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.422 -->
 - Bump tempfile from 3.24.0 to 3.25.0 [#10204](https://github.com/habitat-sh/habitat/pull/10204) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.421 -->
