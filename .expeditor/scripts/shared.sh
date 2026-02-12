@@ -514,6 +514,11 @@ setup_hab_root_macos_pipeline() {
 
         /bin/ls -ld "/hab"
 
+        echo "Waiting for 30 seconds."
+        sleep 30
+        /usr/sbin/diskutil info "/$HAB_DIR_NAME"
+        
+        echo "creating dir"
 	sudo mkdir -p /hab/bin || macos_teardown_exit
         ls -rtl /hab/bin
     }

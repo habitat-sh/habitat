@@ -1242,4 +1242,4 @@ steps:
     timeout_in_minutes: 60
     retry:
       automatic:
-        limit: 10 # Addressing current Anka system timeouts due to oversubscription
+        limit: 1 # Addressing current Anka system timeouts due to oversubscription
