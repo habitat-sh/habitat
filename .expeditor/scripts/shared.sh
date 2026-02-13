@@ -518,9 +518,11 @@ setup_hab_root_macos_pipeline() {
         sleep 30
         /usr/sbin/diskutil info "/$HAB_DIR_NAME"
         
-        echo "creating dir"
-	sudo mkdir -p /hab/bin || macos_teardown_exit
-        ls -rtl /hab/bin
+        echo "Software Versions ======"
+        sw_vers
+        uname -a
+        echo "Software Versions End ======"
+	sudo mkdir -p /hab/bin || touch /hab/test || macos_teardown_exit
     }
 
     check_if_prev_hab_volume() {
