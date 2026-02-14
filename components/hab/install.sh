@@ -294,6 +294,10 @@ main() {
       bldrUrl="${OPTARG}"
       ;;
     b)
+      # We use this CLI switch to download the *bootstrap* packages
+      # from this channel on the builder. This applies only for *darwin*
+      # TODO: Once we start publishing packages on chef.io, this should go
+      # away
       bldrChannel="${OPTARG}" # for temporary use
       ;;
     \?)
@@ -518,7 +522,7 @@ extract_archive() {
 }
 
 install_hab() {
-  local _origin="${1:-core}"
+  local _origin="${1:-chef}"
 
   case "${sys}" in
   darwin)
@@ -541,11 +545,13 @@ install_hab() {
       ;;
     aarch64)
       setup_hab_root
+
       local _ident="${_origin}/hab"
 
       if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
           _ident+="/$version"
       fi
+
       # The Habitat packages for macOS (aarch64) are not currently available in the SaaS Builder.
       # This is a temporary fix until they become available.
       _channel="${bldrChannel:-$channel}"
@@ -673,7 +679,7 @@ dl_file() {
 
 # Extract origin from manifest.json file
 get_origin_from_manifest() {
-  local origin="core"  # Default fallback
+  local origin="chef"  # Default fallback
 
   # Use basic text processing to extract origin from package identifiers
   # Look for package identifiers and extract the origin (first part before /)
@@ -684,7 +690,7 @@ get_origin_from_manifest() {
 
   # Validate that we got a non-empty origin
   if [ -z "$origin" ] || [ "$origin" = "null" ]; then
-    origin="core"
+    origin="chef"
   fi
 
   echo "$origin"
