@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.429 -->
-## [2.0.429](https://github.com/habitat-sh/habitat/tree/2.0.429) (2026-02-16)
+<!-- latest_release 2.0.430 -->
+## [2.0.430](https://github.com/habitat-sh/habitat/tree/2.0.430) (2026-02-16)
 
 #### Merged Pull Requests
-- Bump futures from 0.3.31 to 0.3.32 [#10222](https://github.com/habitat-sh/habitat/pull/10222) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump bitflags from 2.10.0 to 2.11.0 [#10219](https://github.com/habitat-sh/habitat/pull/10219) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump bitflags from 2.10.0 to 2.11.0 [#10219](https://github.com/habitat-sh/habitat/pull/10219) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.430 -->
 - Bump futures from 0.3.31 to 0.3.32 [#10222](https://github.com/habitat-sh/habitat/pull/10222) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.429 -->
 - Bump native-tls from 0.2.14 to 0.2.16 [#10220](https://github.com/habitat-sh/habitat/pull/10220) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.429 -->
 - Bump cc from 1.2.55 to 1.2.56 [#10223](https://github.com/habitat-sh/habitat/pull/10223) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.428 -->
