@@ -11,12 +11,18 @@ curlbash_hab() {
 
     echo "--- :habicat: Bootstrap installation of the current $_channel hab binary for $pkg_target using curl|bash"
 
-    sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -b "aarch64-darwin-test"
     case "${pkg_target}" in
         x86_64-linux | aarch64-linux)
+
+            sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel"
             hab_binary="/bin/hab"
             ;;
-        x86_64-darwin | aarch64-darwin)
+        x86_64-darwin)
+            sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel"
+            hab_binary="/usr/local/bin/hab"
+            ;;
+        aarch64-darwin)
+            sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -b "aarch64-darwin-test"
             hab_binary="/usr/local/bin/hab"
             ;;
         *)
@@ -444,19 +450,22 @@ macos_build() {
 
 
 
-#This function performs actions similar to the actions performed by the `install.sh`
-#script, except these actions are temporary that is we setup the `/hab` volume during
-#every invocation which builds `hab` packages and `tear_down` after the expected
-#`hab` package replated actions
+# This function performs actions similar to the actions performed by the `install.sh`
+# script, except these actions are temporary that is we setup the `/hab` volume during
+# every invocation which builds `hab` packages and `tear_down` after the expected
+# `hab` package related actions
 setup_hab_root_macos_pipeline() {
 
     readonly HAB_DIR_NAME="hab"
     readonly HAB_VOLUME_LABEL="Habitat Store"
 
     setup_synthetic_conf() {
-        grep -q "%HAB_DIR_NAME" /etc/synthetic.conf || echo "Entry for Hab Mount Path /$HAB_DIR_NAME does not exist. Adding...";
-        echo "$HAB_DIR_NAME" >> /etc/synthetic.conf || return 1
-        /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -t || true
+        cat "/etc/synthetic.conf"
+        if ! grep -q "%HAB_DIR_NAME" /etc/synthetic.conf 2> /dev/null ; then
+            echo "Entry for Hab Mount Path /$HAB_DIR_NAME does not exist. Adding...";
+            echo "$HAB_DIR_NAME" >> /etc/synthetic.conf || return 1
+            /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -t || true
+        fi
         echo "Making sure the /$HAB_DIR_NAME Exists."
         test -d "/$HAB_DIR_NAME"
     }
