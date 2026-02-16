@@ -2,17 +2,15 @@
 
 set -eou pipefail
 
-# Platform-specific setup before sourcing shared.sh
+# Set up writable HAB_ROOT_PATH on macOS BEFORE sourcing shared.sh to avoid read-only filesystem issues
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  # Set up temporary HAB_ROOT_PATH for macOS to avoid permission issues
   export HAB_ROOT_PATH
   HAB_ROOT_PATH=$(mktemp -d /tmp/hab-root-XXXXXX)
-  
   # Clean up Darwin-specific temp directory on exit
   trap 'rm -rf "$HAB_ROOT_PATH"' EXIT
   
-  # Accept habitat license via environment variable to avoid sudo issues
-  export HAB_LICENSE="accept-no-persist"
+  # Set HAB_LICENSE to skip prompts entirely
+  export HAB_LICENSE=accept-no-persist
 fi
 
 # shellcheck source=.expeditor/scripts/shared.sh
@@ -50,15 +48,21 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     brew install coreutils gnu-tar
   fi
   
+  # Install hab and bootstrap package for certificate extraction
+  if ! command -v hab &> /dev/null; then
+    echo "Installing hab via curlbash..."
+    curlbash_hab "x86_64-darwin"
+  fi
+  
+  echo "Installing bootstrap package for GNU tools..."
+  macos_install_bootstrap_package
+  
+  # Accept habitat license after hab is installed
+  accept_hab_license
+  
   # Set up certificate file for TLS tests using macOS approach
-  # Temporarily add GNU tools to PATH for the certificate function
-  brew_prefix=$(brew --prefix)
-  export PATH="/usr/local/bin:${brew_prefix}/bin:$PATH"
-  # Create aliases for the certificate extraction function
-  alias tail=gtail
-  alias tar=gtar
+  # Bootstrap package already provides GNU tail and tar in PATH
   macos_use_cert_file_from_linux_cacerts_package
-  unalias tail tar
   
   install_rustup
   install_rust_toolchain "$toolchain"
@@ -70,6 +74,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   PROTOC=$(which protoc)
 else
   echo "--- Setting up Linux environment"
+  
+  # Accept habitat license
+  accept_hab_license
   
   # TODO: these should be in a shared script?
   sudo -E hab pkg install core/zeromq

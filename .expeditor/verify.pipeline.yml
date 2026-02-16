@@ -7,6 +7,7 @@ expeditor:
     buildkite:
       timeout_in_minutes: 60
       env:
+        HAB_LICENSE: "accept-no-persist"
         HAB_BLDR_CHANNEL: "base-2025"
         HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL: "base-2025"
         HAB_REFRESH_CHANNEL: "base-2025"
@@ -50,10 +51,23 @@ steps:
 
   - label: "[lint] :linux: :paperclip: clippy!"
     command: make lint
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.3.0:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+        privileged: true
+        environment:
+          - HAB_LICENSE
+          - HAB_AUTH_TOKEN
+          - HAB_BLDR_CHANNEL
+          - HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL
+          - HAB_REFRESH_CHANNEL
+          - HAB_FALLBACK_CHANNEL
+          - HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL
     timeout_in_minutes: 10
 
   - label: "[lint] :windows: :paperclip: clippy!"
@@ -586,22 +600,63 @@ steps:
       automatic:
         limit: 10 # Addressing current Anka system timeouts due to oversubscription
 
-  - label: "[unit] :darwin: multiple components"
+  - label: "[unit] :darwin: common"
     env:
-      HAB_LICENSE: "accept-no-persist"
       HOMEBREW_NO_AUTO_UPDATE: 1
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh common
+    expeditor:
+      executor:
+        macos:
+          os-version: "12"
+          inherit-environment-vars: true
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :darwin: core"
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    command:
       - .expeditor/scripts/verify/run_cargo_test.sh core
+    expeditor:
+      executor:
+        macos:
+          os-version: "12"
+          inherit-environment-vars: true
+    timeout_in_minutes: 60
+    soft_fail: true
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :darwin: hab"
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    command:
       - .expeditor/scripts/verify/run_cargo_test.sh hab
+    expeditor:
+      executor:
+        macos:
+          os-version: "12"
+          inherit-environment-vars: true
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :darwin: http-client"
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    command:
       - .expeditor/scripts/verify/run_cargo_test.sh http-client
     expeditor:
       executor:
         macos:
           os-version: "12"
           inherit-environment-vars: true
-    timeout_in_minutes: 30
-    soft_fail: true
+    timeout_in_minutes: 60
     retry:
       automatic:
         limit: 1

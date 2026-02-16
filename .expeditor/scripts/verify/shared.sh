@@ -6,12 +6,34 @@ source .expeditor/scripts/shared.sh
 
 # This script should contain all shared functions for the verify pipeline
 
-# Always accept habitat license
-if [[ -z "${HAB_LICENSE:-}" ]]; then
-  sudo hab license accept
-else
-  echo "Habitat license already accepted via HAB_LICENSE environment variable"
+# Set up writable HAB_ROOT_PATH on macOS to avoid read-only filesystem issues
+if [[ "$OSTYPE" == darwin* ]]; then
+  export HAB_ROOT_PATH
+  HAB_ROOT_PATH=$(mktemp -d /tmp/hab-root-XXXXXX)
+  # Clean up Darwin-specific temp directory on exit
+  trap 'rm -rf "$HAB_ROOT_PATH"' EXIT
 fi
+
+# Function to accept habitat license (call this after hab is installed)
+accept_hab_license() {
+  if [[ "$OSTYPE" == darwin* ]]; then
+    echo "--- Skipping license acceptance on macOS, relying on HAB_LICENSE environment variable"
+    return 0
+  fi
+  
+  if [[ -n "${HAB_LICENSE:-}" ]]; then
+    echo "--- Skipping explicit license acceptance, HAB_LICENSE is set to: $HAB_LICENSE"
+    return 0
+  fi
+  
+  if command -v hab &> /dev/null; then
+    echo "--- Accepting Habitat license"
+    # Explicitly pass environment variables to sudo
+    sudo HAB_ROOT_PATH="${HAB_ROOT_PATH:-/hab}" hab license accept
+  else
+    echo "Warning: hab not found, skipping license acceptance"
+  fi
+}
 
 get_rustfmt_toolchain() {
   # It turns out that every nightly version of rustfmt has slight tweaks from the previous version.
