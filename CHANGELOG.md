@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.427 -->
-## [2.0.427](https://github.com/habitat-sh/habitat/tree/2.0.427) (2026-02-13)
+<!-- latest_release 2.0.428 -->
+## [2.0.428](https://github.com/habitat-sh/habitat/tree/2.0.428) (2026-02-16)
 
 #### Merged Pull Requests
-- Bump clap_complete from 4.5.65 to 4.5.66 [#10214](https://github.com/habitat-sh/habitat/pull/10214) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.55 to 1.2.56 [#10223](https://github.com/habitat-sh/habitat/pull/10223) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.55 to 1.2.56 [#10223](https://github.com/habitat-sh/habitat/pull/10223) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.428 -->
 - Bump clap_complete from 4.5.65 to 4.5.66 [#10214](https://github.com/habitat-sh/habitat/pull/10214) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.427 -->
 - Bump aws-credential-types from 1.2.11 to 1.2.12 [#10217](https://github.com/habitat-sh/habitat/pull/10217) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.427 -->
 - Bump aws-sdk-ecr from 1.106.0 to 1.107.0 [#10215](https://github.com/habitat-sh/habitat/pull/10215) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.427 -->
