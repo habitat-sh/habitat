@@ -573,7 +573,7 @@ install_hab() {
     # NOTE: For people (rightly) wondering why we download hab only to use it
     # to install hab from Builder, the main reason is because it allows /bin/hab
     # to be a binlink, meaning that future upgrades can be easily done via
-    # hab pkg install core/hab -bf and everything will Just Work. If we put
+    # hab pkg install chef/hab -bf and everything will Just Work. If we put
     # the hab we downloaded into /bin, then future hab upgrades done via hab
     # itself won't work - you'd need to run this script every time you wanted
     # to upgrade hab, which is not intuitive. Putting it into a place other than
