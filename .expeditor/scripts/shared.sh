@@ -22,6 +22,7 @@ curlbash_hab() {
             hab_binary="/usr/local/bin/hab"
             ;;
         aarch64-darwin)
+            ls -lrt /usr/local/bin/hab 
             sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -b "aarch64-darwin-test"
             hab_binary="/usr/local/bin/hab"
             ;;
@@ -512,26 +513,12 @@ setup_hab_root_macos_pipeline() {
         echo "Waiting for the volume to be available."
         await_volume
 	
-        /usr/sbin/diskutil apfs list 
-
-        echo "Current mounted directories."
-        /sbin/mount
-	
-        /sbin/mount -u -o dev,nobrowse,suid "/$HAB_DIR_NAME"
-
-        /sbin/mount
-
-        /bin/ls -ld "/hab"
-
-        echo "Waiting for 30 seconds."
-        sleep 30
         /usr/sbin/diskutil info "/$HAB_DIR_NAME"
         
         echo "Software Versions ======"
         sw_vers
         uname -a
         echo "Software Versions End ======"
-	sudo mkdir -p /hab/bin || touch /hab/test || macos_teardown_exit
     }
 
     check_if_prev_hab_volume() {
