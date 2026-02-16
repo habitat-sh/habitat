@@ -544,6 +544,7 @@ install_hab() {
       fi
       ;;
     aarch64)
+      info "Determined aarch64-darwin."
       setup_hab_root
 
       local _ident="${_origin}/hab"
@@ -555,6 +556,8 @@ install_hab() {
       # The Habitat packages for macOS (aarch64) are not currently available in the SaaS Builder.
       # This is a temporary fix until they become available.
       _channel="${bldrChannel:-$channel}"
+      "${archive_dir}/hab" --version
+      info "Installing from channel '${_channel}'." 
       "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
       ;;
     *)
