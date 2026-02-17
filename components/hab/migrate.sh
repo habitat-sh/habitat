@@ -34,7 +34,8 @@ Examples:
   ${SCRIPT_NAME} --channel stable --auth "your-token"
 
 Note:
-  - Authentication token is required (via --auth or HAB_AUTH_TOKEN environment variable)
+  - Authentication token is required when using the default Builder (https://bldr.habitat.sh)
+  - Authentication token is optional when BLDR_URL is set to a different Builder instance
   - chef/hab-sup and chef/hab-launcher are only installed if hab-sup is already present
   - The service restart only happens if the new version is greater than the currently running version
 EOF
@@ -63,17 +64,28 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Check if authentication token is provided
-if [ -z "$AUTH_TOKEN" ]; then
-  echo "Error: Authentication token is required"
-  echo "Please provide a token using --auth option or set the HAB_AUTH_TOKEN environment variable"
-  echo "Use --help for usage information"
-  exit 1
+# Check if authentication token is required based on BLDR_URL
+BLDR_URL="${HAB_BLDR_URL:-https://bldr.habitat.sh}"
+if [ "$BLDR_URL" = "https://bldr.habitat.sh" ]; then
+  # Authentication token is required for the default Builder
+  if [ -z "$AUTH_TOKEN" ]; then
+    echo "Error: Authentication token is required when using the default Builder (https://bldr.habitat.sh)"
+    echo "Please provide a token using --auth option or set the HAB_AUTH_TOKEN environment variable"
+    echo "Use --help for usage information"
+    exit 1
+  fi
+  echo "Using authentication token for default Habitat Builder"
+  export HAB_AUTH_TOKEN="$AUTH_TOKEN"
+else
+  # Authentication token is optional for custom Builders
+  echo "Using custom Builder URL: $BLDR_URL"
+  if [ -n "$AUTH_TOKEN" ]; then
+    echo "Using authentication token for custom Builder"
+    export HAB_AUTH_TOKEN="$AUTH_TOKEN"
+  else
+    echo "No authentication token provided (optional for custom Builder)"
+  fi
 fi
-
-# Export HAB_AUTH_TOKEN
-echo "Using authentication token for Habitat"
-export HAB_AUTH_TOKEN="$AUTH_TOKEN"
 
 # Function to compare versions
 # Returns 1 if first version is greater, 0 if equal, -1 if second is greater
@@ -145,7 +157,7 @@ compare_versions() {
 # Script to install the latest chef/hab binary, chef/hab-sup and chef/hab-launcher from the specified channel
 
 echo "Installing latest chef/hab from $CHANNEL channel..."
-hab pkg install chef/hab --binlink --force --channel="$CHANNEL" --auth="$AUTH_TOKEN"
+hab pkg install chef/hab --binlink --force --channel="$CHANNEL"
 
 # Check if either core/hab-sup or chef/hab-sup is already installed
 if hab pkg list core/hab-sup 2>/dev/null | grep -q "core/hab-sup" || hab pkg list chef/hab-sup 2>/dev/null | grep -q "chef/hab-sup"; then
@@ -173,10 +185,10 @@ if hab pkg list core/hab-sup 2>/dev/null | grep -q "core/hab-sup" || hab pkg lis
   fi
   
   echo "Installing latest chef/hab-sup from $CHANNEL channel..."
-  hab pkg install --channel="$CHANNEL" --auth="$AUTH_TOKEN" chef/hab-sup
+  hab pkg install --channel="$CHANNEL" chef/hab-sup
 
   echo "Installing latest chef/hab-launcher from $CHANNEL channel..."
-  hab pkg install --channel="$CHANNEL" --auth="$AUTH_TOKEN" chef/hab-launcher
+  hab pkg install --channel="$CHANNEL" chef/hab-launcher
   
   # Get the newly installed version using find instead of ls for better handling of special characters
   NEW_VERSION=$(find /hab/pkgs/chef/hab-sup/ -maxdepth 1 -mindepth 1 -type d | sed 's|.*/||' | sort -V | tail -1)
@@ -192,18 +204,22 @@ if hab pkg list core/hab-sup 2>/dev/null | grep -q "core/hab-sup" || hab pkg lis
       echo "New version is greater than currently running version. Preparing to restart service..."
       
       # Check if the systemd unit file needs to be updated with HAB_AUTH_TOKEN
-      echo "Ensuring systemd unit file has the HAB_AUTH_TOKEN environment variable..."
-      
-      # Create override directory if it doesn't exist
-      mkdir -p /etc/systemd/system/hab-sup.service.d/
-      
-      # Create or update the environment override file
-      echo "Creating systemd override for environment variables..."
-      echo -e "[Service]\nEnvironment=\"HAB_AUTH_TOKEN=$AUTH_TOKEN\"" | tee /etc/systemd/system/hab-sup.service.d/env-override.conf > /dev/null
-      
-      # Reload systemd to pick up the changes
-      echo "Reloading systemd daemon..."
-      systemctl daemon-reload
+      if [ -n "$AUTH_TOKEN" ]; then
+        echo "Ensuring systemd unit file has the HAB_AUTH_TOKEN environment variable..."
+        
+        # Create override directory if it doesn't exist
+        mkdir -p /etc/systemd/system/hab-sup.service.d/
+        
+        # Create or update the environment override file
+        echo "Creating systemd override for environment variables..."
+        echo -e "[Service]\nEnvironment=\"HAB_AUTH_TOKEN=$AUTH_TOKEN\"" | tee /etc/systemd/system/hab-sup.service.d/env-override.conf > /dev/null
+        
+        # Reload systemd to pick up the changes
+        echo "Reloading systemd daemon..."
+        systemctl daemon-reload
+      else
+        echo "No authentication token provided - skipping systemd environment configuration"
+      fi
       
       echo "Restarting hab-sup service..."
       systemctl restart hab-sup
@@ -219,13 +235,17 @@ if hab pkg list core/hab-sup 2>/dev/null | grep -q "core/hab-sup" || hab pkg lis
         if echo "$HAB_SUP_PATH" | grep -q "chef/hab-sup"; then
           echo "✓ Confirmed: The running hab-sup binary is from chef/hab-sup package: $HAB_SUP_PATH"
           
-          # Verify environment variable is set in the service
-          echo "Checking if HAB_AUTH_TOKEN is set in the running service..."
-          if systemctl show hab-sup | grep "Environment=.*HAB_AUTH_TOKEN" 1>/dev/null; then
-            echo "✓ Confirmed: HAB_AUTH_TOKEN environment variable is properly set in the service"
+          # Verify environment variable is set in the service (only if auth token was provided)
+          if [ -n "$AUTH_TOKEN" ]; then
+            echo "Checking if HAB_AUTH_TOKEN is set in the running service..."
+            if systemctl show hab-sup | grep "Environment=.*HAB_AUTH_TOKEN" 1>/dev/null; then
+              echo "✓ Confirmed: HAB_AUTH_TOKEN environment variable is properly set in the service"
+            else
+              echo "⚠ Warning: HAB_AUTH_TOKEN does not appear to be set in the running service."
+              echo "Please check systemd configuration for the hab-sup service"
+            fi
           else
-            echo "⚠ Warning: HAB_AUTH_TOKEN does not appear to be set in the running service."
-            echo "Please check systemd configuration for the hab-sup service"
+            echo "✓ No authentication token was provided - systemd service running without HAB_AUTH_TOKEN"
           fi
         else
           echo "⚠ Warning: The running hab-sup binary is not from chef/hab-sup package: $HAB_SUP_PATH"

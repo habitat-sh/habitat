@@ -33,7 +33,8 @@
     Migrates Habitat using the stable channel and the specified authentication token.
 
 .NOTES
-    - Authentication token is required (via -Auth or HAB_AUTH_TOKEN environment variable)
+    - Authentication token is required when using the default Builder (https://bldr.habitat.sh)
+    - Authentication token is optional when BLDR_URL is set to a different Builder instance
     - chef/hab-sup is only installed if hab-sup is already present
     - chef/windows-service is installed if the Habitat Windows Service is detected
     - The service restart only happens if the new version is greater than the currently running version
@@ -52,17 +53,29 @@ if ($Help) {
     exit 0
 }
 
-# Check if authentication token is provided
-if (-not $Auth) {
-    Write-Host "Error: Authentication token is required" -ForegroundColor Red
-    Write-Host "Please provide a token using -Auth parameter or set the HAB_AUTH_TOKEN environment variable"
-    Write-Host "Use -Help for usage information"
-    exit 1
-}
+# Check if authentication token is required based on BLDR_URL
+$BldrUrl = if ($env:HAB_BLDR_URL) { $env:HAB_BLDR_URL } else { "https://bldr.habitat.sh" }
 
-# Set HAB_AUTH_TOKEN environment variable
-Write-Host "Using authentication token for Habitat"
-$env:HAB_AUTH_TOKEN = $Auth
+if ($BldrUrl -eq "https://bldr.habitat.sh") {
+    # Authentication token is required for the default Builder
+    if (-not $Auth) {
+        Write-Host "Error: Authentication token is required when using the default Builder (https://bldr.habitat.sh)" -ForegroundColor Red
+        Write-Host "Please provide a token using -Auth parameter or set the HAB_AUTH_TOKEN environment variable"
+        Write-Host "Use -Help for usage information"
+        exit 1
+    }
+    Write-Host "Using authentication token for default Habitat Builder"
+    $env:HAB_AUTH_TOKEN = $Auth
+} else {
+    # Authentication token is optional for custom Builders
+    Write-Host "Using custom Builder URL: $BldrUrl"
+    if ($Auth) {
+        Write-Host "Using authentication token for custom Builder"
+        $env:HAB_AUTH_TOKEN = $Auth
+    } else {
+        Write-Host "No authentication token provided (optional for custom Builder)"
+    }
+}
 
 # Function to compare versions
 # Returns 1 if first version is greater, 0 if equal, -1 if second is greater
@@ -122,7 +135,7 @@ function Compare-HabitatVersion {
 # Script to install the latest chef/hab binary and chef/hab-sup from the specified channel
 
 Write-Host "Installing latest chef/hab from $Channel channel..."
-hab pkg install --binlink --force --channel="$Channel" --auth="$Auth" chef/hab
+hab pkg install --binlink --force --channel="$Channel" chef/hab
 $chefhab = hab pkg path chef/hab
 $habPath = Join-Path $env:ProgramData Habitat
 if(Test-Path $habPath) { Remove-Item $habPath -Recurse -Force }
@@ -144,62 +157,66 @@ if ($coreHabSupOutput -and $coreHabSupOutput -match "core/hab-sup") {
 
 if ($habSupInstalled) {
     Write-Host "Installing latest chef/hab-sup from $Channel channel..."
-    hab pkg install --channel="$Channel" --auth="$Auth" chef/hab-sup
+    hab pkg install --channel="$Channel" chef/hab-sup
 
     # Check if Habitat Windows service exists and install chef/windows-service if it does
     $habitatService = Get-Service -Name "Habitat" -ErrorAction SilentlyContinue
     if ($habitatService) {
         Write-Host "Found existing Habitat Windows service."
 
-        # Update HAB_AUTH_TOKEN in HabService.dll.config before installing new windows-service
-        Write-Host "Updating HAB_AUTH_TOKEN in config file..."
+        # Update HAB_AUTH_TOKEN in HabService.dll.config only if auth token is provided
+        if ($Auth) {
+            Write-Host "Updating HAB_AUTH_TOKEN in config file..."
 
-        # Path to the config file
-        $configFilePath = Join-Path $env:SystemDrive "hab\svc\windows-service\HabService.dll.config"
+            # Path to the config file
+            $configFilePath = Join-Path $env:SystemDrive "hab\svc\windows-service\HabService.dll.config"
 
-        if (Test-Path $configFilePath) {
-            try {
-                # Load the config file as XML
-                [xml]$configXml = Get-Content $configFilePath -ErrorAction Stop
+            if (Test-Path $configFilePath) {
+                try {
+                    # Load the config file as XML
+                    [xml]$configXml = Get-Content $configFilePath -ErrorAction Stop
 
-                # Check if appSettings element exists
-                $appSettings = $configXml.SelectSingleNode("//appSettings")
-                if (-not $appSettings) {
-                    # Create appSettings element if it doesn't exist
-                    $appSettings = $configXml.CreateElement("appSettings")
-                    $configXml.configuration.AppendChild($appSettings) | Out-Null
+                    # Check if appSettings element exists
+                    $appSettings = $configXml.SelectSingleNode("//appSettings")
+                    if (-not $appSettings) {
+                        # Create appSettings element if it doesn't exist
+                        $appSettings = $configXml.CreateElement("appSettings")
+                        $configXml.configuration.AppendChild($appSettings) | Out-Null
+                    }
+
+                    # Check if ENV_HAB_AUTH_TOKEN setting already exists
+                    $authTokenSetting = $appSettings.SelectSingleNode("//add[@key='ENV_HAB_AUTH_TOKEN']")
+                    if ($authTokenSetting) {
+                        # Update existing setting
+                        $authTokenSetting.SetAttribute("value", $Auth)
+                        Write-Host "Updated existing ENV_HAB_AUTH_TOKEN setting in config file"
+                    } else {
+                        # Create new add element for ENV_HAB_AUTH_TOKEN
+                        $addElement = $configXml.CreateElement("add")
+                        $addElement.SetAttribute("key", "ENV_HAB_AUTH_TOKEN")
+                        $addElement.SetAttribute("value", $Auth)
+                        $appSettings.AppendChild($addElement) | Out-Null
+                        Write-Host "Added new ENV_HAB_AUTH_TOKEN setting to config file"
+                    }
+
+                    # Save changes to the config file
+                    $configXml.Save($configFilePath)
+                    Write-Host "Successfully updated HAB_AUTH_TOKEN in config file: $configFilePath" -ForegroundColor Green
+                } catch {
+                    Write-Host "Error updating config file: $_" -ForegroundColor Yellow
+                    Write-Host "Service will be restarted, but HAB_AUTH_TOKEN may not be set correctly" -ForegroundColor Yellow
                 }
-
-                # Check if ENV_HAB_AUTH_TOKEN setting already exists
-                $authTokenSetting = $appSettings.SelectSingleNode("//add[@key='ENV_HAB_AUTH_TOKEN']")
-                if ($authTokenSetting) {
-                    # Update existing setting
-                    $authTokenSetting.SetAttribute("value", $Auth)
-                    Write-Host "Updated existing ENV_HAB_AUTH_TOKEN setting in config file"
-                } else {
-                    # Create new add element for ENV_HAB_AUTH_TOKEN
-                    $addElement = $configXml.CreateElement("add")
-                    $addElement.SetAttribute("key", "ENV_HAB_AUTH_TOKEN")
-                    $addElement.SetAttribute("value", $Auth)
-                    $appSettings.AppendChild($addElement) | Out-Null
-                    Write-Host "Added new ENV_HAB_AUTH_TOKEN setting to config file"
-                }
-
-                # Save changes to the config file
-                $configXml.Save($configFilePath)
-                Write-Host "Successfully updated HAB_AUTH_TOKEN in config file: $configFilePath" -ForegroundColor Green
-            } catch {
-                Write-Host "Error updating config file: $_" -ForegroundColor Yellow
+            } else {
+                Write-Host "Config file not found at: $configFilePath" -ForegroundColor Yellow
                 Write-Host "Service will be restarted, but HAB_AUTH_TOKEN may not be set correctly" -ForegroundColor Yellow
             }
         } else {
-            Write-Host "Config file not found at: $configFilePath" -ForegroundColor Yellow
-            Write-Host "Service will be restarted, but HAB_AUTH_TOKEN may not be set correctly" -ForegroundColor Yellow
+            Write-Host "No authentication token provided - skipping config file update"
         }
 
         # Now install the latest chef/windows-service package
         Write-Host "Installing latest chef/windows-service from $Channel channel..."
-        hab pkg install --channel="$Channel" --auth="$Auth" chef/windows-service
+        hab pkg install --channel="$Channel" chef/windows-service
         Write-Host "Successfully installed chef/windows-service package"
         # Wait a moment for the service to fully start if a new service was installed
         Start-Sleep -Seconds 5
