@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.432 -->
-## [2.0.432](https://github.com/habitat-sh/habitat/tree/2.0.432) (2026-02-17)
+<!-- latest_release 2.0.433 -->
+## [2.0.433](https://github.com/habitat-sh/habitat/tree/2.0.433) (2026-02-17)
 
 #### Merged Pull Requests
-- Bump clap from 4.5.58 to 4.5.59 [#10224](https://github.com/habitat-sh/habitat/pull/10224) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump toml from 1.0.1+spec-1.1.0 to 1.0.2+spec-1.1.0 [#10226](https://github.com/habitat-sh/habitat/pull/10226) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump toml from 1.0.1+spec-1.1.0 to 1.0.2+spec-1.1.0 [#10226](https://github.com/habitat-sh/habitat/pull/10226) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.433 -->
+- Bump aws-sdk-ecr from 1.107.0 to 1.107.1 [#10225](https://github.com/habitat-sh/habitat/pull/10225) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.433 -->
 - Bump clap from 4.5.58 to 4.5.59 [#10224](https://github.com/habitat-sh/habitat/pull/10224) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.432 -->
 - Bump syn from 2.0.113 to 2.0.116 [#10221](https://github.com/habitat-sh/habitat/pull/10221) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.431 -->
 - Bump bitflags from 2.10.0 to 2.11.0 [#10219](https://github.com/habitat-sh/habitat/pull/10219) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.430 -->
