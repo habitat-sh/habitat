@@ -62,7 +62,22 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   
   # Set up certificate file for TLS tests using macOS approach
   # Bootstrap package already provides GNU tail and tar in PATH
+  echo "--- :ssl: Setting up certificate file for TLS tests"
   macos_use_cert_file_from_linux_cacerts_package
+  
+  # Ensure SSL_CERT_FILE is properly exported for cargo test
+  echo "--- :ssl: Verifying SSL_CERT_FILE export"
+  if [[ -z "${SSL_CERT_FILE:-}" ]]; then
+    echo "ERROR: SSL_CERT_FILE not set after certificate extraction!"
+    exit 1
+  fi
+  echo "SSL_CERT_FILE is set to: ${SSL_CERT_FILE}"
+  if [[ ! -f "${SSL_CERT_FILE}" ]]; then
+    echo "ERROR: SSL_CERT_FILE points to non-existent file: ${SSL_CERT_FILE}"
+    exit 1
+  fi
+  echo "Certificate file exists and is readable"
+  export SSL_CERT_FILE
   
   install_rustup
   install_rust_toolchain "$toolchain"

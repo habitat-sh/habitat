@@ -21,23 +21,23 @@ install_hab_pkg core/zeromq core/protobuf core/patchelf core/rust/"$toolchain"
 # This became an issue with the latest refresh and can likely be dropped in
 # the future when rust and supporting components are build against a later
 # glibc.
-sudo cp "$HOME"/.rustup/toolchains/"$toolchain"-x86_64-unknown-linux-gnu/bin/cargo-clippy "$(HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}" hab pkg path core/rust/"$toolchain")/bin"
-sudo cp "$HOME"/.rustup/toolchains/"$toolchain"-x86_64-unknown-linux-gnu/bin/clippy-driver "$(HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}" hab pkg path core/rust/"$toolchain")/bin"
-sudo HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}" hab pkg exec core/patchelf patchelf -- --set-interpreter "$(HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}" hab pkg path core/glibc)/lib/ld-linux-x86-64.so.2" "$(HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}" hab pkg path core/rust/"$toolchain")/bin/clippy-driver"
-sudo HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}" hab pkg exec core/patchelf patchelf -- --set-interpreter "$(HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}" hab pkg path core/glibc)/lib/ld-linux-x86-64.so.2" "$(HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}" hab pkg path core/rust/"$toolchain")/bin/cargo-clippy"
+sudo cp "$HOME"/.rustup/toolchains/"$toolchain"-x86_64-unknown-linux-gnu/bin/cargo-clippy "$(sudo -E hab pkg path core/rust/"$toolchain")/bin"
+sudo cp "$HOME"/.rustup/toolchains/"$toolchain"-x86_64-unknown-linux-gnu/bin/clippy-driver "$(sudo -E hab pkg path core/rust/"$toolchain")/bin"
+sudo -E hab pkg exec core/patchelf patchelf -- --set-interpreter "$(sudo -E hab pkg path core/glibc)/lib/ld-linux-x86-64.so.2" "$(sudo -E hab pkg path core/rust/"$toolchain")/bin/clippy-driver"
+sudo -E hab pkg exec core/patchelf patchelf -- --set-interpreter "$(sudo -E hab pkg path core/glibc)/lib/ld-linux-x86-64.so.2" "$(sudo -E hab pkg path core/rust/"$toolchain")/bin/cargo-clippy"
 
 export LIBZMQ_PREFIX
-LIBZMQ_PREFIX=$(HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}" hab pkg path core/zeromq)
+LIBZMQ_PREFIX=$(sudo -E hab pkg path core/zeromq)
 # now include zeromq so it exists in the runtime library path when cargo test is run
 export LD_LIBRARY_PATH
-LD_LIBRARY_PATH="$(HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}" hab pkg path core/gcc-base)/lib64:$(HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}" hab pkg path core/zeromq)/lib"
+LD_LIBRARY_PATH="$(sudo -E hab pkg path core/gcc-base)/lib64:$(sudo -E hab pkg path core/zeromq)/lib"
 old_path=$PATH
-eval "$(HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}" hab pkg env core/rust/"$toolchain")"
+eval "$(sudo -E hab pkg env core/rust/"$toolchain")"
 export PATH=$PATH:$old_path
 
 export PROTOC_NO_VENDOR=1
 export PROTOC
-PROTOC=$(HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}" hab pkg path core/protobuf)/bin/protoc
+PROTOC=$(sudo -E hab pkg path core/protobuf)/bin/protoc
 
 # Lints we need to work through and decide as a team whether to allow or fix
 mapfile -t unexamined_lints < "$1"

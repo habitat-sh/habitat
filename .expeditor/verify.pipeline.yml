@@ -613,7 +613,7 @@ steps:
     timeout_in_minutes: 60
     retry:
       automatic:
-        limit: 1
+        limit: 10 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[unit] :darwin: core"
     env:
@@ -629,7 +629,7 @@ steps:
     soft_fail: true
     retry:
       automatic:
-        limit: 1
+        limit: 10 # Addressing current Anka system timeouts due to oversubscription0 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[unit] :darwin: hab"
     env:
@@ -644,7 +644,7 @@ steps:
     timeout_in_minutes: 60
     retry:
       automatic:
-        limit: 1
+        limit: 10 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[unit] :darwin: http-client"
     env:
@@ -659,7 +659,7 @@ steps:
     timeout_in_minutes: 60
     retry:
       automatic:
-        limit: 1
+        limit: 10 # Addressing current Anka system timeouts due to oversubscription
 
  #################################################################
 
