@@ -18,7 +18,7 @@ export HAB_FEAT_MACOS_NATIVE_SUPPORT=1
 # CLI twice - first get the original `hab` CLI and then use that to download the
 # 'bootstrap' version.
 hab_binary=
-curlbash_hab "${BUILD_PKG_TARGET}" acceptance chef || macos_teardown_exit
+curlbash_hab "${BUILD_PKG_TARGET}" acceptance || macos_teardown_exit
 
 ${hab_binary} pkg install chef/hab -c aarch64-darwin --binlink -f || macos_teardown_exit
 bootstrap_hab_binary=$(command -v hab)

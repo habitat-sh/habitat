@@ -18,12 +18,17 @@ curlbash_hab() {
             hab_binary="/bin/hab"
             ;;
         x86_64-darwin)
+
             sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel"
             hab_binary="/usr/local/bin/hab"
             ;;
         aarch64-darwin)
-            ls -lrt /usr/local/bin/hab 
-            sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -b "aarch64-darwin-test"
+            if test -f /usr/local/bin/hab; then 
+               mv -f /usr/local/bin/hab /usr/local/bin/.hab-orig
+            fi 
+
+            sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -b "aarch64-darwin-test" || \
+                mv -f /usr/local/bin/.hab-orig /usr/local/bin/hab
             hab_binary="/usr/local/bin/hab"
             ;;
         *)
@@ -506,7 +511,7 @@ setup_hab_root_macos_pipeline() {
         HAB_VOLUME_DEVICE=$(/usr/sbin/diskutil list | grep "$HAB_VOLUME_LABEL" | awk '{print $NF}')
         readonly HAB_VOLUME_DEVICE
 
-        echo "Created Volum $HAB_VOLUME_DEVICE. Mounting the volume."
+        echo "Created Volume $HAB_VOLUME_DEVICE. Mounting the volume."
         /usr/sbin/diskutil mount -mountOptions rw,dev,nobrowse,owners,suid -mountPoint /hab "$HAB_VOLUME_DEVICE" || \
             macos_teardown_exit "Error Mounting the Volume"
 
@@ -554,5 +559,5 @@ macos_teardown_exit() {
 
     teardown_hab_root_macos_pipeline
 
-    exit "1"
+    exit 1
 }
