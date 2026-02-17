@@ -50,7 +50,7 @@ impl DockerOS {
     /// it is currently running in.
     fn current() -> DockerOS {
         let mut cmd = Command::new(docker::command_path().expect("Unable to locate docker"));
-        cmd.arg("version").arg("--format={{.Server.Os}}");
+        cmd.arg("version").arg("--format=\"{{.Server.Os}}\"");
         debug!("Running command: {:?}", cmd);
         let result = cmd.output().expect("Docker command failed to spawn");
         let result = String::from_utf8_lossy(&result.stdout);
