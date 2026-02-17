@@ -73,6 +73,8 @@ get_nightly_toolchain() {
 }
 
 install_hab_pkg() {
+  export HAB_LICENSE="${HAB_LICENSE:-accept-no-persist}"
+  
   for ident; do
     installed_pkgs=$(hab pkg list "$ident")
 
