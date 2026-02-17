@@ -23,9 +23,9 @@ curlbash_hab() {
             hab_binary="/usr/local/bin/hab"
             ;;
         aarch64-darwin)
-            if test -f /usr/local/bin/hab; then 
+            if test -f /usr/local/bin/hab; then
                mv -f /usr/local/bin/hab /usr/local/bin/.hab-orig
-            fi 
+            fi
 
             sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -b "aarch64-darwin-test" || \
                 mv -f /usr/local/bin/.hab-orig /usr/local/bin/hab
@@ -512,18 +512,13 @@ setup_hab_root_macos_pipeline() {
         readonly HAB_VOLUME_DEVICE
 
         echo "Created Volume $HAB_VOLUME_DEVICE. Mounting the volume."
-        /usr/sbin/diskutil mount -mountOptions rw,dev,nobrowse,owners,suid -mountPoint /hab "$HAB_VOLUME_DEVICE" || \
+        /usr/sbin/diskutil mount -mountOptions rw,dev,nobrowse,owners,suid -mountPoint "/$HAB_DIR_NAME" "$HAB_VOLUME_DEVICE" || \
+
             macos_teardown_exit "Error Mounting the Volume"
 
         echo "Waiting for the volume to be available."
         await_volume
-	
-        /usr/sbin/diskutil info "/$HAB_DIR_NAME"
-        
-        echo "Software Versions ======"
-        sw_vers
-        uname -a
-        echo "Software Versions End ======"
+
     }
 
     check_if_prev_hab_volume() {
@@ -548,10 +543,12 @@ setup_hab_root_macos_pipeline() {
 
 
 teardown_hab_root_macos_pipeline() {
-    echo "Deleting Volume $HAB_VOLUME_DEVICE."
-    /usr/sbin/diskutil unmount force "$HAB_VOLUME_DEVICE" || true
-    /usr/sbin/diskutil apfs deleteVolume "$HAB_VOLUME_DEVICE"
-    echo "Volume $HAB_VOLUME_DEVICE deleted."
+    if [ -n "$HAB_VOLUME_DEVICE" ]; then
+        echo "Deleting Volume $HAB_VOLUME_DEVICE."
+        /usr/sbin/diskutil unmount force "$HAB_VOLUME_DEVICE" || true
+        /usr/sbin/diskutil apfs deleteVolume "$HAB_VOLUME_DEVICE"
+        echo "Volume $HAB_VOLUME_DEVICE deleted."
+    fi
 }
 
 macos_teardown_exit() {
