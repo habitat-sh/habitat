@@ -345,6 +345,8 @@ print_help() {
 		    -t    Specifies the ActiveTarget of the 'hab' program to download.
 		            [values: x86_64-linux, aarch64-linux] [default: x86_64-linux]
 		            This option is only valid on Linux platforms
+		    -b    Use this builder channel for bootstrap packages. This option is
+		            effective only with 'aarch64-darwin' target.
 
 		ENVIRONMENT VARIABLES:
 		     SSL_CERT_FILE   allows you to verify against a custom cert such as one
