@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.434 -->
-## [2.0.434](https://github.com/habitat-sh/habitat/tree/2.0.434) (2026-02-17)
+<!-- latest_release 2.0.435 -->
+## [2.0.435](https://github.com/habitat-sh/habitat/tree/2.0.435) (2026-02-18)
 
 #### Merged Pull Requests
-- fix docker version command for newer docker on windows [#10227](https://github.com/habitat-sh/habitat/pull/10227) ([mwrock](https://github.com/mwrock))
+- do not require an auth token if not using saas builder [#10228](https://github.com/habitat-sh/habitat/pull/10228) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- do not require an auth token if not using saas builder [#10228](https://github.com/habitat-sh/habitat/pull/10228) ([mwrock](https://github.com/mwrock)) <!-- 2.0.435 -->
 - fix docker version command for newer docker on windows [#10227](https://github.com/habitat-sh/habitat/pull/10227) ([mwrock](https://github.com/mwrock)) <!-- 2.0.434 -->
 - Bump toml from 1.0.1+spec-1.1.0 to 1.0.2+spec-1.1.0 [#10226](https://github.com/habitat-sh/habitat/pull/10226) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.433 -->
 - Bump aws-sdk-ecr from 1.107.0 to 1.107.1 [#10225](https://github.com/habitat-sh/habitat/pull/10225) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.433 -->
