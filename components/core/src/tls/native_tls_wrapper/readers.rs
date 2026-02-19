@@ -150,12 +150,6 @@ fn certs_from_pem_file_macos(buf: &[u8]) -> Result<Vec<Certificate>> {
     Certificate::from_pem(buf)?;
 
     let pem_data = pem::parse_many(buf)?;
-    // If no PEM blocks were found, this is likely DER data misidentified as PEM on macOS
-    if pem_data.is_empty() {
-        return Err(crate::error::Error::CryptoError("No PEM blocks found in \
-                                                     data"
-                                                          .to_string()));
-    }
 
     // Convert PEM contents to certificates, filtering out any that fail validation
     // (macOS has stricter certificate validation)
@@ -256,23 +250,32 @@ rqXRfboQnoZsG4q5WTP468SQvvG5
                PEM_CERT
         ).unwrap();
 
-        // On macOS, certificate validation might be stricter and could fail entirely
+        // Multiple certificate handling differs between platforms due to validation strictness:
+        // - Linux: Successfully parses both test certificates (exactly 2)
+        // - macOS: May reject one or both certificates due to stricter validation In this specific
+        //   test case, macOS rejects both certificates entirely
         match certs_from_file(file.path()) {
             Ok(result) => {
                 if cfg!(target_os = "macos") {
+                    // If macOS succeeds, it should return at least 1 valid certificate
                     assert!(!result.is_empty(),
-                            "Expected at least 1 certificate, got {}",
+                            "Expected at least 1 valid certificate after macOS filtering, got {}",
                             result.len());
                 } else {
+                    // Linux should parse both certificates successfully
                     assert_eq!(result.len(), 2);
                 }
             }
             Err(_) if cfg!(target_os = "macos") => {
-                // On macOS, multiple certificate validation might fail entirely - that's acceptable
+                // On macOS, complete failure is acceptable due to stricter certificate validation
+                // This happens when all certificates in the file fail macOS validation
                 println!("Multiple certificate validation failed on macOS (expected due to \
                           stricter validation)");
             }
-            Err(e) => panic!("Unexpected error on non-macOS platform: {}", e),
+            Err(e) => {
+                // Linux should succeed with these test certificates
+                panic!("Unexpected certificate parsing failure on Linux: {}", e);
+            }
         }
 
         // Invalid cert gives an error
