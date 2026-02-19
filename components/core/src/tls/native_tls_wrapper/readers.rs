@@ -140,7 +140,7 @@ fn certs_from_pem_file(buf: &[u8]) -> Result<Vec<Certificate>> {
 }
 
 #[cfg(target_os = "macos")]
-fn certs_from_pem_file_macos(buf: &[u8]) -> Result<Vec<Certificate>> {
+fn certs_from_pem_file(buf: &[u8]) -> Result<Vec<Certificate>> {
     if buf.is_empty() {
         return Ok(Vec::new());
     }
@@ -153,6 +153,7 @@ fn certs_from_pem_file_macos(buf: &[u8]) -> Result<Vec<Certificate>> {
 
     // Convert PEM contents to certificates, filtering out any that fail validation
     // (macOS has stricter certificate validation)
+    // TODO: Consider logging/warning about certificates that fail validation
     let valid_certs: Vec<Certificate> =
         pem_data.iter()
                 .filter_map(|cert| Certificate::from_der(cert.contents()).ok())
@@ -171,14 +172,7 @@ fn certs_from_pem_file_macos(buf: &[u8]) -> Result<Vec<Certificate>> {
 fn certs_from_file(file_path: &Path) -> Result<Vec<Certificate>> {
     let buf = fs::read(file_path)?;
     // Try and interpret the file as a pem cert. If that fails try and interpret it as a der cert.
-    #[cfg(target_os = "macos")]
-    {
-        certs_from_pem_file_macos(&buf).or_else(|_| Ok(vec![Certificate::from_der(&buf)?]))
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        certs_from_pem_file(&buf).or_else(|_| Ok(vec![Certificate::from_der(&buf)?]))
-    }
+    certs_from_pem_file(&buf).or_else(|_| Ok(vec![Certificate::from_der(&buf)?]))
 }
 
 #[cfg(test)]

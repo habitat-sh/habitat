@@ -6,14 +6,6 @@ source .expeditor/scripts/shared.sh
 
 # This script should contain all shared functions for the verify pipeline
 
-# Set up writable HAB_ROOT_PATH on macOS to avoid read-only filesystem issues
-if [[ "$OSTYPE" == darwin* ]]; then
-  export HAB_ROOT_PATH
-  HAB_ROOT_PATH=$(mktemp -d /tmp/hab-root-XXXXXX)
-  # Clean up Darwin-specific temp directory on exit
-  trap 'rm -rf "$HAB_ROOT_PATH"' EXIT
-fi
-
 if [[ "$OSTYPE" == darwin* ]]; then
   echo "--- Skipping license acceptance on macOS, relying on HAB_LICENSE environment variable"
 elif command -v hab &> /dev/null; then
