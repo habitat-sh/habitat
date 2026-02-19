@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.436 -->
-## [2.0.436](https://github.com/habitat-sh/habitat/tree/2.0.436) (2026-02-19)
+<!-- latest_release 2.0.437 -->
+## [2.0.437](https://github.com/habitat-sh/habitat/tree/2.0.437) (2026-02-19)
 
 #### Merged Pull Requests
-- Bump actix-web from 4.12.1 to 4.13.0 [#10233](https://github.com/habitat-sh/habitat/pull/10233) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump aws-sdk-ecr from 1.107.1 to 1.108.0 [#10230](https://github.com/habitat-sh/habitat/pull/10230) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump aws-sdk-ecr from 1.107.1 to 1.108.0 [#10230](https://github.com/habitat-sh/habitat/pull/10230) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.437 -->
+- Bump toml from 1.0.2+spec-1.1.0 to 1.0.3+spec-1.1.0 [#10235](https://github.com/habitat-sh/habitat/pull/10235) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.437 -->
+- Bump aws-credential-types from 1.2.12 to 1.2.13 [#10229](https://github.com/habitat-sh/habitat/pull/10229) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.437 -->
 - Bump actix-web from 4.12.1 to 4.13.0 [#10233](https://github.com/habitat-sh/habitat/pull/10233) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.436 -->
 - do not require an auth token if not using saas builder [#10228](https://github.com/habitat-sh/habitat/pull/10228) ([mwrock](https://github.com/mwrock)) <!-- 2.0.435 -->
 - fix docker version command for newer docker on windows [#10227](https://github.com/habitat-sh/habitat/pull/10227) ([mwrock](https://github.com/mwrock)) <!-- 2.0.434 -->
