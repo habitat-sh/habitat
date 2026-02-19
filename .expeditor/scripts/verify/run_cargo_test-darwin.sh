@@ -50,7 +50,7 @@ if ! command -v gtail &> /dev/null; then
   brew install coreutils gnu-tar
 fi
 
-# Install hab for package operations
+# Install hab for package operations - needed for downloading core/cacerts and mac-bootstrapper packages
 if ! command -v hab &> /dev/null; then
   echo "Installing hab via curlbash..."
   curlbash_hab "x86_64-darwin"
