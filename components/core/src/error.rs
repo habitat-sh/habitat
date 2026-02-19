@@ -74,6 +74,14 @@ pub enum Error {
     CtlGatewayTls(CtlGatewayTls),
     /// Occurs when unable to locate the docker cli on the path
     DockerCommandNotFound(&'static str),
+    /// Occurs when Docker version command fails to execute
+    DockerVersionCommandFailed(io::Error),
+    /// Occurs when Docker version command returns non-zero exit code
+    DockerVersionCommandExitFailure {
+        exit_code: i32,
+        stderr:    String,
+        stdout:    String,
+    },
     /// Occurs when a file that should exist does not or could not be read.
     FileNotFound(String),
     /// Occurs when a fully-qualified package identifier is required,
@@ -266,6 +274,15 @@ impl fmt::Display for Error {
             Error::DockerCommandNotFound(ref c) => {
                 format!("Docker command `{}' was not found on the filesystem or in PATH",
                         c)
+            }
+            Error::DockerVersionCommandFailed(ref e) => {
+                format!("Docker version command failed to execute: {}", e)
+            }
+            Error::DockerVersionCommandExitFailure { exit_code,
+                                                     ref stderr,
+                                                     ref stdout, } => {
+                format!("Docker version command exited with code {}. Stderr: {}. Stdout: {}",
+                        exit_code, stderr, stdout)
             }
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::FullyQualifiedPackageIdentRequired(ref ident) => {
