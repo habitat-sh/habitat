@@ -12,12 +12,16 @@ use thiserror::Error;
 /// the export process.
 pub(crate) fn ensure_proper_docker_platform() -> Result<(), Error> {
     match DockerOS::current() {
-        DockerOS::Windows => Ok(()),
-        other => {
+        Ok(DockerOS::Windows) => Ok(()),
+        Ok(other) => {
             if let DockerOS::Unknown(ref s) = other {
                 debug!("Unknown Docker OS: {}", s);
             }
             Err(Error::DockerNotInWindowsMode(other))
+        }
+        Err(docker_err) => {
+            debug!("Failed to determine Docker OS: {}", docker_err);
+            Err(Error::DockerVersionCheck(docker_err))
         }
     }
 }
@@ -27,6 +31,25 @@ pub(crate) enum Error {
     #[error("Only Windows container export is supported; please set your Docker daemon to \
              Windows container mode.\n\nThe Docker daemon is currently set for: {0:?}")]
     DockerNotInWindowsMode(DockerOS),
+
+    #[error("Failed to check Docker daemon configuration: {0}")]
+    DockerVersionCheck(#[from] DockerVersionError),
+}
+
+#[derive(Debug, Error)]
+pub(crate) enum DockerVersionError {
+    #[error("Unable to locate docker command: {0}")]
+    DockerNotFound(#[from] habitat_core::error::Error),
+
+    #[error("Docker command failed to execute: {0}")]
+    CommandExecutionFailed(#[source] std::io::Error),
+
+    #[error("Docker command failed with exit code {exit_code}: stderr: {stderr}, stdout: {stdout}")]
+    CommandFailed {
+        exit_code: i32,
+        stderr:    String,
+        stdout:    String,
+    },
 }
 
 /// Describes the OS of the containers the Docker daemon is currently
@@ -37,8 +60,8 @@ pub(crate) enum DockerOS {
     Linux,
     /// Docker daemon is managing Windows containers
     Windows,
-    /// Generic fall-through for error handling and extra paranoia
-    /// Contains either the unexpected output or error message
+    /// Docker daemon reports an unrecognized OS string
+    /// This is only for genuinely unknown OS types, not errors
     Unknown(String),
 }
 
@@ -49,42 +72,37 @@ impl DockerOS {
     /// Daemons running on Linux would report "Linux", while a Windows
     /// daemon may report "Windows" or "Linux", depending on what mode
     /// it is currently running in.
-    fn current() -> DockerOS {
-        let docker_path = match docker::command_path() {
-            Ok(path) => path,
-            Err(e) => return DockerOS::Unknown(format!("Unable to locate docker: {}", e)),
-        };
+    fn current() -> Result<DockerOS, DockerVersionError> {
+        let docker_path = docker::command_path()?;
 
         let mut cmd = Command::new(docker_path);
-        cmd.arg("version").arg("--format={{.Server.Os}}");
+        cmd.arg("version").arg("--format=\"{{.Server.Os}}\"");
         debug!("Running command: {:?}", cmd);
 
-        let output = match cmd.output() {
-            Ok(output) => output,
-            Err(e) => return DockerOS::Unknown(format!("Docker command failed to execute: {}", e)),
-        };
+        let output = cmd.output()
+                        .map_err(DockerVersionError::CommandExecutionFailed)?;
 
         // Check if the command succeeded
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
             let stdout = String::from_utf8_lossy(&output.stdout);
-            return DockerOS::Unknown(format!("Docker command failed with exit code {}: stderr: \
-                                              {}, stdout: {}",
-                                             output.status.code().unwrap_or(-1),
-                                             stderr.trim(),
-                                             stdout.trim()));
+            return Err(DockerVersionError::CommandFailed { exit_code: output.status
+                                                                            .code()
+                                                                            .unwrap_or(-1),
+                                                           stderr:    stderr.trim().to_string(),
+                                                           stdout:    stdout.trim().to_string(), });
         }
 
         let result = String::from_utf8_lossy(&output.stdout);
         if result.contains("windows") {
-            DockerOS::Windows
+            Ok(DockerOS::Windows)
         } else if result.contains("linux") {
-            DockerOS::Linux
+            Ok(DockerOS::Linux)
         } else {
             // We really shouldn't get down here, but we *are* parsing
             // strings from other software that might change in the
             // future.
-            DockerOS::Unknown(format!("Unexpected docker version output: {}", result.trim()))
+            Ok(DockerOS::Unknown(result.trim().to_string()))
         }
     }
 }
