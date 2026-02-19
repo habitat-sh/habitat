@@ -38,6 +38,7 @@ pub(crate) enum DockerOS {
     /// Docker daemon is managing Windows containers
     Windows,
     /// Generic fall-through for error handling and extra paranoia
+    /// Contains either the unexpected output or error message
     Unknown(String),
 }
 
@@ -49,11 +50,33 @@ impl DockerOS {
     /// daemon may report "Windows" or "Linux", depending on what mode
     /// it is currently running in.
     fn current() -> DockerOS {
-        let mut cmd = Command::new(docker::command_path().expect("Unable to locate docker"));
-        cmd.arg("version").arg("--format=\"{{.Server.Os}}\"");
+        let docker_path = match docker::command_path() {
+            Ok(path) => path,
+            Err(e) => return DockerOS::Unknown(format!("Unable to locate docker: {}", e)),
+        };
+        
+        let mut cmd = Command::new(docker_path);
+        cmd.arg("version").arg("--format={{.Server.Os}}");
         debug!("Running command: {:?}", cmd);
-        let result = cmd.output().expect("Docker command failed to spawn");
-        let result = String::from_utf8_lossy(&result.stdout);
+        
+        let output = match cmd.output() {
+            Ok(output) => output,
+            Err(e) => return DockerOS::Unknown(format!("Docker command failed to execute: {}", e)),
+        };
+        
+        // Check if the command succeeded
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            return DockerOS::Unknown(format!(
+                "Docker command failed with exit code {}: stderr: {}, stdout: {}",
+                output.status.code().unwrap_or(-1),
+                stderr.trim(),
+                stdout.trim()
+            ));
+        }
+        
+        let result = String::from_utf8_lossy(&output.stdout);
         if result.contains("windows") {
             DockerOS::Windows
         } else if result.contains("linux") {
@@ -62,7 +85,7 @@ impl DockerOS {
             // We really shouldn't get down here, but we *are* parsing
             // strings from other software that might change in the
             // future.
-            DockerOS::Unknown(result.to_string())
+            DockerOS::Unknown(format!("Unexpected docker version output: {}", result.trim()))
         }
     }
 }
