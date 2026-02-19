@@ -601,6 +601,51 @@ steps:
       automatic:
         limit: 10 # Addressing current Anka system timeouts due to oversubscription
 
+  - label: "[unit] :darwin: core"
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    command:
+      - .expeditor/scripts/verify/run_cargo_test-darwin.sh core
+    expeditor:
+      executor:
+        macos:
+          os-version: "12"
+          inherit-environment-vars: true
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 10 # Addressing current Anka system timeouts due to oversubscription
+
+  - label: "[unit] :darwin: hab"
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    command:
+      - .expeditor/scripts/verify/run_cargo_test-darwin.sh hab
+    expeditor:
+      executor:
+        macos:
+          os-version: "12"
+          inherit-environment-vars: true
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 10 # Addressing current Anka system timeouts due to oversubscription
+
+  - label: "[unit] :darwin: http-client"
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    command:
+      - .expeditor/scripts/verify/run_cargo_test-darwin.sh http-client
+    expeditor:
+      executor:
+        macos:
+          os-version: "12"
+          inherit-environment-vars: true
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 10 # Addressing current Anka system timeouts due to oversubscription
+
  #################################################################
 
   # See "[unit] :linux: ignored"; the same approach applies here for windows
