@@ -54,28 +54,27 @@ impl DockerOS {
             Ok(path) => path,
             Err(e) => return DockerOS::Unknown(format!("Unable to locate docker: {}", e)),
         };
-        
+
         let mut cmd = Command::new(docker_path);
         cmd.arg("version").arg("--format={{.Server.Os}}");
         debug!("Running command: {:?}", cmd);
-        
+
         let output = match cmd.output() {
             Ok(output) => output,
             Err(e) => return DockerOS::Unknown(format!("Docker command failed to execute: {}", e)),
         };
-        
+
         // Check if the command succeeded
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
             let stdout = String::from_utf8_lossy(&output.stdout);
-            return DockerOS::Unknown(format!(
-                "Docker command failed with exit code {}: stderr: {}, stdout: {}",
-                output.status.code().unwrap_or(-1),
-                stderr.trim(),
-                stdout.trim()
-            ));
+            return DockerOS::Unknown(format!("Docker command failed with exit code {}: stderr: \
+                                              {}, stdout: {}",
+                                             output.status.code().unwrap_or(-1),
+                                             stderr.trim(),
+                                             stdout.trim()));
         }
-        
+
         let result = String::from_utf8_lossy(&output.stdout);
         if result.contains("windows") {
             DockerOS::Windows
