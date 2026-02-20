@@ -1,0 +1,92 @@
+name: Build and Grype Vulnerability Scan
+
+on:
+  push:
+    branches: [main, release/**]
+  pull_request:
+    branches: [main, release/**]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-scan:
+    name: Build and Scan (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@1.91.1
+
+      # ── Linux ──────────────────────────────────────────────────────────────
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            cmake \
+            pkg-config \
+            libssl-dev \
+            libczmq-dev \
+            libprotobuf-dev \
+            protobuf-compiler \
+            libpq-dev \
+            musl-tools
+
+      # ── macOS ──────────────────────────────────────────────────────────────
+      - name: Install macOS build dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew install pkg-config zeromq protobuf
+          echo "PKG_CONFIG_PATH=$(brew --prefix openssl)/lib/pkgconfig:$(brew --prefix)/lib/pkgconfig:$PKG_CONFIG_PATH" >> "$GITHUB_ENV"
+
+      # ── Windows ────────────────────────────────────────────────────────────
+      - name: Install Windows build dependencies
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install protoc -y --no-progress
+          choco install zeromq -y --no-progress
+
+      # ── Build ──────────────────────────────────────────────────────────────
+      - name: Build workspace (Linux / macOS)
+        if: runner.os != 'Windows'
+        run: cargo build --workspace
+
+      - name: Build hab component (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./build.ps1 components/hab
+
+      # ── Install Grype ──────────────────────────────────────────────────────
+      - name: Install Grype (Linux / macOS)
+        if: runner.os != 'Windows'
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh \
+            | sh -s -- -b /usr/local/bin
+
+      - name: Install Grype (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $installDir = "$env:USERPROFILE\.grype\bin"
+          New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+          $ProgressPreference = 'SilentlyContinue'
+          Invoke-WebRequest -UseBasicParsing `
+            "https://raw.githubusercontent.com/anchore/grype/main/install.sh" `
+            -OutFile install-grype.sh
+          bash install-grype.sh -b $installDir
+          "$installDir" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      # ── Grype Scan ─────────────────────────────────────────────────────────
+      - name: Run Grype vulnerability scan
+        run: grype dir:target/debug
