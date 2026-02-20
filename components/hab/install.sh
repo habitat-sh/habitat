@@ -294,6 +294,10 @@ main() {
       bldrUrl="${OPTARG}"
       ;;
     b)
+      # We use this CLI switch to download the *bootstrap* packages
+      # from this channel on the builder. This applies only for *darwin*
+      # TODO: Once we start publishing packages on chef.io, this should go
+      # away
       bldrChannel="${OPTARG}" # for temporary use
       ;;
     \?)
@@ -341,6 +345,8 @@ print_help() {
 		    -t    Specifies the ActiveTarget of the 'hab' program to download.
 		            [values: x86_64-linux, aarch64-linux] [default: x86_64-linux]
 		            This option is only valid on Linux platforms
+		    -b    Use this builder channel for bootstrap packages. This option is
+		            effective only with 'aarch64-darwin' target.
 
 		ENVIRONMENT VARIABLES:
 		     SSL_CERT_FILE   allows you to verify against a custom cert such as one
@@ -518,7 +524,7 @@ extract_archive() {
 }
 
 install_hab() {
-  local _origin="${1:-core}"
+  local _origin="${1:-chef}"
 
   case "${sys}" in
   darwin)
@@ -540,15 +546,19 @@ install_hab() {
       fi
       ;;
     aarch64)
+      info "Determined aarch64-darwin."
       setup_hab_root
+
       local _ident="${_origin}/hab"
 
       if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
           _ident+="/$version"
       fi
+
       # The Habitat packages for macOS (aarch64) are not currently available in the SaaS Builder.
       # This is a temporary fix until they become available.
       _channel="${bldrChannel:-$channel}"
+      info "Installing from channel '${_channel}'."
       "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
       ;;
     *)
@@ -567,7 +577,7 @@ install_hab() {
     # NOTE: For people (rightly) wondering why we download hab only to use it
     # to install hab from Builder, the main reason is because it allows /bin/hab
     # to be a binlink, meaning that future upgrades can be easily done via
-    # hab pkg install core/hab -bf and everything will Just Work. If we put
+    # hab pkg install chef/hab -bf and everything will Just Work. If we put
     # the hab we downloaded into /bin, then future hab upgrades done via hab
     # itself won't work - you'd need to run this script every time you wanted
     # to upgrade hab, which is not intuitive. Putting it into a place other than
@@ -673,7 +683,7 @@ dl_file() {
 
 # Extract origin from manifest.json file
 get_origin_from_manifest() {
-  local origin="core"  # Default fallback
+  local origin="chef"  # Default fallback
 
   # Use basic text processing to extract origin from package identifiers
   # Look for package identifiers and extract the origin (first part before /)
@@ -684,7 +694,7 @@ get_origin_from_manifest() {
 
   # Validate that we got a non-empty origin
   if [ -z "$origin" ] || [ "$origin" = "null" ]; then
-    origin="core"
+    origin="chef"
   fi
 
   echo "$origin"
