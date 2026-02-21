@@ -1,16 +1,20 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.442 -->
-## [2.0.442](https://github.com/habitat-sh/habitat/tree/2.0.442) (2026-02-21)
+<!-- latest_release 2.0.443 -->
+## [2.0.443](https://github.com/habitat-sh/habitat/tree/2.0.443) (2026-02-21)
 
 #### Merged Pull Requests
-- Bump anyhow from 1.0.101 to 1.0.102 [#10242](https://github.com/habitat-sh/habitat/pull/10242) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump aws-sdk-ecr from 1.108.0 to 1.109.0 [#10238](https://github.com/habitat-sh/habitat/pull/10238) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump aws-sdk-ecr from 1.108.0 to 1.109.0 [#10238](https://github.com/habitat-sh/habitat/pull/10238) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.443 -->
+- Bump clap from 4.5.59 to 4.5.60 [#10239](https://github.com/habitat-sh/habitat/pull/10239) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.443 -->
+- Bump syn from 2.0.116 to 2.0.117 [#10241](https://github.com/habitat-sh/habitat/pull/10241) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.443 -->
+- Bump native-tls from 0.2.16 to 0.2.18 [#10240](https://github.com/habitat-sh/habitat/pull/10240) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.443 -->
 - Bump anyhow from 1.0.101 to 1.0.102 [#10242](https://github.com/habitat-sh/habitat/pull/10242) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.442 -->
 - Added macos unit test [common] [#10231](https://github.com/habitat-sh/habitat/pull/10231) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.441 -->
 - set docker api to 1.41 in multi sup tests [#10237](https://github.com/habitat-sh/habitat/pull/10237) ([mwrock](https://github.com/mwrock)) <!-- 2.0.440 -->
