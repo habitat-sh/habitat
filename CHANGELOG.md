@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.441 -->
-## [2.0.441](https://github.com/habitat-sh/habitat/tree/2.0.441) (2026-02-20)
+<!-- latest_release 2.0.442 -->
+## [2.0.442](https://github.com/habitat-sh/habitat/tree/2.0.442) (2026-02-21)
 
 #### Merged Pull Requests
-- Added macos unit test [common] [#10231](https://github.com/habitat-sh/habitat/pull/10231) ([sougata-progress](https://github.com/sougata-progress))
+- Bump anyhow from 1.0.101 to 1.0.102 [#10242](https://github.com/habitat-sh/habitat/pull/10242) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump anyhow from 1.0.101 to 1.0.102 [#10242](https://github.com/habitat-sh/habitat/pull/10242) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.442 -->
 - Added macos unit test [common] [#10231](https://github.com/habitat-sh/habitat/pull/10231) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.441 -->
 - set docker api to 1.41 in multi sup tests [#10237](https://github.com/habitat-sh/habitat/pull/10237) ([mwrock](https://github.com/mwrock)) <!-- 2.0.440 -->
 - set docker api to 1.41 in e2e test [#10236](https://github.com/habitat-sh/habitat/pull/10236) ([mwrock](https://github.com/mwrock)) <!-- 2.0.439 -->
