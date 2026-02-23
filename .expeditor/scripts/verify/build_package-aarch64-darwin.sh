@@ -41,7 +41,7 @@ sudo -E "${bootstrap_hab_binary}" origin key generate || macos_teardown_exit
 # Install hab-studio from the chef origin via the acceptance channel.
 # By default, it installs from the stable channel only,
 # so this may need updating to support other channels.
-${bootstrap_hab_binary} pkg install chef/hab-studio -c aarch64-darwin-test
+${bootstrap_hab_binary} pkg install chef/hab-studio -c aarch64-darwin
 
 export HAB_STUDIO_SECRET_HAB_BLDR_CHANNEL="aarch64-darwin"
 
