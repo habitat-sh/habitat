@@ -8,15 +8,15 @@ pkg_license=('Apache-2.0')
 pkg_bin_dirs=(bin)
 
 pkg_deps=(
-	chef/hab-backline
-	core/bash
+    chef/hab-backline
+    core/bash
 )
 
 pkg_build_deps=(
-	chef/hab
-	core/coreutils
-	core/sed
-	core/tar
+    chef/hab
+    core/coreutils
+    core/sed
+    core/tar
 )
 
 pkg_version() {
@@ -38,7 +38,7 @@ do_download() {
 
 	pushd "$INITIAL_PWD" > /dev/null || exit
 
-	build_line "Creating The source tar file. $pkg_filename in $PWD."
+	build_line "Creating the source tar file. $pkg_filename in $PWD."
 	$tar_binary -czf "$HAB_CACHE_SRC_PATH"/"$pkg_filename" components/ test-services/ Cargo.toml Cargo.lock  || exit
 
 	popd || exit
@@ -64,7 +64,7 @@ do_unpack() {
 }
 
 do_build() {
-	return 0;
+	return 0
 }
 
 # shellcheck disable=2154
