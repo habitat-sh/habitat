@@ -35,7 +35,7 @@ do_download() {
 
     pushd "$INITIAL_PWD" > /dev/null || exit
 
-    build_line "Creating The source tar file. $pkg_filename in $PWD."
+    build_line "Creating the source tar file. $pkg_filename in $PWD."
     "$tar_binary" -czf "$HAB_CACHE_SRC_PATH"/"$pkg_filename" components/ test-services/ Cargo.toml Cargo.lock  || exit
 
     popd || exit

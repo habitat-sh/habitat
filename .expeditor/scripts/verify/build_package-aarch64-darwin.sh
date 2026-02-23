@@ -6,10 +6,6 @@ source .expeditor/scripts/shared.sh
 
 package_path=${1?package_path argument required}
 
-# Not sure whether this is required but exporting it regardless just to be safe
-# export HAB_AUTH_TOKEN
-# HAB_AUTH_TOKEN=$(hab_auth_token)
-
 setup_hab_root_macos_pipeline
 
 # Functions can error out too.
