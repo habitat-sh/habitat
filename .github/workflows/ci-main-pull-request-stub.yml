@@ -17,7 +17,7 @@ permissions:
   contents: read
   
 env:
-  STUB_VERSION: "1.0.5" 
+  STUB_VERSION: "1.0.7" 
 
 jobs: 
   echo_version:
@@ -40,7 +40,7 @@ jobs:
       # go-private-modules: GOPRIVATE for Go private modules, default is 'github.com/progress-platform-services/*
 
       # if version specified, it takes precedence; can be a semver like 1.0.2-xyz or a tag like "latest"
-      version: '2.0.443' # ${{ github.event.repository.version }}
+      version: '2.0.345' # ${{ github.event.repository.version }}
       detect-version-source-type: 'none' # options include "none" (do not detect), "file", "github-tag" or "github-release"
       detect-version-source-parameter: '' # use for file name
       language: 'rust'  # Go, Ruby, Rust, JavaScript, TypeScript, Python, Java, C#, PHP, other - used for build and SonarQube language setting
@@ -58,7 +58,7 @@ jobs:
       
       # BlackDuck SAST (Polaris) and SCA scans (requires a build or download to do SAST)
       # requires these secrets: POLARIS_SERVER_URL, POLARIS_ACCESS_TOKEN
-      perform-blackduck-polaris: true
+      perform-blackduck-polaris: false
       polaris-application-name: "Chef-Habitat"  # one of these: Chef-Agents, Chef-Automate, Chef-Chef360, Chef-Habitat, Chef-Infrastructure-Server, Chef-Shared-Services, Chef-Other, Chef-Non-Product
       polaris-project-name: ${{ github.event.repository.name }}
       polaris-blackduck-executable: 'path/to/blackduck/binary'
@@ -72,7 +72,7 @@ jobs:
  
       # perform SonarQube scan, with or wihout unit test coverage data
       # requires secrets SONAR_TOKEN and SONAR_HOST_URL (progress.sonar.com)
-      perform-sonarqube-scan: true
+      perform-sonarqube-scan: false
       # perform-sonar-build: true
       # build-profile: 'default' 
       # report-unit-test-coverage: true
@@ -81,7 +81,7 @@ jobs:
 
       # report to central developer dashboard
       report-to-atlassian-dashboard: false
-      quality-product-name: 'Chef-360'   # product name for quality reporting, like Chef360, Courier, Inspec
+      quality-product-name: 'Chef-Habitat'   # product name for quality reporting, like Chef360, Courier, Inspec
       # quality-product-name: ${{ github.event.repository.name }}   # like 'Chef-360' - the product name for quality reporting, like Chef360, Courier, Inspec
       # quality-sonar-app-name: 'YourSonarAppName'
       # quality-testing-type: 'Integration' like Unit, Integration, e2e, api, Performance, Security
