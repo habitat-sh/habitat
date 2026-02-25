@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.445 -->
-## [2.0.445](https://github.com/habitat-sh/habitat/tree/2.0.445) (2026-02-23)
+<!-- latest_release 2.0.446 -->
+## [2.0.446](https://github.com/habitat-sh/habitat/tree/2.0.446) (2026-02-25)
 
 #### Merged Pull Requests
-- Updated yml file [#10246](https://github.com/habitat-sh/habitat/pull/10246) ([sougata-progress](https://github.com/sougata-progress))
+- Update notices.txt and stop publishing to rc [#10249](https://github.com/habitat-sh/habitat/pull/10249) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Update notices.txt and stop publishing to rc [#10249](https://github.com/habitat-sh/habitat/pull/10249) ([mwrock](https://github.com/mwrock)) <!-- 2.0.446 -->
 - Updated yml file [#10246](https://github.com/habitat-sh/habitat/pull/10246) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.445 -->
 - bumped release version that blackduck scans [#10244](https://github.com/habitat-sh/habitat/pull/10244) ([mwrock](https://github.com/mwrock)) <!-- 2.0.444 -->
 - Bump aws-sdk-ecr from 1.108.0 to 1.109.0 [#10238](https://github.com/habitat-sh/habitat/pull/10238) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.443 -->
