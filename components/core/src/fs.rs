@@ -149,6 +149,10 @@ lazy_static::lazy_static! {
                     environment variable."
                 ),
             }
+        } else if cfg!(target_os = "macos") {
+            // For MacOS we just force it to "/opt" as other values can potentially not be
+            // mountable.
+            PathBuf::from("/opt")
         } else if let Ok(root) = henv::var(FS_ROOT_ENVVAR) {
             PathBuf::from(root)
         } else {
