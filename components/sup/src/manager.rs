@@ -2035,15 +2035,14 @@ impl Manager {
     /// * `MemberList::entries` (read)
     /// * `MemberList::initial_members` (write)
     fn update_peers_from_watch_file_mlr_imlw(&mut self) -> Result<()> {
-        if !self.butterfly.need_peer_seeding_mlr() {
-            return Ok(());
-        }
         match self.peer_watcher {
             None => Ok(()),
             Some(ref watcher) => {
                 if watcher.has_fs_events() {
                     let members = watcher.get_members()?;
                     self.butterfly.member_list.set_initial_members_imlw(members);
+                    // Signal the outbound thread to re-evaluate initial member pinging
+                    self.butterfly.signal_new_initial_members();
                 }
                 Ok(())
             }
