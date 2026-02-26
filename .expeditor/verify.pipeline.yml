@@ -1250,3 +1250,69 @@ steps:
     retry:
       automatic:
         limit: 1 # Addressing current Anka system timeouts due to oversubscription
+
+  - label: "[build] :mac: aarch64 backline"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/verify/build_package-aarch64-darwin.sh components/backline"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "aarch64-darwin"
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 1 # Addressing current Anka system timeouts due to oversubscription
+
+  - label: "[build] :mac: aarch64 plan-build"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/verify/build_package-aarch64-darwin.sh components/plan-build"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "aarch64-darwin"
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 1 # Addressing current Anka system timeouts due to oversubscription
+
+  - label: "[build] :mac: aarch64 studio"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/verify/build_package-aarch64-darwin.sh components/studio"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "aarch64-darwin"
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 1 # Addressing current Anka system timeouts due to oversubscription
