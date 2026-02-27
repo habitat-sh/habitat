@@ -684,12 +684,17 @@ zlib License:
 
 ================================================================================
 
-The Product contains Habitat core_bash 5.2.37, Habitat core_binutils 2.44,
-Habitat core_busybox-static 1.36.1, Habitat core_cacerts 2025-05-20, Habitat
-core_coreutils 9.7, Habitat core_diffutils 3.11, Habitat core_gawk 5.3.1,
-Habitat core_gcc 14.3.0, Habitat core_gcc-base 14.3.0, Habitat core_gcc-libs
-14.3.0, Habitat core_gnupg 2.4.5, Habitat core_grep 3.11, Habitat core_gzip
-1.14, Habitat core_less 668, Habitat core_libidn2 2.3.3, Habitat
+The Product contains Habitat core_7zip 26.00, Habitat core_acl 2.3.2,Habitat
+core_attr 2.5.2, Habitat core_glibc 2.41, Habitat core_gpgme 1.23.2, Habitat
+core_libgcrypt 1.10.3, Habitat core_libgpg-error 1.46, Habitat core_libksba
+1.6.7, Habitat core_libseccomp 2.5.4, Habitat core_libassuan 2.5.5, Habitat 
+core_npth 1.7, Habitat core_gmp 6.3.0, Habitat core_libunistring 1.0, Habitat
+core_mpfr 4.2.1, Habitat core_zeromq 4.3.4, Habitat core_bash 5.2.37, Habitat
+core_binutils 2.44, Habitat core_busybox-static 1.36.1, Habitat core_cacerts 
+2025-05-20, Habitat core_coreutils 9.7, Habitat core_diffutils 3.11, Habitat 
+core_gawk 5.3.1, Habitat core_gcc 14.3.0, Habitat core_gcc-base 14.3.0, Habitat
+core_gcc-libs 14.3.0, Habitat core_gnupg 2.4.5, Habitat core_grep 3.11, Habitat
+core_gzip 1.14, Habitat core_less 668, Habitat core_libidn2 2.3.3, Habitat
 core_linux-headers 5.19.8, Habitat core_lzip 1.25, Habitat core_lzo 2.10,
 Habitat core_lzop 1.04, Habitat core_make 4.4.1, Habitat core_readline 8.2.13,
 Habitat core_sed 4.9, Habitat core_tar 1.35, Habitat core_util-linux 2.40.4,
@@ -702,6 +707,19 @@ made by PSC. PSC may charge reasonable shipping and handling charges for such
 distribution. Licensee may also obtain the source code for these third-party
 technologies through http://iue.progress.com/3dpartysoftwares/Pages/default.aspx
 by following the instructions set forth therein.
+
+The Product contains Habitat core_7zip 26.00, Habitat core_acl 2.3.2,Habitat
+core_attr 2.5.2, Habitat core_glibc 2.41, Habitat core_gpgme 1.23.2, Habitat
+core_libgcrypt 1.10.3, Habitat core_libgpg-error 1.46, Habitat core_libksba
+1.6.7, Habitat core_libseccomp 2.5.4, Habitat core_libassuan 2.5.5, Habitat 
+core_npth 1.7, Habitat core_gmp 6.3.0, Habitat core_libunistring 1.0, Habitat
+core_mpfr 4.2.1, and Habitat core_zeromq 4.3.4.  This technology is subject to
+the terms of the GNU Library General Public License Version 2 (“LGPL v2”), GNU
+Lesser General Public License Version 2.1 (“LGPL v2.1”) or GNU Lesser General 
+Public License Version 3 (“LGPL v3”).  In compliance with such Licenses, PSC 
+provides You with reverse engineering permission solely to the extent necessary
+in order to debug modifications made to libraries licensed under the LGPL v2, 
+LGPL v2.1, or LGPL v3 (as identified above).
 
 1. Special Notices Regarding Open-Source Third-Party Components incorporated
 into the Product. Such technology is subject to the following terms and
