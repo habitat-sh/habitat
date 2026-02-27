@@ -470,7 +470,7 @@ setup_hab_root_macos_pipeline() {
 
     setup_synthetic_conf() {
         cat "/etc/synthetic.conf"
-        if ! grep -q "%HAB_DIR_NAME" /etc/synthetic.conf 2> /dev/null ; then
+        if ! grep -q "$HAB_DIR_NAME" /etc/synthetic.conf 2> /dev/null ; then
             echo "Entry for Hab Mount Path /$HAB_DIR_NAME does not exist. Adding...";
             echo "$HAB_DIR_NAME" >> /etc/synthetic.conf || return 1
             /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -t || true
@@ -517,7 +517,7 @@ setup_hab_root_macos_pipeline() {
         echo "Created Volume $HAB_VOLUME_DEVICE. Mounting the volume."
         /usr/sbin/diskutil mount -mountOptions rw,dev,nobrowse,owners,suid -mountPoint "/$HAB_DIR_NAME" "$HAB_VOLUME_DEVICE" || \
 
-            macos_teardown_exit "Error Mounting the Volume"
+        macos_teardown_exit "Error Mounting the Volume"
 
         echo "Waiting for the volume to be available."
         await_volume
