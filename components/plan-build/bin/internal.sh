@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 _artifact_ext="hart"
 
