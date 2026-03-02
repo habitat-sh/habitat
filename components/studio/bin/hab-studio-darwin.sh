@@ -808,7 +808,7 @@ unset PATH
 
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
-: "${HAB_ROOT_PATH:=/hab}"
+: "${HAB_ROOT_PATH:=/opt/hab}"
 # The root path containing all locally installed packages. This is used in some
 # of the hab-studio-type-*.sh scripts
 # shellcheck disable=2034
@@ -889,36 +889,47 @@ shift "$((OPTIND - 1))"
 # The source path to be mounted into the Studio, which defaults to current
 # working directory
 : "${SRC_PATH:=$($pwd_cmd)}"
+
 # The artifacts cache path to be mounted into the Studio, which defaults to the
 # artifact cache path.
 : "${ARTIFACT_PATH:=$HAB_CACHE_ARTIFACT_PATH}"
+
 # The SSL cert cache path to be mounted into the Studio, which defaults to the
 # cert cache path.
 : "${CERT_PATH:=$HAB_CACHE_CERT_PATH}"
+
 # The directory name of the Studio (which will live under `$HAB_STUDIOS_HOME`).
 # It is a directory path turned into a single directory name that can be
 # deterministically re-constructed on next program invocation.
 dir_name="$(echo "$SRC_PATH" | $sed_cmd -e 's,^/$,root,' -e 's,^/,,' -e 's,/,--,g' -e 's, ,-,g')"
+
 # The base path under which all Studios are created, which defaults to
 # `/hab/studios`.
-: "${HAB_STUDIOS_HOME:=/hab/studios}"
+: "${HAB_STUDIOS_HOME:=${HAB_ROOT_PATH:=/opt/hab}/studios}"
+
 # The root path of the Studio, which defaults to
 # `$HAB_STUDIOS_HOME/<SRC_PATH_AS_STRING>`.
 : "${HAB_STUDIO_ROOT:=$HAB_STUDIOS_HOME/$dir_name}"
+
+
 # A collection of comma-separated keys to be copied into the Studio's key
 # cache directory. If this environment variable is not set, use the value
 # from `$HAB_ORIGIN` if set, otherwise, it's empty.
 : "${HAB_ORIGIN_KEYS:=${HAB_ORIGIN:-}}"
+
 # The Studio configuration file which is used to determine commands to run,
 # extra environment variables, etc. Note that a valid Studio will have this
 # file at the root of its filesystem.
 studio_config="$HAB_STUDIO_ROOT/.studio"
+
 # The type (flavor, variant, etc.) of Studio. Such types include `default`,
 # `stage1`, and `busybox` among others.
 : "${STUDIO_TYPE:=}"
+
 # Whether or not more verbose output has been requested. An unset or empty
 # value means it is set to false and any other value is considered set or true.
 : "${VERBOSE:=}"
+
 set_v_flag
 # Whether or not less output has been requested. An unset or empty value means
 # it is set to false and any other value is considered set or true.
