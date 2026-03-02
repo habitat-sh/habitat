@@ -13,7 +13,7 @@
 ;; These are some things we actively disallow inside the sandbox.
 ;; We do this, as they would otherwise tend to interfere with the build process.
 ;; - /etc/localtime, /private/etc/localtime : This will leak the host machine's timezone into the build process
-;; - /hab/etc/cli.toml : This will leak the host's default Habitat CLI configuration into the studio
+;; - /opt/hab/etc/cli.toml : This will leak the host's default Habitat CLI configuration into the studio
 
 ;; Allow processes to fork
 (allow process-fork)
@@ -40,16 +40,16 @@
 ;; Also allow access to check the existence of accepted habitat licenses
 (allow file* process-exec (literal STUDIO_HAB))
 (allow file-read*
-    (literal "/hab/accepted-licenses")
-    (literal "/hab/accepted-licenses/habitat"))
+    (literal "/opt/hab/accepted-licenses")
+    (literal "/opt/hab/accepted-licenses/habitat"))
 
 ;; Allow access to read and execute habitat packages, and cache directory
 (allow file* process-exec
-       (literal "/hab")
-       (subpath "/hab/pkgs")
-       (subpath "/hab/cache"))
+       (literal "/opt/hab")
+       (subpath "/opt/hab/pkgs")
+       (subpath "/opt/hab/cache"))
 
-;; Allow access to env and shell system binaries that are essential 
+;; Allow access to env and shell system binaries that are essential
 ;; for proper execution of the plan build process
 (allow process-exec file*
     (literal "/usr/bin/env")
@@ -116,7 +116,7 @@
 
 
 ;; Allow access to common IPC (Inter-Process Communication) system services
-;; This is necessary for enabling communication with key system services 
+;; This is necessary for enabling communication with key system services
 ;; required for logging, diagnostics, notifications, and directory information.
 (allow mach-lookup
 
