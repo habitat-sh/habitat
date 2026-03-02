@@ -304,6 +304,7 @@
 # [A complete list of callbacks, their description, and attendant source code,
 # is but a click away.](#build-phases)
 #
+
 # # Internals
 source_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source "${source_dir}/public.bash"
