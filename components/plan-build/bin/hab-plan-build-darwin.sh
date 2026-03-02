@@ -92,7 +92,7 @@ umask 0022
 # and other build software.
 unset TERMINFO
 
-source internal.sh
+source "${source_dir}/internal.sh"
 
 # Call the `_on_exit()` function above on:
 # * HUP (1)
@@ -279,6 +279,7 @@ fi
 # Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not
 # already set by the Plan.
 if [[ -z "${pkg_dirname+xxx}" ]]; then
+  # shellcheck disable=2154
   pkg_dirname="${pkg_name}-${pkg_version}"
   _pkg_dirname_initially_unset=true
 fi
@@ -310,6 +311,9 @@ SANDBOX_PROFILE="${HAB_STUDIO_ROOT}/tmp/PLAN_SANDBOX"
   echo ""
 ) >"$SANDBOX_PROFILE"
 cat "$source_dir/darwin-sandbox.sb" >>"$SANDBOX_PROFILE"
+
+# `pkg_tdeps_resolved` set above in `_resolve_dependencies`
+# shellcheck disable=2154
 for dep in "${pkg_all_tdeps_resolved[@]}"; do
   runtime_sandbox_file="${dep}/RUNTIME_SANDBOX"
   if [[ -f "$runtime_sandbox_file" ]]; then
