@@ -65,7 +65,7 @@ _on_exit() {
 _ensure_origin_key_present() {
   local cache="$HAB_CACHE_KEY_PATH"
   local keys_found
-  keys_found="$(find $cache -name "${pkg_origin}-*.sig.key" | wc -l)"
+  keys_found="$(find "$cache" -name "${pkg_origin}-*.sig.key" | wc -l)"
   if [[ $keys_found -eq 0 ]]; then
     exit_with "Signing origin key '$pkg_origin' not found in $cache, aborting" 35
   fi
@@ -235,10 +235,10 @@ _install_dependency() {
       "${HAB_FEAT_IGNORE_LOCAL:-}" = "TRUE" ]]; then
       IGNORE_LOCAL="--ignore-local"
     fi
-    $HAB_BIN pkg install -u $HAB_BLDR_URL --channel $HAB_BLDR_CHANNEL ${IGNORE_LOCAL:-} "$@" || {
+    $HAB_BIN pkg install -u "$HAB_BLDR_URL" --channel "$HAB_BLDR_CHANNEL" ${IGNORE_LOCAL:-} "$@" || {
       if [[ "$HAB_BLDR_CHANNEL" != "$HAB_FALLBACK_CHANNEL" ]]; then
         build_line "Trying to install '$dep' from '$HAB_FALLBACK_CHANNEL'"
-        $HAB_BIN pkg install -u $HAB_BLDR_URL --channel "$HAB_FALLBACK_CHANNEL" ${IGNORE_LOCAL:-} "$@" || true
+        $HAB_BIN pkg install -u "$HAB_BLDR_URL" --channel "$HAB_FALLBACK_CHANNEL" ${IGNORE_LOCAL:-} "$@" || true
       fi
     }
   fi
@@ -845,7 +845,7 @@ _print_recursive_deps() {
 _pkg_path_for_build_deps() {
   local dep="$1"
   local e
-  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l) + 2))"
+  local cutn="$(($(echo "$HAB_PKG_PATH" | grep -o '/' | wc -l) + 2))"
   for e in "${pkg_build_deps_resolved[@]}"; do
     if echo "$e" | cut -d "/" -f ${cutn}- | grep -E -q "(^|/)${dep}(/|$)"; then
       echo "$e"
@@ -880,7 +880,7 @@ _pkg_path_for_build_deps() {
 _pkg_path_for_deps() {
   local dep="$1"
   local e
-  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l) + 2))"
+  local cutn="$(($(echo "$HAB_PKG_PATH" | grep -o '/' | wc -l) + 2))"
   for e in "${pkg_deps_resolved[@]}"; do
     if echo "$e" | cut -d "/" -f ${cutn}- | grep -E -q "(^|/)${dep}(/|$)"; then
       echo "$e"
