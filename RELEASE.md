@@ -44,19 +44,22 @@ using `hab` itself, since the same CLI is available from
 Run either of the following:
 
 ``` sh
+export HAB_AUTH_TOKEN=<MY_TOKEN>
 curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh \
-    | sudo bash -s -- -c staging
+    | sudo -E bash -s -- -c staging
 ```
 
 ```sh
-sudo hab pkg install chef/hab --binlink --force --channel=staging
+export HAB_AUTH_TOKEN=<MY_TOKEN>
+sudo -E hab pkg install chef/hab --binlink --force --channel=staging
 ```
 
 #### macOS
 
 ``` sh
+export HAB_AUTH_TOKEN=<MY_TOKEN>
 curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh \
-    | sudo bash -s -- -c staging
+    | sudo -E bash -s -- -c staging
 ```
 
 You cannot (yet) update using `hab` itself due to how the CLI is
@@ -65,6 +68,7 @@ currently installed on macOS.
 #### Windows
 
 ``` powershell
+$env:HAB_AUTH_TOKEN="<MY_TOKEN>"
 iex "& { $(irm https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1) } -Channel staging"
 ```
 ### What to Test
@@ -131,13 +135,12 @@ Get-Supervisorlog
 
 Here are examples of what you might do with a Studio.
 
-First, set up the studio properly. We clone `core-plans` to have
-things to build, and we run `hab studio rm` to ensure a clean slate.
+First, set up the studio properly. We clone `enterprise-packages` to have things to build, and we run `hab studio rm` to ensure a clean slate. If you have not done so already, make sure to run `hab cli setup` to generate an origin and origin keys.
 
 ``` sh
-mkdir testing
-cd testing
-git clone https://github.com/habitat-sh/core-plans
+git clone https://github.com/habitat-sh/enterprise-packages
+cd enterprise-packages
+git checkout base-2025
 export HAB_INTERNAL_BLDR_CHANNEL=staging
 export HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL=staging
 hab studio rm
@@ -153,15 +156,12 @@ hab --version
 # Does the version of the supervisor inside the studio match staging?
 sup-log
 ^C
-# build the redis plan
-build core-plans/redis
+# build the nginx plan
+build linux/applications/servers/nginx
 source results/last_build.env
 hab svc load $pkg_ident
-sup-log
-# Is redis running and accepting connections
-^C
 # Is it connectable?
-hab pkg exec $pkg_ident redis-cli --stat
+wget http://localhost
 ```
 
 On Windows:
@@ -173,7 +173,7 @@ hab --version
 # Windows Studio. Make sure to "accept" any windows firewall requests.
 Get-SupervisorLog
 # build the nginx plan
-build core-plans/nginx
+build windows/applications/servers/nginx
 . results/last_build.ps1
 hab svc load $pkg_ident
 # Look at the log window to see if nginx running
