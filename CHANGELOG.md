@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.447 -->
-## [2.0.447](https://github.com/habitat-sh/habitat/tree/2.0.447) (2026-02-27)
+<!-- latest_release 2.0.448 -->
+## [2.0.448](https://github.com/habitat-sh/habitat/tree/2.0.448) (2026-03-03)
 
 #### Merged Pull Requests
-- update notices file [#10253](https://github.com/habitat-sh/habitat/pull/10253) ([mwrock](https://github.com/mwrock))
+- Restore the original *install* behavior on macOS [#10255](https://github.com/habitat-sh/habitat/pull/10255) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Restore the original *install* behavior on macOS [#10255](https://github.com/habitat-sh/habitat/pull/10255) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.448 -->
 - update notices file [#10253](https://github.com/habitat-sh/habitat/pull/10253) ([mwrock](https://github.com/mwrock)) <!-- 2.0.447 -->
 - Update notices.txt and stop publishing to rc [#10249](https://github.com/habitat-sh/habitat/pull/10249) ([mwrock](https://github.com/mwrock)) <!-- 2.0.446 -->
 - Updated yml file [#10246](https://github.com/habitat-sh/habitat/pull/10246) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.445 -->
