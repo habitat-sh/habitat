@@ -345,7 +345,15 @@ function Enter-Studio {
         mkdir $HAB_STUDIO_ROOT | Out-Null
     }
     $env:HAB_STUDIO_ENTER_ROOT = Resolve-Path $HAB_STUDIO_ROOT
+    $osVersion = [Version]::new((Get-CimInstance -ClassName Win32_OperatingSystem).Version)
     if (Test-InContainer) {
+        $studio_enter_docker_min_supported_version = [Version]::new(10, 0, 26100)
+        if ($osVersion -lt $studio_enter_docker_min_supported_version) {
+            Write-Warning "hab studio enter is not supported in Windows containers on base images of Windows prior to Windows Server 2025."
+            Write-Warning "Your host container engine must be running on either Windows 11 or Windows Server 2025."
+            return
+        }
+
         # The Windows Docker TTY does not render non standard
         # characters. Each is rendered as a '?'. So we are going
         # to just render standard ascii symbols. No pretty clouds
@@ -381,7 +389,6 @@ function Enter-Studio {
             # do that if on a windows version that does not support ANSI codes in
             # its console
             $ansi_min_supported_version = [Version]::new(10, 0, 10586)
-            $osVersion = [Version]::new((Get-CimInstance -ClassName Win32_OperatingSystem).Version)
             $isAnsiSupported = $false
             if ($osVersion -ge $ansi_min_supported_version) {
                 $isAnsiSupported = $true
