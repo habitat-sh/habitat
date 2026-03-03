@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=2154
 
 _artifact_ext="hart"
 
