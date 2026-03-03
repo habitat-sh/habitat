@@ -151,6 +151,8 @@ lazy_static::lazy_static! {
             }
         } else if let Ok(root) = henv::var(FS_ROOT_ENVVAR) {
             PathBuf::from(root)
+        } else if cfg!(target_os = "macos") {
+            PathBuf::from("/opt")
         } else {
             PathBuf::from("/")
         }
