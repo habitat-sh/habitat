@@ -30,6 +30,7 @@ pub fn default_base_tag_for_host() -> Result<&'static str> {
             if *info.version() >= Semantic(10, 0, 26100) {
                 Ok("ltsc2025")
             } else if *info.version() >= Semantic(10, 0, 20348) {
+                // this is server 2022 but 2025 is supported
                 Ok("ltsc2025")
             } else if *info.version() >= Semantic(10, 0, 17763) {
                 Ok("ltsc2019")
