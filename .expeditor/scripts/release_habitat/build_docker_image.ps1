@@ -20,7 +20,7 @@ param (
 # Note that changes here should be mirrored in components/core/src/util/docker.rs
 function Get-DefaultTagForHost {
     if((docker info --format='{{.Isolation}}') -eq 'hyperv') {
-        # hyperv isolation can build any version so we will default to 2019
+        # hyperv isolation can build any version so we will default to 2025
         "ltsc2025"
     } else {
         $osVersion = [Version]::new((Get-CimInstance -ClassName Win32_OperatingSystem).Version)
