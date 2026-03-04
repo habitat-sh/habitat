@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.451 -->
-## [2.0.451](https://github.com/habitat-sh/habitat/tree/2.0.451) (2026-03-04)
+<!-- latest_release 2.0.452 -->
+## [2.0.452](https://github.com/habitat-sh/habitat/tree/2.0.452) (2026-03-04)
 
 #### Merged Pull Requests
-- run e2e tests that call hab studio enter on windows 2025 [#10259](https://github.com/habitat-sh/habitat/pull/10259) ([mwrock](https://github.com/mwrock))
+- override maybe_run with PROMOTE variable [#10260](https://github.com/habitat-sh/habitat/pull/10260) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- override maybe_run with PROMOTE variable [#10260](https://github.com/habitat-sh/habitat/pull/10260) ([mwrock](https://github.com/mwrock)) <!-- 2.0.452 -->
 - run e2e tests that call hab studio enter on windows 2025 [#10259](https://github.com/habitat-sh/habitat/pull/10259) ([mwrock](https://github.com/mwrock)) <!-- 2.0.451 -->
 - fix agent string [#10258](https://github.com/habitat-sh/habitat/pull/10258) ([mwrock](https://github.com/mwrock)) <!-- 2.0.450 -->
 - Support for windows 2025 studio images [#10256](https://github.com/habitat-sh/habitat/pull/10256) ([mwrock](https://github.com/mwrock)) <!-- 2.0.449 -->
