@@ -1,19 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.452 -->
-## [2.0.452](https://github.com/habitat-sh/habitat/tree/2.0.452) (2026-03-04)
+<!-- latest_release 2.0.453 -->
+## [2.0.453](https://github.com/habitat-sh/habitat/tree/2.0.453) (2026-03-04)
 
 #### Merged Pull Requests
-- override maybe_run with PROMOTE variable [#10260](https://github.com/habitat-sh/habitat/pull/10260) ([mwrock](https://github.com/mwrock))
+- updating changelog for 2.0.450 [#10261](https://github.com/habitat-sh/habitat/pull/10261) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- updating changelog for 2.0.450 [#10261](https://github.com/habitat-sh/habitat/pull/10261) ([mwrock](https://github.com/mwrock)) <!-- 2.0.453 -->
 - override maybe_run with PROMOTE variable [#10260](https://github.com/habitat-sh/habitat/pull/10260) ([mwrock](https://github.com/mwrock)) <!-- 2.0.452 -->
 - run e2e tests that call hab studio enter on windows 2025 [#10259](https://github.com/habitat-sh/habitat/pull/10259) ([mwrock](https://github.com/mwrock)) <!-- 2.0.451 -->
-
 <!-- release_rollup -->
 
 <!-- latest_stable_release 2.0.450 -->
