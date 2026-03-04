@@ -7,12 +7,19 @@
 - override maybe_run with PROMOTE variable [#10260](https://github.com/habitat-sh/habitat/pull/10260) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.1215-->
-### Changes since 1.6.1215 release
+<!-- release_rollup since=2.0.450-->
+### Changes since 2.0.450 release
 
 #### Merged Pull Requests
 - override maybe_run with PROMOTE variable [#10260](https://github.com/habitat-sh/habitat/pull/10260) ([mwrock](https://github.com/mwrock)) <!-- 2.0.452 -->
 - run e2e tests that call hab studio enter on windows 2025 [#10259](https://github.com/habitat-sh/habitat/pull/10259) ([mwrock](https://github.com/mwrock)) <!-- 2.0.451 -->
+
+<!-- release_rollup -->
+
+<!-- latest_stable_release 2.0.450 -->
+
+## [2.0.450](https://github.com/habitat-sh/habitat/tree/2.0.450) (2026-03-04)
+
 - fix agent string [#10258](https://github.com/habitat-sh/habitat/pull/10258) ([mwrock](https://github.com/mwrock)) <!-- 2.0.450 -->
 - Support for windows 2025 studio images [#10256](https://github.com/habitat-sh/habitat/pull/10256) ([mwrock](https://github.com/mwrock)) <!-- 2.0.449 -->
 - Restore the original *install* behavior on macOS [#10255](https://github.com/habitat-sh/habitat/pull/10255) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.448 -->
@@ -626,4 +633,3 @@
 - Pipeline setup for aarch64-linux [#9326](https://github.com/habitat-sh/habitat/pull/9326) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.1218 -->
 - update environment variable doc to reflect HAB_REFRESH_CHANNEL [#9475](https://github.com/habitat-sh/habitat/pull/9475) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1217 -->
 - update changelog for hab 1.6.1215 [#9479](https://github.com/habitat-sh/habitat/pull/9479) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1216 -->
-<!-- release_rollup -->
