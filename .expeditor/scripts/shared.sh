@@ -325,7 +325,7 @@ readonly expeditor_hab_bldr_url="https://bldr.habitat.sh"
 # that use this script.
 
 maybe_run() {
-  if [[ "${BUILDKITE_BUILD_CREATOR}" == "Chef Expeditor" ]]; then
+  if [[ "${BUILDKITE_BUILD_CREATOR}" == "Chef Expeditor" || "${PROMOTE}" == "true" ]]; then
     "$@"
   else
     echo "Build initiated by $BUILDKITE_BUILD_CREATOR"
