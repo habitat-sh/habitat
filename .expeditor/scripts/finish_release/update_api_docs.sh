@@ -16,10 +16,12 @@ if ! which hub &> /dev/null; then
   install_hub
 fi
 
+declare -g hab_binary
+curlbash_hab "${BUILD_PKG_TARGET}" stable
 
-hab pkg install core/node --binlink --force # v22.17.0 when this comment was written
-hab pkg exec core/node npm install minimist
-hab pkg exec core/node npm install oas-normalize
+${hab_binary} pkg install core/node --binlink --force # v22.17.0 when this comment was written
+${hab_binary} pkg exec core/node npm install minimist
+${hab_binary} pkg exec core/node npm install oas-normalize
 
 tempdir="$(mktemp -d)"
 trap 'rm -rf "${tempdir}"' EXIT ERR

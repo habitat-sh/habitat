@@ -1,4 +1,8 @@
 expeditor:
+  secrets:
+    HAB_AUTH_TOKEN:
+      path: account/static/habitat/chef-ci
+      field: auth_token # Production Builder
   accounts:
     - aws/chef-cd
   defaults:
