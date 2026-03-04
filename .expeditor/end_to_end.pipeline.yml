@@ -448,14 +448,10 @@ steps:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_supervisor
     artifact_paths:
       - "*.log"
-    expeditor:
-      executor:
-        docker:
-          host_os: windows
-          environment:
-            - BUILD_PKG_TARGET=x86_64-windows
-            - BUILDKITE_AGENT_ACCESS_TOKEN
-            - HAB_ORIGIN
+    agents:
+      queue: "single-use-windows-2025-privileged"
+    env:
+      BUILD_PKG_TARGET: x86_64-windows
     retry:
       automatic:
         limit: 1
@@ -468,9 +464,8 @@ steps:
     env:
       BUILD_PKG_TARGET: x86_64-windows
       DOCKER_STUDIO_TEST: true
-    expeditor:
-      executor:
-        windows:
+    agents:
+      queue: "single-use-windows-2025-privileged"
     retry:
       automatic:
         limit: 1
@@ -480,14 +475,10 @@ steps:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_profile
     artifact_paths:
       - "*.log"
-    expeditor:
-      executor:
-        docker:
-          host_os: windows
-          environment:
-            - BUILD_PKG_TARGET=x86_64-windows
-            - BUILDKITE_AGENT_ACCESS_TOKEN
-            - HAB_ORIGIN
+    agents:
+      queue: "single-use-windows-2025-privileged"
+    env:
+      BUILD_PKG_TARGET: x86_64-windows
     retry:
       automatic:
         limit: 1
@@ -500,10 +491,8 @@ steps:
     env:
       BUILD_PKG_TARGET: x86_64-windows
       DOCKER_STUDIO_TEST: true
-    expeditor:
-      executor:
-        windows:
-          os_version: 2019
+    agents:
+      queue: "single-use-windows-2025-privileged"
     retry:
       automatic:
         limit: 1
