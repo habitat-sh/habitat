@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.454 -->
-## [2.0.454](https://github.com/habitat-sh/habitat/tree/2.0.454) (2026-03-04)
+<!-- latest_release 2.0.455 -->
+## [2.0.455](https://github.com/habitat-sh/habitat/tree/2.0.455) (2026-03-05)
 
 #### Merged Pull Requests
-- Bump rustls from 0.23.35 to 0.23.37 [#10248](https://github.com/habitat-sh/habitat/pull/10248) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump nix from 0.31.1 to 0.31.2 [#10254](https://github.com/habitat-sh/habitat/pull/10254) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- Bump nix from 0.31.1 to 0.31.2 [#10254](https://github.com/habitat-sh/habitat/pull/10254) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.455 -->
+- Bump aws-sdk-ecr from 1.109.0 to 1.110.0 [#10251](https://github.com/habitat-sh/habitat/pull/10251) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.455 -->
+- Bump wincode from 0.4.4 to 0.4.5 [#10250](https://github.com/habitat-sh/habitat/pull/10250) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.455 -->
 - Bump rustls from 0.23.35 to 0.23.37 [#10248](https://github.com/habitat-sh/habitat/pull/10248) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.454 -->
 - updating changelog for 2.0.450 [#10261](https://github.com/habitat-sh/habitat/pull/10261) ([mwrock](https://github.com/mwrock)) <!-- 2.0.453 -->
 - override maybe_run with PROMOTE variable [#10260](https://github.com/habitat-sh/habitat/pull/10260) ([mwrock](https://github.com/mwrock)) <!-- 2.0.452 -->
