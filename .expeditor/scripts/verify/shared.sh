@@ -11,7 +11,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
 elif command -v hab &> /dev/null; then
   echo "--- Accepting Habitat license"
   # Explicitly pass environment variables to sudo
-  sudo HAB_ROOT_PATH="${HAB_ROOT_PATH:-/hab}" hab license accept
+  sudo HAB_LICENSE="accept-no-persist" HAB_ROOT_PATH="${HAB_ROOT_PATH:-/hab}" hab license accept
 else
   echo "Warning: hab not found, skipping license acceptance"
 fi

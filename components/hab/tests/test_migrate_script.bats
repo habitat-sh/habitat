@@ -79,7 +79,7 @@ teardown_file() {
 
 @test "Install core packages and prepare for migration" {
   # First install core packages
-  run sudo components/hab/install.sh -c stable
+  run sudo components/hab/install.sh -v 1.6.1245
   [ "$status" -eq 0 ]
   [ "$(installed_target)" == "x86_64-linux" ]
   

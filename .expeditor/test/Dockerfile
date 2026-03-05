@@ -13,4 +13,8 @@ ENV HAB_LICENSE=accept-no-persist
 
 COPY components/hab/install.sh /tmp/install.sh
 
-RUN chmod +x /tmp/install.sh && /bin/bash /tmp/install.sh
+RUN --mount=type=secret,id=hab_auth_token \
+    export HAB_AUTH_TOKEN="$(cat /run/secrets/hab_auth_token)" \
+    && chmod +x /tmp/install.sh \
+    && /bin/bash /tmp/install.sh \
+    && unset HAB_AUTH_TOKEN

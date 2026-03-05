@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Default channel is acceptance
-CHANNEL="acceptance"
+CHANNEL="stable"
 # Use existing HAB_AUTH_TOKEN if available, otherwise empty
 AUTH_TOKEN="${HAB_AUTH_TOKEN:-}"
 

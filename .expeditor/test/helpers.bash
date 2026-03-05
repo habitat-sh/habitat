@@ -36,7 +36,7 @@ FIXTURES="${REPO_ROOT}/.expeditor/test/fixtures"
 download_hart() {
     local ident=${1}
     local target=${2}
-    hab pkg download "${ident}" --download-directory="${TEST_TEMP_DIR}" --target="${target}" > /dev/null 2>&1
+    hab pkg download "${ident}" --channel stable --download-directory="${TEST_TEMP_DIR}" --target="${target}" > /dev/null 2>&1
     local ident_to_filename
     ident_to_filename="$(echo "${ident}" | tr "/" "-")"'*'"-${target}.hart"
     find "${TEST_TEMP_DIR}/artifacts" -type f -name "${ident_to_filename}"
