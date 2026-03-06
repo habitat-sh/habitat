@@ -3,9 +3,9 @@ param()
 
 Describe "Migrate habitat using migrate.ps1" {
     BeforeAll {
-        # Install the core/hab package from stable channel
-        Write-Host "Installing core/hab from stable channel..."
-        Invoke-Expression "& { $(Invoke-RestMethod https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1) }" | Out-Null
+        # Install the last stable core/hab package
+        Write-Host "Installing core/hab v1.6.1245..."
+        Invoke-Expression "& { $(Invoke-RestMethod https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1) } -Version 1.6.1245" | Out-Null
         if (-not $?) {
             throw "Failed to install core/hab"
         }

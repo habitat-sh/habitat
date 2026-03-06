@@ -42,7 +42,7 @@
 #>
 
 param(
-    [string]$Channel = "acceptance",
+    [string]$Channel = "stable",
     [string]$Auth = $env:HAB_AUTH_TOKEN,
     [switch]$Help
 )

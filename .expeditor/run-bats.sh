@@ -21,7 +21,10 @@ fi
 image="hab-bats-cleanroom"
 container_name="expeditor-ci-bats-${BUILDKITE_BUILD_ID:-local}"
 
-docker build --tag "${image}" --file test/Dockerfile ..
+echo "$HAB_AUTH_TOKEN" > hab_auth_token.txt
+trap 'rm -f hab_auth_token.txt' INT TERM EXIT
+
+docker build --secret id=hab_auth_token,src=hab_auth_token.txt --tag "${image}" --file test/Dockerfile ..
 
 # Mount the whole repository at /test, because various `source` calls
 # assume that's where you are.
@@ -29,5 +32,6 @@ docker run -it --rm \
        --mount type=bind,source="$(pwd)/..",target=/test \
        --workdir=/test \
        --name "$container_name" \
+       --env HAB_AUTH_TOKEN \
        "${image}" \
        bats "${TESTS}"

@@ -26,7 +26,7 @@ installed_version() {
 }
 
 installed_target() {
-  local origin="${1:-core}"
+  local origin="${1:-chef}"
 
   version_release="$(hab --version | cut -d' ' -f2)"
   version="$(cut -d'/' -f1 <<< "$version_release")"
@@ -48,7 +48,7 @@ installed_target() {
 
   [ "$status" -eq 0 ]
   [ "$(installed_version)" == "hab 0.90.6" ]
-  [ "$(installed_target)" == "x86_64-linux" ]
+  [ "$(installed_target core)" == "x86_64-linux" ]
 }
 
 @test "Install legacy package for x86_64-linux" {
@@ -57,7 +57,7 @@ installed_target() {
 
   [ "$status" -eq 0 ]
   [ "$(installed_version)" == "hab 0.79.1" ]
-  [ "$(installed_target)" == "x86_64-linux" ]
+  [ "$(installed_target core)" == "x86_64-linux" ]
 }
 
 @test "Install package for x86_64-linux from acceptance" {
@@ -66,7 +66,7 @@ installed_target() {
 
   [ "$status" -eq 0 ]
   [[ "$(installed_version)" =~ ^hab\ 2\.[0-9]+\.[0-9]+$ ]]
-  [ "$(installed_target chef)" == "x86_64-linux" ]
+  [ "$(installed_target)" == "x86_64-linux" ]
 }
 
 @test "Install latest for x86_64-darwin" {
