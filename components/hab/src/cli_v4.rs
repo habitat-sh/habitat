@@ -182,10 +182,11 @@ pub async fn cli_driver(ui: &mut UI, feature_flags: FeatureFlag) -> HabResult<()
         return start(ui, &os_args).await;
     }
 
-    // Skip license check if user is just asking for help or version
+    // Skip license check if user is accepting the license or just asking for help or version
     let skip_license_check =
-        args.iter()
-            .any(|arg| arg == "--help" || arg == "-h" || arg == "--version" || arg == "-V");
+        args.get(1).is_some_and(|arg| arg == "license")
+        || args.iter()
+               .any(|arg| arg == "--help" || arg == "-h" || arg == "--version" || arg == "-V");
 
     if !skip_license_check {
         check_for_license_acceptance_and_prompt(ui)?;
