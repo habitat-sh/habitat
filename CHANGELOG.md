@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.455 -->
-## [2.0.455](https://github.com/habitat-sh/habitat/tree/2.0.455) (2026-03-05)
+<!-- latest_release 2.0.456 -->
+## [2.0.456](https://github.com/habitat-sh/habitat/tree/2.0.456) (2026-03-06)
 
 #### Merged Pull Requests
-- Bump nix from 0.31.1 to 0.31.2 [#10254](https://github.com/habitat-sh/habitat/pull/10254) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump chrono from 0.4.43 to 0.4.44 [#10247](https://github.com/habitat-sh/habitat/pull/10247) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- Bump chrono from 0.4.43 to 0.4.44 [#10247](https://github.com/habitat-sh/habitat/pull/10247) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.456 -->
 - Bump nix from 0.31.1 to 0.31.2 [#10254](https://github.com/habitat-sh/habitat/pull/10254) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.455 -->
 - Bump aws-sdk-ecr from 1.109.0 to 1.110.0 [#10251](https://github.com/habitat-sh/habitat/pull/10251) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.455 -->
 - Bump wincode from 0.4.4 to 0.4.5 [#10250](https://github.com/habitat-sh/habitat/pull/10250) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.455 -->
