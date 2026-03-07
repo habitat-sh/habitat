@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.457 -->
-## [2.0.457](https://github.com/habitat-sh/habitat/tree/2.0.457) (2026-03-06)
+<!-- latest_release 2.0.458 -->
+## [2.0.458](https://github.com/habitat-sh/habitat/tree/2.0.458) (2026-03-07)
 
 #### Merged Pull Requests
-- Bump tokio from 1.49.0 to 1.50.0 [#10266](https://github.com/habitat-sh/habitat/pull/10266) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Rustfmt and Nightly Rust Bump to nightly-2026-03-04 [#10262](https://github.com/habitat-sh/habitat/pull/10262) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- Rustfmt and Nightly Rust Bump to nightly-2026-03-04 [#10262](https://github.com/habitat-sh/habitat/pull/10262) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 2.0.458 -->
 - Bump tokio from 1.49.0 to 1.50.0 [#10266](https://github.com/habitat-sh/habitat/pull/10266) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.457 -->
 - Bump chrono from 0.4.43 to 0.4.44 [#10247](https://github.com/habitat-sh/habitat/pull/10247) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.456 -->
 - Bump nix from 0.31.1 to 0.31.2 [#10254](https://github.com/habitat-sh/habitat/pull/10254) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.455 -->
