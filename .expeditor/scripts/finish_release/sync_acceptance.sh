@@ -9,6 +9,5 @@ trap 'rm -rf $tempdir' INT TERM EXIT
 hab pkg download --file .expeditor/scripts/finish_release/sync_acceptance.toml --download-directory "${tempdir}"
 hab pkg bulkupload \
         --url "https://bldr.acceptance.habitat.sh" \
-        --auth "${PIPELINE_ACCEPTANCE_AUTH_TOKEN}" \
-        --channel 'stable' \
+        --channel 'base-2025' \
         "${tempdir}"
