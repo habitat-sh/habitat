@@ -48,8 +48,8 @@ setup_hab_root() {
     readonly HAB_VOLUME_USE_DISK
 
     if /usr/bin/fdesetup isactive >/dev/null; then
-        test_filevault_in_use() { return 0; }
-        HAB_VOLUME_DO_ENCRYPT=1
+        test_filevault_in_use() { return 1; }
+        HAB_VOLUME_DO_ENCRYPT=0
     else
         test_filevault_in_use() { return 1; }
         HAB_VOLUME_DO_ENCRYPT=0
@@ -557,13 +557,23 @@ install_hab() {
       if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
           _ident+="/$version"
       fi
+
       # The Habitat packages for macOS (aarch64) are not currently available in the SaaS Builder.
       # This is a temporary fix until they become available.
       _channel="${bldrChannel:-$channel}"
-      "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"} || \
-              if [ -f /usr/local/bin/.hab-orig ]; then
-	          mv /usr/local/bin/.hab-orig /usr/local/bin/hab
-              fi
+
+      set +e
+
+      # Install can fail due to lack of token etc.
+      "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
+      install_result=$?
+
+      if [ $install_result != 0 ]; then
+          if [ -f /usr/local/bin/.hab-orig ]; then
+              mv /usr/local/bin/.hab-orig /usr/local/bin/hab
+          fi
+          exit "$install_result"
+      fi
 
       if [ -f /usr/local/bin/.hab-orig ]; then
           rm -f /usr/local/bin/.hab-orig
