@@ -529,7 +529,7 @@ install_hab() {
   case "${sys}" in
   darwin)
     case "${arch}" in
-    x86_64 | aarch64)
+    x86_64)
       # No core packages are available yet for x86_64; proceed with the old approach.
       need_cmd mkdir
       need_cmd install
@@ -543,6 +543,30 @@ install_hab() {
         info "Installing NOTICES.txt into /usr/local/share/habitat"
         mkdir -pv /usr/local/share/habitat
         install -v "${archive_dir}/NOTICES.txt" /usr/local/share/habitat/NOTICES.txt
+      fi
+      ;;
+    aarch64)
+      setup_hab_root
+      local _ident="${_origin}/hab"
+
+      # If there exists a /usr/local/bin/hab then we cannot binlink
+      if [ -f /usr/local/bin/hab ]; then
+          mv /usr/local/bin/hab /usr/local/bin/.hab-orig
+      fi
+
+      if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
+          _ident+="/$version"
+      fi
+      # The Habitat packages for macOS (aarch64) are not currently available in the SaaS Builder.
+      # This is a temporary fix until they become available.
+      _channel="${bldrChannel:-$channel}"
+      "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"} || \
+              if [ -f /usr/local/bin/.hab-orig ]; then
+	          mv /usr/local/bin/.hab-orig /usr/local/bin/hab
+              fi
+
+      if [ -f /usr/local/bin/.hab-orig ]; then
+          rm -f /usr/local/bin/.hab-orig
       fi
       ;;
     *)
