@@ -22,6 +22,14 @@ steps:
         docker:
           privileged: true
 
+  - label: "[:habicat: Promote to base-2025]"
+    command:
+      - .expeditor/scripts/buildkite_promote.sh stable base
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+
   - wait
 
   - label: ":github: Create GitHub Release"
