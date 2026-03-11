@@ -578,76 +578,96 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       HOMEBREW_NO_AUTO_UPDATE: 1
-    command:
+    agents:
+      queue: 'default-macos-x86_64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-12-x86_64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
       - .expeditor/scripts/verify/test_install_script.sh
-    expeditor:
-      executor:
-        macos:
-          os-version: "12"
-          inherit-environment-vars: true
     retry:
       automatic:
-        limit: 10 # Addressing current Anka system timeouts due to oversubscription
+        limit: 2 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[unit] :darwin: common"
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
-    command:
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
       - .expeditor/scripts/verify/run_cargo_test-darwin.sh common
-    expeditor:
-      executor:
-        macos:
-          os-version: "12"
-          inherit-environment-vars: true
     timeout_in_minutes: 60
     retry:
       automatic:
-        limit: 10 # Addressing current Anka system timeouts due to oversubscription
+        limit: 2 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[unit] :darwin: core"
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
-    command:
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
       - .expeditor/scripts/verify/run_cargo_test-darwin.sh core
-    expeditor:
-      executor:
-        macos:
-          os-version: "12"
-          inherit-environment-vars: true
     timeout_in_minutes: 60
     retry:
       automatic:
-        limit: 10 # Addressing current Anka system timeouts due to oversubscription
+        limit: 2 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[unit] :darwin: hab"
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
-    command:
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
       - .expeditor/scripts/verify/run_cargo_test-darwin.sh hab
-    expeditor:
-      executor:
-        macos:
-          os-version: "12"
-          inherit-environment-vars: true
     timeout_in_minutes: 60
     retry:
       automatic:
-        limit: 10 # Addressing current Anka system timeouts due to oversubscription
+        limit: 2 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[unit] :darwin: http-client"
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
-    command:
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
       - .expeditor/scripts/verify/run_cargo_test-darwin.sh http-client
-    expeditor:
-      executor:
-        macos:
-          os-version: "12"
-          inherit-environment-vars: true
     timeout_in_minutes: 60
     retry:
       automatic:
-        limit: 10 # Addressing current Anka system timeouts due to oversubscription
+        limit: 2 # Addressing current Anka system timeouts due to oversubscription
 
  #################################################################
 
@@ -1275,37 +1295,111 @@ steps:
 # still build. - MacOS
 #######################################################################
   - label: "[build] :mac: x86_64 hab"
-    command:
+    agents:
+      queue: 'default-macos-x86_64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-12-x86_64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
       - .expeditor/scripts/verify/build_mac_package.sh components/hab
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-darwin"
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
-    expeditor:
-      executor:
-        macos:
-          os-version: "12"
-          inherit-environment-vars: true
     timeout_in_minutes: 60
     retry:
       automatic:
         limit: 10 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[build] :mac: aarch64 hab"
-    command:
-      - .expeditor/scripts/verify/build_mac_package.sh components/hab
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/verify/build_package-aarch64-darwin.sh components/hab"
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-darwin"
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
-    expeditor:
-      executor:
-        macos:
-          os-version: "12"
-          inherit-environment-vars: true
     timeout_in_minutes: 60
     retry:
       automatic:
-        limit: 10 # Addressing current Anka system timeouts due to oversubscription
+        limit: 1 # Addressing current Anka system timeouts due to oversubscription
+
+  - label: "[build] :mac: aarch64 backline"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/verify/build_package-aarch64-darwin.sh components/backline"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "aarch64-darwin"
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 1 # Addressing current Anka system timeouts due to oversubscription
+
+  - label: "[build] :mac: aarch64 plan-build"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/verify/build_package-aarch64-darwin.sh components/plan-build"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "aarch64-darwin"
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 1 # Addressing current Anka system timeouts due to oversubscription
+
+  - label: "[build] :mac: aarch64 studio"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/verify/build_package-aarch64-darwin.sh components/studio"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "aarch64-darwin"
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 1 # Addressing current Anka system timeouts due to oversubscription
