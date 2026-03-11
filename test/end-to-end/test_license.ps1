@@ -61,6 +61,7 @@ Describe "license" {
     }
 
     It "all commands work with license" {
+        $Env:HAB_LICENSE = $null
         hab license accept
 
         hab --version
