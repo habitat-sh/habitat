@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.458 -->
-## [2.0.458](https://github.com/habitat-sh/habitat/tree/2.0.458) (2026-03-07)
+<!-- latest_release 2.0.459 -->
+## [2.0.459](https://github.com/habitat-sh/habitat/tree/2.0.459) (2026-03-11)
 
 #### Merged Pull Requests
-- Rustfmt and Nightly Rust Bump to nightly-2026-03-04 [#10262](https://github.com/habitat-sh/habitat/pull/10262) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+- Fixes MacOS plans for building from within habitat repository  [#10192](https://github.com/habitat-sh/habitat/pull/10192) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- Fixes MacOS plans for building from within habitat repository  [#10192](https://github.com/habitat-sh/habitat/pull/10192) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.459 -->
 - Rustfmt and Nightly Rust Bump to nightly-2026-03-04 [#10262](https://github.com/habitat-sh/habitat/pull/10262) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 2.0.458 -->
 - Bump tokio from 1.49.0 to 1.50.0 [#10266](https://github.com/habitat-sh/habitat/pull/10266) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.457 -->
 - Bump chrono from 0.4.43 to 0.4.44 [#10247](https://github.com/habitat-sh/habitat/pull/10247) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.456 -->
