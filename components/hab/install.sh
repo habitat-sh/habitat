@@ -214,7 +214,7 @@ EOF
     }
 
     setup_volume() {
-        local use_special use_uuid profile_packages
+        local use_special use_uuid
         echo "Creating a Habitat volume" >&2
 
         use_special="$(create_volume)"
@@ -523,65 +523,77 @@ extract_archive() {
   esac
 }
 
+install_hab_macos_no_native_support() {
+    # No core packages are available yet for x86_64; proceed with the old approach.
+    need_cmd mkdir
+    need_cmd install
+
+    info "Installing hab into /usr/local/bin"
+    mkdir -pv /usr/local/bin
+    install -v "${archive_dir}"/hab /usr/local/bin/hab
+
+    # Copy NOTICES.txt if it exists in the archive
+    if [ -f "${archive_dir}/NOTICES.txt" ]; then
+        info "Installing NOTICES.txt into /usr/local/share/habitat"
+        mkdir -pv /usr/local/share/habitat
+        install -v "${archive_dir}/NOTICES.txt" /usr/local/share/habitat/NOTICES.txt
+    fi
+}
+
 install_hab() {
   local _origin="${1:-chef}"
 
   case "${sys}" in
   darwin)
     case "${arch}" in
-    x86_64)
-      # No core packages are available yet for x86_64; proceed with the old approach.
-      need_cmd mkdir
-      need_cmd install
+        x86_64)
+            install_hab_macos_no_native_support
+            ;;
+        aarch64)
+            # Till such time we are ready to release the MacOS support, we will be using
+	    # the following internal environment variable to use the Native support in CI
+	    # Once we release the support properly, for aarch64 - we will no longer use
+	    # no_native_support
+            if [ -z "${CI_INTERNAL_MAC_NATIVE_SUPPORT:-}" ]; then
+                install_hab_macos_no_native_support
+            else
+                setup_hab_root
+                local _ident="${_origin}/hab"
 
-      info "Installing hab into /usr/local/bin"
-      mkdir -pv /usr/local/bin
-      install -v "${archive_dir}"/hab /usr/local/bin/hab
+                # If there exists a /usr/local/bin/hab then we cannot binlink
+                if [ -f /usr/local/bin/hab ]; then
+                    mv /usr/local/bin/hab /usr/local/bin/.hab-orig
+                fi
 
-      # Copy NOTICES.txt if it exists in the archive
-      if [ -f "${archive_dir}/NOTICES.txt" ]; then
-        info "Installing NOTICES.txt into /usr/local/share/habitat"
-        mkdir -pv /usr/local/share/habitat
-        install -v "${archive_dir}/NOTICES.txt" /usr/local/share/habitat/NOTICES.txt
-      fi
-      ;;
-    aarch64)
-      setup_hab_root
-      local _ident="${_origin}/hab"
+                if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
+                    _ident+="/$version"
+                fi
 
-      # If there exists a /usr/local/bin/hab then we cannot binlink
-      if [ -f /usr/local/bin/hab ]; then
-          mv /usr/local/bin/hab /usr/local/bin/.hab-orig
-      fi
+                # The Habitat packages for macOS (aarch64) are not currently available in the SaaS Builder.
+                # This is a temporary fix until they become available.
+                _channel="${bldrChannel:-$channel}"
 
-      if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
-          _ident+="/$version"
-      fi
+                set +e
 
-      # The Habitat packages for macOS (aarch64) are not currently available in the SaaS Builder.
-      # This is a temporary fix until they become available.
-      _channel="${bldrChannel:-$channel}"
+                # Install can fail due to lack of token etc.
+                "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
+                install_result=$?
 
-      set +e
+                if [ $install_result != 0 ]; then
+                    if [ -f /usr/local/bin/.hab-orig ]; then
+                        mv /usr/local/bin/.hab-orig /usr/local/bin/hab
+                    fi
+                    exit "$install_result"
+                fi
 
-      # Install can fail due to lack of token etc.
-      "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
-      install_result=$?
-
-      if [ $install_result != 0 ]; then
-          if [ -f /usr/local/bin/.hab-orig ]; then
-              mv /usr/local/bin/.hab-orig /usr/local/bin/hab
-          fi
-          exit "$install_result"
-      fi
-
-      if [ -f /usr/local/bin/.hab-orig ]; then
-          rm -f /usr/local/bin/.hab-orig
-      fi
-      ;;
-    *)
-      exit_with "Unrecognized sys when installing: ${sys}" 5
-      ;;
+                if [ -f /usr/local/bin/.hab-orig ]; then
+                    rm -f /usr/local/bin/.hab-orig
+                fi
+            fi
+            ;;
+        *)
+            exit_with "Unrecognized sys when installing: ${sys}" 5
+            ;;
     esac
     ;;
   linux)

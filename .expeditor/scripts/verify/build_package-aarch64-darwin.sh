@@ -16,6 +16,9 @@ trap macos_teardown_exit ERR
 # Following env variable is required to run MacOS Native Studio
 export HAB_FEAT_MACOS_NATIVE_SUPPORT=1
 
+# Temporary workaround to make sure CI builds pass
+export CI_INTERNAL_MAC_NATIVE_SUPPORT=1
+
 # Since we are using the *bootstrap* packages right now, we will need to 'install' `hab`
 # CLI twice - first get the original `hab` CLI and then use that to download the
 # 'bootstrap' version.
