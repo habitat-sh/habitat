@@ -349,9 +349,8 @@ function Enter-Studio {
     if (Test-InContainer) {
         $studio_enter_docker_min_supported_version = [Version]::new(10, 0, 26100)
         if ($osVersion -lt $studio_enter_docker_min_supported_version) {
-            Write-Warning "hab studio enter is not supported in Windows containers on base images of Windows prior to Windows Server 2025."
-            Write-Warning "Your host container engine must be running on either Windows 11 or Windows Server 2025."
-            return
+            Write-Warning "hab studio enter is not supported in Windows containers under Hyper-V isolation mode on base images of Windows prior to Windows Server 2025."
+            Write-Warning "If your host container engine running on a Windows client SKU version 10 less, you may need to set `$ENV:HAB_DOCKER_OPTS to '--isolation process'."
         }
 
         # The Windows Docker TTY does not render non standard
@@ -528,8 +527,9 @@ function Remove-Studio {
     } else {
         if(Test-Path $HAB_STUDIO_ROOT) {
             Write-HabInfo "Destroying Studio at $HAB_STUDIO_ROOT"
-            Get-ChildItem $HAB_STUDIO_ROOT -Recurse | Remove-Item -Force -Recurse
-            Remove-Item $HAB_STUDIO_ROOT
+            # For some reason Remove-Item fails on large directory trees on Windows 2019
+            # under Powerhsell 7.5.4. CMD's RMDIR command works though.
+            cmd.exe /c RMDIR /S /Q $HAB_STUDIO_ROOT
         }
     }
 }

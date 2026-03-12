@@ -923,7 +923,9 @@ function Invoke-DefaultClean {
     Write-BuildLine "Clean the cache"
     $src = "$HAB_CACHE_SRC_PATH\$pkg_dirname"
     if (Test-Path "$src") {
-        Remove-Item "$src" -Recurse -Force
+        # For some reason Remove-Item fails on large directory trees on Windows 2019
+        # under Powerhsell 7.5.4. CMD's RMDIR command works though.
+        cmd.exe /c RMDIR /S /Q "$src"
     }
 }
 
@@ -1483,7 +1485,9 @@ function Save-Artifact {
     $tempRoot = Join-Path $env:temp ([System.IO.Path]::GetRandomFileName())
     $tempBase = Join-Path $tempRoot "hab"
     $tempPkg = "$tempBase\pkgs\$pkg_origin\$pkg_name\$pkg_version"
-    if (Test-Path $tempBase) { Remove-Item $tempBase -Recurse -Force }
+    # For some reason Remove-Item fails on large directory trees on Windows 2019
+    # under Powerhsell 7.5.4. CMD's RMDIR command works though.
+    if (Test-Path $tempBase) { cmd.exe /c RMDIR /S /Q $tempBase }
     New-Item $tempPkg -ItemType Directory -Force | Out-Null
     Copy-Item $pkg_prefix $tempPkg -Recurse
 
@@ -1491,7 +1495,9 @@ function Save-Artifact {
     & "$_7z_cmd" a -txz "$xzf" "$tarf" | Out-Null
     & $HAB_BIN pkg sign --origin "$pkg_origin" "$xzf" "$pkg_artifact"
     Remove-Item "$tarf", "$xzf" -Force
-    Remove-Item $tempRoot -Recurse -Force
+    # For some reason Remove-Item fails on large directory trees on Windows 2019
+    # under Powerhsell 7.5.4. CMD's RMDIR command works though.
+    cmd.exe /c RMDIR /S /Q $tempRoot
 }
 
 # **Internal** Copy the final package artifact to the `$pkg_output_path`
