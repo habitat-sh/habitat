@@ -29,7 +29,7 @@ channel=$(get_release_channel)
 hab_binary=
 install_release_channel_hab_binary "${BUILD_PKG_TARGET}" acceptance
 
-echo "--- :key: Impoting keys"
+echo "--- :key: Importing keys"
 import_keys
 
 # Install the 'hab-studio' from the aarch64-darwin channel.

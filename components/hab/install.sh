@@ -524,7 +524,7 @@ extract_archive() {
 }
 
 install_hab_macos_no_native_support() {
-    # No core packages are available yet for x86_64; proceed with the old approach.
+    # Generic non-native-support fallback path used when macOS native support is unavailable
     need_cmd mkdir
     need_cmd install
 
@@ -571,15 +571,21 @@ install_hab() {
 
                 # The Habitat packages for macOS (aarch64) are not currently available in the SaaS Builder.
                 # This is a temporary fix until they become available.
-                _channel="${bldrChannel:-$channel}"
+                local _channel="${bldrChannel:-$channel}"
 
                 set +e
 
                 # Install can fail due to lack of token etc.
-                "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
-                install_result=$?
+		if [ -n "${bldrUrl:-}" ]; then
+                    "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" -u "$bldrUrl"
+                else
+                    "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident"
+                fi
+                local install_result=$?
 
-                if [ $install_result != 0 ]; then
+		set -e
+
+                if [ "$install_result" -ne 0 ]; then
                     if [ -f /usr/local/bin/.hab-orig ]; then
                         mv /usr/local/bin/.hab-orig /usr/local/bin/hab
                     fi
@@ -592,7 +598,7 @@ install_hab() {
             fi
             ;;
         *)
-            exit_with "Unrecognized sys when installing: ${sys}" 5
+            exit_with "Unrecognized arch when installing for ${sys}: ${arch}" 5
             ;;
     esac
     ;;
@@ -614,7 +620,11 @@ install_hab() {
     # /bin means now you have multiple copies of hab on your system and pathing
     # shenanigans might ensue. Rather than deal with that mess, we do it this
     # way.
-    "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
+    if [ -n "${bldrUrl:-}" ]; then
+        "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" -u "$bldrUrl"
+    else
+        "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident"
+    fi
     ;;
   *)
     exit_with "Unrecognized sys when installing: ${sys}" 5
