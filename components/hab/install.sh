@@ -49,7 +49,7 @@ setup_hab_root() {
 
     if /usr/bin/fdesetup isactive >/dev/null; then
         test_filevault_in_use() { return 0; }
-        HAB_VOLUME_DO_ENCRYPT=1
+        HAB_VOLUME_DO_ENCRYPT=0
     else
         test_filevault_in_use() { return 1; }
         HAB_VOLUME_DO_ENCRYPT=0
@@ -214,7 +214,7 @@ EOF
     }
 
     setup_volume() {
-        local use_special use_uuid profile_packages
+        local use_special use_uuid
         echo "Creating a Habitat volume" >&2
 
         use_special="$(create_volume)"
@@ -523,31 +523,83 @@ extract_archive() {
   esac
 }
 
+install_hab_macos_no_native_support() {
+    # Generic non-native-support fallback path used when macOS native support is unavailable
+    need_cmd mkdir
+    need_cmd install
+
+    info "Installing hab into /usr/local/bin"
+    mkdir -pv /usr/local/bin
+    install -v "${archive_dir}"/hab /usr/local/bin/hab
+
+    # Copy NOTICES.txt if it exists in the archive
+    if [ -f "${archive_dir}/NOTICES.txt" ]; then
+        info "Installing NOTICES.txt into /usr/local/share/habitat"
+        mkdir -pv /usr/local/share/habitat
+        install -v "${archive_dir}/NOTICES.txt" /usr/local/share/habitat/NOTICES.txt
+    fi
+}
+
 install_hab() {
   local _origin="${1:-chef}"
 
   case "${sys}" in
   darwin)
     case "${arch}" in
-    x86_64 | aarch64)
-      # No core packages are available yet for x86_64; proceed with the old approach.
-      need_cmd mkdir
-      need_cmd install
+        x86_64)
+            install_hab_macos_no_native_support
+            ;;
+        aarch64)
+            # Till such time we are ready to release the MacOS support, we will be using
+	    # the following internal environment variable to use the Native support in CI
+	    # Once we release the support properly, for aarch64 - we will no longer use
+	    # no_native_support
+            if [ -z "${CI_INTERNAL_MAC_NATIVE_SUPPORT:-}" ]; then
+                install_hab_macos_no_native_support
+            else
+                setup_hab_root
+                local _ident="${_origin}/hab"
 
-      info "Installing hab into /usr/local/bin"
-      mkdir -pv /usr/local/bin
-      install -v "${archive_dir}"/hab /usr/local/bin/hab
+                # If there exists a /usr/local/bin/hab then we cannot binlink
+                if [ -f /usr/local/bin/hab ]; then
+                    mv /usr/local/bin/hab /usr/local/bin/.hab-orig
+                fi
 
-      # Copy NOTICES.txt if it exists in the archive
-      if [ -f "${archive_dir}/NOTICES.txt" ]; then
-        info "Installing NOTICES.txt into /usr/local/share/habitat"
-        mkdir -pv /usr/local/share/habitat
-        install -v "${archive_dir}/NOTICES.txt" /usr/local/share/habitat/NOTICES.txt
-      fi
-      ;;
-    *)
-      exit_with "Unrecognized sys when installing: ${sys}" 5
-      ;;
+                if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
+                    _ident+="/$version"
+                fi
+
+                # The Habitat packages for macOS (aarch64) are not currently available in the SaaS Builder.
+                # This is a temporary fix until they become available.
+                local _channel="${bldrChannel:-$channel}"
+
+                set +e
+
+                # Install can fail due to lack of token etc.
+		if [ -n "${bldrUrl:-}" ]; then
+                    "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" -u "$bldrUrl"
+                else
+                    "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident"
+                fi
+                local install_result=$?
+
+		set -e
+
+                if [ "$install_result" -ne 0 ]; then
+                    if [ -f /usr/local/bin/.hab-orig ]; then
+                        mv /usr/local/bin/.hab-orig /usr/local/bin/hab
+                    fi
+                    exit "$install_result"
+                fi
+
+                if [ -f /usr/local/bin/.hab-orig ]; then
+                    rm -f /usr/local/bin/.hab-orig
+                fi
+            fi
+            ;;
+        *)
+            exit_with "Unrecognized arch when installing for ${sys}: ${arch}" 5
+            ;;
     esac
     ;;
   linux)
@@ -568,7 +620,11 @@ install_hab() {
     # /bin means now you have multiple copies of hab on your system and pathing
     # shenanigans might ensue. Rather than deal with that mess, we do it this
     # way.
-    "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident" ${bldrUrl:+-u "$bldrUrl"}
+    if [ -n "${bldrUrl:-}" ]; then
+        "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident" -u "$bldrUrl"
+    else
+        "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
+    fi
     ;;
   *)
     exit_with "Unrecognized sys when installing: ${sys}" 5
