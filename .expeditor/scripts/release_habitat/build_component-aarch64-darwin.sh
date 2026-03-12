@@ -27,7 +27,7 @@ channel=$(get_release_channel)
 # through internal call to 'curlbash_hab' that in turn installs the binary
 # through '-b' parameter.
 hab_binary=
-install_release_channel_hab_binary "${BUILD_PKG_TARGET}" acceptance
+install_release_channel_hab_binary "${BUILD_PKG_TARGET}"
 
 echo "--- :key: Importing keys"
 import_keys

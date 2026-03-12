@@ -48,7 +48,7 @@ setup_hab_root() {
     readonly HAB_VOLUME_USE_DISK
 
     if /usr/bin/fdesetup isactive >/dev/null; then
-        test_filevault_in_use() { return 1; }
+        test_filevault_in_use() { return 0; }
         HAB_VOLUME_DO_ENCRYPT=0
     else
         test_filevault_in_use() { return 1; }
@@ -621,9 +621,9 @@ install_hab() {
     # shenanigans might ensue. Rather than deal with that mess, we do it this
     # way.
     if [ -n "${bldrUrl:-}" ]; then
-        "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident" -u "$bldrUrl"
+        "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident" -u "$bldrUrl"
     else
-        "${archive_dir}/hab" pkg install --binlink --force --channel "$_channel" "$_ident"
+        "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
     fi
     ;;
   *)
