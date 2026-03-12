@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.460 -->
-## [2.0.460](https://github.com/habitat-sh/habitat/tree/2.0.460) (2026-03-12)
+<!-- latest_release 2.0.461 -->
+## [2.0.461](https://github.com/habitat-sh/habitat/tree/2.0.461) (2026-03-12)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.182 to 0.2.183 [#10271](https://github.com/habitat-sh/habitat/pull/10271) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Reverting install.sh for macOS aarch64 [#10277](https://github.com/habitat-sh/habitat/pull/10277) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- Reverting install.sh for macOS aarch64 [#10277](https://github.com/habitat-sh/habitat/pull/10277) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.461 -->
 - Bump libc from 0.2.182 to 0.2.183 [#10271](https://github.com/habitat-sh/habitat/pull/10271) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.460 -->
 - hab licence accept should not prompt [#10263](https://github.com/habitat-sh/habitat/pull/10263) ([mwrock](https://github.com/mwrock)) <!-- 2.0.460 -->
 - Bump tempfile from 3.25.0 to 3.26.0 [#10272](https://github.com/habitat-sh/habitat/pull/10272) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.460 -->
