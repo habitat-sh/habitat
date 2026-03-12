@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 load 'helpers'
-load "/test/.expeditor/scripts/release_habitat/shared.sh"
+load "${REPO_ROOT}/.expeditor/scripts/release_habitat/shared.sh"
 
 setup() {
     # Put create_manifest.rb on the PATH

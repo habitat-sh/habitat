@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 load 'helpers'
-load "/test/.expeditor/scripts/release_habitat/shared.sh"
+load "${REPO_ROOT}/.expeditor/scripts/release_habitat/shared.sh"
 
 setup() {
     TEST_TEMP_DIR="$(temp_make)"
