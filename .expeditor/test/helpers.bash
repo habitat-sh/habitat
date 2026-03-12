@@ -7,10 +7,14 @@
 #
 # Happy testing!
 
-# Load key BATS helper libraries
-load '/test_helper/bats-support/load.bash'
-load '/test_helper/bats-assert/load.bash'
-load '/test_helper/bats-file/load.bash'
+# Determine the repository root dynamically
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+# Load key BATS helper libraries from the integration test directory
+load "${REPO_ROOT}/test/integration/test_helper/bats-support/load.bash"
+load "${REPO_ROOT}/test/integration/test_helper/bats-assert/load.bash"
+load "${REPO_ROOT}/test/integration/test_helper/bats-file/load.bash"
 
 # A lot of our code calls to hab go through a `hab_binary` global
 # variable, allowing us to use either the current stable release OR
@@ -21,9 +25,6 @@ load '/test_helper/bats-file/load.bash'
 # just use the binary that's available on the system.
 declare -g hab_binary
 hab_binary="hab"
-
-# This is where things get mounted in the container.
-REPO_ROOT="/test"
 
 # Directory where various fixture files live
 FIXTURES="${REPO_ROOT}/.expeditor/test/fixtures"

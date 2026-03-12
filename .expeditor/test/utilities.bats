@@ -1,12 +1,12 @@
 #!/usr/bin/env bats
 
 load 'helpers'
-load "/test/.expeditor/scripts/release_habitat/shared.sh"
+load "${REPO_ROOT}/.expeditor/scripts/release_habitat/shared.sh"
 
 setup() {
     # This is required since git 2.35.2 as the owner of the repo is not the user running the tests.
     # Reference: https://stackoverflow.com/questions/71901632/fatal-error-unsafe-repository-home-repon-is-owned-by-someone-else
-    git config --global --add safe.directory /test
+    git config --global --add safe.directory "${REPO_ROOT}"
     TEST_TEMP_DIR="$(temp_make)"
 }
 teardown() {
@@ -19,7 +19,7 @@ teardown() {
 }
 
 @test "get_version_from_repo for real releases" {
-    git config --global --add safe.directory /test
+    git config --global --add safe.directory "${REPO_ROOT}"
     assert_equal $(get_version_from_repo) $(cat "VERSION")
 }
 

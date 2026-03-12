@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# Builds a "cleanroom" Docker container to run BATS tests in, and then
-# executes the tests in that container, mounting the tests and Habitat
-# binaries as needed.
+# Runs BATS tests directly in the current environment.
+# This script assumes it's running in an appropriate test environment
+# (such as a CI container that already has the necessary tools installed).
 
 set -euo pipefail
 
@@ -18,20 +18,8 @@ else
     TESTS=".expeditor/test"
 fi
 
-image="hab-bats-cleanroom"
-container_name="expeditor-ci-bats-${BUILDKITE_BUILD_ID:-local}"
+# Ensure we're in the repository root for consistent behavior
+cd "$(dirname "$0")/.."
 
-echo "$HAB_AUTH_TOKEN" > hab_auth_token.txt
-trap 'rm -f hab_auth_token.txt' INT TERM EXIT
-
-docker build --secret id=hab_auth_token,src=hab_auth_token.txt --tag "${image}" --file test/Dockerfile ..
-
-# Mount the whole repository at /test, because various `source` calls
-# assume that's where you are.
-docker run -it --rm \
-       --mount type=bind,source="$(pwd)/..",target=/test \
-       --workdir=/test \
-       --name "$container_name" \
-       --env HAB_AUTH_TOKEN \
-       "${image}" \
-       bats "${TESTS}"
+# Run BATS tests directly
+bats "${TESTS}"
