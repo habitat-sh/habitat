@@ -1,16 +1,22 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.459 -->
-## [2.0.459](https://github.com/habitat-sh/habitat/tree/2.0.459) (2026-03-11)
+<!-- latest_release 2.0.460 -->
+## [2.0.460](https://github.com/habitat-sh/habitat/tree/2.0.460) (2026-03-12)
 
 #### Merged Pull Requests
-- Fixes MacOS plans for building from within habitat repository  [#10192](https://github.com/habitat-sh/habitat/pull/10192) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump libc from 0.2.182 to 0.2.183 [#10271](https://github.com/habitat-sh/habitat/pull/10271) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.182 to 0.2.183 [#10271](https://github.com/habitat-sh/habitat/pull/10271) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.460 -->
+- hab licence accept should not prompt [#10263](https://github.com/habitat-sh/habitat/pull/10263) ([mwrock](https://github.com/mwrock)) <!-- 2.0.460 -->
+- Bump tempfile from 3.25.0 to 3.26.0 [#10272](https://github.com/habitat-sh/habitat/pull/10272) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.460 -->
+- Bump aws-sdk-ecr from 1.110.0 to 1.111.0 [#10270](https://github.com/habitat-sh/habitat/pull/10270) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.460 -->
+- Bump pin-project from 1.1.10 to 1.1.11 [#10274](https://github.com/habitat-sh/habitat/pull/10274) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.460 -->
+- Bump quote from 1.0.44 to 1.0.45 [#10273](https://github.com/habitat-sh/habitat/pull/10273) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.460 -->
 - Fixes MacOS plans for building from within habitat repository  [#10192](https://github.com/habitat-sh/habitat/pull/10192) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.459 -->
 - Rustfmt and Nightly Rust Bump to nightly-2026-03-04 [#10262](https://github.com/habitat-sh/habitat/pull/10262) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 2.0.458 -->
 - Bump tokio from 1.49.0 to 1.50.0 [#10266](https://github.com/habitat-sh/habitat/pull/10266) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.457 -->
