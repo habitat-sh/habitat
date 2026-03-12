@@ -1,4 +1,8 @@
 expeditor:
+  secrets:
+    HAB_AUTH_TOKEN:
+      path: account/static/habitat/chef-ci
+      field: auth_token # Production Builder
   accounts:
     - aws/chef-cd
   defaults:
@@ -10,6 +14,24 @@ expeditor:
         GITHUB_USER: "habitat-sh" # per https://github.com/github/hub/issues/2264#issuecomment-567241335
 
 steps:
+  - label: "[:habicat: Promote to base-2025]"
+    command:
+      - .expeditor/scripts/buildkite_promote.sh stable base-2025
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+
+  - label: "[:habicat: Promote to base]"
+    command:
+      - .expeditor/scripts/buildkite_promote.sh stable base
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+
+  - wait
+
   - label: ":github: Create GitHub Release"
     command:
       - .expeditor/scripts/finish_release/create_github_release.sh
