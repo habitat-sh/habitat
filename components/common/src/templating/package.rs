@@ -54,6 +54,12 @@ impl Env {
 
     pub fn to_hash_map(&self) -> HashMap<String, String> { self.0.clone().into_iter().collect() }
 
+    /// Augments the environment with additional variables, such as HAB_AUTH_TOKEN.
+    /// This is used to pass through CLI or environment variables to hooks.
+    pub fn with_additional_env(&mut self, key: String, value: String) {
+        self.0.insert(key, value);
+    }
+
     async fn transform_path(path: Option<&String>, package_type: PackageType) -> Result<String> {
         let mut paths: Vec<PathBuf> = match path {
             Some(path) => env::split_paths(&path).collect(),

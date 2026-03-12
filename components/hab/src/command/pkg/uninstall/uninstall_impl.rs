@@ -409,7 +409,8 @@ async fn maybe_run_uninstall_hook<T>(ui: &mut T, package: &PackageInstall) -> Re
                           unqualified_ident))?;
         return Ok(());
     }
-    Ok(UninstallHook::find_run_and_error_for_status(ui, package).await?)
+    // Uninstall hooks don't need auth tokens since they don't download packages
+    Ok(UninstallHook::find_run_and_error_for_status(ui, package, None).await?)
 }
 
 /// Delete empty parent directories from a given path. don't traverse above
