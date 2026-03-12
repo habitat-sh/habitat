@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.462 -->
-## [2.0.462](https://github.com/habitat-sh/habitat/tree/2.0.462) (2026-03-12)
+<!-- latest_release 2.0.463 -->
+## [2.0.463](https://github.com/habitat-sh/habitat/tree/2.0.463) (2026-03-12)
 
 #### Merged Pull Requests
-- fix the brocken ci tests [#10276](https://github.com/habitat-sh/habitat/pull/10276) ([mwrock](https://github.com/mwrock))
+- fix and improve finish_release pipeline [#10264](https://github.com/habitat-sh/habitat/pull/10264) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- fix and improve finish_release pipeline [#10264](https://github.com/habitat-sh/habitat/pull/10264) ([mwrock](https://github.com/mwrock)) <!-- 2.0.463 -->
+- Bump toml from 1.0.4+spec-1.1.0 to 1.0.6+spec-1.1.0 [#10278](https://github.com/habitat-sh/habitat/pull/10278) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.463 -->
 - fix the brocken ci tests [#10276](https://github.com/habitat-sh/habitat/pull/10276) ([mwrock](https://github.com/mwrock)) <!-- 2.0.462 -->
 - Reverting install.sh for macOS aarch64 [#10277](https://github.com/habitat-sh/habitat/pull/10277) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.461 -->
 - Bump libc from 0.2.182 to 0.2.183 [#10271](https://github.com/habitat-sh/habitat/pull/10271) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.460 -->
