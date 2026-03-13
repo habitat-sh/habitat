@@ -17,6 +17,8 @@
 
 set -euo pipefail
 
+docker version
+
 sudo apt install docker-buildx-plugin
 
 # source .expeditor/scripts/release_habitat/shared.sh
