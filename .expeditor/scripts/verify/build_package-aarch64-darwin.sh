@@ -25,7 +25,7 @@ export CI_INTERNAL_MAC_NATIVE_SUPPORT=1
 hab_binary=
 curlbash_hab "${BUILD_PKG_TARGET}" acceptance
 
-${hab_binary} pkg install chef/hab -c aarch64-darwin --binlink -f
+${hab_binary} pkg install chef/hab -c aarch64-darwin-opt --binlink -f
 bootstrap_hab_binary=$(command -v hab)
 echo "Bootstrap Package Version is : $($bootstrap_hab_binary -V)."
 
@@ -40,7 +40,7 @@ sudo -E "${bootstrap_hab_binary}" origin key generate || macos_teardown_exit
 # Install hab-studio from the chef origin via the acceptance channel.
 # By default, it installs from the stable channel only,
 # so this may need updating to support other channels.
-${bootstrap_hab_binary} pkg install chef/hab-studio -c aarch64-darwin
+${bootstrap_hab_binary} pkg install chef/hab-studio -c aarch64-darwin-opt
 
 export HAB_STUDIO_SECRET_HAB_BLDR_CHANNEL="aarch64-darwin"
 
