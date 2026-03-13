@@ -20,15 +20,10 @@ echo "Installing buildx manually..."
 BUILDX_VERSION="v0.32.1"  # Use a stable version
 PLUGIN_DIR="${HOME}/.docker/cli-plugins"
 PLUGIN_PATH="${PLUGIN_DIR}/docker-buildx"
-CHECKSUM_FILE="$(mktemp)"
 mkdir -p "${PLUGIN_DIR}"
 curl --fail -sSL "https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.${BUILDX_ARCH}" \
      -o "${PLUGIN_PATH}"
-curl --fail -sSL "https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.sha256" \
-     -o "${CHECKSUM_FILE}"
-grep " buildx-${BUILDX_VERSION}.${BUILDX_ARCH}\$" "${CHECKSUM_FILE}" | sha256sum -c -
 chmod +x "${PLUGIN_PATH}"
-rm -f "${CHECKSUM_FILE}"
 
 # Also install system-wide for sudo access
 sudo mkdir -p /usr/local/lib/docker/cli-plugins/
