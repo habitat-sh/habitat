@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.466 -->
-## [2.0.466](https://github.com/habitat-sh/habitat/tree/2.0.466) (2026-03-13)
+<!-- latest_release 2.0.467 -->
+## [2.0.467](https://github.com/habitat-sh/habitat/tree/2.0.467) (2026-03-13)
 
 #### Merged Pull Requests
-- Bump aws-sdk-ecr from 1.111.0 to 1.112.0 [#10283](https://github.com/habitat-sh/habitat/pull/10283) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- install buildx component on agent for docker builds [#10285](https://github.com/habitat-sh/habitat/pull/10285) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- install buildx component on agent for docker builds [#10285](https://github.com/habitat-sh/habitat/pull/10285) ([mwrock](https://github.com/mwrock)) <!-- 2.0.467 -->
 - Bump aws-sdk-ecr from 1.111.0 to 1.112.0 [#10283](https://github.com/habitat-sh/habitat/pull/10283) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.466 -->
 - Bump wincode from 0.4.5 to 0.4.7 [#10281](https://github.com/habitat-sh/habitat/pull/10281) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.466 -->
 - Bump clap_complete from 4.5.66 to 4.6.0 [#10282](https://github.com/habitat-sh/habitat/pull/10282) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.466 -->
