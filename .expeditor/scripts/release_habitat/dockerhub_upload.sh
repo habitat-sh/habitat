@@ -19,10 +19,25 @@ set -euo pipefail
 
 docker version
 
+# Determine architecture based on BUILD_PKG_TARGET
+case "${BUILD_PKG_TARGET}" in
+"x86_64-linux")
+       BUILDX_ARCH="linux-amd64"
+       ;;
+"aarch64-linux")
+       BUILDX_ARCH="linux-arm64"
+       ;;
+*)
+       echo "Unsupported BUILD_PKG_TARGET: ${BUILD_PKG_TARGET}"
+       echo "Defaulting to linux-amd64"
+       BUILDX_ARCH="linux-amd64"
+       ;;
+esac
+
 echo "Installing buildx manually..."
 BUILDX_VERSION="v0.32.1"  # Use a stable version
 mkdir -p ~/.docker/cli-plugins/
-curl -sSL "https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.linux-amd64" \
+curl -sSL "https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.${BUILDX_ARCH}" \
 -o ~/.docker/cli-plugins/docker-buildx
 chmod +x ~/.docker/cli-plugins/docker-buildx
 
