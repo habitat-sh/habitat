@@ -27,7 +27,7 @@ curlbash_hab() {
                mv -f /usr/local/bin/hab /usr/local/bin/.hab-orig
             fi
 
-            sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -b "aarch64-darwin" || \
+            sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -b "aarch64-darwin-opt" || \
                 mv -f /usr/local/bin/.hab-orig /usr/local/bin/hab
 
             hab_binary="/usr/local/bin/hab"
