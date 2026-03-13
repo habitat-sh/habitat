@@ -19,8 +19,7 @@ set -euo pipefail
 
 docker version
 
-sudo yum install docker-buildx-plugin
-
+# sudo yum install docker-buildx-plugin
 docker buildx version
 # source .expeditor/scripts/release_habitat/shared.sh
 
