@@ -19,8 +19,50 @@ set -euo pipefail
 
 docker version
 
-# sudo yum install docker-buildx-plugin
+# Install docker buildx plugin on Amazon Linux
+# First try the official Docker repository method
+echo "Installing Docker Buildx plugin..."
+
+# Check if buildx is already available
+if docker buildx version >/dev/null 2>&1; then
+    echo "Docker Buildx is already installed"
+else
+    # Method 1: Try installing from Docker CE repository
+    if ! docker buildx version >/dev/null 2>&1; then
+        echo "Attempting to install buildx via Docker CE repository..."
+        
+        # Add Docker's official GPG key and repository if not present
+        if ! yum list installed | grep -q docker-ce; then
+            sudo yum install -y yum-utils
+            sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+            
+            # Try installing docker-buildx-plugin
+            if sudo yum install -y docker-buildx-plugin; then
+                echo "Successfully installed docker-buildx-plugin"
+            else
+                echo "Failed to install docker-buildx-plugin from repository"
+            fi
+        fi
+    fi
+    
+    # Method 2: Manual installation if package method fails
+    if ! docker buildx version >/dev/null 2>&1; then
+        echo "Installing buildx manually..."
+        BUILDX_VERSION="v0.12.1"  # Use a stable version
+        mkdir -p ~/.docker/cli-plugins/
+        curl -sSL "https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.linux-amd64" \
+            -o ~/.docker/cli-plugins/docker-buildx
+        chmod +x ~/.docker/cli-plugins/docker-buildx
+        
+        # Also install system-wide for sudo access
+        sudo mkdir -p /usr/local/lib/docker/cli-plugins/
+        sudo cp ~/.docker/cli-plugins/docker-buildx /usr/local/lib/docker/cli-plugins/
+    fi
+fi
+
+# Verify installation
 docker buildx version
+
 # source .expeditor/scripts/release_habitat/shared.sh
 
 
