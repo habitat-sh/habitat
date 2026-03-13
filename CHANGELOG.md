@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.464 -->
-## [2.0.464](https://github.com/habitat-sh/habitat/tree/2.0.464) (2026-03-12)
+<!-- latest_release 2.0.465 -->
+## [2.0.465](https://github.com/habitat-sh/habitat/tree/2.0.465) (2026-03-13)
 
 #### Merged Pull Requests
-- Installation fixes and release pipeline jobs for macOS on Arm64 [#10275](https://github.com/habitat-sh/habitat/pull/10275) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump clap from 4.5.60 to 4.6.0 [#10284](https://github.com/habitat-sh/habitat/pull/10284) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- Bump clap from 4.5.60 to 4.6.0 [#10284](https://github.com/habitat-sh/habitat/pull/10284) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.465 -->
 - Installation fixes and release pipeline jobs for macOS on Arm64 [#10275](https://github.com/habitat-sh/habitat/pull/10275) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.464 -->
 - fix and improve finish_release pipeline [#10264](https://github.com/habitat-sh/habitat/pull/10264) ([mwrock](https://github.com/mwrock)) <!-- 2.0.463 -->
 - Bump toml from 1.0.4+spec-1.1.0 to 1.0.6+spec-1.1.0 [#10278](https://github.com/habitat-sh/habitat/pull/10278) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.463 -->
