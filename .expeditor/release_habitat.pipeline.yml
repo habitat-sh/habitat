@@ -466,7 +466,9 @@ steps:
   # executed during "real" runs of this pipeline.
 
   - label: ":docker: Upload containers to Docker Hub"
-    command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
+    command:
+      - .expeditor/scripts/install_docker_buildx.sh
+      - .expeditor/scripts/release_habitat/dockerhub_upload.sh
     if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
@@ -479,7 +481,9 @@ steps:
   - label: ":docker: Upload containers (aarch64) to Docker Hub"
     agents:
       queue: default-privileged-aarch64
-    command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
+    command:
+      - .expeditor/scripts/install_docker_buildx.sh
+      - .expeditor/scripts/release_habitat/dockerhub_upload.sh
     if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
     env:
       BUILD_PKG_TARGET: "aarch64-linux"
