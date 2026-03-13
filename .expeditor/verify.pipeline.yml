@@ -19,7 +19,6 @@ steps:
 
   - label: ":docker: Upload containers to Docker Hub"
     command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
       DOCKER_BUILDKIT: "1"
@@ -32,7 +31,6 @@ steps:
     agents:
       queue: default-privileged-aarch64
     command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
-    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
     env:
       BUILD_PKG_TARGET: "aarch64-linux"
       DOCKER_BUILDKIT: "1"
