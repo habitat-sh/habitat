@@ -189,6 +189,7 @@ mod inner {
                 if is_docker_studio(args) {
                     docker::start_docker_studio(ui, args)
                 } else {
+                    eprintln!("1");
                     let command = match henv::var(STUDIO_CMD_ENVVAR) {
                         Ok(command) => PathBuf::from(command),
                         Err(_) => {
@@ -197,15 +198,20 @@ mod inner {
                             let ident = PackageIdent::from_str(&format!("{}/{}",
                                                                     super::STUDIO_PACKAGE_IDENT,
                                                                     version[0]))?;
+                            eprintln!("2");
                             let command = exec::command_from_min_pkg(ui, STUDIO_CMD, &ident).await?;
+                            eprintln!("command: {:#?}", command);
                             // This is a duplicate of the code in `hab pkg exec` and
                             // should be refactored as part of or after:
                             // https://github.com/habitat-sh/habitat/issues/6633
                             // https://github.com/habitat-sh/habitat/issues/6634
                             let pkg_install = PackageInstall::load(&ident, None)?;
+                            eprintln!("pkg_install: {:#?}", pkg_install);
                             let cmd_env = pkg_install.environment_for_command()?;
+                            eprintln!("cmd_env: {:#?}", cmd_env);
                             for (key, value) in cmd_env.into_iter() {
                                 debug!("Setting: {}='{}'", key, value);
+                                eprintln!("key: {}, value: {}", key, value);
                                 // TODO: Audit that the environment access only happens in
                                 // single-threaded code.
                                 unsafe { env::set_var(key, value) };

@@ -455,6 +455,7 @@ build_studio() {
     set -x
   fi
 
+  info "Sandbox Exec with $studio_build_command and arguments $@."
   # Run the build command in the `sandbox` environment
   # shellcheck disable=2086
   $studio_env_command -i \
@@ -584,8 +585,8 @@ build_sandbox_env() {
   sandbox_env="LC_ALL=POSIX TERM=${TERM:-} PATH=${HAB_STUDIO_ROOT}${HAB_ROOT_PATH}/bin:/usr/bin:/bin:/usr/sbin"
 
   # Create temporary directory for usage inside the sandbox during builds
-  $mkdir_cmd -p /hab/cache/tmp
-  TMPDIR=$($mktemp_cmd -p /hab/cache/tmp -d)
+  $mkdir_cmd -p "$HAB_ROOT_PATH"/cache/tmp
+  TMPDIR=$($mktemp_cmd -p "$HAB_ROOT_PATH"/cache/tmp -d)
   sandbox_env="$sandbox_env TMPDIR=$TMPDIR"
 
   # Add `STUDIO_TYPE` to the environment
