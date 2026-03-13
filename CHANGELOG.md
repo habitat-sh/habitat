@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.465 -->
-## [2.0.465](https://github.com/habitat-sh/habitat/tree/2.0.465) (2026-03-13)
+<!-- latest_release 2.0.466 -->
+## [2.0.466](https://github.com/habitat-sh/habitat/tree/2.0.466) (2026-03-13)
 
 #### Merged Pull Requests
-- Bump clap from 4.5.60 to 4.6.0 [#10284](https://github.com/habitat-sh/habitat/pull/10284) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump aws-sdk-ecr from 1.111.0 to 1.112.0 [#10283](https://github.com/habitat-sh/habitat/pull/10283) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- Bump aws-sdk-ecr from 1.111.0 to 1.112.0 [#10283](https://github.com/habitat-sh/habitat/pull/10283) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.466 -->
+- Bump wincode from 0.4.5 to 0.4.7 [#10281](https://github.com/habitat-sh/habitat/pull/10281) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.466 -->
+- Bump clap_complete from 4.5.66 to 4.6.0 [#10282](https://github.com/habitat-sh/habitat/pull/10282) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.466 -->
 - Bump clap from 4.5.60 to 4.6.0 [#10284](https://github.com/habitat-sh/habitat/pull/10284) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.465 -->
 - Installation fixes and release pipeline jobs for macOS on Arm64 [#10275](https://github.com/habitat-sh/habitat/pull/10275) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.464 -->
 - fix and improve finish_release pipeline [#10264](https://github.com/habitat-sh/habitat/pull/10264) ([mwrock](https://github.com/mwrock)) <!-- 2.0.463 -->
