@@ -289,6 +289,7 @@ pub fn cache_src_path<T>(fs_root_path: Option<T>) -> PathBuf
 pub fn cache_ssl_path<T>(fs_root_path: Option<T>) -> PathBuf
     where T: AsRef<Path>
 {
+    eprintln!("cache_ssl_path: {:#?}", Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_SSL_PATH));
     match fs_root_path {
         Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_SSL_PATH),
         None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_SSL_PATH),
@@ -324,7 +325,10 @@ pub fn fs_rooted_path(path: &Path, fs_root: &Path) -> PathBuf {
     if path.starts_with("/") && cfg!(windows) {
         fs_root.join(path.strip_prefix("/").unwrap())
     } else {
-        path.to_path_buf()
+        eprintln!("path: {:#?}, fs_root: {:#?}", path, fs_root);
+        let returned = fs_root.join(path.strip_prefix("/").unwrap());
+        eprintln!("joined: {:#?}", returned);
+	returned
     }
 }
 
@@ -643,8 +647,11 @@ pub fn find_command<T>(command: T) -> Option<PathBuf>
     // return `None`.
     match henv::var_os("PATH") {
         Some(paths) => {
+            eprintln!("paths: {:#?}", paths);
             for path in env::split_paths(&paths) {
+                eprintln!("path: {}, command: {:#?}", path.display(), command.as_ref());
                 let candidate = PathBuf::from(&path).join(command.as_ref());
+                eprintln!("candidate: {}", candidate.display());
                 if let Some(result) = find_command_with_pathext(&candidate) {
                     return Some(result);
                 } else if candidate.is_file() {
@@ -677,11 +684,15 @@ pub fn find_command_in_pkg<T, U>(command: T,
                 .unwrap_or_else(|_| {
                     panic!("Package path missing / prefix {}", path.to_string_lossy())
                 });
+        eprintln!("stripped: {}", stripped.display());
+        eprintln!("joined:: {}", fs_root_path.as_ref().join(stripped).display());
         let candidate = fs_root_path.as_ref().join(stripped).join(command.as_ref());
+        eprintln!("candidate: {}", candidate.display());
+
         if let Some(result) = find_command_with_pathext(&candidate) {
             return Ok(Some(result));
         } else if candidate.is_file() {
-            return Ok(Some(path.join(command.as_ref())));
+            return Ok(Some(candidate))
         }
     }
     Ok(None)
