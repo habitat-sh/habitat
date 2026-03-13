@@ -19,20 +19,6 @@ set -euo pipefail
 
 source .expeditor/scripts/release_habitat/shared.sh
 
-version=$(get_version_from_repo)
-channel=$(get_release_channel)
-target="${BUILD_PKG_TARGET}"
-image_name="habitat/default-studio-${target}"
-image_name_with_tag="${image_name}:${version}"
-bldr_url="${PIPELINE_HAB_BLDR_URL}"
-
-# NOTE: This operation currently uses the `chefdelivery` service
-# account; these credentials are automatically injected by the
-# elastic-ci-secrets plugin.
-docker login \
-  --username="${DOCKER_LOGIN_USER}" \
-  --password="${DOCKER_LOGIN_PASSWORD}"
-
 # Create the token file securely
 echo "$HAB_AUTH_TOKEN" > ./components/rootless_studio/hab_auth_token.txt
 trap 'rm -f $HOME/.docker/config.json ./components/rootless_studio/hab_auth_token.txt' INT TERM EXIT
@@ -47,18 +33,6 @@ trap 'rm -f $HOME/.docker/config.json ./components/rootless_studio/hab_auth_toke
 
     docker build \
            --secret id=hab_auth_token,src=hab_auth_token.txt \
-           --build-arg PACKAGE_TARGET="${target}" \
-           --tag "habitat-${target}:hab-base" .
-
-    docker build \
-           --secret id=hab_auth_token,src=hab_auth_token.txt \
-           --build-arg HAB_LICENSE="accept-no-persist" \
-           --build-arg BLDR_URL="${bldr_url}" \
-           --build-arg BLDR_CHANNEL="${channel}" \
-           --build-arg PACKAGE_TARGET="${target}" \
-           --no-cache \
-           --tag "${image_name_with_tag}" \
-           ./default
-
-    docker push "${image_name_with_tag}"
+           --build-arg PACKAGE_TARGET="${BUILD_PKG_TARGET}" \
+           --tag "habitat-${BUILD_PKG_TARGET}:hab-base" .
 )
