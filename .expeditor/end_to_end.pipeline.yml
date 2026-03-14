@@ -26,6 +26,7 @@ steps:
       - ./run_all.sh dev
     env:
       DOCKER_BUILDKIT: "1"
+      BUILD_PKG_TARGET: "x86_64-linux"
     expeditor:
       executor:
         linux:
@@ -42,6 +43,7 @@ steps:
       queue: default-privileged-aarch64
     env:
       DOCKER_BUILDKIT: "1"
+      BUILD_PKG_TARGET: "aarch64-linux"
     artifact_paths:
       - "test/end-to-end/multi-supervisor/habitat_integration_output/**"
 
@@ -759,6 +761,8 @@ steps:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_event_stream
     artifact_paths:
       - "*.log"
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
     expeditor:
       secrets:
         A2_LICENSE:
@@ -768,8 +772,6 @@ steps:
         linux:
           single-use: true
           privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
 
   - label: "[:linux: test_at_once_service_updater]"
     command:
