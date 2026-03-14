@@ -293,7 +293,6 @@ function Stop-ComposeSupervisor($Remote) {
     # of Docker that don't support the latest API. We set this
     # to 1.41 because that's the newest version supported by the
     # Docker engine on the test agent.
-    $env:DOCKER_API_VERSION = "1.41"
     Invoke-NativeCommand docker exec "${env:COMPOSE_PROJECT_NAME}-${Remote}-1" hab sup term
     Start-Sleep 5
 }

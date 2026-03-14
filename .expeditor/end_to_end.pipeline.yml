@@ -21,6 +21,7 @@ steps:
 
   - label: ":docker: Docker End-to-End Supervisor Tests"
     command:
+      - .expeditor/scripts/install_docker_buildx.sh
       - cd test/end-to-end/multi-supervisor
       - ./run_all.sh dev
     env:
@@ -34,6 +35,7 @@ steps:
 
   - label: ":docker: Docker End-to-End Supervisor Tests Aarch64"
     command:
+      - .expeditor/scripts/install_docker_buildx.sh
       - cd test/end-to-end/multi-supervisor
       - ./run_all.sh dev
     agents:
@@ -753,6 +755,7 @@ steps:
 
   - label: "[:linux: test_event_stream]"
     command:
+      - .expeditor/scripts/install_docker_buildx.sh
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_event_stream
     artifact_paths:
       - "*.log"
@@ -837,6 +840,7 @@ steps:
 
   - label: "[:linux: test_container_exporter]"
     command:
+      - .expeditor/scripts/install_docker_buildx.sh
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_container_exporter
     artifact_paths:
       - "*.log"
