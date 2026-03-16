@@ -301,10 +301,9 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
                     }
                     // Pass through auth token if provided
                     if let Some(token_value) = token {
-                        pkg.env.with_additional_env(
-                            habitat_core::AUTH_TOKEN_ENVVAR.to_string(),
-                            token_value.to_string(),
-                        );
+                        pkg.env
+                           .with_additional_env(habitat_core::AUTH_TOKEN_ENVVAR.to_string(),
+                                                token_value.to_string());
                     }
                     pkg
                 };
@@ -313,10 +312,9 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
                     let mut pkg = Pkg::from_install(package).await?;
                     // Pass through auth token if provided
                     if let Some(token_value) = token {
-                        pkg.env.with_additional_env(
-                            habitat_core::AUTH_TOKEN_ENVVAR.to_string(),
-                            token_value.to_string(),
-                        );
+                        pkg.env
+                           .with_additional_env(habitat_core::AUTH_TOKEN_ENVVAR.to_string(),
+                                                token_value.to_string());
                     }
                     pkg
                 };

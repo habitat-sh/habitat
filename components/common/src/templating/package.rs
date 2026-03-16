@@ -56,9 +56,7 @@ impl Env {
 
     /// Augments the environment with additional variables, such as HAB_AUTH_TOKEN.
     /// This is used to pass through CLI or environment variables to hooks.
-    pub fn with_additional_env(&mut self, key: String, value: String) {
-        self.0.insert(key, value);
-    }
+    pub fn with_additional_env(&mut self, key: String, value: String) { self.0.insert(key, value); }
 
     async fn transform_path(path: Option<&String>, package_type: PackageType) -> Result<String> {
         let mut paths: Vec<PathBuf> = match path {
@@ -282,14 +280,15 @@ mod tests {
         let mut env_map = BTreeMap::new();
         env_map.insert("PATH".to_string(), "/bin:/usr/bin".to_string());
         env_map.insert("USER".to_string(), "testuser".to_string());
-        
+
         let mut env = Env::from(env_map);
-        
+
         // Add a new environment variable
         env.with_additional_env("HAB_AUTH_TOKEN".to_string(), "test_token_123".to_string());
-        
+
         // Verify it was added
-        assert_eq!(env.get("HAB_AUTH_TOKEN").map(String::as_str), Some("test_token_123"));
+        assert_eq!(env.get("HAB_AUTH_TOKEN").map(String::as_str),
+                   Some("test_token_123"));
 
         // Verify existing vars are still there
         assert_eq!(env.get("PATH").map(String::as_str), Some("/bin:/usr/bin"));
@@ -300,13 +299,14 @@ mod tests {
     fn with_additional_env_overwrites_existing_variable() {
         let mut env_map = BTreeMap::new();
         env_map.insert("HAB_AUTH_TOKEN".to_string(), "old_token".to_string());
-        
+
         let mut env = Env::from(env_map);
-        
+
         // Overwrite the existing variable
         env.with_additional_env("HAB_AUTH_TOKEN".to_string(), "new_token".to_string());
-        
+
         // Verify it was overwritten
-        assert_eq!(env.get("HAB_AUTH_TOKEN").map(String::as_str), Some("new_token"));
+        assert_eq!(env.get("HAB_AUTH_TOKEN").map(String::as_str),
+                   Some("new_token"));
     }
 }

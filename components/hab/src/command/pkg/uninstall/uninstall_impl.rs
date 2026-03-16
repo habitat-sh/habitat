@@ -409,7 +409,7 @@ async fn maybe_run_uninstall_hook<T>(ui: &mut T, package: &PackageInstall) -> Re
                           unqualified_ident))?;
         return Ok(());
     }
-    // We currently do not pass an auth token to uninstall hooks here, as they are not 
+    // We currently do not pass an auth token to uninstall hooks here, as they are not
     // expected to download packages. If uninstall hooks begin requiring authenticated
     // operations, this may need to be revisited.
     Ok(UninstallHook::find_run_and_error_for_status(ui, package, None).await?)
