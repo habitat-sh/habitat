@@ -62,7 +62,6 @@ Describe "hab pkg export container" {
         # of Docker that don't support the latest API. We set this
         # to 1.41 because that's the newest version supported by the
         # Docker engine on the test agent.
-        $env:DOCKER_API_VERSION = "1.41"
         $tag = New-CustomTag
         $script:image = New-Image $tag
     }
