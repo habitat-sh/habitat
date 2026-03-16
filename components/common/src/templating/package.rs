@@ -271,3 +271,42 @@ fn current_user_and_group() -> Result<(String, String)> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn with_additional_env_adds_new_variable() {
+        let mut env_map = BTreeMap::new();
+        env_map.insert("PATH".to_string(), "/bin:/usr/bin".to_string());
+        env_map.insert("USER".to_string(), "testuser".to_string());
+        
+        let mut env = Env::from(env_map);
+        
+        // Add a new environment variable
+        env.with_additional_env("HAB_AUTH_TOKEN".to_string(), "test_token_123".to_string());
+        
+        // Verify it was added
+        assert_eq!(env.get("HAB_AUTH_TOKEN"), Some(&"test_token_123".to_string()));
+        
+        // Verify existing vars are still there
+        assert_eq!(env.get("PATH"), Some(&"/bin:/usr/bin".to_string()));
+        assert_eq!(env.get("USER"), Some(&"testuser".to_string()));
+    }
+
+    #[test]
+    fn with_additional_env_overwrites_existing_variable() {
+        let mut env_map = BTreeMap::new();
+        env_map.insert("HAB_AUTH_TOKEN".to_string(), "old_token".to_string());
+        
+        let mut env = Env::from(env_map);
+        
+        // Overwrite the existing variable
+        env.with_additional_env("HAB_AUTH_TOKEN".to_string(), "new_token".to_string());
+        
+        // Verify it was overwritten
+        assert_eq!(env.get("HAB_AUTH_TOKEN"), Some(&"new_token".to_string()));
+    }
+}
