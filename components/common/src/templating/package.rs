@@ -289,11 +289,11 @@ mod tests {
         env.with_additional_env("HAB_AUTH_TOKEN".to_string(), "test_token_123".to_string());
         
         // Verify it was added
-        assert_eq!(env.get("HAB_AUTH_TOKEN"), Some(&"test_token_123".to_string()));
-        
+        assert_eq!(env.get("HAB_AUTH_TOKEN").map(String::as_str), Some("test_token_123"));
+
         // Verify existing vars are still there
-        assert_eq!(env.get("PATH"), Some(&"/bin:/usr/bin".to_string()));
-        assert_eq!(env.get("USER"), Some(&"testuser".to_string()));
+        assert_eq!(env.get("PATH").map(String::as_str), Some("/bin:/usr/bin"));
+        assert_eq!(env.get("USER").map(String::as_str), Some("testuser"));
     }
 
     #[test]
@@ -307,6 +307,6 @@ mod tests {
         env.with_additional_env("HAB_AUTH_TOKEN".to_string(), "new_token".to_string());
         
         // Verify it was overwritten
-        assert_eq!(env.get("HAB_AUTH_TOKEN"), Some(&"new_token".to_string()));
+        assert_eq!(env.get("HAB_AUTH_TOKEN").map(String::as_str), Some("new_token"));
     }
 }
