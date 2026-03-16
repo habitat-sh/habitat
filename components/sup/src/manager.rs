@@ -955,7 +955,7 @@ impl Manager {
         };
 
         // Resolve an auth token for install hooks, if available.
-        let auth_token = std::env::var(habitat_core::AUTH_TOKEN_ENVVAR).ok();
+        let auth_token = pkg::get_auth_token();
 
         if let Ok(package) =
             PackageInstall::load(service.pkg.ident.as_ref(), Some(Path::new(&*FS_ROOT_PATH)))
