@@ -25,6 +25,6 @@ curl --fail -sSL "https://github.com/docker/buildx/releases/download/${BUILDX_VE
      -o "${PLUGIN_PATH}"
 chmod +x "${PLUGIN_PATH}"
 
-# Also install system-wide for sudo access
-sudo mkdir -p /usr/local/lib/docker/cli-plugins/
-sudo cp "${PLUGIN_PATH}" /usr/local/lib/docker/cli-plugins/
+# # Also install system-wide for sudo access
+# sudo mkdir -p /usr/local/lib/docker/cli-plugins/
+# sudo cp "${PLUGIN_PATH}" /usr/local/lib/docker/cli-plugins/
