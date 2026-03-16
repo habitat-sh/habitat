@@ -20,10 +20,9 @@ Describe "event stream not connected to nats" {
 
 Describe "event stream connected to automate" {
     BeforeAll {
-        $env:DOCKER_BUILDKIT=1
         try {
             Write-Host "Building automate image..."
-            $output = docker build --progress=plain -t automate ./test/end-to-end/automate
+            $output = docker build -t automate ./test/end-to-end/automate
             if ($LASTEXITCODE -ne 0) {
                 throw "Docker build failed with exit code $LASTEXITCODE. Output: $output"
             }
