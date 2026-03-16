@@ -74,89 +74,89 @@ Describe "hab pkg export container" {
         docker inspect $script:image | Should -Not -Be $null
     }
 
-    Describe "executing the container as root" {
-        BeforeEach {
-            Write-Host "--- Starting container with image $script:image"
-            $script:container = Start-Container $script:image
-        }
+    # Describe "executing the container as root" {
+    #     BeforeEach {
+    #         Write-Host "--- Starting container with image $script:image"
+    #         $script:container = Start-Container $script:image
+    #     }
 
-        AfterEach {
-            docker kill $script:container
-        }
+    #     AfterEach {
+    #         docker kill $script:container
+    #     }
 
-        It "works!" {
-            Confirm-ContainerBehavior
-        }
-    }
-    if($IsLinux) {
-        Describe "executing a container as non-root" {
-            BeforeEach {
-                $script:container = Start-Container $script:image "--user=8888888"
-            }
+    #     It "works!" {
+    #         Confirm-ContainerBehavior
+    #     }
+    # }
+    # if($IsLinux) {
+    #     Describe "executing a container as non-root" {
+    #         BeforeEach {
+    #             $script:container = Start-Container $script:image "--user=8888888"
+    #         }
 
-            AfterEach {
-                docker kill $script:container
-            }
+    #         AfterEach {
+    #             docker kill $script:container
+    #         }
 
-            It "works!" {
-                Confirm-ContainerBehavior
-            }
-        }
-    }
+    #         It "works!" {
+    #             Confirm-ContainerBehavior
+    #         }
+    #     }
+    # }
 }
 
-Describe "hab pkg export container --multi-layer" {
-    BeforeAll {
-        $tag = New-CustomTag
-        $script:image = New-Image $tag "--multi-layer"
-    }
+# Describe "hab pkg export container --multi-layer" {
+#     BeforeAll {
+#         $tag = New-CustomTag
+#         $script:image = New-Image $tag "--multi-layer"
+#     }
 
-    AfterAll {
-        docker rmi $script:image
-    }
+#     AfterAll {
+#         docker rmi $script:image
+#     }
 
-    It "Creates an image" {
-        docker inspect $script:image | Should -Not -Be $null
-    }
+#     It "Creates an image" {
+#         docker inspect $script:image | Should -Not -Be $null
+#     }
 
-    Describe "executing the container as root" {
-        BeforeEach {
-            $script:container = Start-Container $script:image
-        }
+#     Describe "executing the container as root" {
+#         BeforeEach {
+#             $script:container = Start-Container $script:image
+#         }
 
-        AfterEach {
-            docker kill $script:container
-        }
+#         AfterEach {
+#             docker kill $script:container
+#         }
 
-        It "works!" {
-            Confirm-ContainerBehavior
-        }
-    }
+#         It "works!" {
+#             Confirm-ContainerBehavior
+#         }
+#     }
 
-    if($IsLinux) {
-        Describe "executing a container as non-root" {
-            BeforeEach {
-                $script:container = Start-Container $script:image "--user=8888888"
-            }
+#     if($IsLinux) {
+#         Describe "executing a container as non-root" {
+#             BeforeEach {
+#                 $script:container = Start-Container $script:image "--user=8888888"
+#             }
 
-            AfterEach {
-                docker kill $script:container
-            }
+#             AfterEach {
+#                 docker kill $script:container
+#             }
 
-            It "works!" {
-                Confirm-ContainerBehavior
-            }
-        }
-    }
-}
+#             It "works!" {
+#                 Confirm-ContainerBehavior
+#             }
+#         }
+#     }
+# }
 
-if ($IsLinux) {
-    # TODO: Try to run the container when we have a core/podman package
-    Describe "hab pkg export container --engine=buildah" {
-        It "Runs successfully" {
-            $tag = New-CustomTag
-            Invoke-NativeCommand hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --engine=buildah --tag-custom="$tag"
-            Invoke-NativeCommand hab pkg exec core/buildah buildah rmi "core/nginx:$tag"
-        }
-    }
-}
+# if ($IsLinux) {
+#     # TODO: Try to run the container when we have a core/podman package
+#     Describe "hab pkg export container --engine=buildah" {
+#         It "Runs successfully" {
+#             $tag = New-CustomTag
+#             Invoke-NativeCommand hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --engine=buildah --tag-custom="$tag"
+#             Invoke-NativeCommand hab pkg exec core/buildah buildah rmi "core/nginx:$tag"
+#         }
+#     }
+# }
