@@ -960,6 +960,7 @@ impl Manager {
                 &mut habitat_common::ui::UI::with_sinks(),
                 &package,
                 Path::new(&*FS_ROOT_PATH),
+                None,
             )
             .await
             {
