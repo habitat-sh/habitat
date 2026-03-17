@@ -29,7 +29,7 @@ use std::path::Path;
 
 static LOGKEY: &str = "UT";
 
-fn get_auth_token() -> Option<String> {
+pub(crate) fn get_auth_token() -> Option<String> {
     henv::var(AUTH_TOKEN_ENVVAR).ok()
                                 .or_else(|| CliConfig::cache().auth_token.clone())
 }

@@ -54,6 +54,12 @@ impl Env {
 
     pub fn to_hash_map(&self) -> HashMap<String, String> { self.0.clone().into_iter().collect() }
 
+    /// Augments the environment with additional variables, such as HAB_AUTH_TOKEN.
+    /// This is used to pass through CLI or environment variables to hooks.
+    pub(crate) fn with_additional_env(&mut self, key: String, value: String) {
+        self.0.insert(key, value);
+    }
+
     async fn transform_path(path: Option<&String>, package_type: PackageType) -> Result<String> {
         let mut paths: Vec<PathBuf> = match path {
             Some(path) => env::split_paths(&path).collect(),
@@ -263,5 +269,47 @@ fn current_user_and_group() -> Result<(String, String)> {
                                          user:group"
                                                     .to_string()))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use habitat_core::AUTH_TOKEN_ENVVAR;
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn with_additional_env_adds_new_variable() {
+        let mut env_map = BTreeMap::new();
+        env_map.insert("PATH".to_string(), "/bin:/usr/bin".to_string());
+        env_map.insert("USER".to_string(), "testuser".to_string());
+
+        let mut env = Env::from(env_map);
+
+        // Add a new environment variable
+        env.with_additional_env(AUTH_TOKEN_ENVVAR.to_string(), "test_token_123".to_string());
+
+        // Verify it was added
+        assert_eq!(env.get(AUTH_TOKEN_ENVVAR).map(String::as_str),
+                   Some("test_token_123"));
+
+        // Verify existing vars are still there
+        assert_eq!(env.get("PATH").map(String::as_str), Some("/bin:/usr/bin"));
+        assert_eq!(env.get("USER").map(String::as_str), Some("testuser"));
+    }
+
+    #[test]
+    fn with_additional_env_overwrites_existing_variable() {
+        let mut env_map = BTreeMap::new();
+        env_map.insert(AUTH_TOKEN_ENVVAR.to_string(), "old_token".to_string());
+
+        let mut env = Env::from(env_map);
+
+        // Overwrite the existing variable
+        env.with_additional_env(AUTH_TOKEN_ENVVAR.to_string(), "new_token".to_string());
+
+        // Verify it was overwritten
+        assert_eq!(env.get(AUTH_TOKEN_ENVVAR).map(String::as_str),
+                   Some("new_token"));
     }
 }

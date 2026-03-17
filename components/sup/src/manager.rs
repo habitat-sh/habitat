@@ -954,12 +954,16 @@ impl Manager {
             }
         };
 
+        // Resolve an auth token for install hooks, if available.
+        let auth_token = pkg::get_auth_token();
+
         if let Ok(package) =
             PackageInstall::load(service.pkg.ident.as_ref(), Some(Path::new(&*FS_ROOT_PATH)))
             && let Err(err) = habitat_common::command::package::install::check_install_hooks(
                 &mut habitat_common::ui::UI::with_sinks(),
                 &package,
                 Path::new(&*FS_ROOT_PATH),
+                auth_token.as_deref(),
             )
             .await
             {

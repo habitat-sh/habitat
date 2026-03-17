@@ -366,7 +366,8 @@ pub fn type_erased_start<'a, U>(
 
 pub async fn check_install_hooks<T, P>(ui: &mut T,
                                        package: &PackageInstall,
-                                       fs_root_path: P)
+                                       fs_root_path: P,
+                                       token: Option<&str>)
                                        -> Result<()>
     where T: UIWriter,
           P: AsRef<Path>
@@ -379,20 +380,22 @@ pub async fn check_install_hooks<T, P>(ui: &mut T,
         run_install_hook_unless_already_successful(
             ui,
             &PackageInstall::load(&dependency, Some(fs_root_path.as_ref()))?,
+            token,
         ).await?;
     }
 
-    run_install_hook_unless_already_successful(ui, package).await
+    run_install_hook_unless_already_successful(ui, package, token).await
 }
 
 async fn run_install_hook_unless_already_successful<T>(ui: &mut T,
-                                                       package: &PackageInstall)
+                                                       package: &PackageInstall,
+                                                       token: Option<&str>)
                                                        -> Result<()>
     where T: UIWriter
 {
     match read_install_hook_status(package.installed_path.join(InstallHook::STATUS_FILE))? {
         Some(0) => Ok(()),
-        _ => InstallHook::find_run_and_error_for_status(ui, package).await,
+        _ => InstallHook::find_run_and_error_for_status(ui, package, token).await,
     }
 }
 
@@ -631,7 +634,8 @@ impl InstallTask<'_> {
         if self.install_hook_mode != InstallHookMode::Ignore {
             check_install_hooks(ui,
                                 &PackageInstall::load(ident.as_ref(), Some(self.fs_root_path))?,
-                                self.fs_root_path).await?;
+                                self.fs_root_path,
+                                token).await?;
         }
 
         ui.end(format!("Install of {} complete with {} new packages installed.",

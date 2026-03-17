@@ -274,7 +274,8 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
     /// * run the hook
     /// * return an error if we get a non-zero exit code
     async fn find_run_and_error_for_status<U: UIWriter>(ui: &mut U,
-                                                        package: &PackageInstall)
+                                                        package: &PackageInstall,
+                                                        token: Option<&str>)
                                                         -> Result<()> {
         let feature_flags = FeatureFlag::from_env(ui);
         let package_name = &package.ident.name;
@@ -298,10 +299,25 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
                     if let Some(user) = habitat_core::os::users::get_current_username()? {
                         pkg.svc_user = user;
                     }
+                    // Pass through auth token if provided
+                    if let Some(token_value) = token {
+                        pkg.env
+                           .with_additional_env(habitat_core::AUTH_TOKEN_ENVVAR.to_string(),
+                                                token_value.to_string());
+                    }
                     pkg
                 };
                 #[cfg(not(target_os = "windows"))]
-                let pkg = Pkg::from_install(package).await?;
+                let pkg = {
+                    let mut pkg = Pkg::from_install(package).await?;
+                    // Pass through auth token if provided
+                    if let Some(token_value) = token {
+                        pkg.env
+                           .with_additional_env(habitat_core::AUTH_TOKEN_ENVVAR.to_string(),
+                                                token_value.to_string());
+                    }
+                    pkg
+                };
 
                 match hook.run(package_name, &pkg, None::<&str>) {
                     Ok(exit_status) if exit_status.success() => Ok(()),
