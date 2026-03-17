@@ -39,6 +39,7 @@ function Get-RustfmtToolchain {
 }
 
 function Install-Habitat($HabChannel = "acceptance") {
+    Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
     $env:path = New-PathString -StartingPath $env:path -Path "c:\hab\bin"
 
     if (Get-Command -Name hab -ErrorAction SilentlyContinue) {
