@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.471 -->
-## [2.0.471](https://github.com/habitat-sh/habitat/tree/2.0.471) (2026-03-16)
+<!-- latest_release 2.0.472 -->
+## [2.0.472](https://github.com/habitat-sh/habitat/tree/2.0.472) (2026-03-17)
 
 #### Merged Pull Requests
-- Fix e2e containers [#10290](https://github.com/habitat-sh/habitat/pull/10290) ([mwrock](https://github.com/mwrock))
+- use rmdir over remove-item and allow studio enter on windows images prior to 2025 [#10280](https://github.com/habitat-sh/habitat/pull/10280) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- use rmdir over remove-item and allow studio enter on windows images prior to 2025 [#10280](https://github.com/habitat-sh/habitat/pull/10280) ([mwrock](https://github.com/mwrock)) <!-- 2.0.472 -->
+- Bump cc from 1.2.56 to 1.2.57 [#10289](https://github.com/habitat-sh/habitat/pull/10289) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.472 -->
 - Fix e2e containers [#10290](https://github.com/habitat-sh/habitat/pull/10290) ([mwrock](https://github.com/mwrock)) <!-- 2.0.471 -->
 - Bump winreg from 0.55.0 to 0.56.0 [#10288](https://github.com/habitat-sh/habitat/pull/10288) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.470 -->
 - removing checksum that does not work. Thanks but no thanks copilot [#10287](https://github.com/habitat-sh/habitat/pull/10287) ([mwrock](https://github.com/mwrock)) <!-- 2.0.469 -->
