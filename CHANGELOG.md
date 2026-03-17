@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.473 -->
-## [2.0.473](https://github.com/habitat-sh/habitat/tree/2.0.473) (2026-03-17)
+<!-- latest_release 2.0.474 -->
+## [2.0.474](https://github.com/habitat-sh/habitat/tree/2.0.474) (2026-03-17)
 
 #### Merged Pull Requests
-- Pass auth token through to install hooks [#10279](https://github.com/habitat-sh/habitat/pull/10279) ([dikshagupta1](https://github.com/dikshagupta1))
+- Bump wincode from 0.4.7 to 0.4.8 [#10291](https://github.com/habitat-sh/habitat/pull/10291) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- Bump wincode from 0.4.7 to 0.4.8 [#10291](https://github.com/habitat-sh/habitat/pull/10291) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.474 -->
 - Pass auth token through to install hooks [#10279](https://github.com/habitat-sh/habitat/pull/10279) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.473 -->
 - use rmdir over remove-item and allow studio enter on windows images prior to 2025 [#10280](https://github.com/habitat-sh/habitat/pull/10280) ([mwrock](https://github.com/mwrock)) <!-- 2.0.472 -->
 - Bump cc from 1.2.56 to 1.2.57 [#10289](https://github.com/habitat-sh/habitat/pull/10289) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.472 -->
