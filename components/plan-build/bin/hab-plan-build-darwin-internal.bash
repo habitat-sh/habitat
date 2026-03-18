@@ -333,7 +333,7 @@ _program=$(basename "$0")
 HAB_PLAN_BUILD=0.0.1
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
-: "${HAB_ROOT_PATH:=/hab}"
+: "${HAB_ROOT_PATH:=/opt/hab}"
 # The default path where source artifacts are downloaded, extracted, & compiled
 HAB_CACHE_SRC_PATH=$HAB_ROOT_PATH/cache/src
 # The default download root path for package artifacts, used on package

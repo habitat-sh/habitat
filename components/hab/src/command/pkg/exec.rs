@@ -21,6 +21,7 @@ pub fn start<T>(ident: &PackageIdent, command: T, args: &[OsString]) -> Result<(
     let pkg_install = PackageInstall::load(ident, Some(&*FS_ROOT_PATH))?;
     let mut cmd_env = pkg_install.environment_for_command()?;
 
+    eprintln!("111");
     if let Some(path) = cmd_env.get(PATH_KEY)
        && let Some(val) = env::var_os(PATH_KEY)
     {
