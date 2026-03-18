@@ -39,7 +39,9 @@ function Get-RustfmtToolchain {
 }
 
 function Install-Habitat($HabChannel = "acceptance") {
-    Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
+    # this should suppress the removal of hab.exe as a virus threat
+    Add-MpPreference -ExclusionPath "c:\hab" -ErrorAction SilentlyContinue
+    Add-MpPreference -ExclusionPath "$env:ProgramData\habitat" -ErrorAction SilentlyContinue
     $env:path = New-PathString -StartingPath $env:path -Path "c:\hab\bin"
 
     if (Get-Command -Name hab -ErrorAction SilentlyContinue) {
