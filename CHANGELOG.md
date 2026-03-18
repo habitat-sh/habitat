@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.475 -->
-## [2.0.475](https://github.com/habitat-sh/habitat/tree/2.0.475) (2026-03-18)
+<!-- latest_release 2.0.476 -->
+## [2.0.476](https://github.com/habitat-sh/habitat/tree/2.0.476) (2026-03-18)
 
 #### Merged Pull Requests
-- suppress the removal of hab as a virus threat [#10292](https://github.com/habitat-sh/habitat/pull/10292) ([mwrock](https://github.com/mwrock))
+- remove check for windows since this is run in ps v5.x [#10295](https://github.com/habitat-sh/habitat/pull/10295) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- remove check for windows since this is run in ps v5.x [#10295](https://github.com/habitat-sh/habitat/pull/10295) ([mwrock](https://github.com/mwrock)) <!-- 2.0.476 -->
 - suppress the removal of hab as a virus threat [#10292](https://github.com/habitat-sh/habitat/pull/10292) ([mwrock](https://github.com/mwrock)) <!-- 2.0.475 -->
 - Bump wincode from 0.4.7 to 0.4.8 [#10291](https://github.com/habitat-sh/habitat/pull/10291) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.474 -->
 - Pass auth token through to install hooks [#10279](https://github.com/habitat-sh/habitat/pull/10279) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.473 -->
