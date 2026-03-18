@@ -39,9 +39,12 @@ function Get-RustfmtToolchain {
 }
 
 function Install-Habitat($HabChannel = "acceptance") {
-    # this should suppress the removal of hab.exe as a virus threat
-    Add-MpPreference -ExclusionPath "c:\hab" -ErrorAction SilentlyContinue
-    Add-MpPreference -ExclusionPath "$env:ProgramData\habitat" -ErrorAction SilentlyContinue
+    if ($IsWindows -and (Get-Command -Name Add-MpPreference -ErrorAction SilentlyContinue)) {
+        # this should suppress the removal of hab.exe as a virus threat
+        Write-Host "Adding Windows Defender exclusions for habitat"
+        Add-MpPreference -ExclusionPath "c:\hab" -ErrorAction SilentlyContinue
+        Add-MpPreference -ExclusionPath "$env:ProgramData\habitat" -ErrorAction SilentlyContinue
+    }
     $env:path = New-PathString -StartingPath $env:path -Path "c:\hab\bin"
 
     if (Get-Command -Name hab -ErrorAction SilentlyContinue) {
