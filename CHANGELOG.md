@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.476 -->
-## [2.0.476](https://github.com/habitat-sh/habitat/tree/2.0.476) (2026-03-18)
+<!-- latest_release 2.0.477 -->
+## [2.0.477](https://github.com/habitat-sh/habitat/tree/2.0.477) (2026-03-18)
 
 #### Merged Pull Requests
-- remove check for windows since this is run in ps v5.x [#10295](https://github.com/habitat-sh/habitat/pull/10295) ([mwrock](https://github.com/mwrock))
+- Bump toml from 1.0.6+spec-1.1.0 to 1.0.7+spec-1.1.0 [#10294](https://github.com/habitat-sh/habitat/pull/10294) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- Bump toml from 1.0.6+spec-1.1.0 to 1.0.7+spec-1.1.0 [#10294](https://github.com/habitat-sh/habitat/pull/10294) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.477 -->
 - remove check for windows since this is run in ps v5.x [#10295](https://github.com/habitat-sh/habitat/pull/10295) ([mwrock](https://github.com/mwrock)) <!-- 2.0.476 -->
 - suppress the removal of hab as a virus threat [#10292](https://github.com/habitat-sh/habitat/pull/10292) ([mwrock](https://github.com/mwrock)) <!-- 2.0.475 -->
 - Bump wincode from 0.4.7 to 0.4.8 [#10291](https://github.com/habitat-sh/habitat/pull/10291) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.474 -->
