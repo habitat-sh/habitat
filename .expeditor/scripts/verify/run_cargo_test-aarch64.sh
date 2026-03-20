@@ -2,11 +2,10 @@
 
 set -eou pipefail
 
-# Install hab from a temporarily uploaded aarch64 package
-sudo ./components/hab/install.sh -t aarch64-linux -c acceptance
-
 # shellcheck source=.expeditor/scripts/shared.sh
 source .expeditor/scripts/verify/shared.sh
+
+curlbash_hab "aarch64-linux"
 
 if [[ ${1:-"--"} = "--" ]]; then
   scope="habitat workspace"
@@ -67,7 +66,7 @@ if [[ -n ${component:-} ]]; then
   cd "components/$component"
 fi
 
-# We do not have any packages in the stable channel for aarch64 and probably never will. 
+# We do not have any packages in the stable channel for aarch64 and probably never will.
 # Set the HAB_INTERPRETER_IDENT to point to LTS-2024 to proceed with the tests.
 export HAB_INTERPRETER_IDENT="core/busybox-static/1.36.1/20240805133911"
 

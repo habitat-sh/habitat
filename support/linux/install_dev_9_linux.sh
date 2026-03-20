@@ -45,5 +45,5 @@ else
   sudo -E addgroup --system hab || true
 fi
 
-sudo ./components/hab/install.sh -c acceptance
+sudo ./components/hab/install.sh
 sudo HAB_LICENSE="accept-no-persist" hab pkg install core/busybox-static chef/hab-studio

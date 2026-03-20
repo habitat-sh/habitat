@@ -5,6 +5,8 @@ set -eou pipefail
 # shellcheck source=.expeditor/scripts/shared.sh
 source .expeditor/scripts/verify/shared.sh
 
+curlbash_hab "x86_64-linux"
+
 if [[ ${1:-"--"} = "--" ]]; then
   scope="habitat workspace"
 else

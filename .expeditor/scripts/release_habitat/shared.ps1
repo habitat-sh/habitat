@@ -17,7 +17,7 @@ function Install-LatestHabitat() {
     $env:HAB_LICENSE = "accept-no-persist"
     Write-Host "--- :habicat: Installing latest hab binary for $Env:HAB_PACKAGE_TARGET using install.ps1"
     Install-Habitat | Out-Null
-    $baseHabExe="$Env:ProgramData\Habitat\hab.exe"
+    $baseHabExe="C:\hab\bin\hab"
 
     $HabVersion=GetLatestPkgVersionFromChannel("hab")
     $StudioVersion=GetLatestPkgVersionFromChannel("hab-studio")
@@ -30,7 +30,6 @@ function Install-LatestHabitat() {
         Invoke-Expression "$baseHabExe pkg install chef/hab --binlink --force --channel $Env:HAB_BLDR_CHANNEL" | Out-Null
         Invoke-Expression "$baseHabExe pkg install chef/hab-studio --binlink --force --channel $Env:HAB_BLDR_CHANNEL" | Out-Null
         # This is weird. Why does binlinking go here but the install.ps1 go to ProgramData?
-        $baseHabExe="C:\hab\bin\hab"
     } else {
         Write-Host "-- Hab and studio versions did not match. hab: $HabVersion - studio: $StudioVersion"
     }

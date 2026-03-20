@@ -3,7 +3,6 @@ expeditor:
     HAB_AUTH_TOKEN:
       path: account/static/habitat/chef-ci
       field: auth_token # Production Builder
-      # acceptance_auth_token = acceptance
   accounts:
     - aws/chef-cd
   defaults:
@@ -13,9 +12,7 @@ expeditor:
         HAB_ORIGIN: "chef"
         PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
         # Necessary to prevent old studios from poisoning builds after core plans refreshes
-        HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "base-2025"
         HAB_STUDIO_SECRET_HAB_FEAT_IGNORE_LOCAL: "true"
-        HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL: "base-2025"
 
 steps:
 #######################################################################

@@ -6,12 +6,6 @@ expeditor:
   defaults:
     buildkite:
       timeout_in_minutes: 60
-      env:
-        HAB_BLDR_CHANNEL: "base-2025"
-        HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL: "base-2025"
-        HAB_REFRESH_CHANNEL: "base-2025"
-        HAB_FALLBACK_CHANNEL: "acceptance"
-        HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL: "acceptance"
 steps:
 #######################################################################
 # Linting!
@@ -217,7 +211,6 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E hab pkg install core/busybox-static
       - .expeditor/scripts/verify/run_cargo_test-aarch64.sh common
     timeout_in_minutes: 10
     retry:
@@ -515,6 +508,8 @@ steps:
         limit: 1
 
   - label: "[unit] :linux: studio"
+    env:
+      HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/run_studio_test.sh
     expeditor:
@@ -855,6 +850,8 @@ steps:
         limit: 1
 
   - label: "[unit] :windows: studio"
+    env:
+      HAB_LICENSE: "accept-no-persist"
     command:
       - powershell .expeditor/scripts/verify/run_studio_test.ps1
     expeditor:
@@ -932,39 +929,37 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh test-services/test-probe
+      - sudo -E .expeditor/scripts/verify/build_package.sh test-services/test-probe
     retry:
       automatic:
         limit: 1
 
-# SHOULD BE UNCOMMENTED WHEN NEWER VERSION OF HAB IS RELEASED
+  - label: "[build] :linux: backline"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "x86_64-linux"
 
-  # - label: "[build] :linux: backline"
-  #   env:
-  #     HAB_LICENSE: "accept-no-persist"
-  #     BUILD_PKG_TARGET: "x86_64-linux"
+    command:
+      - .expeditor/scripts/verify/build_package.sh components/backline
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+    retry:
+      automatic:
+        limit: 1
 
-  #   command:
-  #     - .expeditor/scripts/verify/build_package.sh components/backline
-  #   expeditor:
-  #     executor:
-  #       docker:
-  #         privileged: true
-  #   retry:
-  #     automatic:
-  #       limit: 1
-
-  # - label: "[build] :linux: aarch64 backline"
-  #   agents:
-  #     queue: default-privileged-aarch64
-  #   env:
-  #     HAB_LICENSE: "accept-no-persist"
-  #     BUILD_PKG_TARGET: "aarch64-linux"
-  #   command:
-  #     - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/backline
-  #   retry:
-  #     automatic:
-  #       limit: 1
+  - label: "[build] :linux: aarch64 backline"
+    agents:
+      queue: default-privileged-aarch64
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "aarch64-linux"
+    command:
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/backline
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[build] :linux: hab"
     env:
@@ -987,7 +982,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/hab
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/hab
     retry:
       automatic:
         limit: 1
@@ -1013,7 +1008,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/launcher
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/launcher
     retry:
       automatic:
         limit: 1
@@ -1039,7 +1034,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/pkg-export-container
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-export-container
     retry:
       automatic:
         limit: 1
@@ -1065,7 +1060,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/pkg-export-tar
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/pkg-export-tar
     retry:
       automatic:
         limit: 1
@@ -1091,7 +1086,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/plan-build
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/plan-build
     retry:
       automatic:
         limit: 1
@@ -1117,7 +1112,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/studio
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/studio
     retry:
       automatic:
         limit: 1
@@ -1143,7 +1138,7 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
-      - sudo -E .expeditor/scripts/verify/build_package-aarch64.sh components/sup
+      - sudo -E .expeditor/scripts/verify/build_package.sh components/sup
     retry:
       automatic:
         limit: 1

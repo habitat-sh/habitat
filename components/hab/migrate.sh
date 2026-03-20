@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Default channel is acceptance
+# Default channel is stable
 CHANNEL="stable"
 # Use existing HAB_AUTH_TOKEN if available, otherwise empty
 AUTH_TOKEN="${HAB_AUTH_TOKEN:-}"
@@ -25,7 +25,7 @@ Description:
 
 Options:
   --help             Show this help message and exit
-  --channel CHANNEL  Specify the channel to install packages from (default: acceptance)
+  --channel CHANNEL  Specify the channel to install packages from (default: stable)
   --auth TOKEN       Specify the authentication token for license restricted packages
                      (uses HAB_AUTH_TOKEN environment variable if not provided)
 

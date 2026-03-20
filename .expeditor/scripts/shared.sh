@@ -7,7 +7,7 @@ curlbash_hab() {
     local pkg_target="${1:-$BUILD_PKG_TARGET}"
 
     # install habitat from a specified channel
-    local _channel="${2:-acceptance}"
+    local _channel="${2:-stable}"
 
     echo "--- :habicat: Bootstrap installation of the current $_channel hab binary for $pkg_target using curl|bash"
 
