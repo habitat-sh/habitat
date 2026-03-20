@@ -60,7 +60,7 @@ install_release_channel_hab_binary() {
     local pkg_target="${1}"
     curlbash_hab "${pkg_target}"
 
-    echo "--- :habicat: Installed latest acceptance hab: $(${hab_binary} --version)"
+    echo "--- :habicat: Installed latest stable hab: $(${hab_binary} --version)"
     # now install the latest hab available in our channel, if it and the studio exist yet
     hab_version=$(get_latest_pkg_version_in_release_channel "hab" "${pkg_target}")
     studio_version=$(get_latest_pkg_version_in_release_channel "hab-studio" "${pkg_target}")

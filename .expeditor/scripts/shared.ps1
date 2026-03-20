@@ -38,7 +38,7 @@ function Get-RustfmtToolchain {
     "$(Get-Content $PSScriptRoot\..\..\RUSTFMT_VERSION)-x86_64-pc-windows-msvc"
 }
 
-function Install-Habitat($HabChannel = "acceptance") {
+function Install-Habitat($HabChannel = "stable") {
     if (Get-Command -Name Add-MpPreference -ErrorAction SilentlyContinue) {
         # this should suppress the removal of hab.exe as a virus threat
         Write-Host "Adding Windows Defender exclusions for habitat"

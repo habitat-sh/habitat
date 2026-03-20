@@ -4,6 +4,8 @@ set -euo pipefail
 
 source .expeditor/scripts/verify/shared.sh
 
+curlbash_hab "x86_64-linux"
+
 export RUSTFLAGS="-D warnings"
 
 toolchain=$(get_toolchain)
