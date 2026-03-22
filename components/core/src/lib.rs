@@ -51,9 +51,6 @@ impl ChannelIdent {
     pub fn unstable() -> Self { Self::from(Self::UNSTABLE) }
 
     /// Returns the default channel for a given origin.
-    ///
-    /// Chef-owned origins (see [`CHEF_OWNED_ORIGINS`]) default to the `base` channel to align
-    /// with the Habitat 2.0 LTS approach. All other origins default to `stable`.
     pub fn default_for_origin(origin: &str) -> Self {
         if CHEF_OWNED_ORIGINS.contains(&origin) {
             Self::base()
