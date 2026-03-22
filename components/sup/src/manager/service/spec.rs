@@ -112,11 +112,7 @@ pub struct ServiceSpec {
 
 impl ServiceSpec {
     pub fn new(ident: PackageIdent) -> Self {
-        let channel = if ident.origin == "core" {
-            ChannelIdent::base()
-        } else {
-            ChannelIdent::stable()
-        };
+        let channel = ChannelIdent::default_for_origin(&ident.origin);
 
         Self { ident,
                group: DEFAULT_GROUP.to_string(),
@@ -239,11 +235,7 @@ impl ServiceSpec {
             self.channel = channel.into();
         } else {
             // Set the appropriate default channel based on origin
-            self.channel = if self.ident.origin == "core" {
-                ChannelIdent::base()
-            } else {
-                ChannelIdent::stable()
-            };
+            self.channel = ChannelIdent::default_for_origin(&self.ident.origin);
         }
         if let Some(topology) = svc_load.topology {
             if let Ok(topology) = Topology::try_from(topology) {
