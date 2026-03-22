@@ -43,11 +43,7 @@ pub async fn start(ui: &mut UI,
 
     ui.begin(format!("Promoting {} ({}) to channel '{}'", ident, target, channel))?;
 
-    let default_channel_for_ident = if ident.origin() == "core" {
-        channel == &ChannelIdent::base()
-    } else {
-        channel == &ChannelIdent::stable()
-    };
+    let default_channel_for_ident = channel == &ChannelIdent::default_for_origin(ident.origin());
 
     if !default_channel_for_ident && channel != &ChannelIdent::unstable() {
         match api_client.create_channel(&ident.hacky_get_origin(), channel, token)
