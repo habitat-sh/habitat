@@ -288,10 +288,8 @@ pub(crate) async fn split_apart_sup_run(
         let ident: &PackageIdent = install_source.as_ref();
         let channel = if let Some(ref channel) = shared_load.channel {
             channel.clone()
-        } else if ident.origin() == "core" {
-            ChannelIdent::base()
         } else {
-            ChannelIdent::stable()
+            ChannelIdent::default_for_origin(ident.origin())
         };
 
         let ident = match install_source {
