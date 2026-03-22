@@ -2,7 +2,8 @@
 
 use clap_v4 as clap;
 
-use std::path::PathBuf;
+use std::{collections::HashMap,
+          path::PathBuf};
 
 use clap::{ArgAction,
            Parser};
@@ -90,23 +91,20 @@ impl PkgDownloadOptions {
         let mut package_sets = vec![];
 
         if !self.pkg_ident.is_empty() {
-            let (core_idents, non_core_idents): (Vec<_>, Vec<_>) =
-                self.pkg_ident
-                    .clone()
-                    .into_iter()
-                    .partition(|ident| ident.origin() == "core");
-
             if let Some(ref channel) = self.channel {
                 package_sets.push(PackageSet { target,
                                                channel: channel.clone(),
                                                idents: self.pkg_ident.clone() });
             } else {
-                package_sets.push(PackageSet { target,
-                                               channel: ChannelIdent::base(),
-                                               idents: core_idents });
-                package_sets.push(PackageSet { target,
-                                               channel: ChannelIdent::stable(),
-                                               idents: non_core_idents });
+                let mut by_channel: HashMap<ChannelIdent, Vec<PackageIdent>> =
+                    HashMap::new();
+                for ident in self.pkg_ident.clone() {
+                    let ch = ChannelIdent::default_for_origin(ident.origin());
+                    by_channel.entry(ch).or_default().push(ident);
+                }
+                for (channel, idents) in by_channel {
+                    package_sets.push(PackageSet { target, channel, idents });
+                }
             }
         }
         let mut package_sets_from_file = self.idents_from_file_matches(target)?;
@@ -143,19 +141,15 @@ impl PkgDownloadOptions {
                                                       target })
                         }
                         None => {
-                            let (core_idents, non_core_idents): (Vec<_>, Vec<_>) =
-                                idents_from_file.into_iter()
-                                                .partition(|ident| ident.origin() == "core");
-                            let core_package_set = PackageSet { idents: core_idents,
-                                                                channel:
-                                                                    ChannelIdent::from("base"),
-                                                                target };
-                            sources.push(core_package_set);
-                            let non_core_package_set = PackageSet { idents: non_core_idents,
-                                                                    channel:
-                                                                        ChannelIdent::from("stable"),
-                                                                    target };
-                            sources.push(non_core_package_set);
+                            let mut by_channel: HashMap<ChannelIdent, Vec<PackageIdent>> =
+                                HashMap::new();
+                            for ident in idents_from_file {
+                                let ch = ChannelIdent::default_for_origin(ident.origin());
+                                by_channel.entry(ch).or_default().push(ident);
+                            }
+                            for (channel, idents) in by_channel {
+                                sources.push(PackageSet { idents, channel, target });
+                            }
                         }
                     }
                 }

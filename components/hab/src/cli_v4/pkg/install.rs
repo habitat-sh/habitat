@@ -130,10 +130,8 @@ impl PkgInstallOptions {
             let ident: &PackageIdent = install_source.as_ref();
             let channel = if let Some(ref channel) = self.channel {
                 channel.clone()
-            } else if ident.origin() == "core" {
-                ChannelIdent::base()
             } else {
-                ChannelIdent::stable()
+                ChannelIdent::default_for_origin(ident.origin())
             };
 
             let pkg_install = install::start(ui,
