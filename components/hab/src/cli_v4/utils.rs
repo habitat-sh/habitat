@@ -714,11 +714,7 @@ pub(crate) fn resolve_channel_for_pkg(user_channel: &Option<ChannelIdent>,
     if let Some(ch) = user_channel {
         return ch.clone();
     }
-    if ident.origin == "core" {
-        ChannelIdent::base()
-    } else {
-        ChannelIdent::stable()
-    }
+    ChannelIdent::default_for_origin(&ident.origin)
 }
 
 #[cfg(not(target_os = "macos"))]
