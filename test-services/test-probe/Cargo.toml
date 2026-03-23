@@ -7,7 +7,7 @@ workspace = "../../"
 
 [dependencies]
 actix-rt = "*"
-actix-web = { version = "*", default-features = false, features = ["rustls-0_21"] }
+actix-web = { version = "*", default-features = false, features = ["rustls-0_23"] }
 clap = { version = "4", features = ["env", "derive", "string", "wrap_help"] }
 serde = { version = "*", features = ["derive"] }
 serde_json = "*"
