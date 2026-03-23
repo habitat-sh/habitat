@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.479 -->
-## [2.0.479](https://github.com/habitat-sh/habitat/tree/2.0.479) (2026-03-20)
+<!-- latest_release 2.0.480 -->
+## [2.0.480](https://github.com/habitat-sh/habitat/tree/2.0.480) (2026-03-23)
 
 #### Merged Pull Requests
-- remove need to use acceptance hab binary now that hab 2.0 is in stable [#10296](https://github.com/habitat-sh/habitat/pull/10296) ([mwrock](https://github.com/mwrock))
+- bump aws-lc-rs from 1.14.0 to 1.16.2 [#10300](https://github.com/habitat-sh/habitat/pull/10300) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- bump aws-lc-rs from 1.14.0 to 1.16.2 [#10300](https://github.com/habitat-sh/habitat/pull/10300) ([mwrock](https://github.com/mwrock)) <!-- 2.0.480 -->
 - remove need to use acceptance hab binary now that hab 2.0 is in stable [#10296](https://github.com/habitat-sh/habitat/pull/10296) ([mwrock](https://github.com/mwrock)) <!-- 2.0.479 -->
 - Bump aws-sdk-ecr from 1.112.0 to 1.113.0 [#10293](https://github.com/habitat-sh/habitat/pull/10293) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.478 -->
 - Bump toml from 1.0.6+spec-1.1.0 to 1.0.7+spec-1.1.0 [#10294](https://github.com/habitat-sh/habitat/pull/10294) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.477 -->
