@@ -1,4 +1,3 @@
-
 # Documentation available at https://expeditor.chef.io/ 
 
 project:
@@ -45,6 +44,7 @@ staging_areas:
       workload: pull_request_merged:{{github_repo}}:{{release_branch}}:*
 
 subscriptions:
+  # Trigger verify pipeline on pull requests (but not on merge to main)
   - workload: pull_request_opened:{{github_repo}}:{{release_branch}}:*
     actions:
       - post_github_comment:.expeditor/templates/welcome.mustache:
@@ -53,6 +53,12 @@ subscriptions:
       - built_in:github_auto_assign_author:
           only_if_team_member:
             - habitat-sh/habitat-core-maintainers
+      - trigger_pipeline:verify
+
+  # Also trigger verify pipeline when commits are pushed to existing pull requests
+  - workload: pull_request_synchronized:{{github_repo}}:{{release_branch}}:*
+    actions:
+      - trigger_pipeline:verify
 
   - workload: staged_workload_released:{{agent_id}}:release_staging:*
     actions:
