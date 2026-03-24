@@ -33,10 +33,6 @@ env_config_string!(#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, Part
                    HAB_BLDR_CHANNEL,
                    ChannelIdent::STABLE);
 
-/// Origins owned by Chef that should default to the `base` channel instead of `stable`.
-/// To add a new Chef-owned origin in the future, simply append its name to this list.
-pub const CHEF_OWNED_ORIGINS: &[&str] = &["core", "chef", "chef-platform"];
-
 impl ChannelIdent {
     const BASE: &'static str = "base";
     const STABLE: &'static str = "stable";
@@ -50,14 +46,9 @@ impl ChannelIdent {
 
     pub fn unstable() -> Self { Self::from(Self::UNSTABLE) }
 
-    /// Returns the default channel for a given origin.
-    pub fn default_for_origin(origin: &str) -> Self {
-        if CHEF_OWNED_ORIGINS.contains(&origin) {
-            Self::base()
-        } else {
-            Self::stable()
-        }
-    }
+    /// Returns the default channel for downloading/installing packages.
+    /// All origins now default to the `base` channel in Habitat 2.0+.
+    pub fn default_for_origin(_origin: &str) -> Self { Self::base() }
 }
 
 impl fmt::Display for ChannelIdent {
