@@ -21,9 +21,9 @@ use crate::{PRODUCT,
                          UIWriter},
             error::{Error,
                     Result},
-                hcore::{ChannelIdent,
+            hcore::{ChannelIdent,
                     package::{PackageIdent,
-                          PackageTarget}}};
+                              PackageTarget}}};
 use reqwest::StatusCode;
 
 /// Delete a package from Builder.
@@ -38,11 +38,12 @@ pub async fn start(ui: &mut UI,
                    -> Result<()> {
     use habitat_core::package::Identifiable;
 
-    let stable_channel_str = if ChannelIdent::default_for_origin(ident.origin()) == ChannelIdent::base() {
-        "base"
-    } else {
-        "stable"
-    };
+    let stable_channel_str =
+        if ChannelIdent::default_for_origin(ident.origin()) == ChannelIdent::base() {
+            "base"
+        } else {
+            "stable"
+        };
 
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 

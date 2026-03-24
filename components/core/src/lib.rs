@@ -35,7 +35,7 @@ env_config_string!(#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, Part
 
 /// Origins owned by Chef that should default to the `base` channel instead of `stable`.
 /// To add a new Chef-owned origin in the future, simply append its name to this list.
-pub const CHEF_OWNED_ORIGINS: &[&str] = &["core", "chef","chef-platform"];
+pub const CHEF_OWNED_ORIGINS: &[&str] = &["core", "chef", "chef-platform"];
 
 impl ChannelIdent {
     const BASE: &'static str = "base";

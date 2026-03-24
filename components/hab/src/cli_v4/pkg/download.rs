@@ -96,14 +96,15 @@ impl PkgDownloadOptions {
                                                channel: channel.clone(),
                                                idents: self.pkg_ident.clone() });
             } else {
-                let mut by_channel: HashMap<ChannelIdent, Vec<PackageIdent>> =
-                    HashMap::new();
+                let mut by_channel: HashMap<ChannelIdent, Vec<PackageIdent>> = HashMap::new();
                 for ident in self.pkg_ident.clone() {
                     let ch = ChannelIdent::default_for_origin(ident.origin());
                     by_channel.entry(ch).or_default().push(ident);
                 }
                 for (channel, idents) in by_channel {
-                    package_sets.push(PackageSet { target, channel, idents });
+                    package_sets.push(PackageSet { target,
+                                                   channel,
+                                                   idents });
                 }
             }
         }
@@ -148,7 +149,9 @@ impl PkgDownloadOptions {
                                 by_channel.entry(ch).or_default().push(ident);
                             }
                             for (channel, idents) in by_channel {
-                                sources.push(PackageSet { idents, channel, target });
+                                sources.push(PackageSet { idents,
+                                                          channel,
+                                                          target });
                             }
                         }
                     }
