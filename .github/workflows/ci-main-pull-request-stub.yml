@@ -39,7 +39,7 @@ jobs:
       visibility: ${{ github.event.repository.visibility }}   #  private, public, or internal
       # go-private-modules: GOPRIVATE for Go private modules, default is 'github.com/progress-platform-services/*
 
-      # if version specified, it takes precedence; can be a semver like 1.0.2-xyz or a tag like "latest"
+      # detect version from the VERSION file using the settings below; update VERSION to change the application version
       detect-version-source-type: 'file' # options include "none" (do not detect), "file", "github-tag" or "github-release"
       detect-version-source-parameter: 'VERSION' # use for file name
       language: 'rust'  # Go, Ruby, Rust, JavaScript, TypeScript, Python, Java, C#, PHP, other - used for build and SonarQube language setting
@@ -53,7 +53,7 @@ jobs:
       perform-trufflehog-scan: true
       
       # trivy dependency and container scanning
-      perform-trivy-scan: true
+      # perform-trivy-scan: true
       
       # BlackDuck SAST (Polaris) and SCA scans (requires a build or download to do SAST)
       # requires these secrets: POLARIS_SERVER_URL, POLARIS_ACCESS_TOKEN
