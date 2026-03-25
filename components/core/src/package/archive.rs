@@ -30,7 +30,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::CFlags,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::CFlags
             ))
             .unwrap(),
@@ -38,7 +38,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::Config,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Config
             ))
             .unwrap(),
@@ -46,7 +46,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::Deps,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Deps
             ))
             .unwrap(),
@@ -54,7 +54,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::TDeps,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::TDeps
             ))
             .unwrap(),
@@ -62,7 +62,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::BuildDeps,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::BuildDeps,
             ))
             .unwrap(),
@@ -70,7 +70,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::BuildTDeps,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::BuildTDeps,
             ))
             .unwrap(),
@@ -78,7 +78,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::Exposes,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Exposes
             ))
             .unwrap(),
@@ -86,7 +86,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::Ident,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Ident
             ))
             .unwrap(),
@@ -94,7 +94,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::LdRunPath,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::LdRunPath
             ))
             .unwrap(),
@@ -102,7 +102,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::LdFlags,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::LdFlags
             ))
             .unwrap(),
@@ -110,7 +110,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::SvcUser,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::SvcUser
             ))
             .unwrap(),
@@ -118,7 +118,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::SvcGroup,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::SvcGroup
             ))
             .unwrap(),
@@ -126,7 +126,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::Manifest,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Manifest
             ))
             .unwrap(),
@@ -134,7 +134,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::Path,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Path
             ))
             .unwrap(),
@@ -142,7 +142,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::Target,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Target
             ))
             .unwrap(),
@@ -150,7 +150,7 @@ lazy_static::lazy_static! {
         map.insert(
             MetaFile::PackageType,
             Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                r"^(/?opt)?/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::PackageType
             ))
             .unwrap(),
