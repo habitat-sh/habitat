@@ -3,6 +3,29 @@
 
 _artifact_ext="hart"
 
+# **Internal** Prints out an optionally colorized message indicating
+# an error of some kind.
+#
+# The line will be indented, with the package name in blue, and
+# `message` in red.
+_build_error_message() {
+  local message=${1}
+  : ${pkg_name:=unknown}
+
+  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+    echo "   ${pkg_name}: ${message}"
+  else
+    case "${TERM:-}" in
+    *term | xterm-* | rxvt | screen | screen-*)
+      echo -e "   \033[1;36m${pkg_name}: \033[1;31m${message}\033[0m"
+      ;;
+    *)
+      echo "   ${pkg_name}: ${message}"
+      ;;
+    esac
+  fi
+}
+
 # ## Private/Internal helper functions
 #
 #
