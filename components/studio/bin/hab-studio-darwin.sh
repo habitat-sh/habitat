@@ -455,7 +455,7 @@ build_studio() {
     set -x
   fi
 
-  info "Sandbox Exec with $studio_build_command and arguments $@."
+  info "Sandbox Exec with $studio_build_command and arguments $*."
   # Run the build command in the `sandbox` environment
   # shellcheck disable=2086
   $studio_env_command -i \

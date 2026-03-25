@@ -143,10 +143,7 @@ pub fn start(ui: &mut UI,
                                                     binary.to_string())));
         }
     };
-    if cfg!(target_os = "windows") {
-        src = fs_root_path.join(src.strip_prefix("/")?);
-    }
-    if cfg!(target_os = "macos") {
+    if cfg!(any(target_os = "windows", target_os = "macos")) {
         src = fs_root_path.join(src.strip_prefix("/")?);
     }
 
