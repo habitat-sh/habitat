@@ -24,6 +24,7 @@ use log::{debug,
 use std::{collections::HashSet,
           fs,
           path::Path,
+          process,
           str::FromStr};
 
 /// Governs how uninstall hooks behave when uninstalling packages
@@ -269,12 +270,20 @@ async fn uninstall_many<U>(ui: &mut U,
 }
 
 /// Check if we have a launcher/supervisor running out of this habitat root.
-/// If the launcher PID file exists then the supervisor is up and running
+/// If the launcher PID file exists and PID is running then the supervisor is up and running
 fn launcher_is_running(fs_root_path: &Path) -> bool {
     let launcher_root = hfs::launcher_root_path(Some(fs_root_path));
     let pid_file_path = launcher_root.join("PID");
 
-    pid_file_path.is_file()
+    fs::read_to_string(&pid_file_path).ok()
+                                      .and_then(|content| content.trim().parse::<u32>().ok())
+                                      .map(|pid| {
+                                          process::Command::new("kill").args(["-0",
+                                                                              &pid.to_string()])
+                                                                       .status()
+                                                                       .is_ok_and(|s| s.success())
+                                      })
+                                      .unwrap_or(false)
 }
 
 async fn supervisor_services() -> Result<Vec<PackageIdent>> {
