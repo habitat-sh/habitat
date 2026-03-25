@@ -9,6 +9,17 @@
 
 (deny default)
 
+;; The rules obtained by debuggin the build session and following -
+;; `log stream --style compact --predicate 'sender=="Sandbox"'`
+(allow file-read-metadata (literal "/opt"))
+(allow file-read-data (literal "/opt"))
+(allow file-read-metadata (literal "/Users"))
+(allow file-read-metadata (subpath "/usr/local"))
+(allow file-read* (subpath "/Library/Developer"))
+(allow file-read* (literal "/private/etc/password"))
+(allow file-read-data (literal "/Library/Preferences/Logging/com.apple.diagnosticd.filter.plist"))
+(allow network-outbound (remote unix-socket (path-literal "/private/var/run/syslog")))
+
 ;; These are some things we actively disallow inside the sandbox.
 ;; We do this, as they would otherwise tend to interfere with the build process.
 ;; - /etc/localtime, /private/etc/localtime : This will leak the host machine's timezone into the build process
@@ -47,7 +58,7 @@
        (subpath "/opt/hab/pkgs")
        (subpath "/opt/hab/cache"))
 
-;; Allow access to env and shell system binaries that are essential 
+;; Allow access to env and shell system binaries that are essential
 ;; for proper execution of the studio
 (allow process-exec file*
     (literal "/usr/bin/env")
@@ -114,7 +125,7 @@
 
 
 ;; Allow access to common IPC (Inter-Process Communication) system services
-;; This is necessary for enabling communication with key system services 
+;; This is necessary for enabling communication with key system services
 ;; required for logging, diagnostics, notifications, and directory information.
 (allow mach-lookup
 
