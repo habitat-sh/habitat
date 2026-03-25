@@ -323,13 +323,10 @@ pub fn pkg_install_path<T>(ident: &PackageIdent, fs_root: Option<T>) -> PathBuf
 pub fn fs_rooted_path(path: &Path, fs_root: &Path) -> PathBuf {
     if path.starts_with("/") && cfg!(windows) {
         fs_root.join(path.strip_prefix("/").unwrap())
+    } else if cfg!(target_os = "macos") {
+        fs_root.join(path.strip_prefix("/opt").unwrap())
     } else {
-        let returned = if cfg!(target_os = "macos") {
-             fs_root.join(path.strip_prefix("/opt").unwrap())
-        } else {
-             fs_root.join(path.strip_prefix("/").unwrap())
-        };
-	returned
+        fs_root.join(path.strip_prefix("/").unwrap())
     }
 }
 
@@ -687,7 +684,7 @@ pub fn find_command_in_pkg<T, U>(command: T,
         if let Some(result) = find_command_with_pathext(&candidate) {
             return Ok(Some(result));
         } else if candidate.is_file() {
-            return Ok(Some(candidate))
+            return Ok(Some(candidate));
         }
     }
     Ok(None)
