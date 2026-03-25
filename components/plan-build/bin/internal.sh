@@ -10,7 +10,7 @@ _artifact_ext="hart"
 # `message` in red.
 _build_error_message() {
   local message=${1}
-  : ${pkg_name:=unknown}
+  : "${pkg_name:=unknown}"
 
   if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
     echo "   ${pkg_name}: ${message}"
