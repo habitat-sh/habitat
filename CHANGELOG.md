@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.482 -->
-## [2.0.482](https://github.com/habitat-sh/habitat/tree/2.0.482) (2026-03-24)
+<!-- latest_release 2.0.483 -->
+## [2.0.483](https://github.com/habitat-sh/habitat/tree/2.0.483) (2026-03-25)
 
 #### Merged Pull Requests
-- Bump env_logger from 0.11.9 to 0.11.10 [#10302](https://github.com/habitat-sh/habitat/pull/10302) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump wincode from 0.4.8 to 0.4.9 [#10305](https://github.com/habitat-sh/habitat/pull/10305) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- Bump wincode from 0.4.8 to 0.4.9 [#10305](https://github.com/habitat-sh/habitat/pull/10305) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.483 -->
 - Bump env_logger from 0.11.9 to 0.11.10 [#10302](https://github.com/habitat-sh/habitat/pull/10302) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.482 -->
 - Bump toml from 1.0.7+spec-1.1.0 to 1.1.0+spec-1.1.0 [#10303](https://github.com/habitat-sh/habitat/pull/10303) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.481 -->
 - bump aws-lc-rs from 1.14.0 to 1.16.2 [#10300](https://github.com/habitat-sh/habitat/pull/10300) ([mwrock](https://github.com/mwrock)) <!-- 2.0.480 -->
