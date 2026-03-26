@@ -13,6 +13,7 @@ use habitat_common::{package_graph::PackageGraph,
 use habitat_core::{error as herror,
                    fs::{self as hfs,
                         FS_ROOT_PATH},
+                   os::process::Pid,
                    package::{Identifiable,
                              PackageIdent,
                              PackageInstall,
@@ -24,7 +25,6 @@ use log::{debug,
 use std::{collections::HashSet,
           fs,
           path::Path,
-          process,
           str::FromStr};
 
 /// Governs how uninstall hooks behave when uninstalling packages
@@ -278,10 +278,7 @@ fn launcher_is_running(fs_root_path: &Path) -> bool {
     fs::read_to_string(&pid_file_path).ok()
                                       .and_then(|content| content.trim().parse::<u32>().ok())
                                       .map(|pid| {
-                                          process::Command::new("kill").args(["-0",
-                                                                              &pid.to_string()])
-                                                                       .status()
-                                                                       .is_ok_and(|s| s.success())
+                                          habitat_core::os::process::is_alive(Pid::from(pid as i32))
                                       })
                                       .unwrap_or(false)
 }
