@@ -139,7 +139,7 @@ async fn uninstall_many<U>(ui: &mut U,
     // 1.
     let mut graph = PackageGraph::from_root_path(fs_root_path)?;
 
-    let loaded_services = supervisor_services().await?;
+    let loaded_services = supervisor_services(ui).await?;
     if !loaded_services.is_empty() {
         ui.status(Status::Determining, "list of loaded services in supervisor")?;
         for s in loaded_services.iter() {
@@ -271,7 +271,9 @@ async fn uninstall_many<U>(ui: &mut U,
 
 /// Check if we have a launcher/supervisor running out of this habitat root.
 /// If the launcher PID file exists and PID is running then the supervisor is up and running
-fn launcher_is_running(fs_root_path: &Path) -> bool {
+fn launcher_is_running<U>(ui: &mut U, fs_root_path: &Path) -> bool
+    where U: UIWriter
+{
     let launcher_root = hfs::launcher_root_path(Some(fs_root_path));
     let pid_file_path = launcher_root.join("PID");
 
@@ -279,14 +281,31 @@ fn launcher_is_running(fs_root_path: &Path) -> bool {
         return false;
     }
 
+    let _ = ui.status(Status::Determining, "launcher PID file status");
+
     fs::read_to_string(&pid_file_path).ok()
                                       .and_then(|content| content.trim().parse::<Pid>().ok())
-                                      .map(habitat_core::os::process::is_alive)
-                                      .unwrap_or(true)
+                                      .map(|pid| {
+                                          let is_alive = habitat_core::os::process::is_alive(pid);
+                                          if is_alive {
+                                              let _ = ui.status(Status::Found,
+                                                                "running supervisor process");
+                                          } else {
+                                              let _ = ui.warn("Found stale PID file (process not \
+                                                               running)");
+                                          }
+                                          is_alive
+                                      })
+                                      .unwrap_or_else(|| {
+                                          let _ = ui.warn("Could not read or parse PID file");
+                                          true
+                                      })
 }
 
-async fn supervisor_services() -> Result<Vec<PackageIdent>> {
-    if !launcher_is_running(&FS_ROOT_PATH) {
+async fn supervisor_services<U>(ui: &mut U) -> Result<Vec<PackageIdent>>
+    where U: UIWriter
+{
+    if !launcher_is_running(ui, &FS_ROOT_PATH) {
         return Ok(vec![]);
     }
 
