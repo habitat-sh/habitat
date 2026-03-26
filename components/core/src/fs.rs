@@ -151,8 +151,6 @@ lazy_static::lazy_static! {
             }
         } else if let Ok(root) = henv::var(FS_ROOT_ENVVAR) {
             PathBuf::from(root)
-        } else if cfg!(target_os = "macos") {
-            PathBuf::from("/opt")
         } else {
             PathBuf::from("/")
         }
@@ -323,10 +321,8 @@ pub fn pkg_install_path<T>(ident: &PackageIdent, fs_root: Option<T>) -> PathBuf
 pub fn fs_rooted_path(path: &Path, fs_root: &Path) -> PathBuf {
     if path.starts_with("/") && cfg!(windows) {
         fs_root.join(path.strip_prefix("/").unwrap())
-    } else if cfg!(target_os = "macos") {
-        fs_root.join(path.strip_prefix("/opt").unwrap())
     } else {
-        fs_root.join(path.strip_prefix("/").unwrap())
+        path.to_path_buf()
     }
 }
 
@@ -680,11 +676,10 @@ pub fn find_command_in_pkg<T, U>(command: T,
                     panic!("Package path missing / prefix {}", path.to_string_lossy())
                 });
         let candidate = fs_root_path.as_ref().join(stripped).join(command.as_ref());
-
         if let Some(result) = find_command_with_pathext(&candidate) {
             return Ok(Some(result));
         } else if candidate.is_file() {
-            return Ok(Some(candidate));
+            return Ok(Some(path.join(command.as_ref())));
         }
     }
     Ok(None)
