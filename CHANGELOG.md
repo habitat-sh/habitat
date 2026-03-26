@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.483 -->
-## [2.0.483](https://github.com/habitat-sh/habitat/tree/2.0.483) (2026-03-25)
+<!-- latest_release 2.0.484 -->
+## [2.0.484](https://github.com/habitat-sh/habitat/tree/2.0.484) (2026-03-26)
 
 #### Merged Pull Requests
-- Bump wincode from 0.4.8 to 0.4.9 [#10305](https://github.com/habitat-sh/habitat/pull/10305) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Updated launcher detection logic for stale PID [#10306](https://github.com/habitat-sh/habitat/pull/10306) ([sougata-progress](https://github.com/sougata-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- Updated launcher detection logic for stale PID [#10306](https://github.com/habitat-sh/habitat/pull/10306) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.484 -->
 - Bump wincode from 0.4.8 to 0.4.9 [#10305](https://github.com/habitat-sh/habitat/pull/10305) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.483 -->
 - Bump env_logger from 0.11.9 to 0.11.10 [#10302](https://github.com/habitat-sh/habitat/pull/10302) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.482 -->
 - Bump toml from 1.0.7+spec-1.1.0 to 1.1.0+spec-1.1.0 [#10303](https://github.com/habitat-sh/habitat/pull/10303) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.481 -->
