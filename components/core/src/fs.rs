@@ -198,11 +198,11 @@ lazy_static::lazy_static! {
 
     /// The root path containing all runtime service directories and files
     pub static ref SVC_ROOT: PathBuf = {
-        Path::new(&*FS_ROOT_PATH).join("hab").join("svc")
+        Path::new(&*FS_ROOT_PATH).join(ROOT_PATH).join("svc")
     };
 
     pub static ref USER_ROOT: PathBuf = {
-        Path::new(&*FS_ROOT_PATH).join("hab").join("user")
+        Path::new(&*FS_ROOT_PATH).join(ROOT_PATH).join("user")
     };
 
     static ref EUID: u32 = users::get_effective_uid();
