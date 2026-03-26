@@ -275,10 +275,14 @@ fn launcher_is_running(fs_root_path: &Path) -> bool {
     let launcher_root = hfs::launcher_root_path(Some(fs_root_path));
     let pid_file_path = launcher_root.join("PID");
 
+    if !pid_file_path.exists() {
+        return false;
+    }
+
     fs::read_to_string(&pid_file_path).ok()
                                       .and_then(|content| content.trim().parse::<Pid>().ok())
                                       .map(habitat_core::os::process::is_alive)
-                                      .unwrap_or(false)
+                                      .unwrap_or(true)
 }
 
 async fn supervisor_services() -> Result<Vec<PackageIdent>> {
