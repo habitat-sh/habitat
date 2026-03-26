@@ -276,10 +276,8 @@ fn launcher_is_running(fs_root_path: &Path) -> bool {
     let pid_file_path = launcher_root.join("PID");
 
     fs::read_to_string(&pid_file_path).ok()
-                                      .and_then(|content| content.trim().parse::<u32>().ok())
-                                      .map(|pid| {
-                                          habitat_core::os::process::is_alive(Pid::from(pid as i32))
-                                      })
+                                      .and_then(|content| content.trim().parse::<Pid>().ok())
+                                      .map(habitat_core::os::process::is_alive)
                                       .unwrap_or(false)
 }
 
