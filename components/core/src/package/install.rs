@@ -143,7 +143,8 @@ impl PackageInstall {
         } else {
             ident.clone()
         };
-        let fs_root_path = fs_root_path.map_or_else(|| PathBuf::from("/"), |p| p.as_ref().into());
+        let fs_root_path =
+            fs_root_path.map_or_else(|| fs::FS_ROOT_PATH.to_path_buf(), |p| p.as_ref().into());
         let package_root_path = fs::pkg_root_path(Some(&fs_root_path));
         if !package_root_path.exists() {
             return Err(Error::PackageNotFound(Box::new(original_ident.clone())));
