@@ -31,30 +31,69 @@ use std::{env,
           str::FromStr};
 
 /// The default root path of the Habitat filesystem
+#[cfg(not(target_os = "macos"))]
 pub const ROOT_PATH: &str = "hab";
+#[cfg(target_os = "macos")]
+pub const ROOT_PATH: &str = "opt/hab";
+
 /// The default cache path
+#[cfg(not(target_os = "macos"))]
 pub const CACHE_PATH: &str = "hab/cache";
+#[cfg(target_os = "macos")]
+pub const CACHE_PATH: &str = "opt/hab/cache";
+
 /// The default download root path for package artifacts, used on package installation
+#[cfg(not(target_os = "macos"))]
 pub const CACHE_ARTIFACT_PATH: &str = "hab/cache/artifacts";
+#[cfg(target_os = "macos")]
+pub const CACHE_ARTIFACT_PATH: &str = "opt/hab/cache/artifacts";
+
 /// The default path where hab-plan-build scripts are written, used for native package builds
+#[cfg(not(target_os = "macos"))]
 pub const CACHE_BUILD_PATH: &str = "hab/cache/build";
+#[cfg(target_os = "macos")]
+pub const CACHE_BUILD_PATH: &str = "opt/hab/cache/build";
+
 /// The default path where cryptographic keys are stored
+#[cfg(not(target_os = "macos"))]
 pub const CACHE_KEY_PATH_POSTFIX: &str = "hab/cache/keys";
+#[cfg(target_os = "macos")]
+pub const CACHE_KEY_PATH_POSTFIX: &str = "opt/hab/cache/keys";
+
 /// The default path for ctl gateway TLS certificate and keys
+#[cfg(not(target_os = "macos"))]
 pub const HAB_CTL_KEYS_CACHE: &str = "/hab/cache/keys/ctl";
+#[cfg(target_os = "macos")]
+pub const HAB_CTL_KEYS_CACHE: &str = "/opt/hab/cache/keys/ctl";
+
 /// The default path where source artifacts are downloaded, extracted, & compiled
+#[cfg(not(target_os = "macos"))]
 pub const CACHE_SRC_PATH: &str = "hab/cache/src";
+#[cfg(target_os = "macos")]
+pub const CACHE_SRC_PATH: &str = "opt/hab/cache/src";
+
 /// The default path where SSL-related artifacts are placed
+#[cfg(not(target_os = "macos"))]
 pub const CACHE_SSL_PATH: &str = "hab/cache/ssl";
+#[cfg(target_os = "macos")]
+pub const CACHE_SSL_PATH: &str = "opt/hab/cache/ssl";
+
 /// The root path for the launcher runtime
+#[cfg(not(target_os = "macos"))]
 pub const LAUNCHER_ROOT_PATH: &str = "hab/launcher";
+#[cfg(target_os = "macos")]
+pub const LAUNCHER_ROOT_PATH: &str = "opt/hab/launcher";
+
 /// The root path containing all locally installed packages
 /// Because this value is used in template rendering, we
 /// use native directory separator
-#[cfg(not(target_os = "windows"))]
+#[cfg(target_os = "linux")]
 pub const PKG_PATH: &str = "hab/pkgs";
+#[cfg(target_os = "macos")]
+pub const PKG_PATH: &str = "opt/hab/pkgs";
 #[cfg(target_os = "windows")]
 pub const PKG_PATH: &str = "hab\\pkgs";
+
 /// The environment variable pointing to the filesystem root. This exists for internal Habitat team
 /// usage and is not intended to be used by Habitat consumers. Using this variable could lead to
 /// broken Supervisor services and should be used with extreme caution. The services may break due
