@@ -9,14 +9,14 @@
 
 (deny default)
 
-;; The rules obtained by debuggin the build session and following -
+;; The rules obtained by debugging the build session and following -
 ;; `log stream --style compact --predicate 'sender=="Sandbox"'`
 (allow file-read-metadata (literal "/opt"))
 (allow file-read-data (literal "/opt"))
 (allow file-read-metadata (literal "/Users"))
 (allow file-read-metadata (subpath "/usr/local"))
 (allow file-read* (subpath "/Library/Developer"))
-(allow file-read* (literal "/private/etc/password"))
+(allow file-read* (literal "/private/etc/passwd"))
 (allow file-read-data (literal "/Library/Preferences/Logging/com.apple.diagnosticd.filter.plist"))
 (allow network-outbound (remote unix-socket (path-literal "/private/var/run/syslog")))
 
