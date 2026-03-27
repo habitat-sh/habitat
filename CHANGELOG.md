@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.484 -->
-## [2.0.484](https://github.com/habitat-sh/habitat/tree/2.0.484) (2026-03-26)
+<!-- latest_release 2.0.485 -->
+## [2.0.485](https://github.com/habitat-sh/habitat/tree/2.0.485) (2026-03-27)
 
 #### Merged Pull Requests
-- Updated launcher detection logic for stale PID [#10306](https://github.com/habitat-sh/habitat/pull/10306) ([sougata-progress](https://github.com/sougata-progress))
+- get ci workflor flowing by removing trivy scan [#10308](https://github.com/habitat-sh/habitat/pull/10308) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- get ci workflor flowing by removing trivy scan [#10308](https://github.com/habitat-sh/habitat/pull/10308) ([mwrock](https://github.com/mwrock)) <!-- 2.0.485 -->
 - Updated launcher detection logic for stale PID [#10306](https://github.com/habitat-sh/habitat/pull/10306) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.484 -->
 - Bump wincode from 0.4.8 to 0.4.9 [#10305](https://github.com/habitat-sh/habitat/pull/10305) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.483 -->
 - Bump env_logger from 0.11.9 to 0.11.10 [#10302](https://github.com/habitat-sh/habitat/pull/10302) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.482 -->
