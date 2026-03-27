@@ -34,7 +34,7 @@ use crate::{common::ui::{self,
                          UIWriter},
             error::{Error,
                     Result},
-            hcore::{fs::{FS_ROOT_PATH,
+            hcore::{fs::{ROOT_PATH, FS_ROOT_PATH,
                          am_i_root},
                     users::get_current_username}};
 use chrono::{DateTime,
@@ -149,7 +149,7 @@ pub fn accept_license(ui: &mut UI) -> Result<()> {
     Ok(())
 }
 
-fn superuser_license_root() -> PathBuf { PathBuf::from(&*FS_ROOT_PATH).join("hab") }
+fn superuser_license_root() -> PathBuf { PathBuf::from(&*FS_ROOT_PATH).join(ROOT_PATH) }
 
 fn user_license_root() -> PathBuf {
     if let Some(home) = dirs::home_dir() {
