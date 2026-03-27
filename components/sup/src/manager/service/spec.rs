@@ -769,7 +769,7 @@ mod tests {
         assert_eq!(spec.binds,
                    vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),]);
-        assert_eq!(spec.channel, ChannelIdent::stable());
+        assert_eq!(spec.channel, ChannelIdent::base());
         assert_eq!(spec.config_from,
                    Some(PathBuf::from("/only/for/development")));
 
@@ -1087,9 +1087,8 @@ mod tests {
         let spec =
             ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
 
-        // The key assertion - non-core origin with no channel should default to the 'stable'
-        // channel
-        assert_eq!(spec.channel, ChannelIdent::stable());
+        // The key assertion - with no channel, all origins default to 'base'
+        assert_eq!(spec.channel, ChannelIdent::base());
         assert_eq!(spec.ident.origin, "howdy");
         assert_eq!(spec.ident.name, "web-app");
     }
