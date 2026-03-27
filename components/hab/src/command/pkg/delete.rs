@@ -36,14 +36,8 @@ pub async fn start(ui: &mut UI,
                    (ident, target): (&PackageIdent, PackageTarget),
                    token: &str)
                    -> Result<()> {
-    use habitat_core::package::Identifiable;
-
-    let stable_channel_str =
-        if ChannelIdent::default_for_origin(ident.origin()) == ChannelIdent::base() {
-            "base"
-        } else {
-            "stable"
-        };
+    let default_channel = ChannelIdent::base();
+    let default_channel_str = default_channel.as_str();
 
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
@@ -63,10 +57,10 @@ pub async fn start(ui: &mut UI,
         Err(err @ api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
             ui.fatal(format!("Before you can delete this package artifact, demote it from the \
                               `{}` channel\nand remove any reverse dependencies.",
-                             stable_channel_str))?;
+                             default_channel_str))?;
             ui.fatal(format!("Demote the package artifact with the command:\nhab pkg demote {} \
                               {} {}",
-                             ident, stable_channel_str, target))?;
+                             ident, default_channel_str, target))?;
             ui.fatal(format!("Discover any reverse dependencies with the command:\nhab pkg \
                               dependencies --reverse {}",
                              ident))?;

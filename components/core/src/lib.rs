@@ -31,7 +31,7 @@ pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 env_config_string!(#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, PartialEq)]
                    pub ChannelIdent,
                    HAB_BLDR_CHANNEL,
-                   ChannelIdent::STABLE);
+                   ChannelIdent::BASE);
 
 impl ChannelIdent {
     const BASE: &'static str = "base";
@@ -45,10 +45,6 @@ impl ChannelIdent {
     pub fn stable() -> Self { Self::from(Self::STABLE) }
 
     pub fn unstable() -> Self { Self::from(Self::UNSTABLE) }
-
-    /// Returns the default channel for downloading/installing packages.
-    /// All origins now default to the `base` channel in Habitat 2.0+.
-    pub fn default_for_origin(_origin: &str) -> Self { Self::base() }
 }
 
 impl fmt::Display for ChannelIdent {

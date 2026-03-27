@@ -13,8 +13,7 @@ use clap::{ArgAction,
 use habitat_core::{ChannelIdent,
                    env::Config,
                    fs::{FS_ROOT_PATH,
-                        cache_artifact_path},
-                   package::PackageIdent};
+                        cache_artifact_path}};
 
 use habitat_common::{FEATURE_FLAGS,
                      FeatureFlag,
@@ -44,8 +43,7 @@ pub(crate) struct PkgInstallOptions {
     #[command(flatten)]
     bldr_url: BldrUrl,
 
-    /// Install from the specified release channel. Uses default channel as 'base' for 'core'
-    /// origin packages and 'stable' for all other packages.
+    /// Install from the specified release channel.
     #[arg(short = 'c',
                 long = "channel",
                 env = habitat_core::ChannelIdent::ENVVAR)]
@@ -96,8 +94,6 @@ impl PkgInstallOptions {
                                    ui: &mut UI,
                                    feature_flags: FeatureFlag)
                                    -> HabResult<()> {
-        use habitat_core::package::Identifiable;
-
         let pkg_install_args: Vec<_> = std::env::args_os().skip(2).collect();
 
         let auth_token = self.auth_token.try_from_cli_or_config();
@@ -127,11 +123,10 @@ impl PkgInstallOptions {
         };
 
         for install_source in &self.pkg_ident_or_artifact {
-            let ident: &PackageIdent = install_source.as_ref();
             let channel = if let Some(ref channel) = self.channel {
                 channel.clone()
             } else {
-                ChannelIdent::default_for_origin(ident.origin())
+                ChannelIdent::base()
             };
 
             let pkg_install = install::start(ui,

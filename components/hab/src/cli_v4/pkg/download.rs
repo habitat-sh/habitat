@@ -2,8 +2,7 @@
 
 use clap_v4 as clap;
 
-use std::{collections::HashMap,
-          path::PathBuf};
+use std::path::PathBuf;
 
 use clap::{ArgAction,
            Parser};
@@ -18,8 +17,7 @@ use habitat_common::{Error as HabitatCommonError,
 
 use habitat_core::{ChannelIdent,
                    env::Config,
-                   package::{Identifiable,
-                             PackageIdent,
+                   package::{PackageIdent,
                              PackageTarget,
                              target}};
 
@@ -96,16 +94,9 @@ impl PkgDownloadOptions {
                                                channel: channel.clone(),
                                                idents: self.pkg_ident.clone() });
             } else {
-                let mut by_channel: HashMap<ChannelIdent, Vec<PackageIdent>> = HashMap::new();
-                for ident in self.pkg_ident.clone() {
-                    let ch = ChannelIdent::default_for_origin(ident.origin());
-                    by_channel.entry(ch).or_default().push(ident);
-                }
-                for (channel, idents) in by_channel {
-                    package_sets.push(PackageSet { target,
-                                                   channel,
-                                                   idents });
-                }
+                package_sets.push(PackageSet { target,
+                                               channel: ChannelIdent::base(),
+                                               idents: self.pkg_ident.clone() });
             }
         }
         let mut package_sets_from_file = self.idents_from_file_matches(target)?;
@@ -142,17 +133,9 @@ impl PkgDownloadOptions {
                                                       target })
                         }
                         None => {
-                            let mut by_channel: HashMap<ChannelIdent, Vec<PackageIdent>> =
-                                HashMap::new();
-                            for ident in idents_from_file {
-                                let ch = ChannelIdent::default_for_origin(ident.origin());
-                                by_channel.entry(ch).or_default().push(ident);
-                            }
-                            for (channel, idents) in by_channel {
-                                sources.push(PackageSet { idents,
-                                                          channel,
-                                                          target });
-                            }
+                            sources.push(PackageSet { idents: idents_from_file,
+                                                      channel: ChannelIdent::base(),
+                                                      target });
                         }
                     }
                 }

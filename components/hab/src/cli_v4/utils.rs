@@ -709,12 +709,12 @@ pub(crate) fn maybe_refresh_channel_from_args_env_or_config(opt: Option<String>)
 pub(crate) fn is_default<T: Default + PartialEq>(val: &T) -> bool { val == &T::default() }
 
 pub(crate) fn resolve_channel_for_pkg(user_channel: &Option<ChannelIdent>,
-                                      ident: &PackageIdent)
+                                      _ident: &PackageIdent)
                                       -> ChannelIdent {
     if let Some(ch) = user_channel {
         return ch.clone();
     }
-    ChannelIdent::default_for_origin(&ident.origin)
+    ChannelIdent::base()
 }
 
 #[cfg(not(target_os = "macos"))]

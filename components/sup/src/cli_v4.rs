@@ -29,8 +29,6 @@ use habitat_core::{self,
                    ChannelIdent,
                    crypto::keys::{KeyCache,
                                   RingKey},
-                   package::{Identifiable,
-                             PackageIdent},
                    tls::rustls_wrapper::{CertificateChainCli,
                                          RootCertificateStoreCli}};
 use habitat_launcher_client::{ERR_NO_RETRY_EXCODE,
@@ -285,11 +283,10 @@ pub(crate) async fn split_apart_sup_run(
 
     // Do we have an initial service to start?
     let maybe_svc_load_msg = if let Some(install_source) = sup_run.pkg_ident_or_artifact {
-        let ident: &PackageIdent = install_source.as_ref();
         let channel = if let Some(ref channel) = shared_load.channel {
             channel.clone()
         } else {
-            ChannelIdent::default_for_origin(ident.origin())
+            ChannelIdent::base()
         };
 
         let ident = match install_source {

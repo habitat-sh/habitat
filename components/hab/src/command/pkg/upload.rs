@@ -191,10 +191,9 @@ async fn promote_to_channel(ui: &mut UI,
                             channel: ChannelIdent,
                             token: &str)
                             -> Result<()> {
-    use habitat_core::package::Identifiable;
     ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;
 
-    let default_channel_for_ident = channel == ChannelIdent::default_for_origin(ident.origin());
+    let default_channel_for_ident = channel == ChannelIdent::base();
 
     if !default_channel_for_ident && channel != ChannelIdent::unstable() {
         match api_client.create_channel(&ident.hacky_get_origin(), &channel, token)
