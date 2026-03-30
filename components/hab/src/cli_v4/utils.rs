@@ -928,6 +928,7 @@ mod tests {
 
     mod refresh_channel_tests {
         use crate::cli_v4::utils::maybe_refresh_channel_from_args_env_or_config;
+        use habitat_core::ChannelIdent;
 
         habitat_core::locked_env_var!(HAB_REFRESH_CHANNEL, locked_refresh_channel);
 
@@ -955,6 +956,17 @@ mod tests {
             let result =
                 maybe_refresh_channel_from_args_env_or_config(Some("cli_channel".to_string()));
             assert_eq!(result, Some("cli_channel".to_string()));
+        }
+
+        #[test]
+        fn test_no_arg_no_env_defaults_to_base_channel() {
+            let env_var = locked_refresh_channel();
+            env_var.unset();
+
+            // No CLI arg and no env var → None; pkg build falls back to ChannelIdent::default()
+            let result = maybe_refresh_channel_from_args_env_or_config(None);
+            let channel = result.unwrap_or_else(|| ChannelIdent::default().to_string());
+            assert_eq!(channel, ChannelIdent::default().to_string());
         }
     }
 }
