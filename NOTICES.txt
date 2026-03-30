@@ -19,14 +19,12 @@ SUMMARY OF COMPONENTS:
 Vendor Name | Product Name | Version
 
 Apache License 2.0:
-  AWS SDK Rust Bot                 | aws-credential-types             | 1.2.13
-  AWS SDK Rust Bot                 | aws-runtime                      | 1.7.1
-  AWS SDK Rust Bot                 | aws-smithy-http-client           | 1.1.11
-  AWS SDK Rust Bot                 | aws-smithy-observability         | 0.2.5
-  AWS SDK Rust Bot                 | aws-smithy-runtime               | 1.10.2
-  AWS SDK Rust Bot                 | aws-smithy-runtime-api           | 1.11.5
-  AWS SDK Rust Bot; awslabs…       | aws-types                        | 1.3.13
-  > /smithy-rs-server              |                                  |
+  AWS SDK Rust Bot                 | aws-credential-types             | 1.2.14
+  AWS SDK Rust Bot                 | aws-runtime                      | 1.7.2
+  AWS SDK Rust Bot                 | aws-smithy-http-client           | 1.1.12
+  AWS SDK Rust Bot                 | aws-smithy-observability         | 0.2.6
+  AWS SDK Rust Bot                 | aws-smithy-runtime               | 1.10.3
+  AWS SDK Rust Bot                 | aws-smithy-runtime-api           | 1.11.6
   Actyx AG                         | sync_wrapper                     | 1.0.2
   Aditya Kumar                     | pastey                           | 0.2.1
   Aleksey Kladov                   | matklad/once_cell                | 1.21.3
@@ -41,6 +39,7 @@ Apache License 2.0:
   > Sean McArthur                  |                                  |
   Alex Crichton; Carl Lerche;…     | hyperium/http                    | 1.3.1
   > Sean McArthur                  |                                  |
+  Alex Crichton; Colin Walters     | tar (Rust)                       | 0.4.45
   Alex Crichton; Taylor Cramer;…   | rust-lang-nursery/futures-rs     | 0.3.32
   > Taiki Endo                     |                                  |
   Alex Crichton; Thomas de Zeeuw   | alexcrichton/socket2-rs          | 0.5.10
@@ -71,7 +70,6 @@ Apache License 2.0:
   > Ryan Lopopolo                  |                                  |
   Anthony Ramine                   | nox/serde_urlencoded             | 0.7.1
   Antti Keränen                    | Detegr/rust-ctrlc                | 3.5.2
-  Ashley Mannix; Steven Allen      | Stebalien/tempfile               | 3.25.0
   Billy Rieger                     | bimap                            | 0.6.3
   Brendan Molloy                   | core2                            | 0.4.0
   Brian Smith                      | briansmith/ring                  | 0.17.14
@@ -85,18 +83,17 @@ Apache License 2.0:
   > Ashley Mannix                  |                                  |
   Colin Kiegel; Pascal Hertleif;…  | colin-kiegel/rust-derive-builder | 0.20.2
   > Jan-Erik Rediger; Ted Driggs   |                                  |
-  Colin Walters; Alex Crichton     | tar (Rust)                       | 0.4.44
   Contributors to futures-rs;…     | atomic-waker                     | 1.1.2
   > Stjepan Glavina                |                                  |
   Dan Burkert                      | danburkert/fs2-rs                | 0.4.3
-  Dan Gohman                       | linux-raw-sys                    | 0.11.0
-  Dan Gohman                       | rustix                           | 1.1.3
+  Dan Gohman                       | linux-raw-sys                    | 0.12.1
+  Dan Gohman                       | rustix                           | 1.1.4
   Dan Gohman; Chris Wong           | errno                            | 0.3.14
   David Tolnay                     | alexcrichton/proc-macro2         | 1.0.106
   David Tolnay                     | anyhow                           | 1.0.102
   David Tolnay                     | async-trait                      | 0.1.89
   David Tolnay                     | dtolnay/itoa                     | 1.0.17
-  David Tolnay                     | dtolnay/quote                    | 1.0.44
+  David Tolnay                     | dtolnay/quote                    | 1.0.45
   David Tolnay                     | dtolnay/ryu                      | 1.0.23
   David Tolnay                     | dtolnay/serde-yaml               | 0.9.34+deprecated
   David Tolnay                     | erased-serde                     | 0.3.31
@@ -110,9 +107,6 @@ Apache License 2.0:
   Dmitry                           | RustCrypto/hashes                | 0.10.9
   Dragoș Tiselice                  | pest-parser                      | 2.8.1
   Ed Page                          | is_terminal_polyfill             | 1.70.1
-  Ed Page; rust-cli/Maintainers    | anstream                         | 0.6.20
-  Ed Page; rust-cli/Maintainers    | anstyle                          | 1.0.11
-  Ed Page; rust-cli/Maintainers    | anstyle-parse                    | 0.2.7
   Ed Page; rust-cli/Maintainers    | anstyle-query                    | 1.1.4
   Ed Page; rust-cli/Maintainers    | colorchoice                      | 1.0.4
   Erick Tryzelaar; David Tolnay    | serde_derive                     | 1.0.177
@@ -139,23 +133,20 @@ Apache License 2.0:
   Jeehoon Kang; Amanieu d'Antras;… | crossbeam-utils                  | 0.8.21
   > Taiki Endo; crossbeam-rs…      |                                  |
   > /admins                        |                                  |
-  Jeremy Banks                     | RustCrypto/traits                | 0.1.6
   Joe Birr-Pixton; Dirkjan…        | hyper-rustls                     | 0.27.7
   > Ochtman; rustls/publishers     |                                  |
-  Joe Birr-Pixton; Dirkjan…        | rustls                           | 0.21.12
-  > Ochtman; rustls/publishers     |                                  |
+  Jonas Schievink; oyvindln        | adler2                           | 2.0.1
   Jonathan Reem; Alexander…        | destructure_traitobject          | 0.2.0
   > Regueiro; Philip Peterson;…    |                                  |
   > Steven Fackler                 |                                  |
   Josef Brandl                     | pin-utils                        | 0.1.0
-  Joseph Birr-Pixton               | ctz/sct.rs                       | 0.7.1
   Josh Driver                      | dns-lookup                       | 3.0.1
   Josh Stone                       | autocfg                          | 1.5.0
   Josh Stone                       | equivalent                       | 1.0.2
   Josh Stone; Niko Matsakis        | rayon                            | 1.11.0
   Josh Stone; Niko Matsakis        | rayon                            | 1.13.0
-  Kevin K.; rust-cli/Maintainers;… | clap-rs/clap                     | 4.5.60
-  > clap-rs/Admins                 |                                  |
+  Kang Seonghoon; chronotope…      | chronotope/chrono                | 0.4.44
+  > /Release Manager               |                                  |
   KokaKiwi                         | hex                              | 0.4.3
   Kornel                           | dunce                            | 1.0.5
   Kris Price                       | ipnet                            | 2.11.0
@@ -183,7 +174,6 @@ Apache License 2.0:
   Nikolay Kim; Rob Ede             | actix-codec                      | 0.5.2
   Nikolay Kim; Rob Ede             | actix-rt                         | 2.11.0
   Nikolay Kim; Rob Ede             | actix-service                    | 2.0.3
-  Nikolay Kim; Rob Ede             | actix-tls                        | 3.4.0
   Nikolay Kim; Rob Ede             | actix-utils                      | 3.0.1
   Nikolay Kim; Rob Ede             | bytestring                       | 1.4.0
   Nikolay Kim; Rob Ede             | local-waker                      | 0.1.4
@@ -218,6 +208,7 @@ Apache License 2.0:
   Stepan Koltsov; Andrew…          | linked-hash-map                  | 0.5.6
   > Paseltiner                     |                                  |
   Steven Allen                     | rust-xattr                       | 1.5.1
+  Steven Allen; Ashley Mannix      | Stebalien/tempfile               | 3.27.0
   Steven Fackler                   | foreign-types                    | 0.1.1
   Steven Fackler                   | foreign-types                    | 0.3.2
   Steven Fackler                   | log-mdc                          | 0.1.0
@@ -226,16 +217,16 @@ Apache License 2.0:
   Steven Fackler; Evan Simmons     | log4rs                           | 1.4.0
   Steven Fackler; Kornel           | native-tls                       | 0.2.18
   Stjepan Glavina                  | fastrand                         | 2.3.0
-  Taiki Endo                       | pin-project                      | 1.1.10
-  Taiki Endo                       | pin-project-internal             | 1.1.10
+  Taiki Endo                       | pin-project                      | 1.1.11
+  Taiki Endo                       | pin-project-internal             | 1.1.11
   Taiki Endo                       | pin-project-lite                 | 0.2.16
   Taylor Cramer; Taiki Endo        | futures-task                     | 0.3.32
   Ted Driggs                       | TedDriggs/ident_case             | 1.0.1
   The CryptoCorrosion Contributors | ppv-lite86                       | 0.2.21
-  The Habitat Maintainers          | Habitat core_buildah             | 1.43.1
-  The Habitat Maintainers          | Habitat core_docker              | 29.2.1
+  The Habitat Maintainers          | Habitat core_buildah             | 1.43.0
+  The Habitat Maintainers          | Habitat core_docker              | 29.3.1
   The Habitat Maintainers          | Habitat core_netavark            | 1.12.2
-  The Habitat Maintainers          | Habitat core_runc                | 1.4.0
+  The Habitat Maintainers          | Habitat core_runc                | 1.4.1
   The Habitat Maintainers          | Habitat core_tzdata              | 2025b
   The Habitat Maintainers          | habitat-sh                       | 1.6.1176
   The Rand Project Developers      | getrandom                        | 0.2.16
@@ -273,35 +264,37 @@ Apache License 2.0:
   Zakarum                          | allocator-api2                   | 0.2.21
   actix/Core; Nikolay Kim          | actix-http                       | 3.12.0
   actix/Core; Nikolay Kim          | actix-router                     | 0.5.4
+  actix/Core; Nikolay Kim          | actix-tls                        | 3.5.0
   actix/Core; Nikolay Kim          | actix-web                        | 4.13.0
-  awslabs/rust-sdk-owners; AWS…    | aws-config                       | 1.8.14
+  anza-team                        | solana-agave                     | 0.4.9
+  aws/aws-lc-rs-team; Justin W…    | aws-lc-rs                        | 1.16.2
+  > Smith; Sean McGrail; crypto…   |                                  |
+  > -alg                           |                                  |
+  awslabs/rust-sdk-owners; AWS…    | aws-config                       | 1.8.15
   > SDK Rust Bot                   |                                  |
-  awslabs/rust-sdk-owners; AWS…    | aws-sdk-ecr                      | 1.109.0
+  awslabs/rust-sdk-owners; AWS…    | aws-sdk-sso                      | 1.96.0
   > SDK Rust Bot                   |                                  |
-  awslabs/rust-sdk-owners; AWS…    | aws-sdk-sso                      | 1.94.0
+  awslabs/rust-sdk-owners; AWS…    | aws-sdk-ssooidc                  | 1.98.0
   > SDK Rust Bot                   |                                  |
-  awslabs/rust-sdk-owners; AWS…    | aws-sdk-ssooidc                  | 1.96.0
+  awslabs/rust-sdk-owners; AWS…    | aws-sdk-sts                      | 1.100.0
   > SDK Rust Bot                   |                                  |
-  awslabs/rust-sdk-owners; AWS…    | aws-sdk-sts                      | 1.98.0
+  awslabs/rust-sdk-owners; AWS…    | aws-sigv4                        | 1.4.2
   > SDK Rust Bot                   |                                  |
-  awslabs/rust-sdk-owners; AWS…    | aws-sigv4                        | 1.4.1
+  awslabs/rust-sdk-owners; AWS…    | aws-types                        | 1.3.14
   > SDK Rust Bot                   |                                  |
-  awslabs/rust-sdk-owners; AWS…    | aws-smithy-async                 | 1.2.13
+  awslabs/rust-sdk-owners; AWS…    | aws-smithy-async                 | 1.2.14
   > SDK Rust Bot; awslabs/smithy…  |                                  |
   > -rs-server                     |                                  |
-  awslabs/rust-sdk-owners; AWS…    | aws-smithy-http                  | 0.63.5
+  awslabs/rust-sdk-owners; AWS…    | aws-smithy-http                  | 0.63.6
   > SDK Rust Bot; awslabs/smithy…  |                                  |
   > -rs-server                     |                                  |
-  awslabs/rust-sdk-owners; AWS…    | aws-smithy-json                  | 0.62.4
+  awslabs/rust-sdk-owners; AWS…    | aws-smithy-json                  | 0.62.5
   > SDK Rust Bot; awslabs/smithy…  |                                  |
   > -rs-server                     |                                  |
-  awslabs/rust-sdk-owners; AWS…    | aws-smithy-query                 | 0.60.14
+  awslabs/rust-sdk-owners; AWS…    | aws-smithy-query                 | 0.60.15
   > SDK Rust Bot; awslabs/smithy…  |                                  |
   > -rs-server                     |                                  |
-  awslabs/rust-sdk-owners; AWS…    | aws-smithy-types                 | 1.4.5
-  > SDK Rust Bot; awslabs/smithy…  |                                  |
-  > -rs-server                     |                                  |
-  awslabs/rust-sdk-owners; AWS…    | aws-smithy-xml                   | 0.60.14
+  awslabs/rust-sdk-owners; AWS…    | aws-smithy-xml                   | 0.60.15
   > SDK Rust Bot; awslabs/smithy…  |                                  |
   > -rs-server                     |                                  |
   bluss                            | bluss/arrayvec                   | 0.7.6
@@ -310,9 +303,7 @@ Apache License 2.0:
   bluss                            | fixedbitset                      | 0.5.7
   bluss                            | rust-itertools/itertools         | 0.14.0
   bluss; Josh Stone                | bluss/indexmap                   | 2.11.4
-  chronotope/Release Manager;…     | chronotope/chrono                | 0.4.43
-  > Kang Seonghoon                 |                                  |
-  clap-rs/Admins; Kevin K.         | rust-clap_derive                 | 4.5.55
+  clap-rs/Admins; Kevin K.         | rust-clap_derive                 | 4.6.0
   crossbeam-rs/admins; Jeehoon…    | crossbeam-deque                  | 0.8.6
   > Kang; Taiki Endo; Amanieu d…   |                                  |
   > 'Antras                        |                                  |
@@ -334,7 +325,6 @@ Apache License 2.0:
   overvenus@gmail.com; siddontang… | pingcap/rust-prometheus          | 0.14.0
   > @gmail.com; vistaswx@gmail.com |                                  |
   percent-encoding                 | percent-encoding                 | 2.3.2
-  quininer; Dirkjan Ochtman        | tokio-rustls                     | 0.24.1
   quininer; Dirkjan Ochtman        | tokio-rustls                     | 0.26.4
   rushmorem                        | addr                             | 0.15.6
   rushmorem                        | psl                              | 2.1.136
@@ -342,23 +332,27 @@ Apache License 2.0:
   rust-bus/maintainers; Kornel;…   | vcpkg-rs                         | 0.2.15
   > Peter Williams; mcgoo; Mike…   |                                  |
   > Waychison                      |                                  |
-  rust-cli/Maintainers; clap-rs…   | rust-clap_builder                | 4.5.60
-  > /Admins; Ed Page               |                                  |
+  rust-cli/Maintainers; Ed Page    | anstream                         | 1.0.0
+  rust-cli/Maintainers; Ed Page    | anstyle                          | 1.0.13
+  rust-cli/Maintainers; Ed Page    | anstyle-parse                    | 1.0.0
+  rust-cli/Maintainers; Ed Page;…  | rust-clap_builder                | 4.6.0
+  > clap-rs/Admins                 |                                  |
   rust-cli/Maintainers; clap-rs…   | rust-clap_lex                    | 1.0.0
   > /Admins; Ed Page               |                                  |
-  rust-cli/Maintainers; clap-rs…   | clap-rs/clap                     | 4.5.66
+  rust-cli/Maintainers; clap-rs…   | clap-rs/clap                     | 4.6.0
   > /Admins; Kevin K.              |                                  |
   rust-lang-nursery/libs; Ashley…  | bitflags                         | 2.11.0
   > Mannix                         |                                  |
   rust-lang-nursery/libs; Diggory… | rust-random/rand                 | 0.10.0
   > Hardy                          |                                  |
+  rust-lang-nursery/log-owners;…   | env_logger                       | 0.11.10
+  > rust-lang-nursery/libs; env…   |                                  |
+  > -logger-rs/Publishers; Huon…   |                                  |
+  > Wilson; Steven Fackler         |                                  |
   rust-lang-nursery/log-owners;…   | rust-cli/env_logger              | 1.0.0
   > rust-lang-nursery/libs; env…   |                                  |
   > -logger-rs/Publishers; Huon…   |                                  |
   > Wilson; Steven Fackler         |                                  |
-  rust-lang-nursery; env-logger…   | env_logger                       | 0.11.9
-  > -rs; huonw; sfackler;…         |                                  |
-  > sebasmagri                     |                                  |
   rust-lang-owner; Vadim…          | alexcrichton/jobserver-rs        | 0.1.34
   > Petrochenkov                   |                                  |
   rust-lang-owner; rust-lang/libs  | alexcrichton/cfg-if              | 1.0.3
@@ -367,30 +361,39 @@ Apache License 2.0:
   rust-lang/libs; rust-lang…       | rust-regex                       | 1.12.3
   > -nursery/regex-owners; Andrew… |                                  |
   > Gallant                        |                                  |
-  rust-lang/libs; rust-lang-owner  | cc-rs                            | 1.2.56
+  rust-lang/libs; rust-lang-owner  | cc-rs                            | 1.2.57
   rust-lang/libs; rust-lang-owner  | rust-lang/cc-rs                  | 0.1.9
-  rust-lang; huonw; joshtriplett;… | rust-lang/libc                   | 0.2.180
-  > gnzlbg; JohnTitor; rust-lang…  |                                  |
-  > -owner                         |                                  |
+  rust-lang; rust-lang-owner;…     | rust-lang/libc                   | 0.2.183
+  > huonw; joshtriplett; gnzlbg;…  |                                  |
+  > JohnTitor                      |                                  |
   rust-random/maintainers;…        | getrandom                        | 0.4.1
   > Diggory Hardy                  |                                  |
   rust-random/maintainers;…        | rand_core                        | 0.10.0
   > Diggory Hardy                  |                                  |
+  rust-sdk-owners; awslabs/rust…   | aws-sdk-ecr                      | 1.113.0
+  > -sdk-owners; AWS SDK Rust Bot  |                                  |
+  rust-sdk-owners; awslabs/rust…   | aws-smithy-types                 | 1.4.7
+  > -sdk-owners; awslabs/smithy…   |                                  |
+  > -rs-server; AWS SDK Rust Bot   |                                  |
   rustcrypto/MACs; Artyom Pavlov   | RustCrypto/MACs                  | 0.12.1
+  rustcrypto/hashes; Tony Arcieri… | mitsuhiko/rust-sha1              | 0.10.6
+  > ; Artyom Pavlov                |                                  |
   rustcrypto/stream-ciphers;…      | chacha20                         | 0.10.0
   > Artyom Pavlov                  |                                  |
+  rustcrypto/traits; Artyom Pavlov | RustCrypto/traits                | 0.1.6
   rustcrypto/utils; Tony Arcieri   | cpufeatures                      | 0.3.0
   rustcrypto/utils; Tony Arcieri   | zeroize_derive                   | 1.4.2
   rustls/publishers; Alex…         | alexcrichton/openssl-probe       | 0.2.1
   > Crichton; Dirkjan Ochtman      |                                  |
   rustls/publishers; Dirkjan…      | rustls-pki-types                 | 1.14.0
   > Ochtman                        |                                  |
-  rustls/publishers; Joe Birr…     | rustls                           | 0.23.35
-  > -Pixton; Dirkjan Ochtman       |                                  |
+  rustls/publishers; Dirkjan…      | rustls                           | 0.23.37
+  > Ochtman; Joe Birr-Pixton       |                                  |
   rustls/publishers; Joe Birr…     | rustls-native-certs              | 0.8.3
   > -Pixton; Dirkjan Ochtman       |                                  |
   rustls/rcgen-publish; est        | rcgen                            | 0.14.6
   serde-rs/publish; David Tolnay   | serde_json                       | 1.0.149
+  servo/cargo publish; Simon Sapin | servo/ipc-channel                | 0.21.0
   servo/cargo publish; Simon Sapin | utf-8                            | 0.7.6
   servo/cargo publish; rust…       | rust-threadpool/rust-threadpool  | 1.8.1
   > -threadpool/Publishers; Huon…  |                                  |
@@ -404,16 +407,15 @@ Apache License 2.0:
   tokio-rs/prost-core; Dan Burkert | prost-derive                     | 0.14.3
   tokio-rs/prost-core; Dan Burkert | prost-types                      | 0.14.3
   toml-rs/Maintainers; Ed Page     | serde_spanned                    | 0.6.9
-  toml-rs/Maintainers; Ed Page     | serde_spanned                    | 1.0.4
+  toml-rs/Maintainers; Ed Page     | serde_spanned                    | 1.1.0
+  toml-rs/Maintainers; Ed Page     | toml-rs                          | 1.1.0+spec-1.1.0
   toml-rs/Maintainers; Ed Page     | toml_datetime                    | 0.6.11
-  toml-rs/Maintainers; Ed Page     | toml_datetime                    | 1.0.0+spec-1.1.0
-  toml-rs/Maintainers; Ed Page     | toml_parser                      | 1.0.9+spec-1.1.0
-  toml-rs/Maintainers; Ed Page     | toml_writer                      | 1.0.6+spec-1.1.0
+  toml-rs/Maintainers; Ed Page     | toml_datetime                    | 1.1.0+spec-1.1.0
+  toml-rs/Maintainers; Ed Page     | toml_parser                      | 1.1.0+spec-1.1.0
+  toml-rs/Maintainers; Ed Page     | toml_writer                      | 1.1.0+spec-1.1.0
   toml-rs/Maintainers; Ed Page;…   | ordian/toml_edit                 | 0.22.27
   > ordian                         |                                  |
   toml-rs/Maintainers; Eric Huss;… | toml-rs                          | 0.8.23
-  > Ed Page                        |                                  |
-  toml-rs/Maintainers; Eric Huss;… | toml-rs                          | 1.0.3+spec-1.1.0
   > Ed Page                        |                                  |
 
 BSD 2-Clause "Simplified" License:
@@ -432,8 +434,7 @@ BSD 3-Clause "New" or "Revised" License:
   The Habitat Maintainers          | Habitat core_zstd     | 1.5.7
 
 BSD Zero Clause License:
-  Jonas Schievink; oyvindln | adler2       | 2.0.1
-  museun                    | mock_instant | 0.6.0
+  museun | mock_instant | 0.6.0
 
 Bzip2 License:
   The Habitat Maintainers | Habitat core_bzip2 | 1.0.8
@@ -514,16 +515,12 @@ Internal Progress Product License: (*)
   The Habitat Maintainers | Habitat core_hab-ld-wrapper | 1.0.0
 
 ISC License:
-  AWS-LC                           | aws-lc-sys             | 0.31.0
-  AWS-LibCrypto                    | aws-lc-rs              | 1.14.0
   Brian Smith                      | briansmith/untrusted   | 0.9.0
   Hanno Braun                      | inotify-sys            | 0.1.5
   Hanno Braun; Frank Denis; Félix… | inotify                | 0.11.0
   > Saparelli; Cristian Kubis      |                        |
-  Joe Birr-Pixton; Dirkjan…        | rustls-webpki          | 0.101.7
-  > Ochtman; rustls/publishers     |                        |
   The Habitat Maintainers          | Habitat core_libsodium | 1.0.18
-  rustls/publishers; Joe Birr…     | rustls-webpki          | 0.103.9
+  rustls/publishers; Joe Birr…     | rustls-webpki          | 0.103.10
   > -Pixton; Dirkjan Ochtman       |                        |
 
 Microsoft Visual Studio Enterprise 2022, Visual Studio Professional 2022, and
@@ -534,7 +531,7 @@ MIT License:
   Aaron Trent                      | generic-array             | 0.14.7
   Andrew Gallant                   | BurntSushi/rust-memchr    | 2.7.5
   Andrew Gallant                   | BurntSushi/same-file      | 1.0.6
-  Andrew Gallant                   | jiff                      | 0.2.15
+  Andrew Gallant                   | jiff                      | 0.2.23
   Andrew Gallant                   | tabwriter                 | 1.4.1
   Anton Whalley; Jonathan Reem     | typemap-ors               | 1.0.0
   Bertram Truong; Kornel           | urlencoding               | 2.1.3
@@ -546,6 +543,7 @@ MIT License:
   David Tolnay                     | zmij                      | 1.0.2
   Denis Kurilenko                  | webdesus/fs_extra         | 1.3.0
   Ed Page                          | winnow                    | 0.7.13
+  Ed Page                          | winnow                    | 1.0.0
   Frank Denis                      | ct-codecs                 | 1.1.6
   Frank Denis                      | libsodium-rs              | 0.2.1
   Frank Denis                      | minisign-verify           | 0.2.4
@@ -610,12 +608,15 @@ MIT License:
   Tower Maintainers                | tower-rs/tower            | 0.5.2
   Zicklag                          | cfg_aliases               | 0.2.1
   arcnmx                           | serde-value               | 0.7.0
+  aws/aws-lc-rs-team; Justin W…    | aws-lc-sys                | 0.39.0
+  > Smith; Sean McGrail; crypto…   |                           |
+  > -alg                           |                           |
   hyperium/Core; Sean McArthur     | Hyper HTTP library        | 1.8.1
-  nix-rust/nix-maintainers; Carl…  | nix-rust/nix              | 0.31.1
+  nix-rust/nix-maintainers; Carl…  | nix-rust/nix              | 0.31.2
   > Lerche                         |                           |
   softprops                        | broadcast                 | 0.1.0
   softprops                        | tee                       | 0.1.0
-  tokio-rs/Core; Carl Lerche;…     | tokio                     | 1.49.0
+  tokio-rs/Core; Carl Lerche;…     | tokio                     | 1.50.0
   > Alice Ryhl                     |                           |
   tokio-rs/Core; Carl Lerche;…     | tokio-rs/bytes            | 1.11.1
   > Alice Ryhl                     |                           |
@@ -629,11 +630,9 @@ MIT License:
   > Weisman; Carl Lerche           |                           |
 
 Mozilla Public License 2.0:
-  Joe Birr-Pixton; Dirkjan…        | webpki-roots         | 0.25.4
-  > Ochtman; rustls/publishers     |                      |
-  Sam Giles                        | mktemp               | 0.5.1
-  Simon Ochsenreither              | option-ext           | 0.2.0
-  The Habitat Maintainers          | Habitat core_cacerts | 2025-05-20
+  Sam Giles               | mktemp               | 0.5.1
+  Simon Ochsenreither     | option-ext           | 0.2.0
+  The Habitat Maintainers | Habitat core_cacerts | 2025-05-20
 
 OpenSSL Combined License:
   The Habitat Maintainers | Habitat core_openssl | 3.5.5
@@ -684,42 +683,42 @@ zlib License:
 
 ================================================================================
 
-The Product contains Habitat core_7zip 26.00, Habitat core_acl 2.3.2,Habitat
-core_attr 2.5.2, Habitat core_glibc 2.41, Habitat core_gpgme 1.23.2, Habitat
-core_libgcrypt 1.10.3, Habitat core_libgpg-error 1.46, Habitat core_libksba
-1.6.7, Habitat core_libseccomp 2.5.4, Habitat core_libassuan 2.5.5, Habitat 
-core_npth 1.7, Habitat core_gmp 6.3.0, Habitat core_libunistring 1.0, Habitat
-core_mpfr 4.2.1, Habitat core_zeromq 4.3.4, Habitat core_bash 5.2.37, Habitat
-core_binutils 2.44, Habitat core_busybox-static 1.36.1, Habitat core_cacerts 
-2025-05-20, Habitat core_coreutils 9.7, Habitat core_diffutils 3.11, Habitat 
-core_gawk 5.3.1, Habitat core_gcc 14.3.0, Habitat core_gcc-base 14.3.0, Habitat
-core_gcc-libs 14.3.0, Habitat core_gnupg 2.4.5, Habitat core_grep 3.11, Habitat
-core_gzip 1.14, Habitat core_less 668, Habitat core_libidn2 2.3.3, Habitat
-core_linux-headers 5.19.8, Habitat core_lzip 1.25, Habitat core_lzo 2.10,
-Habitat core_lzop 1.04, Habitat core_make 4.4.1, Habitat core_readline 8.2.13,
-Habitat core_sed 4.9, Habitat core_tar 1.35, Habitat core_util-linux 2.40.4,
-Habitat core_wget 1.25.0, Habitat core_xz 5.8.1, mktemp 0.5.1, option-ext
-0.2.0, and webpki-roots 0.25.4. These third-party technologies are licensed to
-PSC and User is subject to the terms of a third-party license, a copy of which
-is included herein. PSC will, at Licensee's request, provide a copy of the
-source code for this third-party technology, including modifications, if any,
-made by PSC. PSC may charge reasonable shipping and handling charges for such
+The Product contains Habitat core_7zip 26.00, Habitat core_acl 2.3.2, Habitat
+core_attr 2.5.2, Habitat core_bash 5.2.37, Habitat core_binutils 2.44, Habitat
+core_busybox-static 1.36.1, Habitat core_coreutils 9.7, Habitat core_diffutils
+3.11, Habitat core_gawk 5.3.1, Habitat core_gcc 14.3.0, Habitat core_gcc-base
+14.3.0, Habitat core_gcc-libs 14.3.0, Habitat core_glibc 2.41, Habitat core_gmp
+6.3.0, Habitat core_gnupg 2.4.5, Habitat core_gpgme 1.23.2, Habitat core_grep
+3.11, Habitat core_gzip 1.14, Habitat core_less 668, Habitat core_libassuan
+2.5.5, Habitat core_libgcrypt 1.10.3, Habitat core_libgpg-error 1.46, Habitat
+core_libidn2 2.3.3, Habitat core_libksba 1.6.7, Habitat core_libseccomp 2.5.4,
+Habitat core_libunistring 1.0, Habitat core_linux-headers 5.19.8, Habitat
+core_lzip 1.25, Habitat core_lzo 2.10, Habitat core_lzop 1.04, Habitat
+core_make 4.4.1, Habitat core_mpfr 4.2.1, Habitat core_npth 1.7, Habitat
+core_readline 8.2.13, Habitat core_sed 4.9, Habitat core_tar 1.35, Habitat
+core_util-linux 2.40.4, Habitat core_wget 1.25.0, Habitat core_xz 5.8.1, 
+Habitat core_zeromq 4.3.4, mktemp 0.5.1, option-ext 0.2.0, Habitat 
+core_cacerts 2025-05-20. These third-party technologies are licensed to PSC
+and User is subject to the terms of a third-party license, a copy of which is
+included herein. PSC will, at Licensee's request, provide a copy of the source
+code for this third-party technology, including modifications, if any, made by
+PSC. PSC may charge reasonable shipping and handling charges for such
 distribution. Licensee may also obtain the source code for these third-party
 technologies through http://iue.progress.com/3dpartysoftwares/Pages/default.aspx
 by following the instructions set forth therein.
 
-The Product contains Habitat core_7zip 26.00, Habitat core_acl 2.3.2,Habitat
-core_attr 2.5.2, Habitat core_glibc 2.41, Habitat core_gpgme 1.23.2, Habitat
+The Product contains Habitat core_7zip 26.00, Habitat core_acl 2.3.2, Habitat 
+core_attr 2.5.2, Habitat core_glibc 2.41, Habitat core_gpgme 1.23.2, Habitat 
 core_libgcrypt 1.10.3, Habitat core_libgpg-error 1.46, Habitat core_libksba
 1.6.7, Habitat core_libseccomp 2.5.4, Habitat core_libassuan 2.5.5, Habitat 
 core_npth 1.7, Habitat core_gmp 6.3.0, Habitat core_libunistring 1.0, Habitat
-core_mpfr 4.2.1, and Habitat core_zeromq 4.3.4.  This technology is subject to
-the terms of the GNU Library General Public License Version 2 (“LGPL v2”), GNU
-Lesser General Public License Version 2.1 (“LGPL v2.1”) or GNU Lesser General 
-Public License Version 3 (“LGPL v3”).  In compliance with such Licenses, PSC 
-provides You with reverse engineering permission solely to the extent necessary
-in order to debug modifications made to libraries licensed under the LGPL v2, 
-LGPL v2.1, or LGPL v3 (as identified above).
+core_mpfr 4.2.1, and Habitat core_zeromq 4.3.4. This technology is subject to 
+the terms of the GNU Library General Public License Version 2 (“LGPL v2”), 
+GNU Lesser General Public License Version 2.1 (“LGPL v2.1”) or GNU Lesser 
+General Public License Version 3 (“LGPL v3”).  In compliance with such 
+Licenses, PSC provides You with reverse engineering permission solely to the
+extent necessary in order to debug modifications made to libraries licensed 
+under the LGPL v2, LGPL v2.1, or LGPL v3 (as identified above).
 
 1. Special Notices Regarding Open-Source Third-Party Components incorporated
 into the Product. Such technology is subject to the following terms and
@@ -728,84 +727,84 @@ conditions:
 (1) Apache License 2.0:
 
 Progress Chef Habitat 2.0 incorporates Detegr/rust-ctrlc 3.5.2, Habitat
-core_buildah 1.43.1, Habitat core_docker 29.2.1, Habitat core_netavark 1.12.2,
-Habitat core_runc 1.4.0, Habitat core_tzdata 2025b, Kimundi/rustc-version-rs
+core_buildah 1.43.0, Habitat core_docker 29.3.1, Habitat core_netavark 1.12.2,
+Habitat core_runc 1.4.1, Habitat core_tzdata 2025b, Kimundi/rustc-version-rs
 0.4.1, RustCrypto/MACs 0.12.1, RustCrypto/hashes 0.10.9, RustCrypto/traits
-0.1.6, SergioBenitez/version_check 0.9.5, Stebalien/tempfile 3.25.0,
+0.1.6, SergioBenitez/version_check 0.9.5, Stebalien/tempfile 3.27.0,
 TedDriggs/ident_case 1.0.1, actix-codec 0.5.2, actix-http 3.12.0, actix-macros
 0.2.4, actix-router 0.5.4, actix-rt 2.11.0, actix-server 2.6.0, actix-service
-2.0.3, actix-tls 3.4.0, actix-utils 3.0.1, actix-web 4.13.0, addr 0.15.6,
-alexcrichton/cfg-if 1.0.3, alexcrichton/cmake-rs 0.1.54,
+2.0.3, actix-tls 3.5.0, actix-utils 3.0.1, actix-web 4.13.0, addr 0.15.6,
+adler2 2.0.1, alexcrichton/cfg-if 1.0.3, alexcrichton/cmake-rs 0.1.54,
 alexcrichton/jobserver-rs 0.1.34, alexcrichton/openssl-probe 0.2.1,
 alexcrichton/proc-macro2 1.0.106, alexcrichton/socket2-rs 0.5.10,
-alexcrichton/socket2-rs 0.6.0, allocator-api2 0.2.21, anstream 0.6.20, anstyle
-1.0.11, anstyle-parse 0.2.7, anstyle-query 1.1.4, anyhow 1.0.102, async-trait
-0.1.89, atomic-waker 1.1.2, autocfg 1.5.0, aws-config 1.8.14,
-aws-credential-types 1.2.13, aws-runtime 1.7.1, aws-sdk-ecr 1.109.0,
-aws-sdk-sso 1.94.0, aws-sdk-ssooidc 1.96.0, aws-sdk-sts 1.98.0, aws-sigv4
-1.4.1, aws-smithy-async 1.2.13, aws-smithy-http 0.63.5, aws-smithy-http-client
-1.1.11, aws-smithy-json 0.62.4, aws-smithy-observability 0.2.5,
-aws-smithy-query 0.60.14, aws-smithy-runtime 1.10.2, aws-smithy-runtime-api
-1.11.5, aws-smithy-types 1.4.5, aws-smithy-xml 0.60.14, aws-types 1.3.13, bimap
-0.6.3, bit-vec 0.6.3, bitflags 1.3.2, bitflags 2.11.0, block-buffer 0.10.4,
-bluss/arrayvec 0.7.6, bluss/either 1.15.0, bluss/indexmap 2.11.4,
-bluss/scopeguard 1.2.0, briansmith/ring 0.17.14, bytes-utils 0.1.4, bytestring
-1.4.0, caps 0.5.6, cc-rs 1.2.56, cesarb/constant_time_eq 0.4.2, cfg-expr
-0.15.8, chacha20 0.10.0, chronotope/chrono 0.4.43, clap-rs/clap 4.5.60,
-clap-rs/clap 4.5.66, cobs 0.3.0, colin-kiegel/rust-derive-builder 0.20.2,
-colorchoice 1.0.4, contain-rs/bit-set 0.5.3, core2 0.4.0, cpu-time 1.0.0,
-cpufeatures 0.2.17, cpufeatures 0.3.0, crossbeam (rust) 0.8.4,
-crossbeam-channel 0.5.15, crossbeam-deque 0.8.6, crossbeam-epoch 0.9.18,
-crossbeam-queue 0.3.12, crossbeam-utils 0.8.21, ctor 0.5.0, ctz/sct.rs 0.7.1,
-danburkert/fs2-rs 0.4.3, danburkert/prost 0.14.3, dary_heap 0.3.8, deranged
-0.5.5, destructure_traitobject 0.2.0, digest 0.10.7, dirs 6.0.0, dirs-sys
-0.5.0, displaydoc 0.2.5, dns-lookup 3.0.1, dtolnay/itoa 1.0.17, dtolnay/quote
-1.0.44, dtolnay/ryu 1.0.23, dtolnay/serde-yaml 0.9.34+deprecated, dunce 1.0.5,
-env_logger 0.11.9, env_proxy 0.4.1, equivalent 1.0.2, erased-serde 0.3.31,
-errno 0.3.14, fastrand 2.3.0, filetime 0.2.26, fitzgen/bumpalo 3.19.0,
-fixedbitset 0.5.7, flate2 1.1.9, foreign-types 0.1.1, foreign-types 0.3.2,
-form_urlencoded 1.2.2, futures-task 0.3.32, getrandom 0.2.16, getrandom 0.3.3,
-getrandom 0.4.1, glob 0.3.3, habitat-sh 1.6.1176, heck 0.5.0, hex 0.4.3,
-httpdate 1.0.3, hyper-rustls 0.27.7, hyper-tls 0.6.0, hyperium/http 0.2.12,
-hyperium/http 1.3.1, iana-time-zone 0.1.63, idna 1.1.0, idna_adapter 1.2.1,
-impl-more 0.1.9, ipnet 2.11.0, iri-string 0.7.8, is_terminal_polyfill 1.70.1,
-jedisct1/rust-siphash 1.0.1, language-tags 0.3.2, lazy_static 1.5.0,
-libsodium-sys-stable 1.22.5, linked-hash-map 0.5.6, linux-raw-sys 0.11.0,
-local-waker 0.1.4, lock_api 0.4.14, log 0.4.29, log-mdc 0.1.0, log4rs 1.4.0,
-lzma-sys 0.1.20, marcianx/downcast-rs 1.2.1, matklad/once_cell 1.21.3,
-maybe-dangling 0.1.2, minimal-lexical 0.2.1, miniz_oxide 0.8.9,
+alexcrichton/socket2-rs 0.6.0, allocator-api2 0.2.21, anstream 1.0.0, anstyle
+1.0.13, anstyle-parse 1.0.0, anstyle-query 1.1.4, anyhow 1.0.102, async-trait
+0.1.89, atomic-waker 1.1.2, autocfg 1.5.0, aws-config 1.8.15,
+aws-credential-types 1.2.14, aws-lc-rs 1.16.2, aws-runtime 1.7.2, aws-sdk-ecr
+1.113.0, aws-sdk-sso 1.96.0, aws-sdk-ssooidc 1.98.0, aws-sdk-sts 1.100.0,
+aws-sigv4 1.4.2, aws-smithy-async 1.2.14, aws-smithy-http 0.63.6,
+aws-smithy-http-client 1.1.12, aws-smithy-json 0.62.5, aws-smithy-observability
+0.2.6, aws-smithy-query 0.60.15, aws-smithy-runtime 1.10.3,
+aws-smithy-runtime-api 1.11.6, aws-smithy-types 1.4.7, aws-smithy-xml 0.60.15,
+aws-types 1.3.14, bimap 0.6.3, bit-vec 0.6.3, bitflags 1.3.2, bitflags 2.11.0,
+block-buffer 0.10.4, bluss/arrayvec 0.7.6, bluss/either 1.15.0, bluss/indexmap
+2.11.4, bluss/scopeguard 1.2.0, briansmith/ring 0.17.14, bytes-utils 0.1.4,
+bytestring 1.4.0, caps 0.5.6, cc-rs 1.2.57, cesarb/constant_time_eq 0.4.2,
+cfg-expr 0.15.8, chacha20 0.10.0, chronotope/chrono 0.4.44, clap-rs/clap 4.6.0,
+cobs 0.3.0, colin-kiegel/rust-derive-builder 0.20.2, colorchoice 1.0.4,
+contain-rs/bit-set 0.5.3, core2 0.4.0, cpu-time 1.0.0, cpufeatures 0.2.17,
+cpufeatures 0.3.0, crossbeam (rust) 0.8.4, crossbeam-channel 0.5.15,
+crossbeam-deque 0.8.6, crossbeam-epoch 0.9.18, crossbeam-queue 0.3.12,
+crossbeam-utils 0.8.21, ctor 0.5.0, danburkert/fs2-rs 0.4.3, danburkert/prost
+0.14.3, dary_heap 0.3.8, deranged 0.5.5, destructure_traitobject 0.2.0, digest
+0.10.7, dirs 6.0.0, dirs-sys 0.5.0, displaydoc 0.2.5, dns-lookup 3.0.1,
+dtolnay/itoa 1.0.17, dtolnay/quote 1.0.45, dtolnay/ryu 1.0.23,
+dtolnay/serde-yaml 0.9.34+deprecated, dunce 1.0.5, env_logger 0.11.10,
+env_proxy 0.4.1, equivalent 1.0.2, erased-serde 0.3.31, errno 0.3.14, fastrand
+2.3.0, filetime 0.2.26, fitzgen/bumpalo 3.19.0, fixedbitset 0.5.7, flate2
+1.1.9, foreign-types 0.1.1, foreign-types 0.3.2, form_urlencoded 1.2.2,
+futures-task 0.3.32, getrandom 0.2.16, getrandom 0.3.3, getrandom 0.4.1, glob
+0.3.3, habitat-sh 1.6.1176, heck 0.5.0, hex 0.4.3, httpdate 1.0.3, hyper-rustls
+0.27.7, hyper-tls 0.6.0, hyperium/http 0.2.12, hyperium/http 1.3.1,
+iana-time-zone 0.1.63, idna 1.1.0, idna_adapter 1.2.1, impl-more 0.1.9, ipnet
+2.11.0, iri-string 0.7.8, is_terminal_polyfill 1.70.1, jedisct1/rust-siphash
+1.0.1, language-tags 0.3.2, lazy_static 1.5.0, libsodium-sys-stable 1.22.5,
+linked-hash-map 0.5.6, linux-raw-sys 0.12.1, local-waker 0.1.4, lock_api
+0.4.14, log 0.4.29, log-mdc 0.1.0, log4rs 1.4.0, lzma-sys 0.1.20,
+marcianx/downcast-rs 1.2.1, matklad/once_cell 1.21.3, maybe-dangling 0.1.2,
+minimal-lexical 0.2.1, miniz_oxide 0.8.9, mitsuhiko/rust-sha1 0.10.6,
 mmastrac/rust-ctor 0.0.6, mmastrac/rust-ctor 0.1.1, multimap 0.10.1, native-tls
 0.2.18, nox/serde_urlencoded 0.7.1, num-conv 0.2.0, num-integer 0.1.46,
 num-modular 0.6.1, num-order 1.2.0, num-traits 0.2.19, num_cpus 1.17.0,
 openssl-macros 0.1.1, openssl-src 300.5.2+3.5.2, ordian/toml_edit 0.22.27,
 paholg/typenum 1.18.0, parking_lot 0.12.5, parking_lot_core 0.9.12, pastey
 0.2.1, percent-encoding 2.3.2, pest-parser 2.8.1, petgraph 0.8.3, pin-project
-1.1.10, pin-project-internal 1.1.10, pin-project-lite 0.2.16, pin-utils 0.1.0,
+1.1.11, pin-project-internal 1.1.11, pin-project-lite 0.2.16, pin-utils 0.1.0,
 pingcap/rust-prometheus 0.14.0, pkg-config 0.3.32, postcard 1.1.3, powerfmt
 0.2.0, ppv-lite86 0.2.21, prettyplease 0.2.37, prost-build 0.14.3, prost-derive
 0.14.3, prost-types 0.14.3, psl 2.1.136, psl-types 2.0.11, rand_chacha 0.9.0,
 rand_core 0.10.0, rand_core 0.6.4, rand_core 0.9.3, rayon 1.11.0, rayon 1.13.0,
 rcgen 0.14.6, regex-syntax 0.8.6, rle-decode-fast 1.0.3, rust-base64 0.21.7,
-rust-base64 0.22.1, rust-clap_builder 4.5.60, rust-clap_derive 4.5.55,
+rust-base64 0.22.1, rust-clap_builder 4.6.0, rust-clap_derive 4.6.0,
 rust-clap_lex 1.0.0, rust-cli/env_logger 1.0.0, rust-itertools/itertools
 0.14.0, rust-lang-nursery/futures-rs 0.3.32, rust-lang/cc-rs 0.1.9,
-rust-lang/hashbrown 0.15.5, rust-lang/hashbrown 0.16.1, rust-lang/libc 0.2.180,
+rust-lang/hashbrown 0.15.5, rust-lang/hashbrown 0.16.1, rust-lang/libc 0.2.183,
 rust-openssl 0.10.75, rust-random/rand 0.10.0, rust-random/rand 0.8.5,
 rust-random/rand 0.9.2, rust-regex 0.1.7, rust-regex 1.12.3,
 rust-threadpool/rust-threadpool 1.8.1, rust-url 2.5.8, rust-xattr 1.5.1,
-rust-zmq 0.10.0, rust-zmq 0.12.0, rustc-hash 2.1.1, rustix 1.1.3, rustls
-0.21.12, rustls 0.23.35, rustls-native-certs 0.8.3, rustls-pki-types 1.14.0,
+rust-zmq 0.10.0, rust-zmq 0.12.0, rustc-hash 2.1.1, rustix 1.1.4, rustls
+0.23.37, rustls-native-certs 0.8.3, rustls-pki-types 1.14.0,
 seanmonstar/httparse 1.10.1, seanmonstar/reqwest 0.13.2, semver 1.0.27,
 serde_derive 1.0.177, serde_derive 1.0.228, serde_json 1.0.149, serde_spanned
-0.6.9, serde_spanned 1.0.4, servo/rust-fnv 1.0.7, servo/rust-smallvec 1.15.1,
-shlex 1.3.0, signal-hook-registry 1.4.6, srijs/rust-crc32fast 1.5.0,
-stable_deref_trait 1.2.0, state 0.6.0, syn 2.0.117, sync_wrapper 1.0.2,
-system-deps 6.2.2, tailhook/humantime 2.2.0, tar (Rust) 0.4.44, terminal_size
-0.4.3, thiserror 1.0.69, thiserror 2.0.18, thiserror-impl 1.0.69,
-thiserror-impl 2.0.18, thread-id 5.0.0, time 0.3.47, time-core 0.1.8,
-tokio-rustls 0.24.1, tokio-rustls 0.26.4, toml-rs 0.8.23, toml-rs
-1.0.3+spec-1.1.0, toml_datetime 0.6.11, toml_datetime 1.0.0+spec-1.1.0,
-toml_parser 1.0.9+spec-1.1.0, toml_writer 1.0.6+spec-1.1.0, ucd-trie 0.1.7,
+0.6.9, serde_spanned 1.1.0, servo/ipc-channel 0.21.0, servo/rust-fnv 1.0.7,
+servo/rust-smallvec 1.15.1, shlex 1.3.0, signal-hook-registry 1.4.6,
+solana-agave 0.4.9, srijs/rust-crc32fast 1.5.0, stable_deref_trait 1.2.0, state
+0.6.0, syn 2.0.117, sync_wrapper 1.0.2, system-deps 6.2.2, tailhook/humantime
+2.2.0, tar (Rust) 0.4.45, terminal_size 0.4.3, thiserror 1.0.69, thiserror
+2.0.18, thiserror-impl 1.0.69, thiserror-impl 2.0.18, thread-id 5.0.0, time
+0.3.47, time-core 0.1.8, tokio-rustls 0.26.4, toml-rs 0.8.23, toml-rs
+1.1.0+spec-1.1.0, toml_datetime 0.6.11, toml_datetime 1.1.0+spec-1.1.0,
+toml_parser 1.1.0+spec-1.1.0, toml_writer 1.1.0+spec-1.1.0, ucd-trie 0.1.7,
 unicode-rs/unicode-segmentation 1.12.0, unicode-rs/unicode-width 0.2.1,
 unicode-rs/unicode-xid 0.2.6, ureq 3.1.4, ureq-proto 0.5.3, utf-8 0.7.6,
 utf8_iter 1.0.4, utf8parse 0.2.2, uuid-rs/uuid 1.4.1, vcpkg-rs 0.2.15,
@@ -1007,13 +1006,13 @@ Contents of NOTICE text file for actix-codec 0.5.2:
   Nikolay Kim actix/Core
 
  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Contents of NOTICE text file for aws-config 1.8.14, aws-credential-types
-1.2.13, aws-runtime 1.7.1, aws-sdk-ecr 1.109.0, aws-sdk-sso 1.94.0,
-aws-sdk-ssooidc 1.96.0, aws-sdk-sts 1.98.0, aws-sigv4 1.4.1, aws-smithy-async
-1.2.13, aws-smithy-http 0.63.5, aws-smithy-http-client 1.1.11, aws-smithy-json
-0.62.4, aws-smithy-observability 0.2.5, aws-smithy-query 0.60.14,
-aws-smithy-runtime 1.10.2, aws-smithy-runtime-api 1.11.5, aws-smithy-types
-1.4.5, aws-smithy-xml 0.60.14, and aws-types 1.3.13:
+Contents of NOTICE text file for aws-config 1.8.15, aws-credential-types
+1.2.14, aws-runtime 1.7.2, aws-sdk-sso 1.96.0, aws-sdk-ssooidc 1.98.0,
+aws-sdk-sts 1.100.0, aws-sigv4 1.4.2, aws-smithy-async 1.2.14, aws-smithy-http
+0.63.6, aws-smithy-http-client 1.1.12, aws-smithy-json 0.62.5,
+aws-smithy-observability 0.2.6, aws-smithy-query 0.60.15, aws-smithy-runtime
+1.10.3, aws-smithy-runtime-api 1.11.6, aws-smithy-xml 0.60.15, and aws-types
+1.3.14:
 
   Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
@@ -1188,7 +1187,7 @@ Habitat core_pcre2 10.42, and Habitat core_zstd 1.5.7.
 
 (7) BSD Zero Clause License:
 
-Progress Chef Habitat 2.0 incorporates adler2 2.0.1 and mock_instant 0.6.0.
+Progress Chef Habitat 2.0 incorporates mock_instant 0.6.0.
 
   BSD Zero Clause License
   =======================
@@ -7025,9 +7024,9 @@ core_mpfr 4.2.1, and Habitat core_zeromq 4.3.4.
 
 (20) ISC License:
 
-Progress Chef Habitat 2.0 incorporates Habitat core_libsodium 1.0.18, aws-lc-rs
-1.14.0, aws-lc-sys 0.31.0, briansmith/untrusted 0.9.0, inotify 0.11.0,
-inotify-sys 0.1.5, rustls-webpki 0.101.7, and rustls-webpki 0.103.9.
+Progress Chef Habitat 2.0 incorporates Habitat core_libsodium 1.0.18,
+briansmith/untrusted 0.9.0, inotify 0.11.0, inotify-sys 0.1.5, and
+rustls-webpki 0.103.10.
 
   ISC License (ISCL)
   ==================
@@ -7163,7 +7162,7 @@ Progress Chef Habitat 2.0 incorporates webdesus/fs_extra 1.3.0.
 (24) MIT License:
 
 Progress Chef Habitat 2.0 incorporates BurntSushi/rust-memchr 2.7.5,
-BurntSushi/same-file 1.0.6, jiff 0.2.15, and tabwriter 1.4.1.
+BurntSushi/same-file 1.0.6, jiff 0.2.23, and tabwriter 1.4.1.
 
   The MIT License
   ===============
@@ -7295,6 +7294,33 @@ seanmonstar/try-lock 0.2.5, and seanmonstar/want 0.3.1.
 
 (29) MIT License:
 
+Progress Chef Habitat 2.0 incorporates aws-lc-sys 0.39.0.
+
+  The MIT License
+  ===============
+  Copyright (c) aws/aws-lc-rs-team Copyright (c) Justin W Smith Copyright (c)
+  Sean McGrail Copyright (c) crypto-alg
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+(30) MIT License:
+
 Progress Chef Habitat 2.0 incorporates dircpy 0.3.19.
 
   The MIT License
@@ -7319,7 +7345,7 @@ Progress Chef Habitat 2.0 incorporates dircpy 0.3.19.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(30) MIT License:
+(31) MIT License:
 
 Progress Chef Habitat 2.0 incorporates rust-nom 7.1.3.
 
@@ -7345,7 +7371,7 @@ Progress Chef Habitat 2.0 incorporates rust-nom 7.1.3.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(31) MIT License:
+(32) MIT License:
 
 Progress Chef Habitat 2.0 incorporates json-pointer 0.3.4.
 
@@ -7371,7 +7397,7 @@ Progress Chef Habitat 2.0 incorporates json-pointer 0.3.4.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(32) MIT License:
+(33) MIT License:
 
 Progress Chef Habitat 2.0 incorporates Habitat core_findutils 4.10.0, Habitat
 core_iana-etc 20250123, Habitat core_libpsl 0.21.1, Habitat core_ncurses 6.5,
@@ -7399,7 +7425,7 @@ Habitat core_powershell 7.5.4, and Habitat core_toml-cli 0.2.3.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(33) MIT License:
+(34) MIT License:
 
 Progress Chef Habitat 2.0 incorporates cfg_aliases 0.2.1.
 
@@ -7425,7 +7451,7 @@ Progress Chef Habitat 2.0 incorporates cfg_aliases 0.2.1.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(34) MIT License:
+(35) MIT License:
 
 Progress Chef Habitat 2.0 incorporates libflate 2.2.1 and libflate_lz77 2.2.0.
 
@@ -7451,7 +7477,7 @@ Progress Chef Habitat 2.0 incorporates libflate 2.2.1 and libflate_lz77 2.2.0.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(35) MIT License:
+(36) MIT License:
 
 Progress Chef Habitat 2.0 incorporates BurntSushi/regex-automata 0.4.12.
 
@@ -7477,7 +7503,7 @@ Progress Chef Habitat 2.0 incorporates BurntSushi/regex-automata 0.4.12.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(36) MIT License:
+(37) MIT License:
 
 Progress Chef Habitat 2.0 incorporates typemap-ors 1.0.0.
 
@@ -7503,7 +7529,7 @@ Progress Chef Habitat 2.0 incorporates typemap-ors 1.0.0.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(37) MIT License:
+(38) MIT License:
 
 Progress Chef Habitat 2.0 incorporates simd-adler32 0.3.7.
 
@@ -7529,7 +7555,7 @@ Progress Chef Habitat 2.0 incorporates simd-adler32 0.3.7.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(38) MIT License:
+(39) MIT License:
 
 Progress Chef Habitat 2.0 incorporates unsafe-libyaml 0.2.11 and zmij 1.0.2.
 
@@ -7555,9 +7581,9 @@ Progress Chef Habitat 2.0 incorporates unsafe-libyaml 0.2.11 and zmij 1.0.2.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(39) MIT License:
+(40) MIT License:
 
-Progress Chef Habitat 2.0 incorporates winnow 0.7.13.
+Progress Chef Habitat 2.0 incorporates winnow 0.7.13 and winnow 1.0.0.
 
   The MIT License
   ===============
@@ -7581,7 +7607,7 @@ Progress Chef Habitat 2.0 incorporates winnow 0.7.13.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(40) MIT License:
+(41) MIT License:
 
 Progress Chef Habitat 2.0 incorporates rust-openssl 0.9.111.
 
@@ -7607,7 +7633,7 @@ Progress Chef Habitat 2.0 incorporates rust-openssl 0.9.111.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(41) MIT License:
+(42) MIT License:
 
 Progress Chef Habitat 2.0 incorporates zip 6.0.0.
 
@@ -7633,7 +7659,7 @@ Progress Chef Habitat 2.0 incorporates zip 6.0.0.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(42) MIT License:
+(43) MIT License:
 
 Progress Chef Habitat 2.0 incorporates fancy-regex 0.11.0.
 
@@ -7659,7 +7685,7 @@ Progress Chef Habitat 2.0 incorporates fancy-regex 0.11.0.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(43) MIT License:
+(44) MIT License:
 
 Progress Chef Habitat 2.0 incorporates nix-rust/nix 0.30.1.
 
@@ -7685,7 +7711,7 @@ Progress Chef Habitat 2.0 incorporates nix-rust/nix 0.30.1.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(44) MIT License:
+(45) MIT License:
 
 Progress Chef Habitat 2.0 incorporates jsonway 2.0.0 and rustless/valico 4.0.0.
 
@@ -7711,7 +7737,7 @@ Progress Chef Habitat 2.0 incorporates jsonway 2.0.0 and rustless/valico 4.0.0.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(45) MIT License:
+(46) MIT License:
 
 Progress Chef Habitat 2.0 incorporates retry 1.0.0.
 
@@ -7737,7 +7763,7 @@ Progress Chef Habitat 2.0 incorporates retry 1.0.0.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(46) MIT License:
+(47) MIT License:
 
 Progress Chef Habitat 2.0 incorporates TedDriggs/darling 0.20.11.
 
@@ -7763,7 +7789,7 @@ Progress Chef Habitat 2.0 incorporates TedDriggs/darling 0.20.11.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(47) MIT License:
+(48) MIT License:
 
 Progress Chef Habitat 2.0 incorporates rust-phf 0.11.3.
 
@@ -7789,7 +7815,7 @@ Progress Chef Habitat 2.0 incorporates rust-phf 0.11.3.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(48) MIT License:
+(49) MIT License:
 
 Progress Chef Habitat 2.0 incorporates oconnor663/blake2_simd 1.0.4.
 
@@ -7815,7 +7841,7 @@ Progress Chef Habitat 2.0 incorporates oconnor663/blake2_simd 1.0.4.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(49) MIT License:
+(50) MIT License:
 
 Progress Chef Habitat 2.0 incorporates tower-rs/tower 0.3.3 and tower-rs/tower
 0.5.2.
@@ -7842,7 +7868,7 @@ Progress Chef Habitat 2.0 incorporates tower-rs/tower 0.3.3 and tower-rs/tower
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(50) MIT License:
+(51) MIT License:
 
 Progress Chef Habitat 2.0 incorporates tracing-attributes 0.1.31 and
 tracing-core 0.1.36.
@@ -7869,7 +7895,7 @@ tracing-core 0.1.36.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(51) MIT License:
+(52) MIT License:
 
 Progress Chef Habitat 2.0 incorporates Hyper HTTP library 1.8.1.
 
@@ -7895,7 +7921,7 @@ Progress Chef Habitat 2.0 incorporates Hyper HTTP library 1.8.1.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(52) MIT License:
+(53) MIT License:
 
 Progress Chef Habitat 2.0 incorporates generic-array 0.14.7.
 
@@ -7921,7 +7947,7 @@ Progress Chef Habitat 2.0 incorporates generic-array 0.14.7.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(53) MIT License:
+(54) MIT License:
 
 Progress Chef Habitat 2.0 incorporates broadcast 0.1.0 and tee 0.1.0.
 
@@ -7947,7 +7973,7 @@ Progress Chef Habitat 2.0 incorporates broadcast 0.1.0 and tee 0.1.0.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(54) MIT License:
+(55) MIT License:
 
 Progress Chef Habitat 2.0 incorporates sunng87/handlebars-rust 6.4.0.
 
@@ -7973,7 +7999,7 @@ Progress Chef Habitat 2.0 incorporates sunng87/handlebars-rust 6.4.0.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(55) MIT License:
+(56) MIT License:
 
 Progress Chef Habitat 2.0 incorporates hyperium/http-body 0.1.3,
 hyperium/http-body 0.4.6, and hyperium/http-body 1.0.1.
@@ -8001,7 +8027,7 @@ hyperium/http-body 0.4.6, and hyperium/http-body 1.0.1.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(56) MIT License:
+(57) MIT License:
 
 Progress Chef Habitat 2.0 incorporates version-compare 0.2.1.
 
@@ -8027,7 +8053,7 @@ Progress Chef Habitat 2.0 incorporates version-compare 0.2.1.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(57) MIT License:
+(58) MIT License:
 
 Progress Chef Habitat 2.0 incorporates base64-simd 0.8.0, outref 0.5.2, and
 vsimd 0.8.0.
@@ -8054,7 +8080,7 @@ vsimd 0.8.0.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(58) MIT License:
+(59) MIT License:
 
 Progress Chef Habitat 2.0 incorporates ct-codecs 1.1.6, libsodium-rs 0.2.1, and
 minisign-verify 0.2.4.
@@ -8081,7 +8107,7 @@ minisign-verify 0.2.4.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(59) MIT License:
+(60) MIT License:
 
 Progress Chef Habitat 2.0 incorporates jwalk 0.8.1.
 
@@ -8107,7 +8133,7 @@ Progress Chef Habitat 2.0 incorporates jwalk 0.8.1.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(60) MIT License:
+(61) MIT License:
 
 Progress Chef Habitat 2.0 incorporates os_info 3.14.0.
 
@@ -8133,7 +8159,7 @@ Progress Chef Habitat 2.0 incorporates os_info 3.14.0.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(61) MIT License:
+(62) MIT License:
 
 Progress Chef Habitat 2.0 incorporates tracing 0.1.44.
 
@@ -8160,7 +8186,7 @@ Progress Chef Habitat 2.0 incorporates tracing 0.1.44.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(62) MIT License:
+(63) MIT License:
 
 Progress Chef Habitat 2.0 incorporates rust-mio 1.1.1.
 
@@ -8186,7 +8212,7 @@ Progress Chef Habitat 2.0 incorporates rust-mio 1.1.1.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(63) MIT License:
+(64) MIT License:
 
 Progress Chef Habitat 2.0 incorporates a8m/pb 1.1.1.
 
@@ -8212,7 +8238,7 @@ Progress Chef Habitat 2.0 incorporates a8m/pb 1.1.1.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(64) MIT License:
+(65) MIT License:
 
 Progress Chef Habitat 2.0 incorporates urlencoding 2.1.3.
 
@@ -8238,7 +8264,7 @@ Progress Chef Habitat 2.0 incorporates urlencoding 2.1.3.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(65) MIT License:
+(66) MIT License:
 
 Progress Chef Habitat 2.0 incorporates dguo/strsim-rs 0.11.1.
 
@@ -8264,7 +8290,7 @@ Progress Chef Habitat 2.0 incorporates dguo/strsim-rs 0.11.1.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(66) MIT License:
+(67) MIT License:
 
 Progress Chef Habitat 2.0 incorporates slab 0.4.11.
 
@@ -8290,7 +8316,7 @@ Progress Chef Habitat 2.0 incorporates slab 0.4.11.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(67) MIT License:
+(68) MIT License:
 
 Progress Chef Habitat 2.0 incorporates serde-value 0.7.0.
 
@@ -8316,7 +8342,7 @@ Progress Chef Habitat 2.0 incorporates serde-value 0.7.0.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(68) MIT License:
+(69) MIT License:
 
 Progress Chef Habitat 2.0 incorporates tokio-macros 2.6.0, tokio-native-tls
 0.3.1, and tokio-stream 0.1.17.
@@ -8343,7 +8369,7 @@ Progress Chef Habitat 2.0 incorporates tokio-macros 2.6.0, tokio-native-tls
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(69) MIT License:
+(70) MIT License:
 
 Progress Chef Habitat 2.0 incorporates ordered-float 2.10.1.
 
@@ -8369,7 +8395,7 @@ Progress Chef Habitat 2.0 incorporates ordered-float 2.10.1.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(70) MIT License:
+(71) MIT License:
 
 Progress Chef Habitat 2.0 incorporates synstructure 0.13.2.
 
@@ -8395,7 +8421,7 @@ Progress Chef Habitat 2.0 incorporates synstructure 0.13.2.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(71) MIT License:
+(72) MIT License:
 
 Progress Chef Habitat 2.0 incorporates JelteF/derive_more 2.0.1.
 
@@ -8421,9 +8447,9 @@ Progress Chef Habitat 2.0 incorporates JelteF/derive_more 2.0.1.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(72) MIT License:
+(73) MIT License:
 
-Progress Chef Habitat 2.0 incorporates tokio 1.49.0, tokio-rs/bytes 1.11.1, and
+Progress Chef Habitat 2.0 incorporates tokio 1.50.0, tokio-rs/bytes 1.11.1, and
 tokio-util 0.7.18.
 
   The MIT License
@@ -8448,9 +8474,9 @@ tokio-util 0.7.18.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(73) MIT License:
+(74) MIT License:
 
-Progress Chef Habitat 2.0 incorporates nix-rust/nix 0.31.1.
+Progress Chef Habitat 2.0 incorporates nix-rust/nix 0.31.2.
 
   The MIT License
   ===============
@@ -8474,7 +8500,7 @@ Progress Chef Habitat 2.0 incorporates nix-rust/nix 0.31.1.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(74) MIT License:
+(75) MIT License:
 
 Progress Chef Habitat 2.0 incorporates tower-http 0.6.8.
 
@@ -8500,7 +8526,7 @@ Progress Chef Habitat 2.0 incorporates tower-http 0.6.8.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(75) MIT License:
+(76) MIT License:
 
 Progress Chef Habitat 2.0 incorporates rand_chacha 0.3.1.
 
@@ -8527,7 +8553,7 @@ Progress Chef Habitat 2.0 incorporates rand_chacha 0.3.1.
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
-(76) Microsoft Visual Studio Enterprise 2022, Visual Studio Professional 2022,
+(77) Microsoft Visual Studio Enterprise 2022, Visual Studio Professional 2022,
 and Trial Edition:
 
 Progress Chef Habitat 2.0 incorporates Habitat core_visual-cpp-redist-2022
@@ -9040,10 +9066,10 @@ Progress Chef Habitat 2.0 incorporates Habitat core_visual-cpp-redist-2022
 
   EULAID: VS_EntPro_2022_ENU.1033
 
-(77) Mozilla Public License 2.0:
+(78) Mozilla Public License 2.0:
 
 Progress Chef Habitat 2.0 incorporates Habitat core_cacerts 2025-05-20, mktemp
-0.5.1, option-ext 0.2.0, and webpki-roots 0.25.4.
+0.5.1, and option-ext 0.2.0.
 
   Mozilla Public License Version 2.0
   ======================
@@ -9459,7 +9485,7 @@ Progress Chef Habitat 2.0 incorporates Habitat core_cacerts 2025-05-20, mktemp
     This Source Code Form is "Incompatible With Secondary Licenses", as defined
     by the Mozilla Public License, v. 2.0.
 
-(78) OpenSSL Combined License:
+(79) OpenSSL Combined License:
 
 Progress Chef Habitat 2.0 incorporates Habitat core_openssl 3.5.5.
 
@@ -9602,14 +9628,14 @@ Progress Chef Habitat 2.0 incorporates Habitat core_openssl 3.5.5.
   copied and put under another distribution licence [including the GNU Public
   Licence.]
 
-(79) Public Domain:
+(80) Public Domain:
 
 Progress Chef Habitat 2.0 incorporates Habitat core_mg 20250523 and Habitat
 core_sqlite 3.50.4.
 
   Public domain code is not subject to any license.
 
-(80) The Unlicense:
+(81) The Unlicense:
 
 Progress Chef Habitat 2.0 incorporates BurntSushi/byteorder 1.5.0,
 BurntSushi/termcolor 1.4.1, BurntSushi/walkdir 2.5.0, and rust-aho-corasick
@@ -9640,7 +9666,7 @@ BurntSushi/termcolor 1.4.1, BurntSushi/walkdir 2.5.0, and rust-aho-corasick
 
   For more information, please refer to http://unlicense.org/
 
-(81) Unicode License Agreement - Data Files and Software (2016):
+(82) Unicode License Agreement - Data Files and Software (2016):
 
 Progress Chef Habitat 2.0 incorporates unicode-org/icu4x 0.1.2.
 
@@ -9701,7 +9727,7 @@ Progress Chef Habitat 2.0 incorporates unicode-org/icu4x 0.1.2.
   dealings in these Data Files or Software without prior written authorization
   of the copyright holder.
 
-(82) Unicode License v3:
+(83) Unicode License v3:
 
 Progress Chef Habitat 2.0 incorporates icu_normalizer 2.0.0, icu_provider
 2.0.0, litemap 0.8.0, tinystr 0.8.1, unicode-ident 1.0.18, unicode-org/icu4x
@@ -9747,7 +9773,7 @@ zerovec-derive 0.11.1.
   dealings in these Data Files or Software without prior written authorization
   of the copyright holder.
 
-(83) Vim License:
+(84) Vim License:
 
 Progress Chef Habitat 2.0 incorporates Habitat core_vim 9.1.1166.
 
@@ -9847,7 +9873,7 @@ Progress Chef Habitat 2.0 incorporates Habitat core_vim 9.1.1166.
       for previous Vim releases instead of the license that they came with, at
       your option.
 
-(84) zlib License:
+(85) zlib License:
 
 Progress Chef Habitat 2.0 incorporates foldhash 0.1.5 and foldhash 0.2.0.
 
@@ -9874,7 +9900,7 @@ Progress Chef Habitat 2.0 incorporates foldhash 0.1.5 and foldhash 0.2.0.
         3. This notice may not be removed or altered from any source
         distribution.
 
-(85) zlib License:
+(86) zlib License:
 
 Progress Chef Habitat 2.0 incorporates Habitat core_zlib 1.3.1.
 
@@ -9901,7 +9927,7 @@ Progress Chef Habitat 2.0 incorporates Habitat core_zlib 1.3.1.
         3. This notice may not be removed or altered from any source
         distribution.
 
-(86) zlib License:
+(87) zlib License:
 
 Progress Chef Habitat 2.0 incorporates remram44/adler32-rs 1.2.0.
 
@@ -9928,7 +9954,7 @@ Progress Chef Habitat 2.0 incorporates remram44/adler32-rs 1.2.0.
         3. This notice may not be removed or altered from any source
         distribution.
 
-(87) zlib License:
+(88) zlib License:
 
 Progress Chef Habitat 2.0 incorporates zlib-rs 0.6.0.
 
@@ -9969,4 +9995,4 @@ NOTICE FROM PROGRESS SOFTWARE CORPORATION: Additional notices may be included
 in the release notes or other documentation that accompanies updates received
 in connection with support of the Product.
 
-Updated February 24, 2026
+Updated March 27, 2026
