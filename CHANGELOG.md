@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.487 -->
-## [2.0.487](https://github.com/habitat-sh/habitat/tree/2.0.487) (2026-03-30)
+<!-- latest_release 2.0.488 -->
+## [2.0.488](https://github.com/habitat-sh/habitat/tree/2.0.488) (2026-03-30)
 
 #### Merged Pull Requests
-- Default  all Origins to use Base Channel [#10299](https://github.com/habitat-sh/habitat/pull/10299) ([dikshagupta1](https://github.com/dikshagupta1))
+- update deps in notices.txt [#10313](https://github.com/habitat-sh/habitat/pull/10313) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.450-->
 ### Changes since 2.0.450 release
 
 #### Merged Pull Requests
+- update deps in notices.txt [#10313](https://github.com/habitat-sh/habitat/pull/10313) ([mwrock](https://github.com/mwrock)) <!-- 2.0.488 -->
 - Default  all Origins to use Base Channel [#10299](https://github.com/habitat-sh/habitat/pull/10299) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.487 -->
 - Adding the `/opt` prefix to archive validation [#10312](https://github.com/habitat-sh/habitat/pull/10312) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.486 -->
 - get ci workflor flowing by removing trivy scan [#10308](https://github.com/habitat-sh/habitat/pull/10308) ([mwrock](https://github.com/mwrock)) <!-- 2.0.485 -->
