@@ -636,8 +636,7 @@ pub fn shared_load_cli_to_ctl(ident: PackageIdent,
     #[cfg(not(target_os = "windows"))]
     let svc_encrypted_password = None;
 
-    Ok(SvcLoad { bldr_channel:
-                     Some(resolve_channel_for_pkg(&shared_load.channel, &ident).to_string()),
+    Ok(SvcLoad { bldr_channel: Some(resolve_channel_for_pkg(&shared_load.channel).to_string()),
                  ident: Some(ident.into()),
                  binds,
                  binding_mode: Some(shared_load.binding_mode as i32),
@@ -708,13 +707,11 @@ pub(crate) fn maybe_refresh_channel_from_args_env_or_config(opt: Option<String>)
 
 pub(crate) fn is_default<T: Default + PartialEq>(val: &T) -> bool { val == &T::default() }
 
-pub(crate) fn resolve_channel_for_pkg(user_channel: &Option<ChannelIdent>,
-                                      _ident: &PackageIdent)
-                                      -> ChannelIdent {
+pub(crate) fn resolve_channel_for_pkg(user_channel: &Option<ChannelIdent>) -> ChannelIdent {
     if let Some(ch) = user_channel {
         return ch.clone();
     }
-    ChannelIdent::base()
+    ChannelIdent::default()
 }
 
 #[cfg(not(target_os = "macos"))]

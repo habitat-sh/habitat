@@ -36,7 +36,7 @@ pub async fn start(ui: &mut UI,
                    (ident, target): (&PackageIdent, PackageTarget),
                    token: &str)
                    -> Result<()> {
-    let default_channel = ChannelIdent::base();
+    let default_channel = ChannelIdent::default();
     let default_channel_str = default_channel.as_str();
 
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;

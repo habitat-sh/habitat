@@ -228,7 +228,7 @@ pub(crate) async fn split_apart_sup_run(
     let channel = if let Some(ref channel) = shared_load.channel {
         channel.clone()
     } else {
-        ChannelIdent::base()
+        ChannelIdent::default()
     };
 
     let cfg =
@@ -286,7 +286,7 @@ pub(crate) async fn split_apart_sup_run(
         let channel = if let Some(ref channel) = shared_load.channel {
             channel.clone()
         } else {
-            ChannelIdent::base()
+            ChannelIdent::default()
         };
 
         let ident = match install_source {

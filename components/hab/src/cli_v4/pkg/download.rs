@@ -95,7 +95,7 @@ impl PkgDownloadOptions {
                                                idents: self.pkg_ident.clone() });
             } else {
                 package_sets.push(PackageSet { target,
-                                               channel: ChannelIdent::base(),
+                                               channel: ChannelIdent::default(),
                                                idents: self.pkg_ident.clone() });
             }
         }
@@ -134,7 +134,7 @@ impl PkgDownloadOptions {
                         }
                         None => {
                             sources.push(PackageSet { idents: idents_from_file,
-                                                      channel: ChannelIdent::base(),
+                                                      channel: ChannelIdent::default(),
                                                       target });
                         }
                     }

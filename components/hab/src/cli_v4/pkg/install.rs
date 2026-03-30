@@ -126,7 +126,7 @@ impl PkgInstallOptions {
             let channel = if let Some(ref channel) = self.channel {
                 channel.clone()
             } else {
-                ChannelIdent::base()
+                ChannelIdent::default()
             };
 
             let pkg_install = install::start(ui,

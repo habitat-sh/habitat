@@ -109,25 +109,24 @@ impl TryFrom<UpdateCommand> for ctl::SvcUpdate {
     type Error = Error;
 
     fn try_from(u: UpdateCommand) -> HabResult<Self> {
-        let msg =
-            ctl::SvcUpdate { bldr_channel:
-                                 Some(resolve_channel_for_pkg(&u.channel, &u.pkg_ident).to_string()),
-                             ident: Some(From::from(u.pkg_ident)),
-                             // We are explicitly *not* using the environment variable as a
-                             // fallback.
-                             bldr_url: u.bldr_url.map(|u| u.to_string()),
-                             binds: u.bind.map(FromIterator::from_iter),
-                             group: u.group,
-                             health_check_interval: u.health_check_interval.map(Into::into),
-                             binding_mode: u.binding_mode.map(|v| v as i32),
-                             topology: u.topology.map(|v| v as i32),
-                             update_strategy: u.strategy.map(|v| v as i32),
-                             update_condition: Some(u.update_condition as i32),
-                             shutdown_timeout: u.shutdown_timeout.map(Into::into),
-                             #[cfg(windows)]
-                             svc_encrypted_password: u.password,
-                             #[cfg(not(windows))]
-                             svc_encrypted_password: None, };
+        let msg = ctl::SvcUpdate { bldr_channel:
+                                       Some(resolve_channel_for_pkg(&u.channel).to_string()),
+                                   ident: Some(From::from(u.pkg_ident)),
+                                   // We are explicitly *not* using the environment variable as a
+                                   // fallback.
+                                   bldr_url: u.bldr_url.map(|u| u.to_string()),
+                                   binds: u.bind.map(FromIterator::from_iter),
+                                   group: u.group,
+                                   health_check_interval: u.health_check_interval.map(Into::into),
+                                   binding_mode: u.binding_mode.map(|v| v as i32),
+                                   topology: u.topology.map(|v| v as i32),
+                                   update_strategy: u.strategy.map(|v| v as i32),
+                                   update_condition: Some(u.update_condition as i32),
+                                   shutdown_timeout: u.shutdown_timeout.map(Into::into),
+                                   #[cfg(windows)]
+                                   svc_encrypted_password: u.password,
+                                   #[cfg(not(windows))]
+                                   svc_encrypted_password: None, };
 
         // Compiler-assisted validation that the user has indeed
         // specified *something* to change. If they didn't, all the
