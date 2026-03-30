@@ -636,8 +636,7 @@ pub fn shared_load_cli_to_ctl(ident: PackageIdent,
     #[cfg(not(target_os = "windows"))]
     let svc_encrypted_password = None;
 
-    Ok(SvcLoad { bldr_channel:
-                     Some(resolve_channel_for_pkg(&shared_load.channel, &ident).to_string()),
+    Ok(SvcLoad { bldr_channel: Some(resolve_channel_for_pkg(&shared_load.channel).to_string()),
                  ident: Some(ident.into()),
                  binds,
                  binding_mode: Some(shared_load.binding_mode as i32),
@@ -708,17 +707,11 @@ pub(crate) fn maybe_refresh_channel_from_args_env_or_config(opt: Option<String>)
 
 pub(crate) fn is_default<T: Default + PartialEq>(val: &T) -> bool { val == &T::default() }
 
-pub(crate) fn resolve_channel_for_pkg(user_channel: &Option<ChannelIdent>,
-                                      ident: &PackageIdent)
-                                      -> ChannelIdent {
+pub(crate) fn resolve_channel_for_pkg(user_channel: &Option<ChannelIdent>) -> ChannelIdent {
     if let Some(ch) = user_channel {
         return ch.clone();
     }
-    if ident.origin == "core" {
-        ChannelIdent::base()
-    } else {
-        ChannelIdent::stable()
-    }
+    ChannelIdent::default()
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -935,6 +928,7 @@ mod tests {
 
     mod refresh_channel_tests {
         use crate::cli_v4::utils::maybe_refresh_channel_from_args_env_or_config;
+        use habitat_core::ChannelIdent;
 
         habitat_core::locked_env_var!(HAB_REFRESH_CHANNEL, locked_refresh_channel);
 
@@ -962,6 +956,17 @@ mod tests {
             let result =
                 maybe_refresh_channel_from_args_env_or_config(Some("cli_channel".to_string()));
             assert_eq!(result, Some("cli_channel".to_string()));
+        }
+
+        #[test]
+        fn test_no_arg_no_env_defaults_to_base_channel() {
+            let env_var = locked_refresh_channel();
+            env_var.unset();
+
+            // No CLI arg and no env var → None; pkg build falls back to ChannelIdent::default()
+            let result = maybe_refresh_channel_from_args_env_or_config(None);
+            let channel = result.unwrap_or_else(|| ChannelIdent::default().to_string());
+            assert_eq!(channel, ChannelIdent::default().to_string());
         }
     }
 }

@@ -174,7 +174,7 @@ mod manager_config {
     #[test]
     fn update_channel_is_set_to_default_when_not_specified() {
         let config = config_from_cmd_str("hab-sup run");
-        assert_eq!(config.update_channel, ChannelIdent::stable());
+        assert_eq!(config.update_channel, ChannelIdent::default());
     }
 
     #[test]

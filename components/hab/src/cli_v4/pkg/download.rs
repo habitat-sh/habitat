@@ -17,8 +17,7 @@ use habitat_common::{Error as HabitatCommonError,
 
 use habitat_core::{ChannelIdent,
                    env::Config,
-                   package::{Identifiable,
-                             PackageIdent,
+                   package::{PackageIdent,
                              PackageTarget,
                              target}};
 
@@ -90,23 +89,14 @@ impl PkgDownloadOptions {
         let mut package_sets = vec![];
 
         if !self.pkg_ident.is_empty() {
-            let (core_idents, non_core_idents): (Vec<_>, Vec<_>) =
-                self.pkg_ident
-                    .clone()
-                    .into_iter()
-                    .partition(|ident| ident.origin() == "core");
-
             if let Some(ref channel) = self.channel {
                 package_sets.push(PackageSet { target,
                                                channel: channel.clone(),
                                                idents: self.pkg_ident.clone() });
             } else {
                 package_sets.push(PackageSet { target,
-                                               channel: ChannelIdent::base(),
-                                               idents: core_idents });
-                package_sets.push(PackageSet { target,
-                                               channel: ChannelIdent::stable(),
-                                               idents: non_core_idents });
+                                               channel: ChannelIdent::default(),
+                                               idents: self.pkg_ident.clone() });
             }
         }
         let mut package_sets_from_file = self.idents_from_file_matches(target)?;
@@ -143,19 +133,9 @@ impl PkgDownloadOptions {
                                                       target })
                         }
                         None => {
-                            let (core_idents, non_core_idents): (Vec<_>, Vec<_>) =
-                                idents_from_file.into_iter()
-                                                .partition(|ident| ident.origin() == "core");
-                            let core_package_set = PackageSet { idents: core_idents,
-                                                                channel:
-                                                                    ChannelIdent::from("base"),
-                                                                target };
-                            sources.push(core_package_set);
-                            let non_core_package_set = PackageSet { idents: non_core_idents,
-                                                                    channel:
-                                                                        ChannelIdent::from("stable"),
-                                                                    target };
-                            sources.push(non_core_package_set);
+                            sources.push(PackageSet { idents: idents_from_file,
+                                                      channel: ChannelIdent::default(),
+                                                      target });
                         }
                     }
                 }

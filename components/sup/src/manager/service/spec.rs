@@ -112,11 +112,7 @@ pub struct ServiceSpec {
 
 impl ServiceSpec {
     pub fn new(ident: PackageIdent) -> Self {
-        let channel = if ident.origin == "core" {
-            ChannelIdent::base()
-        } else {
-            ChannelIdent::stable()
-        };
+        let channel = ChannelIdent::default();
 
         Self { ident,
                group: DEFAULT_GROUP.to_string(),
@@ -238,12 +234,7 @@ impl ServiceSpec {
         if let Some(channel) = svc_load.bldr_channel {
             self.channel = channel.into();
         } else {
-            // Set the appropriate default channel based on origin
-            self.channel = if self.ident.origin == "core" {
-                ChannelIdent::base()
-            } else {
-                ChannelIdent::stable()
-            };
+            self.channel = ChannelIdent::default();
         }
         if let Some(topology) = svc_load.topology {
             if let Ok(topology) = Topology::try_from(topology) {
@@ -778,7 +769,7 @@ mod tests {
         assert_eq!(spec.binds,
                    vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),]);
-        assert_eq!(spec.channel, ChannelIdent::stable());
+        assert_eq!(spec.channel, ChannelIdent::default());
         assert_eq!(spec.config_from,
                    Some(PathBuf::from("/only/for/development")));
 
@@ -1096,9 +1087,7 @@ mod tests {
         let spec =
             ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
 
-        // The key assertion - non-core origin with no channel should default to the 'stable'
-        // channel
-        assert_eq!(spec.channel, ChannelIdent::stable());
+        assert_eq!(spec.channel, ChannelIdent::default());
         assert_eq!(spec.ident.origin, "howdy");
         assert_eq!(spec.ident.name, "web-app");
     }

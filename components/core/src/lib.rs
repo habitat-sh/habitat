@@ -31,7 +31,7 @@ pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 env_config_string!(#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, PartialEq)]
                    pub ChannelIdent,
                    HAB_BLDR_CHANNEL,
-                   ChannelIdent::STABLE);
+                   ChannelIdent::BASE);
 
 impl ChannelIdent {
     const BASE: &'static str = "base";
