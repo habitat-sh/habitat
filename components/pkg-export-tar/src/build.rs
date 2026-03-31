@@ -177,7 +177,8 @@ impl<'a> BuildSpec<'a> {
         // something other than a "base" package... replacing busybox
         // isn't really something that's going to need to be done.
         let busybox = if cfg!(target_os = "linux") {
-            Some(self.install_pkg_from_default_channel(ui, BUSYBOX_IDENT, rootfs).await?)
+            Some(self.install_pkg_from_default_channel(ui, BUSYBOX_IDENT, rootfs)
+                     .await?)
         } else {
             None
         };
@@ -203,10 +204,10 @@ impl<'a> BuildSpec<'a> {
     }
 
     async fn install_pkg_from_default_channel(&self,
-                                ui: &mut UI,
-                                ident_or_archive: &str,
-                                fs_root_path: &Path)
-                                -> Result<PackageIdent> {
+                                              ui: &mut UI,
+                                              ident_or_archive: &str,
+                                              fs_root_path: &Path)
+                                              -> Result<PackageIdent> {
         self.install(ui,
                      ident_or_archive,
                      self.base_pkgs_url,

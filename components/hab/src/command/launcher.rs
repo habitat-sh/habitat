@@ -25,10 +25,7 @@ const LAUNCH_PKG_IDENT: &str = "chef/hab-launcher";
 
 pub(crate) async fn start_v4(ui: &mut UI, sup_run: SupRunOptions, args: &[OsString]) -> Result<()> {
     init()?;
-    // We chose `stable` here because the `hab*` packages will be moving to `chef` origin.
-    let channel = sup_run.shared_load
-                         .channel
-                         .unwrap_or_else(ChannelIdent::default);
+    let channel = sup_run.shared_load.channel.unwrap_or_default();
     if henv::var(SUP_CMD_ENVVAR).is_err() {
         let version: Vec<&str> = VERSION.split('/').collect();
         exec::command_from_min_pkg_with_channel(ui,

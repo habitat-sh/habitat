@@ -302,11 +302,13 @@ impl BuildSpec {
         // and cacerts isn't really something that's going to need to
         // be done
         let busybox = if cfg!(target_os = "linux") {
-            Some(self.install_pkg_from_default_channel(ui, BUSYBOX_IDENT, rootfs).await?)
+            Some(self.install_pkg_from_default_channel(ui, BUSYBOX_IDENT, rootfs)
+                     .await?)
         } else {
             None
         };
-        let cacerts = self.install_pkg_from_default_channel(ui, CACERTS_IDENT, rootfs).await?;
+        let cacerts = self.install_pkg_from_default_channel(ui, CACERTS_IDENT, rootfs)
+                          .await?;
 
         Ok(BasePkgIdents { hab,
                            sup,
@@ -355,10 +357,10 @@ impl BuildSpec {
     }
 
     async fn install_pkg_from_default_channel(&self,
-                                ui: &mut UI,
-                                ident_or_archive: &str,
-                                fs_root_path: &Path)
-                                -> Result<FullyQualifiedPackageIdent> {
+                                              ui: &mut UI,
+                                              ident_or_archive: &str,
+                                              fs_root_path: &Path)
+                                              -> Result<FullyQualifiedPackageIdent> {
         self.install(ui,
                      ident_or_archive,
                      &self.base_pkgs_url,
