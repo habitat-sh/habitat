@@ -28,7 +28,7 @@ pub(crate) async fn start_v4(ui: &mut UI, sup_run: SupRunOptions, args: &[OsStri
     // We chose `stable` here because the `hab*` packages will be moving to `chef` origin.
     let channel = sup_run.shared_load
                          .channel
-                         .unwrap_or_else(ChannelIdent::stable);
+                         .unwrap_or_else(ChannelIdent::default);
     if henv::var(SUP_CMD_ENVVAR).is_err() {
         let version: Vec<&str> = VERSION.split('/').collect();
         exec::command_from_min_pkg_with_channel(ui,

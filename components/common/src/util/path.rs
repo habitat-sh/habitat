@@ -97,7 +97,7 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
                 Err(_) => {
                     match install::type_erased_start(&mut ui::NullUi::new(),
                                                      &default_bldr_url(),
-                                                     &ChannelIdent::stable(),
+                                                     &ChannelIdent::default(),
                                                      &(ident.clone(),
                                                        PackageTarget::active_target())
                                                                                       .into(),
