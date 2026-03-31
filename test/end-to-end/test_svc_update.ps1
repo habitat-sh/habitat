@@ -11,9 +11,9 @@ if ($IsWindows) {
     $nginx_release="habitat-testing/nginx/1.18.0/20200626184200"
 }
 if ($IsWindows) {
-    $test_probe_release="habitat-testing/test-probe/0.1.0/20200716152719"
+    $test_probe_release="habitat-testing/test-probe/0.1.0/20230620183252"
 } else {
-    $test_probe_release="habitat-testing/test-probe/0.1.0/20200716143058"
+    $test_probe_release="habitat-testing/test-probe/0.1.0/20230621013852"
 }
 
 Describe "hab svc update" {
