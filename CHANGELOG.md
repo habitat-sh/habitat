@@ -7,11 +7,18 @@
 - change test-probe idents in svc_update test to base channel [#10314](https://github.com/habitat-sh/habitat/pull/10314) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=2.0.450-->
-### Changes since 2.0.450 release
+<!-- release_rollup since=2.0.488-->
+### Changes since 2.0.488 release
 
 #### Merged Pull Requests
 - change test-probe idents in svc_update test to base channel [#10314](https://github.com/habitat-sh/habitat/pull/10314) ([mwrock](https://github.com/mwrock)) <!-- 2.0.489 -->
+
+<!-- release_rollup -->
+
+<!-- latest_stable_release 2.0.488 -->
+
+## [2.0.488](https://github.com/habitat-sh/habitat/tree/2.0.488) (2026-03-31)
+
 - update deps in notices.txt [#10313](https://github.com/habitat-sh/habitat/pull/10313) ([mwrock](https://github.com/mwrock)) <!-- 2.0.488 -->
 - Default  all Origins to use Base Channel [#10299](https://github.com/habitat-sh/habitat/pull/10299) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.487 -->
 - Adding the `/opt` prefix to archive validation [#10312](https://github.com/habitat-sh/habitat/pull/10312) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.486 -->
@@ -61,9 +68,6 @@
 - updating changelog for 2.0.450 [#10261](https://github.com/habitat-sh/habitat/pull/10261) ([mwrock](https://github.com/mwrock)) <!-- 2.0.453 -->
 - override maybe_run with PROMOTE variable [#10260](https://github.com/habitat-sh/habitat/pull/10260) ([mwrock](https://github.com/mwrock)) <!-- 2.0.452 -->
 - run e2e tests that call hab studio enter on windows 2025 [#10259](https://github.com/habitat-sh/habitat/pull/10259) ([mwrock](https://github.com/mwrock)) <!-- 2.0.451 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 2.0.450 -->
 
 ## [2.0.450](https://github.com/habitat-sh/habitat/tree/2.0.450) (2026-03-04)
 

@@ -11,6 +11,7 @@ expeditor:
       env:
         HAB_ORIGIN: "core"
         PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
+        HAB_BLDR_URL: "https://bldr.habitat.sh"
         GITHUB_USER: "habitat-sh" # per https://github.com/github/hub/issues/2264#issuecomment-567241335
 
 steps:
