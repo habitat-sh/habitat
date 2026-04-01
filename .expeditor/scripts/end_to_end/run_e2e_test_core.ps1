@@ -210,7 +210,7 @@ function New-TemporaryDirectory {
 }
 
 function Restart-Supervisor {
-    if ($IsLinux) {
+    if ($IsLinux -Or $IsMacOS) {
         pkill --signal=HUP hab-launch
         Start-Sleep 3 # wait for the signal to be processed
     } else {
@@ -273,7 +273,7 @@ function Invoke-Build($PackageName, $RefreshChannel) {
         $commandArgs += @("--refresh-channel", $RefreshChannel)
     }
     hab pkg build test/fixtures/$PackageName $commandArgs
-    if ($IsLinux) {
+    if ($IsLinux -Or $IsMacOS) {
         # This changes the format of last_build from `var=value` to `$var='value'`
         # so that powershell can parse and source the script
         Set-Content -Path "results/last_build.ps1" -Value ""
