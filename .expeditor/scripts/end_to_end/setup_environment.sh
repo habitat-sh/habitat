@@ -57,13 +57,23 @@ echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel
 # Binlink to '/usr/local/bin' to ensure we do not run the system installed version. The system
 # version is installed in `/usr/bin` which occurs earlier in the PATH than '/bin' (the default)
 # binlink location).
-sudo -E hab pkg install core/powershell \
+if sudo -E hab pkg install core/powershell \
     --binlink \
     --binlink-dir="/usr/local/bin" \
     --force \
     --channel="base" \
-    --url="${HAB_BLDR_URL}"
-echo "--- Using core/powershell version $(pwsh --version)"
+    --url="${HAB_BLDR_URL}" 2>/dev/null; then
+    echo "--- Using core/powershell version $(pwsh --version)"
+elif [[ "${OS}" == "Darwin" ]]; then
+    echo "--- core/powershell not available for this platform, installing via Homebrew"
+    if ! command -v pwsh &>/dev/null; then
+        brew install --cask powershell
+    fi
+    echo "--- Using system pwsh version $(pwsh --version)"
+else
+    echo "--- Failed to install core/powershell" >&2
+    exit 1
+fi
 
 echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, stable channel"
 sudo -E hab pkg install core/pester \
