@@ -1164,6 +1164,250 @@ steps:
             - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_AUTH_TOKEN
 
+  #######################################################################
+  # macOS (aarch64-darwin) E2E Tests
+  #######################################################################
+
+  - label: "[:mac: test_hab_help_doesnt_install_hab_sup]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_hab_help_doesnt_install_hab_sup
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_pkg_download]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_pkg_download
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: hab-svc-load]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_supervisor_load_service
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_supervisor_restarts]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_supervisor_restarts
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_simple_hooks]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_simple_hooks
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_fresh_install_can_communicate_with_builder]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_fresh_install_can_communicate_with_builder
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_supervisor_lock_file_behavior]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_supervisor_lock_file_behavior
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_config_files]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_config_files
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_external_binaries]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_external_binaries
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_tls_ctl_gateway]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_tls_ctl_gateway
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_health_check_output_of_http_gateway]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_health_check_output_of_http_gateway
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_self_signed_cert_is_loaded_by_hab]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_self_signed_cert_is_loaded_by_hab
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_hab_plan_cli]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_hab_plan_cli
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_cli_config_file]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_cli_config_file
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_svc_update]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_svc_update
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
   - wait
 
   - label: "[:habicat: Promote to Acceptance]"
