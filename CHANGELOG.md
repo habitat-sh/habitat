@@ -1,18 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.489 -->
-## [2.0.489](https://github.com/habitat-sh/habitat/tree/2.0.489) (2026-03-31)
+<!-- latest_release 2.0.490 -->
+## [2.0.490](https://github.com/habitat-sh/habitat/tree/2.0.490) (2026-04-01)
 
 #### Merged Pull Requests
-- change test-probe idents in svc_update test to base channel [#10314](https://github.com/habitat-sh/habitat/pull/10314) ([mwrock](https://github.com/mwrock))
+- update changelog for 2.0.488 release [#10321](https://github.com/habitat-sh/habitat/pull/10321) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.488-->
 ### Changes since 2.0.488 release
 
 #### Merged Pull Requests
+- update changelog for 2.0.488 release [#10321](https://github.com/habitat-sh/habitat/pull/10321) ([mwrock](https://github.com/mwrock)) <!-- 2.0.490 -->
 - change test-probe idents in svc_update test to base channel [#10314](https://github.com/habitat-sh/habitat/pull/10314) ([mwrock](https://github.com/mwrock)) <!-- 2.0.489 -->
-
 <!-- release_rollup -->
 
 <!-- latest_stable_release 2.0.488 -->
