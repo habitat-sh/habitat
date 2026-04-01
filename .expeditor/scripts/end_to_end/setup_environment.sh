@@ -8,12 +8,14 @@ source .expeditor/scripts/shared.sh
 #
 # e.g. `dev`, `acceptance` etc.
 channel=${1:?You must specify a channel value}
+OS=$(uname -s)
 
 # Note: We should always have a `hab` binary installed in our CI
 # builders / containers.
 
 echo "--- Installing latest chef/hab from ${HAB_BLDR_URL}, ${channel} channel"
-# Binlink to '/usr/bin' to ensure we do not run the Chef Workstation
+# On macOS, /usr/bin is SIP-protected so we use /usr/local/bin instead.
+# On Linux, binlink to '/usr/bin' to ensure we do not run the Chef Workstation
 # version of `hab`. (In fact, this will overwrite the link to
 # Workstation's `hab`; for our purposes, that's fine.) That is because
 # this occurs earlier in the PATH than '/bin' (the default) binlink
@@ -23,9 +25,14 @@ echo "--- Installing latest chef/hab from ${HAB_BLDR_URL}, ${channel} channel"
 # Powershell below, but that falls apart on NON-container workloads,
 # because there, `/usr/local/bin` comes *later* on the path.  See
 # https://github.com/chef/release-engineering/issues/1241 for more.)
+if [[ "${OS}" == "Darwin" ]]; then
+    HAB_BINLINK_DIR="/usr/local/bin"
+else
+    HAB_BINLINK_DIR="/usr/bin"
+fi
 sudo -E hab pkg install chef/hab \
      --binlink \
-     --binlink-dir=/usr/bin \
+     --binlink-dir="${HAB_BINLINK_DIR}" \
      --force \
      --channel="${channel}" \
      --url="${HAB_BLDR_URL}"
@@ -36,12 +43,15 @@ sudo -E hab pkg install chef/hab-pkg-export-container \
     --channel="${channel}" \
     --url="${HAB_BLDR_URL}"
 
-echo "--- Installing latest core/netcat from ${HAB_BLDR_URL}, base-2025 channel"
-sudo -E hab pkg install core/netcat \
-    --binlink \
-    --force \
-    --channel="base" \
-    --url="${HAB_BLDR_URL}"
+# macOS ships with netcat at /usr/bin/nc; no need to install the Habitat package
+if [[ "${OS}" != "Darwin" ]]; then
+    echo "--- Installing latest core/netcat from ${HAB_BLDR_URL}, base-2025 channel"
+    sudo -E hab pkg install core/netcat \
+        --binlink \
+        --force \
+        --channel="base" \
+        --url="${HAB_BLDR_URL}"
+fi
 
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
 # Binlink to '/usr/local/bin' to ensure we do not run the system installed version. The system
@@ -60,4 +70,17 @@ sudo -E hab pkg install core/pester \
     --channel="stable" \
     --url="${HAB_BLDR_URL}"
 
-sudo useradd --system --no-create-home hab
+if [[ "${OS}" == "Darwin" ]]; then
+    # On macOS, create the 'hab' system user using dscl if it does not already exist
+    if ! id hab &>/dev/null; then
+        NEXT_UID=$(dscl . -list /Users UniqueID | awk '{print $2}' | sort -n | tail -1 | xargs -I{} expr {} + 1)
+        sudo dscl . -create /Users/hab
+        sudo dscl . -create /Users/hab UniqueID "$NEXT_UID"
+        sudo dscl . -create /Users/hab PrimaryGroupID 20
+        sudo dscl . -create /Users/hab UserShell /usr/bin/false
+        sudo dscl . -create /Users/hab NFSHomeDirectory /var/empty
+        sudo dscl . -create /Users/hab RealName "Habitat"
+    fi
+else
+    sudo useradd --system --no-create-home hab
+fi
