@@ -22,10 +22,6 @@ if ($IsLinux -Or $IsMacOS) {
     $env:SystemDrive = "/"
 }
 
-# Debug: confirm supervisor binary env vars are visible to the test runner
-Write-Host "HAB_SUP_BINARY=$env:HAB_SUP_BINARY"
-Write-Host "HAB_LAUNCH_BINARY=$env:HAB_LAUNCH_BINARY"
-
 # It may take a while to download a given service package, and
 # services may have long init scripts. Let's be generous in how long
 # we're willing to wait. Also note that tests may take considerably

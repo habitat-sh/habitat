@@ -56,27 +56,8 @@ echo "--- Using chef/hab version $("${hab_binary}" --version)"
 
 # macOS ships with netcat at /usr/bin/nc — no need to install the Habitat package
 
-# Pre-install supervisor components so 'hab sup run' doesn't fail
-echo "--- Installing chef/hab-sup from ${HAB_BLDR_URL}, aarch64-darwin channel"
-sudo -E hab pkg install chef/hab-sup \
-     --channel="aarch64-darwin" \
-     --url="${HAB_BLDR_URL}"
-
-echo "--- Installing chef/hab-launcher from ${HAB_BLDR_URL}, aarch64-darwin channel"
-sudo -E hab pkg install chef/hab-launcher \
-     --channel="aarch64-darwin" \
-     --url="${HAB_BLDR_URL}"
-
-# Point hab sup run directly at the installed binaries so it skips the
-# internal version / channel resolution that would fail on aarch64-darwin
-# (hab-sup and hab-launcher only exist in the aarch64-darwin channel,
-# not in the dev channel that HAB_INTERNAL_BLDR_CHANNEL points to).
-export HAB_SUP_BINARY
-HAB_SUP_BINARY="$(hab pkg path chef/hab-sup)/bin/hab-sup"
-export HAB_LAUNCH_BINARY
-HAB_LAUNCH_BINARY="$(hab pkg path chef/hab-launcher)/bin/hab-launch"
-echo "--- HAB_SUP_BINARY=${HAB_SUP_BINARY}"
-echo "--- HAB_LAUNCH_BINARY=${HAB_LAUNCH_BINARY}"
+# Supervisor tests are skipped on macOS (supervisor support is not yet
+# mature on aarch64-darwin), so we do not install hab-sup / hab-launcher.
 
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
 # Try the hab package first, fall back to Homebrew
