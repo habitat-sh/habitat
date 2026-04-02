@@ -67,6 +67,17 @@ sudo -E hab pkg install chef/hab-launcher \
      --channel="aarch64-darwin" \
      --url="${HAB_BLDR_URL}"
 
+# Point hab sup run directly at the installed binaries so it skips the
+# internal version / channel resolution that would fail on aarch64-darwin
+# (hab-sup and hab-launcher only exist in the aarch64-darwin channel,
+# not in the dev channel that HAB_INTERNAL_BLDR_CHANNEL points to).
+export HAB_SUP_BINARY
+HAB_SUP_BINARY="$(hab pkg path chef/hab-sup)/bin/hab-sup"
+export HAB_LAUNCH_BINARY
+HAB_LAUNCH_BINARY="$(hab pkg path chef/hab-launcher)/bin/hab-launch"
+echo "--- HAB_SUP_BINARY=${HAB_SUP_BINARY}"
+echo "--- HAB_LAUNCH_BINARY=${HAB_LAUNCH_BINARY}"
+
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
 # Try the hab package first, fall back to Homebrew
 if sudo -E hab pkg install core/powershell \
