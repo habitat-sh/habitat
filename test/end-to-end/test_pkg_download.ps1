@@ -20,6 +20,8 @@
 # HAB_TEST_CMD=./target/debug/hab test/end-to-end/test_pkg_download.sh
 #
 $cacheDir = "test-cache"
+# core/gzip is not yet available for aarch64-darwin in LTS-2024; use aarch64-darwin channel on macOS
+$downloadChannel = if ($IsMacOS) { "aarch64-darwin" } else { "LTS-2024" }
 
 function Test-IdentDownloaded($FilePrefix) {
     $path = Join-Path -Path $cacheDir "artifacts" "$FilePrefix-*"
@@ -72,23 +74,23 @@ Describe "hab pkg download" {
         }
     }
 
-    It "'hab pkg download --channel LTS-2024 --download-directory $cacheDir core/gzip' succeeds" {
-        hab pkg download --channel LTS-2024 --download-directory $cacheDir core/gzip
+    It "'hab pkg download --channel $downloadChannel --download-directory $cacheDir core/gzip' succeeds" {
+        hab pkg download --channel $downloadChannel --download-directory $cacheDir core/gzip
         Test-GzipIdent
     }
-    It "'hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile' succeeds" {
+    It "'hab pkg download --channel $downloadChannel --download-directory $cacheDir --file $identFile' succeeds" {
         Set-Content $identFile -Value "core/gzip"
-        hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile
+        hab pkg download --channel $downloadChannel --download-directory $cacheDir --file $identFile
         Test-GzipIdent
     }
-    It "'hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile' succeeds with comments and empty lines" {
+    It "'hab pkg download --channel $downloadChannel --download-directory $cacheDir --file $identFile' succeeds with comments and empty lines" {
         Set-Content $identFile -Value @"
 # this is a series
 # of comments, followed by empty lines and whitespaces
 
  core/gzip
 "@
-        hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile
+        hab pkg download --channel $downloadChannel --download-directory $cacheDir --file $identFile
         Test-GzipIdent
     }
     It "'hab pkg download --channel LTS-2024 --download-directory $cacheDir core/rust --target=x86_64-windows' succeeds" {

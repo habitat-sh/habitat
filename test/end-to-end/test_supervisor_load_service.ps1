@@ -1,4 +1,9 @@
-hab pkg install core/nginx --channel stable
+if ($IsMacOS) {
+    $pkgChannel = "aarch64-darwin"
+} else {
+    $pkgChannel = "stable"
+}
+hab pkg install core/nginx --channel $pkgChannel
 
 $job = Start-Job { hab sup run }
 Wait-Supervisor -Timeout 120

@@ -13,7 +13,12 @@ Describe "Clean hab installation" {
         $LASTEXITCODE | Should -Be 0
     }
     It "can talk to builder" {
-        hab pkg install core/redis --channel stable
+        if ($IsMacOS) {
+            $pkgChannel = "aarch64-darwin"
+        } else {
+            $pkgChannel = "stable"
+        }
+        hab pkg install core/redis --channel $pkgChannel
         $LASTEXITCODE | Should -Be 0
     }
 }
