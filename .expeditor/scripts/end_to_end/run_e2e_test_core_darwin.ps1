@@ -287,7 +287,9 @@ function Invoke-Build($PackageName, $RefreshChannel) {
 Function Invoke-BuildAndInstall($PackageName, $RefreshChannel) {
     Invoke-Build @PSBoundParameters
     . ./results/last_build.ps1
-    hab pkg install ./results/$pkg_artifact
+    # Use --ignore-install-hook because the install hook interpreter
+    # (core/busybox-static) is not available for aarch64-darwin.
+    hab pkg install --ignore-install-hook ./results/$pkg_artifact
     # hab studio run is not implemented on macOS (run_studio missing in
     # hab-studio-darwin.sh), so remove hooks directly instead.
     if (Test-Path "/hab/pkgs/$pkg_ident/hooks") {
