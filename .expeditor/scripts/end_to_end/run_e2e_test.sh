@@ -9,7 +9,7 @@ source .expeditor/scripts/end_to_end/setup_environment.sh "$channel"
 
 # On macOS, clean up the writable APFS volume mounted at /hab when done
 if [[ "$(uname -s)" == "Darwin" ]]; then
-    trap teardown_hab_root_macos_pipeline EXIT
+    trap 'sudo -E bash -c "source .expeditor/scripts/shared.sh && HAB_VOLUME_DEVICE=$HAB_VOLUME_DEVICE teardown_hab_root_macos_pipeline"' EXIT
 fi
 
 if [ -n "$test_name" ]; then

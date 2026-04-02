@@ -12,8 +12,19 @@ OS=$(uname -s)
 
 # On macOS, /hab is on a read-only root volume (SIP). Create a writable
 # APFS volume and mount it at /hab before installing any packages.
+# Note: setup_hab_root_macos_pipeline writes to /etc/synthetic.conf which
+# requires root privileges, so we run the setup in a sudo bash context
+# and persist the volume device for later teardown.
 if [[ "${OS}" == "Darwin" ]]; then
-    setup_hab_root_macos_pipeline
+    HAB_VOLUME_DEVICE_FILE=$(mktemp /tmp/hab-vol-device.XXXXXX)
+    export HAB_VOLUME_DEVICE_FILE
+    sudo -E bash -c "
+        source .expeditor/scripts/shared.sh
+        setup_hab_root_macos_pipeline
+        echo \"\$HAB_VOLUME_DEVICE\" > \"$HAB_VOLUME_DEVICE_FILE\"
+    "
+    HAB_VOLUME_DEVICE=$(cat "$HAB_VOLUME_DEVICE_FILE")
+    export HAB_VOLUME_DEVICE
 fi
 
 # Note: We should always have a `hab` binary installed in our CI
