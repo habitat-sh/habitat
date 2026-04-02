@@ -1296,6 +1296,38 @@ steps:
     env:
       BUILD_PKG_TARGET: aarch64-darwin
 
+  - label: "[:mac: test_simple_hooks_darwin]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_simple_hooks_darwin
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
+  - label: "[:mac: test_external_binaries_darwin]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_external_binaries_darwin
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
+
   - wait
 
   - label: "[:habicat: Promote to Acceptance]"

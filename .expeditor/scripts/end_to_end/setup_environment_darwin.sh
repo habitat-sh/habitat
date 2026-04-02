@@ -78,6 +78,11 @@ export HAB_STUDIO_BACKLINE_PKG
 HAB_STUDIO_BACKLINE_PKG="$(cat "$(hab pkg path chef/hab-backline)/IDENT")"
 echo "--- HAB_STUDIO_BACKLINE_PKG=${HAB_STUDIO_BACKLINE_PKG}"
 
+# Override the interpreter identity to core/coreutils (installed via
+# hab-backline) because core/busybox-static is not available for
+# aarch64-darwin. This is needed for install hook execution.
+export HAB_INTERPRETER_IDENT="core/coreutils"
+
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
 # Try the hab package first, fall back to Homebrew
 if sudo -E hab pkg install core/powershell \
