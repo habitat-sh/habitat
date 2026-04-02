@@ -370,6 +370,10 @@ fn studio_target(windows: bool, target: target::PackageTarget) -> target::Packag
         #[cfg(feature = "supported_targets")]
         target::X86_64_LINUX => target::X86_64_LINUX,
         #[cfg(feature = "supported_targets")]
+        target::X86_64_LINUX_KERNEL2 => {
+            panic!("{} studios are not supported", target::X86_64_LINUX_KERNEL2)
+        }
+        #[cfg(feature = "supported_targets")]
         target::X86_64_WINDOWS => target::X86_64_LINUX,
         #[cfg(feature = "supported_targets")]
         target::AARCH64_DARWIN => target::X86_64_LINUX,
