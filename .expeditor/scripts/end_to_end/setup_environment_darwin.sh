@@ -69,6 +69,15 @@ sudo -E hab pkg install chef/hab-studio \
      --channel="aarch64-darwin" \
      --url="${HAB_BLDR_URL}"
 
+# hab-backline is required by the studio but is only available in stable
+echo "--- Installing chef/hab-backline from ${HAB_BLDR_URL}, stable channel"
+sudo -E hab pkg install chef/hab-backline \
+     --channel="stable" \
+     --url="${HAB_BLDR_URL}"
+export HAB_STUDIO_BACKLINE_PKG
+HAB_STUDIO_BACKLINE_PKG="$(cat "$(hab pkg path chef/hab-backline)/IDENT")"
+echo "--- HAB_STUDIO_BACKLINE_PKG=${HAB_STUDIO_BACKLINE_PKG}"
+
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
 # Try the hab package first, fall back to Homebrew
 if sudo -E hab pkg install core/powershell \
