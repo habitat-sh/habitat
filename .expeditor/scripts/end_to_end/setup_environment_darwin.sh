@@ -80,7 +80,12 @@ if ! sudo -E hab pkg install core/pester \
     --channel="stable" \
     --url="${HAB_BLDR_URL}" 2>/dev/null; then
     echo "--- core/pester not available for this platform, installing via PowerShell module"
-    pwsh -Command "Install-Module -Name Pester -Force -SkipPublisherCheck -Scope AllUsers" 2>/dev/null || true
+    # Use sudo so the module is installed system-wide and visible when tests
+    # run under sudo -E pwsh. The -Scope CurrentUser is used because AllUsers
+    # requires the PSModulePath directories to exist, which may not be the case
+    # on a fresh Homebrew pwsh install.
+    sudo pwsh -Command "Install-Module -Name Pester -Force -SkipPublisherCheck"
+    echo "--- Pester version: $(sudo pwsh -Command '(Get-Module -ListAvailable Pester).Version')"
 fi
 
 # Create the 'hab' system user using dscl if it does not already exist
