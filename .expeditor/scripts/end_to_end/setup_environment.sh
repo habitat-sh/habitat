@@ -47,12 +47,19 @@ if [[ "${OS}" == "Darwin" ]]; then
 else
     HAB_BINLINK_DIR="/usr/bin"
 fi
+# Install the package first (without binlinking)
 sudo -E hab pkg install chef/hab \
-     --binlink \
-     --binlink-dir="${HAB_BINLINK_DIR}" \
-     --force \
      --channel="${channel}" \
      --url="${HAB_BLDR_URL}"
+# On macOS, the Anka VM may have a pre-existing /usr/local/bin/hab as a
+# regular file (not a symlink). --binlink --force only overwrites symlinks,
+# so remove the old file first, then binlink separately.
+if [[ "${OS}" == "Darwin" ]]; then
+    sudo rm -f "${HAB_BINLINK_DIR}/hab" "${HAB_BINLINK_DIR}/NOTICES.txt"
+fi
+sudo -E hab pkg binlink chef/hab \
+     --dest="${HAB_BINLINK_DIR}" \
+     --force
 echo "--- Using chef/hab version $("${hab_binary}" --version)"
 
 echo "--- Installing latest chef/hab-pkg-export-container from ${HAB_BLDR_URL}, ${channel} channel"
