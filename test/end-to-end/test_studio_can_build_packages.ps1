@@ -141,7 +141,13 @@ Describe "Consuming runtime variables of build dependency" {
     It "correctly sets up the environment" {
         hab pkg build test/fixtures/runtime-env-plan
         $env:SOME_VAR = $null
-        hab pkg build test/fixtures/runtime-env-consumer-plan -R
+        if ($IsMacOS) {
+            # macOS hab does not support -R (--reuse); studio reuse is
+            # only available on Linux and Windows.
+            hab pkg build test/fixtures/runtime-env-consumer-plan
+        } else {
+            hab pkg build test/fixtures/runtime-env-consumer-plan -R
+        }
         $LASTEXITCODE | Should -Be 0
     }
 }
