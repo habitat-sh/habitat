@@ -31,25 +31,39 @@ function Test-IdentDownloaded($FilePrefix) {
 }
 
 function Test-GzipIdent {
-    Test-IdentDownloaded "core-acl"
-    Test-IdentDownloaded "core-attr"
-    Test-IdentDownloaded "core-bzip2"
-    Test-IdentDownloaded "core-coreutils"
-    Test-IdentDownloaded "core-diffutils"
-    Test-IdentDownloaded "core-gzip"
-    Test-IdentDownloaded "core-glibc"
-    Test-IdentDownloaded "core-gcc-libs"
-    Test-IdentDownloaded "core-grep"
-    Test-IdentDownloaded "core-libcap"
-    Test-IdentDownloaded "core-libpcre2"
-    Test-IdentDownloaded "core-linux-headers"
-    Test-IdentDownloaded "core-pcre2"
-    Test-IdentDownloaded "core-less"
-    Test-IdentDownloaded "core-ncurses"
-    Test-IdentDownloaded "core-zlib"
+    if ($IsMacOS) {
+        # aarch64-darwin has different dependencies than Linux
+        Test-IdentDownloaded "core-gzip"
+        Test-IdentDownloaded "core-coreutils"
+        Test-IdentDownloaded "core-diffutils"
+        Test-IdentDownloaded "core-grep"
+        Test-IdentDownloaded "core-less"
+        Test-IdentDownloaded "core-libpcre2"
 
-    if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 16) {
-        Write-Error "did not find 16 gzip artifacts"
+        if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 6) {
+            Write-Error "did not find 6 gzip artifacts"
+        }
+    } else {
+        Test-IdentDownloaded "core-acl"
+        Test-IdentDownloaded "core-attr"
+        Test-IdentDownloaded "core-bzip2"
+        Test-IdentDownloaded "core-coreutils"
+        Test-IdentDownloaded "core-diffutils"
+        Test-IdentDownloaded "core-gzip"
+        Test-IdentDownloaded "core-glibc"
+        Test-IdentDownloaded "core-gcc-libs"
+        Test-IdentDownloaded "core-grep"
+        Test-IdentDownloaded "core-libcap"
+        Test-IdentDownloaded "core-libpcre2"
+        Test-IdentDownloaded "core-linux-headers"
+        Test-IdentDownloaded "core-pcre2"
+        Test-IdentDownloaded "core-less"
+        Test-IdentDownloaded "core-ncurses"
+        Test-IdentDownloaded "core-zlib"
+
+        if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 16) {
+            Write-Error "did not find 16 gzip artifacts"
+        }
     }
 }
 
