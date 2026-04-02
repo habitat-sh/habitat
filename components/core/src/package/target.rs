@@ -280,6 +280,8 @@ package_targets! {
     /// Represents an **older** [Linux kernel]-based system from the 2.6.x family running on a
     /// [64-bit] version of the [x86][x] [instruction set architecture][isa], commonly known as
     /// [x86_64].
+    /// NOTE: While we no longer support building for this package target, we still support
+    /// storing and loading packages with this target.
     ///
     /// This Habitat package target is intended for software with older buildtime or runtime
     /// requirements than those supported by the current `x86_64-linux` package target.
@@ -638,7 +640,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "x86_64-kernel2")]
+    #[cfg(feature = "x86_64-linux-kernel2")]
     fn package_target_iter_with_variant() {
         let target = PackageTarget(Type::X86_64_Linux_Kernel2);
         let mut iter = target.iter();
