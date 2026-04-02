@@ -3,7 +3,7 @@
 # hab studio (Invoke-BuildAndInstall). It only uses packages available
 # from Builder on the aarch64-darwin channel.
 
-$pkg = "core/gzip"
+$pkg = "core/sqlite"
 $nginxPkg = "core/nginx"
 $channel = "aarch64-darwin"
 $env:HAB_NOCOLORING = "true"
