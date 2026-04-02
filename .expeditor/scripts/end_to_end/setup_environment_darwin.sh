@@ -59,6 +59,25 @@ echo "--- Using chef/hab version $("${hab_binary}" --version)"
 # Supervisor tests are skipped on macOS (supervisor support is not yet
 # mature on aarch64-darwin), so we do not install hab-sup / hab-launcher.
 
+# Enable macOS native studio support (same flags used in release builds)
+export HAB_FEAT_MACOS_NATIVE_SUPPORT=1
+export CI_INTERNAL_MAC_NATIVE_SUPPORT=1
+
+# Install hab-studio for native studio tests
+echo "--- Installing chef/hab-studio from ${HAB_BLDR_URL}, aarch64-darwin channel"
+sudo -E hab pkg install chef/hab-studio \
+     --channel="aarch64-darwin" \
+     --url="${HAB_BLDR_URL}"
+
+# hab-backline is required by the studio but is only available in stable
+echo "--- Installing chef/hab-backline from ${HAB_BLDR_URL}, stable channel"
+sudo -E hab pkg install chef/hab-backline \
+     --channel="stable" \
+     --url="${HAB_BLDR_URL}"
+export HAB_STUDIO_BACKLINE_PKG
+HAB_STUDIO_BACKLINE_PKG="$(cat "$(hab pkg path chef/hab-backline)/IDENT")"
+echo "--- HAB_STUDIO_BACKLINE_PKG=${HAB_STUDIO_BACKLINE_PKG}"
+
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
 # Try the hab package first, fall back to Homebrew
 if sudo -E hab pkg install core/powershell \

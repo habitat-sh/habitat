@@ -271,7 +271,7 @@ function Get-Leader($Remote, $ServiceGroup) {
 }
 
 function Invoke-Build($PackageName, $RefreshChannel) {
-    $commandArgs = @("--reuse")
+    $commandArgs = @()
     if($RefreshChannel) {
         $commandArgs += @("--refresh-channel", $RefreshChannel)
     }
@@ -287,8 +287,12 @@ function Invoke-Build($PackageName, $RefreshChannel) {
 Function Invoke-BuildAndInstall($PackageName, $RefreshChannel) {
     Invoke-Build @PSBoundParameters
     . ./results/last_build.ps1
-    hab pkg install ./results/$pkg_artifact
-    hab studio run "rm /hab/pkgs/$pkg_ident/hooks"
+    # Use --ignore-install-hook because the install hook interpreter
+    # (core/busybox-static) is not available for aarch64-darwin.
+    hab pkg install --ignore-install-hook ./results/$pkg_artifact
+    # On Linux, the original function runs `hab studio run "rm hooks"` to
+    # clean up inside the chroot studio (separate from the host filesystem).
+    # On macOS native studio there is no chroot, so no cleanup is needed.
 }
 
 function Stop-ComposeSupervisor($Remote) {
