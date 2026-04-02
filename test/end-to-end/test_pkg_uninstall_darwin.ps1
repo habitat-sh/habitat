@@ -1,7 +1,4 @@
 # macOS-specific pkg uninstall tests.
-# Unlike test_pkg_uninstall.ps1, this does NOT require the supervisor or
-# hab studio (Invoke-BuildAndInstall). It only uses packages available
-# from Builder on the aarch64-darwin channel.
 
 $pkg = "core/sqlite"
 $nginxPkg = "core/nginx"

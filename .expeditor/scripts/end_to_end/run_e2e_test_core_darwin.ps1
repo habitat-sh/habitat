@@ -94,11 +94,11 @@ function Wait-StopSupervisor($Timeout = 10, $port = 9631) {
 
 # Generate a new unique log file name, given a base name.
 #
-# The base name should be something descriptive that allows you to
+# The base name should be something descriptive that allows us to
 # trace a given log file back to the test case that generated it.
 #
 # This is used instead of the standard `New-TemporaryFile`, since that
-# does not seem to allow you to specify any non-random components,
+# does not seem to allow us to specify any non-random components,
 # which we will need for both correlating outputs to tests, as well as
 # easily collecting log outputs in Buildkite.
 #
@@ -288,7 +288,7 @@ Function Invoke-BuildAndInstall($PackageName, $RefreshChannel) {
     Invoke-Build @PSBoundParameters
     . ./results/last_build.ps1
     # Use --ignore-install-hook because the install hook interpreter
-    # (core/busybox-static) is not available for aarch64-darwin.
+    # (core/busybox-static) is not available for aarch64-darwin.    
     hab pkg install --ignore-install-hook ./results/$pkg_artifact
     # On Linux, the original function runs `hab studio run "rm hooks"` to
     # clean up inside the chroot studio (separate from the host filesystem).

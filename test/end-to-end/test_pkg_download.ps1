@@ -20,7 +20,7 @@
 # HAB_TEST_CMD=./target/debug/hab test/end-to-end/test_pkg_download.sh
 #
 $cacheDir = "test-cache"
-# core/gzip is not yet available for aarch64-darwin in LTS-2024; use aarch64-darwin channel on macOS
+# use aarch64-darwin channel on macOS
 $downloadChannel = if ($IsMacOS) { "aarch64-darwin" } else { "LTS-2024" }
 
 function Test-IdentDownloaded($FilePrefix) {
