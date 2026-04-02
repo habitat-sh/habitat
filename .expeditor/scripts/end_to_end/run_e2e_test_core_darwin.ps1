@@ -290,11 +290,9 @@ Function Invoke-BuildAndInstall($PackageName, $RefreshChannel) {
     # Use --ignore-install-hook because the install hook interpreter
     # (core/busybox-static) is not available for aarch64-darwin.
     hab pkg install --ignore-install-hook ./results/$pkg_artifact
-    # hab studio run is not implemented on macOS (run_studio missing in
-    # hab-studio-darwin.sh), so remove hooks directly instead.
-    if (Test-Path "/hab/pkgs/$pkg_ident/hooks") {
-        Remove-Item -Recurse -Force "/hab/pkgs/$pkg_ident/hooks"
-    }
+    # On Linux, the original function runs `hab studio run "rm hooks"` to
+    # clean up inside the chroot studio (separate from the host filesystem).
+    # On macOS native studio there is no chroot, so no cleanup is needed.
 }
 
 function Stop-ComposeSupervisor($Remote) {
