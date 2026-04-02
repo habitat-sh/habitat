@@ -10,6 +10,12 @@ source .expeditor/scripts/shared.sh
 channel=${1:?You must specify a channel value}
 OS=$(uname -s)
 
+# On macOS, /hab is on a read-only root volume (SIP). Create a writable
+# APFS volume and mount it at /hab before installing any packages.
+if [[ "${OS}" == "Darwin" ]]; then
+    setup_hab_root_macos_pipeline
+fi
+
 # Note: We should always have a `hab` binary installed in our CI
 # builders / containers.
 
