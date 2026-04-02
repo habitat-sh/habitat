@@ -69,7 +69,7 @@ else
     echo "--- core/powershell not available for this platform, installing via Homebrew"
     if ! command -v pwsh &>/dev/null; then
         brew update
-        brew install --cask powershell
+        brew install powershell
     fi
     echo "--- Using system pwsh version $(pwsh --version)"
 fi
