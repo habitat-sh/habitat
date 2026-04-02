@@ -271,7 +271,7 @@ function Get-Leader($Remote, $ServiceGroup) {
 }
 
 function Invoke-Build($PackageName, $RefreshChannel) {
-    $commandArgs = @("--reuse")
+    $commandArgs = @()
     if($RefreshChannel) {
         $commandArgs += @("--refresh-channel", $RefreshChannel)
     }
@@ -288,7 +288,11 @@ Function Invoke-BuildAndInstall($PackageName, $RefreshChannel) {
     Invoke-Build @PSBoundParameters
     . ./results/last_build.ps1
     hab pkg install ./results/$pkg_artifact
-    hab studio run "rm /hab/pkgs/$pkg_ident/hooks"
+    # hab studio run is not implemented on macOS (run_studio missing in
+    # hab-studio-darwin.sh), so remove hooks directly instead.
+    if (Test-Path "/hab/pkgs/$pkg_ident/hooks") {
+        Remove-Item -Recurse -Force "/hab/pkgs/$pkg_ident/hooks"
+    }
 }
 
 function Stop-ComposeSupervisor($Remote) {
