@@ -1184,8 +1184,21 @@ steps:
     env:
       BUILD_PKG_TARGET: aarch64-darwin
 
-  # test_studio_version skipped: hab studio run is not yet implemented
-  # in the darwin studio script (run_studio function missing).
+  - label: "[:mac: test_studio_version]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_studio_version
+    artifact_paths:
+      - "*.log"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+      - chef/anka#v0.7.2:
+          vm-name: buildkite-core-14-arm64
+          always-pull: true
+          wait-network: true
+          inherit-environment-vars: true
+    env:
+      BUILD_PKG_TARGET: aarch64-darwin
 
   - label: "[:mac: test_studio_can_build_packages]"
     command:
