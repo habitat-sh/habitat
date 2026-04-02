@@ -56,6 +56,9 @@ echo "--- Using chef/hab version $("${hab_binary}" --version)"
 
 # macOS ships with netcat at /usr/bin/nc — no need to install the Habitat package
 
+# Supervisor tests are skipped on macOS (supervisor support is not yet
+# mature on aarch64-darwin), so we do not install hab-sup / hab-launcher.
+
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
 # Try the hab package first, fall back to Homebrew
 if sudo -E hab pkg install core/powershell \
