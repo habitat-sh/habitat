@@ -1,4 +1,6 @@
-# This script expects `setup_environment.sh` or `setup_environment.ps1` to be sourced before execution
+# macOS (aarch64-darwin) PowerShell test runner for end-to-end tests.
+# This is the Darwin-specific counterpart of run_e2e_test_core.ps1.
+# It expects `setup_environment_darwin.sh` to have been sourced before execution.
 [Diagnostics.CodeAnalysis.SuppressMessage("PSUseApprovedVerbs", '', Scope="function", Target="*Load-SupervisorService")]
 param (
     [string]$TestName
@@ -210,8 +212,9 @@ function New-TemporaryDirectory {
 }
 
 function Restart-Supervisor {
-    if ($IsLinux) {
-        pkill --signal=HUP hab-launch
+    if ($IsLinux -Or $IsMacOS) {
+        # macOS pkill does not support GNU --signal= syntax
+        pkill -HUP hab-launch
         Start-Sleep 3 # wait for the signal to be processed
     } else {
         Stop-Process | Get-Process hab-sup
@@ -273,7 +276,7 @@ function Invoke-Build($PackageName, $RefreshChannel) {
         $commandArgs += @("--refresh-channel", $RefreshChannel)
     }
     hab pkg build test/fixtures/$PackageName $commandArgs
-    if ($IsLinux) {
+    if ($IsLinux -Or $IsMacOS) {
         # This changes the format of last_build from `var=value` to `$var='value'`
         # so that powershell can parse and source the script
         Set-Content -Path "results/last_build.ps1" -Value ""
@@ -316,7 +319,14 @@ function Get-HabServicePID($PackageName) {
 
 ###################################################################################################
 
-Import-Module (Join-Path -Path $(hab pkg path core/pester) module Pester.psd1)
+# Import Pester: prefer the hab-installed package, fall back to system-installed module
+$pesterPkgPath = $null
+try { $pesterPkgPath = hab pkg path core/pester 2>$null } catch { }
+if ($pesterPkgPath -and (Test-Path $pesterPkgPath)) {
+    Import-Module (Join-Path -Path $pesterPkgPath module Pester.psd1)
+} else {
+    Import-Module Pester
+}
 
 if(Test-Path $TestName) {
     $testPath = $TestName
