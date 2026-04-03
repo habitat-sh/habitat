@@ -58,7 +58,7 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
         Err(_) => (*CACHE_KEY_PATH).to_path_buf(),
     };
     if !local_cache_key_path.exists() {
-        return Err(Error::FileNotFound(format!("{}\nRun `hab setup` to \
+        return Err(Error::FileNotFound(format!("{}\nRun `hab cli setup` to \
                                                 create an origin or use \
                                                 `hab origin key` to \
                                                 configure your keys.",

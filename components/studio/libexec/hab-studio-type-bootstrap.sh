@@ -46,7 +46,7 @@ finish_setup() {
         echo "    hab origin key generate $key"
         echo ""
         echo "You'll also be prompted to create an origin signing key when "
-        echo "you run 'hab setup'."
+        echo "you run 'hab cli setup'."
         echo ""
         exit 1
       fi
@@ -62,7 +62,7 @@ finish_setup() {
   else
     info "No secret keys imported! Did you mean to set HAB_ORIGIN?"
     echo "To specify a HAB_ORIGIN, either set the HAB_ORIGIN environment"
-    echo "variable to your origin name or run 'hab setup' and specify a"
+    echo "variable to your origin name or run 'hab cli setup' and specify a"
     echo "default origin."
   fi
 
