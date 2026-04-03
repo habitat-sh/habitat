@@ -13,15 +13,15 @@ Describe "`hab` correctly executes external binaries" {
     }
 
     It "`hab pkg exec` runs gzip from the package" {
-        $out = hab pkg exec core/gzip gzip --version 2>&1 | Select-Object -First 1
+        $out = hab pkg exec core/gzip gzip --version
         $LASTEXITCODE | Should -Be 0
-        $out | Should -BeLike "*gzip*"
+        ($out -join " ") | Should -BeLike "*gzip*"
     }
 
     It "`hab pkg exec` runs less from the package" {
-        $out = hab pkg exec core/less less --version 2>&1 | Select-Object -First 1
+        $out = hab pkg exec core/less less --version
         $LASTEXITCODE | Should -Be 0
-        $out | Should -BeLike "*less*"
+        ($out -join " ") | Should -BeLike "*less*"
     }
 
     It "`hab pkg exec` with nonexistent package fails" {
