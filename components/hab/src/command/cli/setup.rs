@@ -44,7 +44,7 @@ use winreg::enums::{HKEY_LOCAL_MACHINE,
 pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
     ui.br()?;
     ui.title("Habitat CLI Setup")?;
-    ui.para("Welcome to hab setup. Let's get started.")?;
+    ui.para("Welcome to hab cli setup. Let's get started.")?;
 
     ui.heading("Habitat Builder Instance")?;
     ui.para(

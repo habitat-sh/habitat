@@ -43,7 +43,7 @@ finish_setup() {
         echo "    hab origin key generate $key"
         echo ""
         echo "You'll also be prompted to create an origin signing key when "
-        echo "you run 'hab setup'."
+        echo "you run 'hab cli setup'."
         echo ""
         exit 1
       fi

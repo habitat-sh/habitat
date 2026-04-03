@@ -175,7 +175,7 @@ pub fn start(ui: &mut UI,
 
     if cfg!(target_os = "windows") && !is_dest_on_path(&dst_path) {
         ui.warn(format!("Binlink destination '{}' is not on the PATH. Consider setting it \
-                         manually or running 'hab setup' to add it to the machine PATH.",
+                         manually or running 'hab cli setup' to add it to the machine PATH.",
                         dst_path.display(),))?;
     }
 
