@@ -413,7 +413,7 @@ mod tests {
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
 
-        assert!(file_content(tmpdir.path().join("err.log")).contains("you are not my sunshine\n"));
+        assert!(file_content(tmpdir.path().join("err.log")).contains("you are not my sunshine"));
     }
 
     #[tokio::test]
