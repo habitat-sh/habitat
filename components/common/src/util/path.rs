@@ -97,7 +97,7 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
                 Err(_) => {
                     match install::type_erased_start(&mut ui::NullUi::new(),
                                                      &default_bldr_url(),
-                                                     &ChannelIdent::stable(),
+                                                     &ChannelIdent::default(),
                                                      &(ident.clone(),
                                                        PackageTarget::active_target())
                                                                                       .into(),
@@ -105,7 +105,7 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
                                                      VERSION,
                                                      FS_ROOT_PATH.as_path(),
                                                      &cache_artifact_path(None::<String>),
-                                                     None,
+                                                     env::var("HAB_AUTH_TOKEN").ok().as_deref(),
                                                      &InstallMode::default(),
                                                      &LocalPackageUsage::default(),
                                                      InstallHookMode::default()).await
