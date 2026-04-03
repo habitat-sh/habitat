@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.494 -->
-## [2.0.494](https://github.com/habitat-sh/habitat/tree/2.0.494) (2026-04-02)
+<!-- latest_release 2.0.495 -->
+## [2.0.495](https://github.com/habitat-sh/habitat/tree/2.0.495) (2026-04-03)
 
 #### Merged Pull Requests
-- restore support kernel2 as a package target [#10324](https://github.com/habitat-sh/habitat/pull/10324) ([mwrock](https://github.com/mwrock))
+- remove some straggler stable channel refs [#10315](https://github.com/habitat-sh/habitat/pull/10315) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.488-->
 ### Changes since 2.0.488 release
 
 #### Merged Pull Requests
+- remove some straggler stable channel refs [#10315](https://github.com/habitat-sh/habitat/pull/10315) ([mwrock](https://github.com/mwrock)) <!-- 2.0.495 -->
 - restore support kernel2 as a package target [#10324](https://github.com/habitat-sh/habitat/pull/10324) ([mwrock](https://github.com/mwrock)) <!-- 2.0.494 -->
 - Bump mio from 1.1.1 to 1.2.0 [#10309](https://github.com/habitat-sh/habitat/pull/10309) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.493 -->
 - Bump toml from 1.1.0+spec-1.1.0 to 1.1.2+spec-1.1.0 [#10322](https://github.com/habitat-sh/habitat/pull/10322) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.493 -->
