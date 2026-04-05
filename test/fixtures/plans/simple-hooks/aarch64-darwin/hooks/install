@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo "install hook {{pkg.name}}"
