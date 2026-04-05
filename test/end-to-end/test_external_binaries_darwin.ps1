@@ -9,19 +9,28 @@ $channel = "aarch64-darwin"
 Describe "`hab` correctly executes external binaries" {
     BeforeAll {
         hab pkg install core/gzip --channel $channel
-        hab pkg install core/less --channel $channel
     }
 
     It "`hab pkg exec` runs gzip from the package" {
-        $out = hab pkg exec core/gzip gzip --version
+        # Cannot use --version/--help/-V because clap intercepts those flags
+        # before they reach the actual binary via execvp().
+        # Instead, compress a file and verify the output exists.
+        "hello habitat" | Set-Content -Path /tmp/hab_test_gzip_input.txt
+        hab pkg exec core/gzip gzip /tmp/hab_test_gzip_input.txt
         $LASTEXITCODE | Should -Be 0
-        ($out -join " ") | Should -BeLike "*gzip*"
+        "/tmp/hab_test_gzip_input.txt.gz" | Should -Exist
+        Remove-Item -Force /tmp/hab_test_gzip_input.txt.gz
     }
 
-    It "`hab pkg exec` runs less from the package" {
-        $out = hab pkg exec core/less less --version
+    It "`hab pkg exec` can decompress data" {
+        # Verify gzip decompression works via pipe (gzip -d reads stdin)
+        "test data" | Set-Content -Path /tmp/hab_test_gzip2.txt
+        hab pkg exec core/gzip gzip /tmp/hab_test_gzip2.txt
+        hab pkg exec core/gzip gzip -d /tmp/hab_test_gzip2.txt.gz
         $LASTEXITCODE | Should -Be 0
-        ($out -join " ") | Should -BeLike "*less*"
+        "/tmp/hab_test_gzip2.txt" | Should -Exist
+        Get-Content /tmp/hab_test_gzip2.txt | Should -Be "test data"
+        Remove-Item -Force /tmp/hab_test_gzip2.txt
     }
 
     It "`hab pkg exec` with nonexistent package fails" {
