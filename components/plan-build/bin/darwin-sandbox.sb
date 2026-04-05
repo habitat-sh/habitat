@@ -61,6 +61,7 @@
 (allow file* process-exec
        (literal "/opt/hab")
        (subpath "/opt/hab/pkgs")
+       (subpath "/opt/hab/svc")
        (subpath "/opt/hab/cache"))
 
 ;; Allow access to env and shell system binaries that are essential
@@ -167,6 +168,7 @@
 
 ;; Allow access to temporary working directories
 (allow file-read-metadata (literal "/tmp"))
+(allow file-read-metadata (literal "/private/var/tmp"))
 (allow file* process-exec (subpath "/private/tmp"))
 
 ;; Allow DNS lookups and network access
