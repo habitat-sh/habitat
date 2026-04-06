@@ -463,6 +463,7 @@ macos_build() {
 # script, except these actions are temporary that is we setup the `/hab` volume during
 # every invocation which builds `hab` packages and `tear_down` after the expected
 # `hab` package related actions
+# TODO: Delete these functions when all the CI jobs are successful.
 setup_hab_root_macos_pipeline() {
 
     readonly HAB_DIR_NAME="hab"
@@ -560,4 +561,42 @@ macos_teardown_exit() {
     teardown_hab_root_macos_pipeline
 
     exit 1
+}
+
+# Use the binary from the acceptance bldr bootstrap package that provides
+# the support for hab CLI with "/opt" support.
+# When we have the support *released* we do not need to do this anymore.
+install_acceptance_bootstrap_hab_binary() {
+    need_cmd install
+
+    # Install the macOS bootstrap package that gives us GNU tar and GNU tail.
+    macos_install_bootstrap_package
+
+
+    local hab_scratch_dir
+    local hab_scratch_dir="hab_scratch"
+    rm -Rf "${hab_scratch_dir}"
+    mkdir "${hab_scratch_dir}"
+
+    "${hab_binary}" pkg download chef\hab \
+        --channel aarch64-darwin-opt
+        --url https://bldr.acceptance.habitat.sh
+        --download-directory="${hab_scratch_dir}"
+
+    local hab_artifact
+    hab_artifact=$(find "${hab_scratch_dir}"/artifacts -type f -name 'chef-hab-*-aarch64-darwin.hart')
+
+    # GNU tail, tar, from the mac-bootstrapper
+    tail --lines=+6 "${hab_artifacat}" | \
+        tar --extract \
+            --verbose \
+            --xz \
+            --strip-components=8 \
+            --wildcards "opt/hab/pkgs/chef/hab/*/*/bin"
+
+    local bootstrap_hab_binary
+    local bootstrap_hab_binary="hab"
+
+    install -v "${bootstrap_hab_binary}" /usr/local/bin/hab
+
 }
