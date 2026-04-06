@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.496 -->
-## [2.0.496](https://github.com/habitat-sh/habitat/tree/2.0.496) (2026-04-03)
+<!-- latest_release 2.0.497 -->
+## [2.0.497](https://github.com/habitat-sh/habitat/tree/2.0.497) (2026-04-06)
 
 #### Merged Pull Requests
-- cli docs should use `hab cli setup` instead of `hab setup` [#10325](https://github.com/habitat-sh/habitat/pull/10325) ([mwrock](https://github.com/mwrock))
+- Bump cc from 1.2.58 to 1.2.59 [#10327](https://github.com/habitat-sh/habitat/pull/10327) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.488-->
 ### Changes since 2.0.488 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.58 to 1.2.59 [#10327](https://github.com/habitat-sh/habitat/pull/10327) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.497 -->
 - cli docs should use `hab cli setup` instead of `hab setup` [#10325](https://github.com/habitat-sh/habitat/pull/10325) ([mwrock](https://github.com/mwrock)) <!-- 2.0.496 -->
 - remove some straggler stable channel refs [#10315](https://github.com/habitat-sh/habitat/pull/10315) ([mwrock](https://github.com/mwrock)) <!-- 2.0.495 -->
 - restore support kernel2 as a package target [#10324](https://github.com/habitat-sh/habitat/pull/10324) ([mwrock](https://github.com/mwrock)) <!-- 2.0.494 -->
