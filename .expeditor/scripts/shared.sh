@@ -578,16 +578,16 @@ install_acceptance_bootstrap_hab_binary() {
     rm -Rf "${hab_scratch_dir}"
     mkdir "${hab_scratch_dir}"
 
-    "${hab_binary}" pkg download chef\hab \
-        --channel aarch64-darwin-opt
-        --url https://bldr.acceptance.habitat.sh
+    "${hab_binary}" pkg download chef/hab \
+        --channel aarch64-darwin-opt \
+        --url https://bldr.acceptance.habitat.sh  \
         --download-directory="${hab_scratch_dir}"
 
     local hab_artifact
     hab_artifact=$(find "${hab_scratch_dir}"/artifacts -type f -name 'chef-hab-*-aarch64-darwin.hart')
 
     # GNU tail, tar, from the mac-bootstrapper
-    tail --lines=+6 "${hab_artifacat}" | \
+    tail --lines=+6 "${hab_artifact}" | \
         tar --extract \
             --verbose \
             --xz \
