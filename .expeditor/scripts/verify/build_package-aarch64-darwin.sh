@@ -11,11 +11,10 @@ set -E
 
 trap 'rm -f /opt/hab' ERR
 
-# For everything setup the HAB_AUTH_TOKEN to point to acceptance
-export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
-
 # Following env variable is required to run MacOS Native Studio
 export HAB_FEAT_MACOS_NATIVE_SUPPORT=1
+
+export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
 
 # Since we are using the *bootstrap* packages right now, we will need to 'install' `hab`
 # CLI twice - first get the original `hab` CLI and then use that to download the
@@ -39,7 +38,7 @@ sudo -E "${bootstrap_hab_binary}" origin key generate
 # Install hab-studio from the chef origin via the acceptance channel.
 # By default, it installs from the stable channel only,
 # so this may need updating to support other channels.
-${bootstrap_hab_binary} pkg install chef/hab-studio -c aarch64-darwin-opt
+${bootstrap_hab_binary} pkg install chef/hab-studio -c aarch64-darwin-opt -u https://bldr.acceptance.habitat.sh
 
 # Required for the `hab pkg build` command to download the studio and deps when
 # locally missing

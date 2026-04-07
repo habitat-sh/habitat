@@ -576,8 +576,11 @@ install_acceptance_bootstrap_hab_binary() {
     need_cmd install
 
     # Install the macOS bootstrap package that gives us GNU tar and GNU tail.
-    macos_install_bootstrap_package
+    sudo -u anka HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install gnu-tar
+    sudo -u anka HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install coreutils
 
+    need_cmd gtar
+    need_cmd gtail
 
     local hab_scratch_dir
     local hab_scratch_dir="hab_scratch"
@@ -593,8 +596,8 @@ install_acceptance_bootstrap_hab_binary() {
     hab_artifact=$(find "${hab_scratch_dir}"/artifacts -type f -name 'chef-hab-*-aarch64-darwin.hart')
 
     # GNU tail, tar, from the mac-bootstrapper
-    tail --lines=+6 "${hab_artifact}" | \
-        tar --extract \
+    gtail --lines=+6 "${hab_artifact}" | \
+        gtar --extract \
             --verbose \
             --xz \
             --strip-components=8 \
