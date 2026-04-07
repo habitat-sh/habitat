@@ -563,6 +563,12 @@ macos_teardown_exit() {
     exit 1
 }
 
+need_cmd() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    exit_with "Required command '$1' not found on PATH" 127
+  fi
+}
+
 # Use the binary from the acceptance bldr bootstrap package that provides
 # the support for hab CLI with "/opt" support.
 # When we have the support *released* we do not need to do this anymore.
