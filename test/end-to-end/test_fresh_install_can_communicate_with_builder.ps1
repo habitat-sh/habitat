@@ -9,16 +9,8 @@ Describe "Clean hab installation" {
         Test-Path /hab/cache/ssl | Should -Be $false
     }
     It "has no user ssl cache" {
-        if ($IsMacOS) {
-            # On macOS the hab user has shell /usr/bin/false, so use dscl to
-            # find its home directory and check directly
-            $habHome = (dscl . -read /Users/hab NFSHomeDirectory 2>$null) -replace 'NFSHomeDirectory:\s*',''
-            if (!$habHome) { $habHome = "/var/empty" }
-            Test-Path (Join-Path $habHome ".hab/cache/ssl") | Should -Be $false
-        } else {
-            su hab -c "test ! -d ~/.hab/cache/ssl"
-            $LASTEXITCODE | Should -Be 0
-        }
+        su hab -c "test ! -d ~/.hab/cache/ssl"
+        $LASTEXITCODE | Should -Be 0
     }
     It "can talk to builder" {
         if ($IsMacOS) {

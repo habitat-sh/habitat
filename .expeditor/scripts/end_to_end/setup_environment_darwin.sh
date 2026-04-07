@@ -26,6 +26,7 @@ sudo -E bash -c "
     echo \"\$HAB_VOLUME_DEVICE\" > \"$HAB_VOLUME_DEVICE_FILE\"
 "
 HAB_VOLUME_DEVICE=$(cat "$HAB_VOLUME_DEVICE_FILE")
+rm -f "$HAB_VOLUME_DEVICE_FILE"
 export HAB_VOLUME_DEVICE
 
 # Note: We should always have a `hab` binary installed in our CI
@@ -34,9 +35,10 @@ export HAB_VOLUME_DEVICE
 echo "--- Installing latest chef/hab from ${HAB_BLDR_URL}, ${channel} channel"
 # On macOS, /usr/bin is SIP-protected so we use /usr/local/bin.
 HAB_BINLINK_DIR="/usr/local/bin"
+hab_path="$(command -v hab)"
 
 # Install the package first (without binlinking)
-sudo -E hab pkg install chef/hab \
+sudo -E "$hab_path" pkg install chef/hab \
      --channel="${channel}" \
      --url="${HAB_BLDR_URL}"
 
@@ -65,13 +67,13 @@ export CI_INTERNAL_MAC_NATIVE_SUPPORT=1
 
 # Install hab-studio for native studio tests
 echo "--- Installing chef/hab-studio from ${HAB_BLDR_URL}, aarch64-darwin channel"
-sudo -E hab pkg install chef/hab-studio \
+sudo -E "$hab_path" pkg install chef/hab-studio \
      --channel="aarch64-darwin" \
      --url="${HAB_BLDR_URL}"
 
 # hab-backline is required by the studio but is only available in stable
 echo "--- Installing chef/hab-backline from ${HAB_BLDR_URL}, stable channel"
-sudo -E hab pkg install chef/hab-backline \
+sudo -E "$hab_path" pkg install chef/hab-backline \
      --channel="stable" \
      --url="${HAB_BLDR_URL}"
 export HAB_STUDIO_BACKLINE_PKG
@@ -83,43 +85,46 @@ echo "--- HAB_STUDIO_BACKLINE_PKG=${HAB_STUDIO_BACKLINE_PKG}"
 # aarch64-darwin. This is needed for install hook execution.
 export HAB_INTERPRETER_IDENT="core/coreutils"
 
-echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
+echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, base channel"
 # Try the hab package first, fall back to Homebrew
-if sudo -E hab pkg install core/powershell \
+if sudo -E "$hab_path" pkg install core/powershell \
     --binlink \
     --binlink-dir="/usr/local/bin" \
     --force \
     --channel="base" \
-    --url="${HAB_BLDR_URL}" 2>/dev/null; then
+    --url="${HAB_BLDR_URL}"; then
     echo "--- Using core/powershell version $(pwsh --version)"
 else
     echo "--- core/powershell not available for this platform, installing via Homebrew"
     if ! command -v pwsh &>/dev/null; then
+        if ! command -v brew &>/dev/null; then
+            echo "ERROR: Homebrew (brew) not found; cannot install PowerShell." >&2
+            exit 1
+        fi
+        # Explicit update to refresh the stale Anka VM index; the pipeline-level
+        # HOMEBREW_NO_AUTO_UPDATE=1 only suppresses the *automatic* update that
+        # brew install would otherwise trigger, so there is no double-update.
         brew update
         brew install powershell
     fi
     echo "--- Using system pwsh version $(pwsh --version)"
 fi
 
+pwsh_path="$(command -v pwsh)"
+
 echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, stable channel"
 # Try the hab package first, fall back to PowerShell module
-if ! sudo -E hab pkg install core/pester \
+if ! sudo -E "$hab_path" pkg install core/pester \
     --channel="stable" \
-    --url="${HAB_BLDR_URL}" 2>/dev/null; then
+    --url="${HAB_BLDR_URL}"; then
     echo "--- core/pester not available for this platform, installing via PowerShell module"
     # Pin to Pester 4.x to match core/pester on Linux. All existing test
     # files use Pester 4 syntax and Pester 5's legacy adapter is unreliable.
-    sudo pwsh -Command "Install-Module -Name Pester -MaximumVersion '4.99.99' -Force -SkipPublisherCheck"
-    echo "--- Pester version: $(sudo pwsh -Command '(Get-Module -ListAvailable Pester).Version')"
+    sudo "$pwsh_path" -Command "Install-Module -Name Pester -MaximumVersion '4.99.99' -Force -SkipPublisherCheck"
+    echo "--- Pester version: $(sudo "$pwsh_path" -Command '(Get-Module -ListAvailable Pester).Version')"
 fi
 
-# Create the 'hab' system user using dscl if it does not already exist
+# Create the 'hab' system user using sysadminctl if it does not already exist
 if ! id hab &>/dev/null; then
-    NEXT_UID=$(dscl . -list /Users UniqueID | awk '{print $2}' | sort -n | tail -1 | xargs -I{} expr {} + 1)
-    sudo dscl . -create /Users/hab
-    sudo dscl . -create /Users/hab UniqueID "$NEXT_UID"
-    sudo dscl . -create /Users/hab PrimaryGroupID 20
-    sudo dscl . -create /Users/hab UserShell /usr/bin/false
-    sudo dscl . -create /Users/hab NFSHomeDirectory /var/empty
-    sudo dscl . -create /Users/hab RealName "Habitat"
+    sudo sysadminctl -addUser hab -fullName "Habitat" -shell /bin/bash -home /var/hab -password ""
 fi

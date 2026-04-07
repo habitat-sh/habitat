@@ -1183,6 +1183,8 @@ steps:
           inherit-environment-vars: true
     env:
       BUILD_PKG_TARGET: aarch64-darwin
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
 
   - label: "[:mac: test_studio_version]"
     command:
@@ -1199,6 +1201,8 @@ steps:
           inherit-environment-vars: true
     env:
       BUILD_PKG_TARGET: aarch64-darwin
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
 
   - label: "[:mac: test_studio_can_build_packages]"
     command:
@@ -1215,6 +1219,8 @@ steps:
           inherit-environment-vars: true
     env:
       BUILD_PKG_TARGET: aarch64-darwin
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
 
   - label: "[:mac: test_pkg_download]"
     command:
@@ -1231,6 +1237,8 @@ steps:
           inherit-environment-vars: true
     env:
       BUILD_PKG_TARGET: aarch64-darwin
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
 
   - label: "[:mac: test_fresh_install_can_communicate_with_builder]"
     command:
@@ -1247,6 +1255,8 @@ steps:
           inherit-environment-vars: true
     env:
       BUILD_PKG_TARGET: aarch64-darwin
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
 
   - label: "[:mac: test_self_signed_cert_is_loaded_by_hab]"
     command:
@@ -1263,6 +1273,8 @@ steps:
           inherit-environment-vars: true
     env:
       BUILD_PKG_TARGET: aarch64-darwin
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
 
   - label: "[:mac: test_hab_plan_cli]"
     command:
@@ -1279,6 +1291,8 @@ steps:
           inherit-environment-vars: true
     env:
       BUILD_PKG_TARGET: aarch64-darwin
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
 
   - label: "[:mac: test_pkg_uninstall_darwin]"
     command:
@@ -1295,6 +1309,8 @@ steps:
           inherit-environment-vars: true
     env:
       BUILD_PKG_TARGET: aarch64-darwin
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
 
   - label: "[:mac: test_simple_hooks_darwin]"
     command:
@@ -1311,6 +1327,8 @@ steps:
           inherit-environment-vars: true
     env:
       BUILD_PKG_TARGET: aarch64-darwin
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
 
   - label: "[:mac: test_external_binaries_darwin]"
     command:
@@ -1327,6 +1345,8 @@ steps:
           inherit-environment-vars: true
     env:
       BUILD_PKG_TARGET: aarch64-darwin
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
 
   - wait
 
