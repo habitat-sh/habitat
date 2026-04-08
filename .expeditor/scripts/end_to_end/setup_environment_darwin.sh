@@ -29,6 +29,11 @@ HAB_VOLUME_DEVICE=$(cat "$HAB_VOLUME_DEVICE_FILE")
 rm -f "$HAB_VOLUME_DEVICE_FILE"
 export HAB_VOLUME_DEVICE
 
+# Clean up the writable APFS volume mounted at /hab when done
+trap 'sudo -E bash -c "source .expeditor/scripts/shared.sh && \
+	HAB_VOLUME_DEVICE=$HAB_VOLUME_DEVICE \
+	teardown_hab_root_macos_pipeline"' ERR EXIT
+
 # Note: We should always have a `hab` binary installed in our CI
 # Anka VMs.
 

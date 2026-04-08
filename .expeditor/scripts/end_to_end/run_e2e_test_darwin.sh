@@ -12,9 +12,6 @@ source .expeditor/scripts/end_to_end/setup_environment_darwin.sh "$channel"
 
 pwsh_path="$(command -v pwsh)"
 
-# Clean up the writable APFS volume mounted at /hab when done
-trap 'sudo -E bash -c "source .expeditor/scripts/shared.sh && HAB_VOLUME_DEVICE=$HAB_VOLUME_DEVICE teardown_hab_root_macos_pipeline"' EXIT
-
 if [ -n "$test_name" ]; then
     sudo -E "$pwsh_path" .expeditor/scripts/end_to_end/run_e2e_test_core.ps1 "$test_name"
 else
