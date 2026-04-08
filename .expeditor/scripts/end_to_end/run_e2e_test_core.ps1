@@ -9,7 +9,7 @@ param (
 $ErrorActionPreference = "stop"
 
 if (!$IsCoreCLR) {
-    Write-Error "End-to-end tests are only compatiable with Powershell Core"
+    Write-Error "End-to-end tests are only compatible with PowerShell Core"
 }
 
 ###################################################################################################
@@ -42,7 +42,7 @@ function Wait-PathUpdatedAfter($Path, $Time, $Timeout) {
     $testScript = {
         (Test-Path -Path $Path) -And ((Get-Item -Path $Path).LastWriteTime -gt $Time)
     }
-    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for '$Path' to be updated after '$($Time.ToString("yyyy-MM-ddTHH:MM:ssZ"))'" }
+    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for '$Path' to be updated after '$($Time.ToString("yyyy-MM-ddTHH:mm:ssZ"))'"}
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
 }
 
@@ -65,7 +65,7 @@ function Wait-PathHasContent($Path, $Time, $Timeout) {
     $testScript = {
         (Test-Path -Path $Path) -And ((Get-Content -Path $Path).Length -gt 0)
     }
-    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for '$Path' to have content after '$($Time.ToString("yyyy-MM-ddTHH:MM:ssZ"))'" }
+    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for '$Path' to have content after '$($Time.ToString("yyyy-MM-ddTHH:mm:ssZ"))'"}
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
 }
 
@@ -134,7 +134,7 @@ function Wait-SupervisorService($ServiceName, $Timeout = ($DefaultServiceTimeout
             }
             $status = (Invoke-WebRequest "$url" | ConvertFrom-Json).process.state
             $status -eq "up"
-        } catch { $false } # We ignore 404s and other unsuccesful codes
+        } catch { $false } # We ignore 404s and other unsuccessful codes
     }
     $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for Supervisor to start $ServiceName" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
@@ -210,8 +210,9 @@ function New-TemporaryDirectory {
 }
 
 function Restart-Supervisor {
-    if ($IsLinux) {
-        pkill --signal=HUP hab-launch
+    if ($IsLinux -Or $IsMacOS) {
+        # macOS pkill does not support GNU --signal= syntax
+        pkill -HUP hab-launch
         Start-Sleep 3 # wait for the signal to be processed
     } else {
         Stop-Process | Get-Process hab-sup
@@ -247,7 +248,7 @@ function Wait-Release($Ident, $Remote, $Timeout = ($DefaultServiceTimeout)) {
         $currentIdent = (Invoke-WebRequest "http://${Remote}:9631/services/$serviceName/default" | ConvertFrom-Json).pkg.ident
         $currentIdent -eq $Ident
     }
-    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for $Remote to Update to $Release" }
+    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for $Remote to update to $Ident" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
 }
 
@@ -268,12 +269,16 @@ function Get-Leader($Remote, $ServiceGroup) {
 }
 
 function Invoke-Build($PackageName, $RefreshChannel) {
-    $commandArgs = @("--reuse")
+    $commandArgs = @()
+    if (!$IsMacOS) {
+        # --reuse is not compiled for macOS
+        $commandArgs += @("--reuse")
+    }
     if($RefreshChannel) {
         $commandArgs += @("--refresh-channel", $RefreshChannel)
     }
     hab pkg build test/fixtures/$PackageName $commandArgs
-    if ($IsLinux) {
+    if ($IsLinux -Or $IsMacOS) {
         # This changes the format of last_build from `var=value` to `$var='value'`
         # so that powershell can parse and source the script
         Set-Content -Path "results/last_build.ps1" -Value ""
@@ -284,8 +289,15 @@ function Invoke-Build($PackageName, $RefreshChannel) {
 Function Invoke-BuildAndInstall($PackageName, $RefreshChannel) {
     Invoke-Build @PSBoundParameters
     . ./results/last_build.ps1
-    hab pkg install ./results/$pkg_artifact
-    hab studio run "rm /hab/pkgs/$pkg_ident/hooks"
+    if ($IsMacOS) {
+        # Use --ignore-install-hook because the install hook interpreter
+        # (core/busybox-static) is not available for aarch64-darwin.
+        hab pkg install --ignore-install-hook ./results/$pkg_artifact
+        # On macOS native studio there is no chroot, so no hook cleanup is needed.
+    } else {
+        hab pkg install ./results/$pkg_artifact
+        hab studio run "rm /hab/pkgs/$pkg_ident/hooks"
+    }
 }
 
 function Stop-ComposeSupervisor($Remote) {
@@ -316,7 +328,14 @@ function Get-HabServicePID($PackageName) {
 
 ###################################################################################################
 
-Import-Module (Join-Path -Path $(hab pkg path core/pester) module Pester.psd1)
+# Import Pester: prefer the hab-installed package, fall back to system-installed module
+$pesterPkgPath = $null
+try { $pesterPkgPath = hab pkg path core/pester 2>$null } catch { $pesterPkgPath = $null }
+if ($pesterPkgPath -and (Test-Path $pesterPkgPath)) {
+    Import-Module (Join-Path -Path $pesterPkgPath module Pester.psd1)
+} else {
+    Import-Module Pester
+}
 
 if(Test-Path $TestName) {
     $testPath = $TestName

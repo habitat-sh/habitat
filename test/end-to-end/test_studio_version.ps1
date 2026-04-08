@@ -19,8 +19,12 @@ if($IsWindows -Or !($env:DOCKER_STUDIO_TEST)) {
     }
 }
 
-Describe "Studio cli version" {
-    It "should match hab cli" {
-        (Invoke-StudioRun "hab --version")[-1] | Should -Be "hab $cliVersion"
+# hab studio run is not yet implemented on macOS (run_studio function
+# missing in hab-studio-darwin.sh), so skip this test on macOS.
+if (!$IsMacOS) {
+    Describe "Studio cli version" {
+        It "should match hab cli" {
+            (Invoke-StudioRun "hab --version")[-1] | Should -Be "hab $cliVersion"
+        }
     }
 }
