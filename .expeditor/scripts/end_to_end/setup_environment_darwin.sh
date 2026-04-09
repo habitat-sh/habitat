@@ -16,6 +16,9 @@ channel=${1:?You must specify a channel value}
 # Note: We should always have a `hab` binary installed in our CI
 # Anka VMs.
 
+HAB_BLDR_URL="https://bldr.acceptance.habitat.sh"
+HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
+
 # On macOS, /usr/bin is SIP-protected so we use /usr/local/bin.
 HAB_BINLINK_DIR="/usr/local/bin"
 hab_binary="$(command -v hab)"
