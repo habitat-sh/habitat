@@ -92,8 +92,8 @@ else
         # Explicit update to refresh the stale Anka VM index; the pipeline-level
         # HOMEBREW_NO_AUTO_UPDATE=1 only suppresses the *automatic* update that
         # brew install would otherwise trigger, so there is no double-update.
-        brew update
-        brew install powershell
+        sudo -u anka brew update
+        sudo -u anka brew install powershell
     fi
     echo "--- Using system pwsh version $(pwsh --version)"
 fi
