@@ -35,13 +35,6 @@ main() {
     u)
       bldrUrl="${OPTARG}"
       ;;
-    b)
-      # We use this CLI switch to download the *bootstrap* packages
-      # from this channel on the builder. This applies only for *darwin*
-      # TODO: Once we start publishing packages on chef.io, this should go
-      # away
-      bldrChannel="${OPTARG}" # for temporary use
-      ;;
     \?)
       echo "" >&2
       print_help >&2
@@ -87,8 +80,6 @@ print_help() {
 		    -t    Specifies the ActiveTarget of the 'hab' program to download.
 		            [values: x86_64-linux, aarch64-linux] [default: x86_64-linux]
 		            This option is only valid on Linux platforms
-		    -b    Use this builder channel for bootstrap packages. This option is
-		            effective only with 'aarch64-darwin' target.
 
 		ENVIRONMENT VARIABLES:
 		     SSL_CERT_FILE   allows you to verify against a custom cert such as one
@@ -280,6 +271,9 @@ install_hab_macos() {
         mkdir -pv /usr/local/share/habitat
         install -v "${archive_dir}/NOTICES.txt" /usr/local/share/habitat/NOTICES.txt
     fi
+
+    # TODO: We need to install the latest 'hab' once the '/opt' channel support is available
+    # in the main
 }
 
 install_hab() {
