@@ -52,13 +52,13 @@ export HAB_FEAT_MACOS_NATIVE_SUPPORT=1
 
 # Install hab-studio for native studio tests
 echo "--- Installing chef/hab-studio from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
-sudo -E "$hab_path" pkg install chef/hab-studio \
+sudo -E "$hab_binary" pkg install chef/hab-studio \
      --channel="aarch64-darwin-opt" \
      --url="${HAB_BLDR_URL}"
 
 # hab-backline is required by the studio but is only available in stable
 echo "--- Installing chef/hab-backline from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
-sudo -E "$hab_path" pkg install chef/hab-backline \
+sudo -E "$hab_binary" pkg install chef/hab-backline \
      --channel="stable" \
      --url="${HAB_BLDR_URL}"
 export HAB_STUDIO_BACKLINE_PKG
@@ -72,7 +72,7 @@ export HAB_INTERPRETER_IDENT="core/coreutils"
 
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
 # Try the hab package first, fall back to Homebrew
-if sudo -E "$hab_path" pkg install core/powershell \
+if sudo -E "$hab_binary" pkg install core/powershell \
     --binlink \
     --binlink-dir="/usr/local/bin" \
     --force \
@@ -99,7 +99,7 @@ pwsh_path="$(command -v pwsh)"
 
 echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
 # Try the hab package first, fall back to PowerShell module
-if ! sudo -E "$hab_path" pkg install core/pester \
+if ! sudo -E "$hab_binary" pkg install core/pester \
     --channel="aarch64-darwin-opt" \
     --url="${HAB_BLDR_URL}"; then
     echo "--- core/pester not available for this platform, installing via PowerShell module"
