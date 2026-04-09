@@ -3,7 +3,8 @@ use crate::{common::ui::{Status,
                          UIWriter},
             error::{Error,
                     Result},
-            hcore::{fs::FS_ROOT_PATH,
+            hcore::{fs::{FS_ROOT_PATH,
+                         ROOT_PATH},
                     os::net::hostname}};
 use chrono::Local;
 use flate2::{Compression,
@@ -39,7 +40,7 @@ pub fn start(ui: &mut UI) -> Result<()> {
                                &host,
                                dt.format("%Y%m%d%H%M%S"));
 
-    let sup_root = Path::new(&*FS_ROOT_PATH).join("hab").join("sup");
+    let sup_root = Path::new(&*FS_ROOT_PATH).join(ROOT_PATH).join("sup");
     let tar_gz = File::create(&tarball_name)?;
     let enc = GzEncoder::new(tar_gz, Compression::default());
     let mut tar = tar::Builder::new(enc);
