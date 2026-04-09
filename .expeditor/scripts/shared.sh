@@ -27,7 +27,7 @@ curlbash_hab() {
                mv -f /usr/local/bin/hab /usr/local/bin/.hab-orig
             fi
 
-            sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -b "aarch64-darwin-opt" || \
+            sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" || \
                 mv -f /usr/local/bin/.hab-orig /usr/local/bin/hab
 
             hab_binary="/usr/local/bin/hab"
@@ -565,7 +565,8 @@ macos_teardown_exit() {
 
 need_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
-    exit_with "Required command '$1' not found on PATH" 127
+    echo "Required command '$1' not found on PATH" ;
+    exit 127
   fi
 }
 
@@ -582,7 +583,6 @@ install_acceptance_bootstrap_hab_binary() {
     need_cmd gtar
     need_cmd gtail
 
-    local hab_scratch_dir
     local hab_scratch_dir="hab_scratch"
     rm -Rf "${hab_scratch_dir}"
     mkdir "${hab_scratch_dir}"
@@ -592,8 +592,7 @@ install_acceptance_bootstrap_hab_binary() {
         --url https://bldr.acceptance.habitat.sh  \
         --download-directory="${hab_scratch_dir}"
 
-    local hab_artifact
-    hab_artifact=$(find "${hab_scratch_dir}"/artifacts -type f -name 'chef-hab-*-aarch64-darwin.hart')
+    local hab_artifact=$(find "${hab_scratch_dir}"/artifacts -type f -name 'chef-hab-*-aarch64-darwin.hart')
 
     # GNU tail, tar, from the mac-bootstrapper
     gtail --lines=+6 "${hab_artifact}" | \
@@ -603,7 +602,6 @@ install_acceptance_bootstrap_hab_binary() {
             --strip-components=8 \
             --wildcards "opt/hab/pkgs/chef/hab/*/*/bin"
 
-    local bootstrap_hab_binary
     local bootstrap_hab_binary="hab"
 
     install -v "${bootstrap_hab_binary}" /usr/local/bin/hab
