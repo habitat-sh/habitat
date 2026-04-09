@@ -9,7 +9,7 @@ package_path=${1?package_path argument required}
 # Functions can error out too.
 set -E
 
-trap 'rm -f /opt/hab' ERR
+trap 'rm -rf /opt/hab' ERR
 
 # Following env variable is required to run MacOS Native Studio
 export HAB_FEAT_MACOS_NATIVE_SUPPORT=1
