@@ -583,7 +583,8 @@ install_acceptance_bootstrap_hab_binary() {
     need_cmd gtar
     need_cmd gtail
 
-    local hab_scratch_dir="hab_scratch"
+    local hab_scratch_dir
+    hab_scratch_dir="hab_scratch"
     rm -Rf "${hab_scratch_dir}"
     mkdir "${hab_scratch_dir}"
 
@@ -592,7 +593,8 @@ install_acceptance_bootstrap_hab_binary() {
         --url https://bldr.acceptance.habitat.sh  \
         --download-directory="${hab_scratch_dir}"
 
-    local hab_artifact=$(find "${hab_scratch_dir}"/artifacts -type f -name 'chef-hab-*-aarch64-darwin.hart')
+    local hab_artifact
+    hab_artifact=$(find "${hab_scratch_dir}"/artifacts -type f -name 'chef-hab-*-aarch64-darwin.hart')
 
     # GNU tail, tar, from the mac-bootstrapper
     gtail --lines=+6 "${hab_artifact}" | \
@@ -602,7 +604,8 @@ install_acceptance_bootstrap_hab_binary() {
             --strip-components=8 \
             --wildcards "opt/hab/pkgs/chef/hab/*/*/bin"
 
-    local bootstrap_hab_binary="hab"
+    local bootstrap_hab_binary
+    bootstrap_hab_binary="hab"
 
     install -v "${bootstrap_hab_binary}" /usr/local/bin/hab
 
