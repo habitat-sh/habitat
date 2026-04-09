@@ -60,6 +60,15 @@ install_release_channel_hab_binary() {
     local pkg_target="${1}"
     curlbash_hab "${pkg_target}"
 
+    # For macOS we will use the acceptance bootstrap binary 'for now'.
+    # TODO: Once the support is merged in the main - we don't need to do the following
+    # step anymore
+    if [[ "${pkg_target}" == "aarch64-darwin" ]]; then
+        install_acceptance_bootstrap_hab_binary
+	hab_binary=$(command -v hab)
+    fi
+
+
     echo "--- :habicat: Installed latest stable hab: $(${hab_binary} --version)"
     # now install the latest hab available in our channel, if it and the studio exist yet
     hab_version=$(get_latest_pkg_version_in_release_channel "hab" "${pkg_target}")
