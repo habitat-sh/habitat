@@ -81,7 +81,7 @@ steps:
       - ". vault-util-init"
       - "sudo -E .expeditor/scripts/release_habitat/build_component-aarch64-darwin.sh components/hab"
     env:
-      HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
+      PIPELINE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
       BUILD_PKG_TARGET: "aarch64-darwin"
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
@@ -134,7 +134,7 @@ steps:
       - ". vault-util-init"
       - "sudo -E .expeditor/scripts/release_habitat/build_component-aarch64-darwin.sh components/plan-build"
     env:
-      HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
+      PIPELINE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
       BUILD_PKG_TARGET: "aarch64-darwin"
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
@@ -176,7 +176,7 @@ steps:
       - ". vault-util-init"
       - "sudo -E .expeditor/scripts/release_habitat/build_component-aarch64-darwin.sh components/backline"
     env:
-      HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
+      PIPELINE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
       BUILD_PKG_TARGET: "aarch64-darwin"
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
@@ -229,7 +229,7 @@ steps:
       - ". vault-util-init"
       - "sudo -E .expeditor/scripts/release_habitat/build_component-aarch64-darwin.sh components/studio"
     env:
-      HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
+      PIPELINE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
       BUILD_PKG_TARGET: "aarch64-darwin"
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HOMEBREW_NO_AUTO_UPDATE: 1
