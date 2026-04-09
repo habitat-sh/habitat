@@ -17,7 +17,7 @@ main() {
   version=""
 
   # Parse command line flags and options.
-  while getopts "c:hv:t:u:b:" opt; do
+  while getopts "c:hv:t:u:" opt; do
     case "${opt}" in
     c)
       channel="${OPTARG}"
