@@ -474,9 +474,9 @@ dependencies = [
 
 [[package]]
 name = "aws-sdk-ecr"
-version = "1.113.0"
+version = "1.114.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92d33383dee4edb69817be9cf115da186d042285a999aaa293f2ce62488446eb"
+checksum = "8bd79cc872923874e31b7bba0f5f0dab4880b82ca417c0c669e43ad6891f5d9e"
 dependencies = [
  "aws-credential-types",
  "aws-runtime",
@@ -2530,7 +2530,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.5.10",
+ "socket2 0.6.3",
  "system-configuration",
  "tokio",
  "tower-service",
