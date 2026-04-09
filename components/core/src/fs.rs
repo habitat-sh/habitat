@@ -223,7 +223,7 @@ lazy_static::lazy_static! {
             PathBuf::from(CACHE_ARTIFACT_PATH)
         } else {
             match dirs::home_dir() {
-                Some(home) => home.join(format!(".{}", CACHE_ARTIFACT_PATH)),
+                Some(home) => home.join(format!(".{}", CACHE_ARTIFACT_PATH.strip_prefix("opt/").unwrap_or(CACHE_ARTIFACT_PATH))),
                 None => PathBuf::from(CACHE_ARTIFACT_PATH),
             }
         }
@@ -234,7 +234,7 @@ lazy_static::lazy_static! {
             PathBuf::from(CACHE_BUILD_PATH)
         } else {
             match dirs::home_dir() {
-                Some(home) => home.join(format!(".{}", CACHE_BUILD_PATH)),
+                Some(home) => home.join(format!(".{}", CACHE_BUILD_PATH.strip_prefix("opt/").unwrap_or(CACHE_BUILD_PATH))),
                 None => PathBuf::from(CACHE_BUILD_PATH),
             }
         }
@@ -245,7 +245,7 @@ lazy_static::lazy_static! {
             PathBuf::from(CACHE_KEY_PATH_POSTFIX)
         } else {
             match dirs::home_dir() {
-                Some(home) => home.join(format!(".{}", CACHE_KEY_PATH_POSTFIX)),
+                Some(home) => home.join(format!(".{}", CACHE_KEY_PATH_POSTFIX.strip_prefix("opt/").unwrap_or(CACHE_KEY_PATH_POSTFIX))),
                 None => PathBuf::from(CACHE_KEY_PATH_POSTFIX),
             }
         }
@@ -259,7 +259,7 @@ lazy_static::lazy_static! {
             PathBuf::from(CACHE_SRC_PATH)
         } else {
             match dirs::home_dir() {
-                Some(home) => home.join(format!(".{}", CACHE_SRC_PATH)),
+                Some(home) => home.join(format!(".{}", CACHE_SRC_PATH.strip_prefix("opt/").unwrap_or(CACHE_SRC_PATH))),
                 None => PathBuf::from(CACHE_SRC_PATH),
             }
         }
@@ -270,7 +270,7 @@ lazy_static::lazy_static! {
             PathBuf::from(CACHE_SSL_PATH)
         } else {
             match dirs::home_dir() {
-                Some(home) => home.join(format!(".{}", CACHE_SSL_PATH)),
+                Some(home) => home.join(format!(".{}", CACHE_SSL_PATH.strip_prefix("opt/").unwrap_or(CACHE_SSL_PATH))),
                 None => PathBuf::from(CACHE_SSL_PATH),
             }
         }

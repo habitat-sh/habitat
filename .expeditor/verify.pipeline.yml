@@ -577,7 +577,6 @@ steps:
         limit: 2 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[unit] :darwin: common"
-    if: false
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
     agents:
@@ -597,7 +596,6 @@ steps:
         limit: 2 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[unit] :darwin: core"
-    if: false
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
     agents:
@@ -617,7 +615,6 @@ steps:
         limit: 2 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[unit] :darwin: hab"
-    if: false
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
     agents:
@@ -637,7 +634,6 @@ steps:
         limit: 2 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[unit] :darwin: http-client"
-    if: false
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
     agents:
