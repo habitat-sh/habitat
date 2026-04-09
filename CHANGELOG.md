@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.499 -->
-## [2.0.499](https://github.com/habitat-sh/habitat/tree/2.0.499) (2026-04-08)
+<!-- latest_release 2.0.500 -->
+## [2.0.500](https://github.com/habitat-sh/habitat/tree/2.0.500) (2026-04-09)
 
 #### Merged Pull Requests
-- Add e2e tests for macOS(aarch64-darwin) [#10319](https://github.com/habitat-sh/habitat/pull/10319) ([dikshagupta1](https://github.com/dikshagupta1))
+- Bump aws-sdk-ecr from 1.113.0 to 1.114.0 [#10330](https://github.com/habitat-sh/habitat/pull/10330) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.488-->
 ### Changes since 2.0.488 release
 
 #### Merged Pull Requests
+- Bump aws-sdk-ecr from 1.113.0 to 1.114.0 [#10330](https://github.com/habitat-sh/habitat/pull/10330) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.500 -->
 - Add e2e tests for macOS(aarch64-darwin) [#10319](https://github.com/habitat-sh/habitat/pull/10319) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.499 -->
 - Bump tokio from 1.50.0 to 1.51.0 [#10326](https://github.com/habitat-sh/habitat/pull/10326) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.498 -->
 - Bump cc from 1.2.58 to 1.2.59 [#10327](https://github.com/habitat-sh/habitat/pull/10327) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.497 -->
