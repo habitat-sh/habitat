@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.501 -->
-## [2.0.501](https://github.com/habitat-sh/habitat/tree/2.0.501) (2026-04-09)
+<!-- latest_release 2.0.502 -->
+## [2.0.502](https://github.com/habitat-sh/habitat/tree/2.0.502) (2026-04-10)
 
 #### Merged Pull Requests
-- Bump tokio from 1.51.0 to 1.51.1 [#10329](https://github.com/habitat-sh/habitat/pull/10329) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libsodium-rs from 0.2.1 to 0.2.3 [#10332](https://github.com/habitat-sh/habitat/pull/10332) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.488-->
 ### Changes since 2.0.488 release
 
 #### Merged Pull Requests
+- Bump libsodium-rs from 0.2.1 to 0.2.3 [#10332](https://github.com/habitat-sh/habitat/pull/10332) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.502 -->
 - Bump tokio from 1.51.0 to 1.51.1 [#10329](https://github.com/habitat-sh/habitat/pull/10329) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.501 -->
 - Bump aws-sdk-ecr from 1.113.0 to 1.114.0 [#10330](https://github.com/habitat-sh/habitat/pull/10330) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.500 -->
 - Add e2e tests for macOS(aarch64-darwin) [#10319](https://github.com/habitat-sh/habitat/pull/10319) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 2.0.499 -->
