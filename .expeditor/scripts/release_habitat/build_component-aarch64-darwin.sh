@@ -35,7 +35,8 @@ import_keys
 # so this may need updating to support other channels.
 ${hab_binary} pkg install chef/hab-studio -c aarch64-darwin-opt
 
-export HAB_STUDIO_SECRET_HAB_BLDR_CHANNEL="aarch64-darwin-opt"
+export HAB_BLDR_CHANNEL="$channel"
+export HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL="aarch64-darwin-opt"
 
 echo "--- :hab: Running hab pkg build for $package_path"
 sudo -E "${hab_binary}" pkg build "$package_path"
