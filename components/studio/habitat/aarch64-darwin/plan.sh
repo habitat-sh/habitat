@@ -32,6 +32,10 @@ do_before() {
 	pkg_filename=${pkg_name}-${pkg_version}.tar.gz
 }
 
+do_prepare() {
+  set_runtime_env "HAB_STUDIO_BACKLINE_PKG" "$(< "$(pkg_path_for chef/hab-backline)"/IDENT)"
+}
+
 do_download() {
 	local tar_binary
 	tar_binary=$(pkg_path_for tar)/bin/tar
