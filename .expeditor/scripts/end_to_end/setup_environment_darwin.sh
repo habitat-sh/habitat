@@ -25,6 +25,8 @@ hab_binary="$(command -v hab)"
 
 install_acceptance_bootstrap_hab_binary
 
+
+# Now we are ready to install the `hab`
 # Install the package first (without binlinking)
 echo "--- Installing latest chef/hab from ${HAB_BLDR_URL}, ${channel} channel"
 sudo -E "$hab_binary" pkg install chef/hab \
@@ -54,19 +56,19 @@ echo "--- Using chef/hab version $("${hab_binary}" --version)"
 export HAB_FEAT_MACOS_NATIVE_SUPPORT=1
 
 # Install hab-studio for native studio tests
-echo "--- Installing chef/hab-studio from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
-sudo -E "$hab_binary" pkg install chef/hab-studio \
-     --channel="aarch64-darwin-opt" \
-     --url="${HAB_BLDR_URL}"
+# echo "--- Installing chef/hab-studio from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
+# sudo -E "$hab_binary" pkg install chef/hab-studio \
+     # --channel="aarch64-darwin-opt" \
+     # --url="${HAB_BLDR_URL}"
 
 # hab-backline is required by the studio but is only available in stable
-echo "--- Installing chef/hab-backline from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
-sudo -E "$hab_binary" pkg install chef/hab-backline \
-     --channel="stable" \
-     --url="${HAB_BLDR_URL}"
-export HAB_STUDIO_BACKLINE_PKG
-HAB_STUDIO_BACKLINE_PKG="$(cat "$(hab pkg path chef/hab-backline)/IDENT")"
-echo "--- HAB_STUDIO_BACKLINE_PKG=${HAB_STUDIO_BACKLINE_PKG}"
+#echo "--- Installing chef/hab-backline from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
+#sudo -E "$hab_binary" pkg install chef/hab-backline \
+     #--channel="stable" \
+     #--url="${HAB_BLDR_URL}"
+#export HAB_STUDIO_BACKLINE_PKG
+#HAB_STUDIO_BACKLINE_PKG="$(cat "$(hab pkg path chef/hab-backline)/IDENT")"
+#echo "--- HAB_STUDIO_BACKLINE_PKG=${HAB_STUDIO_BACKLINE_PKG}"
 
 # Override the interpreter identity to core/coreutils (installed via
 # hab-backline) because core/busybox-static is not available for
