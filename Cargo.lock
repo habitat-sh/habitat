@@ -2910,9 +2910,9 @@ dependencies = [
 
 [[package]]
 name = "libsodium-rs"
-version = "0.2.3"
+version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c23bc917a98c1ca8a8ff9cdf63d21cdd3f6cbe8f7dc4a05ab8d6eb90e4bcab9d"
+checksum = "4b8cd48c80d6c6fa5a4612d242941067219555baea82b0b49c92ea9d8156b59c"
 dependencies = [
  "ct-codecs",
  "ctor",
