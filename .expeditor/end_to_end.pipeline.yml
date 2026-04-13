@@ -1190,6 +1190,9 @@ steps:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HAB_INTERNAL_BLDR_CHANNEL: unstable # TODO: remove this after testing
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_studio_version]"
     commands:
@@ -1210,6 +1213,9 @@ steps:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HAB_INTERNAL_BLDR_CHANNEL: unstable # TODO: remove this after testing
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_studio_can_build_packages]"
     commands:
@@ -1230,6 +1236,9 @@ steps:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HAB_INTERNAL_BLDR_CHANNEL: unstable # TODO: remove this after testing
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_pkg_download]"
     commands:
@@ -1250,6 +1259,9 @@ steps:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HAB_INTERNAL_BLDR_CHANNEL: unstable # TODO: remove this after testing
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_fresh_install_can_communicate_with_builder]"
     commands:
@@ -1270,6 +1282,9 @@ steps:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HAB_INTERNAL_BLDR_CHANNEL: unstable # TODO: remove this after testing
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_self_signed_cert_is_loaded_by_hab]"
     commands:
@@ -1290,6 +1305,9 @@ steps:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HAB_INTERNAL_BLDR_CHANNEL: unstable # TODO: remove this after testing
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_hab_plan_cli]"
     commands:
@@ -1310,6 +1328,9 @@ steps:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HAB_INTERNAL_BLDR_CHANNEL: unstable # TODO: remove this after testing
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_pkg_uninstall_darwin]"
     commands:
@@ -1330,6 +1351,9 @@ steps:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HAB_INTERNAL_BLDR_CHANNEL: unstable # TODO: remove this after testing
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_simple_hooks_darwin]"
     commands:
@@ -1350,6 +1374,9 @@ steps:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HAB_INTERNAL_BLDR_CHANNEL: unstable # TODO: remove this after testing
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_external_binaries_darwin]"
     commands:
@@ -1370,6 +1397,9 @@ steps:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
       HAB_INTERNAL_BLDR_CHANNEL: unstable # TODO: remove this after testing
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - wait
 
