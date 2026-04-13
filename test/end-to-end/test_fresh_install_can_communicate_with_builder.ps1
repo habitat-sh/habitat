@@ -14,7 +14,7 @@ Describe "Clean hab installation" {
     }
     It "can talk to builder" {
         if ($IsMacOS) {
-            $pkgChannel = "aarch64-darwin"
+            $pkgChannel = "aarch64-darwin-opt"
             # core/redis may not exist for aarch64-darwin; use core/nginx instead
             hab pkg install core/nginx --channel $pkgChannel
         } else {
