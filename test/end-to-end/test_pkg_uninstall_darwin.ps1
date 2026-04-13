@@ -2,7 +2,7 @@
 
 $pkg = "core/sqlite"
 $nginxPkg = "core/nginx"
-$channel = "aarch64-darwin"
+$channel = "aarch64-darwin-opt"
 $env:HAB_NOCOLORING = "true"
 
 Describe "pkg uninstall (macOS)" {
