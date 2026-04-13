@@ -5,8 +5,13 @@
 # to talk to a builder service with a self-signed cert.
 
 Describe "Self signed cert"  {
-    New-Item -ItemType Directory /hab/cache/ssl
-    $e2e_cert = "/hab/cache/ssl/e2e-ssl.pem"
+    if ($IsMacOS) {
+        New-Item -ItemType Directory /opt/hab/cache/ssl
+        $e2e_cert = "/opt/hab/cache/ssl/e2e-ssl.pem"
+    } else {
+        New-Item -ItemType Directory /hab/cache/ssl
+        $e2e_cert = "/hab/cache/ssl/e2e-ssl.pem"
+    }
     openssl req -newkey rsa:2048 -batch -nodes -subj "/CN=e2e-test" -keyout key.pem -x509 -days 365 -out "${e2e_cert}"
 
     It "should be used by bldr client" {
