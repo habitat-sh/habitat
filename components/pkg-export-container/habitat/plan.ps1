@@ -4,7 +4,6 @@ $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_bin_dirs = @("bin")
 $pkg_deps=@(
-    "core/docker",
     "core/visual-cpp-redist-2022"
 )
 $pkg_build_deps = @(

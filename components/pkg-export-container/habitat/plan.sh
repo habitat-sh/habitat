@@ -4,10 +4,7 @@ _pkg_distname=$pkg_name
 pkg_origin=chef
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-pkg_deps=(
-    core/buildah
-    core/docker
-)
+pkg_deps=()
 pkg_build_deps=(
     core/musl
     core/perl # Needed for vendored openssl-sys
