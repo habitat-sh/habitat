@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.503 -->
-## [2.0.503](https://github.com/habitat-sh/habitat/tree/2.0.503) (2026-04-15)
+<!-- latest_release 2.0.504 -->
+## [2.0.504](https://github.com/habitat-sh/habitat/tree/2.0.504) (2026-04-16)
 
 #### Merged Pull Requests
-- Updated two links based on input from Copilot when making improvement… [#10339](https://github.com/habitat-sh/habitat/pull/10339) ([lbarry316](https://github.com/lbarry316))
+- updated notices.txt [#10341](https://github.com/habitat-sh/habitat/pull/10341) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.488-->
 ### Changes since 2.0.488 release
 
 #### Merged Pull Requests
+- updated notices.txt [#10341](https://github.com/habitat-sh/habitat/pull/10341) ([mwrock](https://github.com/mwrock)) <!-- 2.0.504 -->
 - Updated two links based on input from Copilot when making improvement… [#10339](https://github.com/habitat-sh/habitat/pull/10339) ([lbarry316](https://github.com/lbarry316)) <!-- 2.0.503 -->
 - Bump libsodium-rs from 0.2.1 to 0.2.3 [#10332](https://github.com/habitat-sh/habitat/pull/10332) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.502 -->
 - Bump tokio from 1.51.0 to 1.51.1 [#10329](https://github.com/habitat-sh/habitat/pull/10329) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.501 -->
