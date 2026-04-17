@@ -27,7 +27,7 @@ curlbash_hab() {
                mv -f /usr/local/bin/hab /usr/local/bin/.hab-orig
             fi
 
-            sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" -b "aarch64-darwin" || \
+            sudo -E ./components/hab/install.sh -t "$pkg_target" -c "$_channel" || \
                 mv -f /usr/local/bin/.hab-orig /usr/local/bin/hab
 
             hab_binary="/usr/local/bin/hab"
@@ -463,6 +463,7 @@ macos_build() {
 # script, except these actions are temporary that is we setup the `/hab` volume during
 # every invocation which builds `hab` packages and `tear_down` after the expected
 # `hab` package related actions
+# TODO: Delete these functions when all the CI jobs are successful.
 setup_hab_root_macos_pipeline() {
 
     readonly HAB_DIR_NAME="hab"
@@ -560,4 +561,52 @@ macos_teardown_exit() {
     teardown_hab_root_macos_pipeline
 
     exit 1
+}
+
+need_cmd() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "Required command '$1' not found on PATH" ;
+    exit 127
+  fi
+}
+
+# Use the binary from the acceptance bldr bootstrap package that provides
+# the support for hab CLI with "/opt" support.
+# When we have the support *released* we do not need to do this anymore.
+install_acceptance_bootstrap_hab_binary() {
+    need_cmd install
+
+    # Install the macOS bootstrap package that gives us GNU tar and GNU tail.
+    sudo -u anka HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install gnu-tar
+    sudo -u anka HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install coreutils
+
+    need_cmd gtar
+    need_cmd gtail
+
+    local hab_scratch_dir
+    hab_scratch_dir="hab_scratch"
+    rm -Rf "${hab_scratch_dir}"
+    mkdir "${hab_scratch_dir}"
+
+    "${hab_binary}" pkg download chef/hab \
+        --channel aarch64-darwin-opt \
+        --url https://bldr.acceptance.habitat.sh  \
+        --download-directory="${hab_scratch_dir}"
+
+    local hab_artifact
+    hab_artifact=$(find "${hab_scratch_dir}"/artifacts -type f -name 'chef-hab-*-aarch64-darwin.hart')
+
+    # GNU tail, tar, from the mac-bootstrapper
+    gtail --lines=+6 "${hab_artifact}" | \
+        gtar --extract \
+            --verbose \
+            --xz \
+            --strip-components=8 \
+            --wildcards "opt/hab/pkgs/chef/hab/*/*/bin"
+
+    local bootstrap_hab_binary
+    bootstrap_hab_binary="hab"
+
+    install -v "${bootstrap_hab_binary}" /usr/local/bin/hab
+
 }

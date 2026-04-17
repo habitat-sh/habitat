@@ -11,7 +11,7 @@ Describe "Hook extension stripping and execution" {
         . ./results/last_build.ps1
         $script:pkgIdent = $pkg_ident
         $script:pkgName = ($pkg_ident -split "/")[1]
-        $script:pkgPrefix = "/hab/pkgs/$pkg_ident"
+        $script:pkgPrefix = "/opt/hab/pkgs/$pkg_ident"
     }
 
     It "strips .sh extension from hook files" {
@@ -30,7 +30,7 @@ Describe "Hook extension stripping and execution" {
     }
 
     It "install hook renders templates and produces stdout" {
-        $logPath = "/hab/svc/$($script:pkgName)/logs/install.stdout.log"
+        $logPath = "/opt/hab/svc/$($script:pkgName)/logs/install.stdout.log"
         $logPath | Should -Exist
         Get-Content $logPath | Should -Contain "install hook $($script:pkgName)"
     }

@@ -4,7 +4,7 @@
 # hab pkg exec instead, which is the underlying mechanism for running
 # external package binaries.
 
-$channel = "aarch64-darwin"
+$channel = "aarch64-darwin-opt"
 
 Describe "`hab` correctly executes external binaries" {
     BeforeAll {
