@@ -1,14 +1,15 @@
 # Habitat CHANGELOG
 
 <!-- latest_release 2.0.504 -->
-## [2.0.504](https://github.com/habitat-sh/habitat/tree/2.0.504) (2026-04-16)
 
-#### Merged Pull Requests
-- updated notices.txt [#10341](https://github.com/habitat-sh/habitat/pull/10341) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=2.0.488-->
-### Changes since 2.0.488 release
+<!-- release_rollup since=2.0.504-->
+### Changes since 2.0.504 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release 2.0.504 -->
+## [2.0.504](https://github.com/habitat-sh/habitat/tree/2.0.504) (2026-04-16)
 
 #### Merged Pull Requests
 - updated notices.txt [#10341](https://github.com/habitat-sh/habitat/pull/10341) ([mwrock](https://github.com/mwrock)) <!-- 2.0.504 -->
@@ -29,9 +30,6 @@
 - Bump wincode from 0.4.9 to 0.5.1 [#10316](https://github.com/habitat-sh/habitat/pull/10316) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.491 -->
 - update changelog for 2.0.488 release [#10321](https://github.com/habitat-sh/habitat/pull/10321) ([mwrock](https://github.com/mwrock)) <!-- 2.0.490 -->
 - change test-probe idents in svc_update test to base channel [#10314](https://github.com/habitat-sh/habitat/pull/10314) ([mwrock](https://github.com/mwrock)) <!-- 2.0.489 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 2.0.488 -->
 
 ## [2.0.488](https://github.com/habitat-sh/habitat/tree/2.0.488) (2026-03-31)
 
