@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.506 -->
-## [2.0.506](https://github.com/habitat-sh/habitat/tree/2.0.506) (2026-04-20)
+<!-- latest_release 2.0.507 -->
+## [2.0.507](https://github.com/habitat-sh/habitat/tree/2.0.507) (2026-04-20)
 
 #### Merged Pull Requests
-- Bump log4net from 2.0.15 to 3.3.0 [#10338](https://github.com/habitat-sh/habitat/pull/10338) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.59 to 1.2.60 [#10337](https://github.com/habitat-sh/habitat/pull/10337) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.59 to 1.2.60 [#10337](https://github.com/habitat-sh/habitat/pull/10337) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.507 -->
+- remove convenience dependencies of docker and buildah [#10340](https://github.com/habitat-sh/habitat/pull/10340) ([mwrock](https://github.com/mwrock)) <!-- 2.0.507 -->
+- Rustfmt and Nightly Rust Bump to nightly-2026-04-20 [#10342](https://github.com/habitat-sh/habitat/pull/10342) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 2.0.507 -->
+- Bump libsodium-rs from 0.2.3 to 0.2.4 [#10333](https://github.com/habitat-sh/habitat/pull/10333) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.507 -->
+- Bump clap_complete from 4.6.0 to 4.6.1 [#10335](https://github.com/habitat-sh/habitat/pull/10335) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.507 -->
 - Bump log4net from 2.0.15 to 3.3.0 [#10338](https://github.com/habitat-sh/habitat/pull/10338) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.506 -->
 - update changelog for 2.0.504 release [#10343](https://github.com/habitat-sh/habitat/pull/10343) ([mwrock](https://github.com/mwrock)) <!-- 2.0.505 -->
 <!-- release_rollup -->
