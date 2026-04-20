@@ -212,7 +212,7 @@ lazy_static::lazy_static! {
             PathBuf::from(CACHE_PATH)
         } else {
             match dirs::home_dir() {
-                Some(home) => home.join(format!(".{}", CACHE_PATH)),
+                Some(home) => home.join(format!(".{}", CACHE_PATH.strip_prefix("opt/").unwrap_or(CACHE_PATH))),
                 None => PathBuf::from(CACHE_PATH),
             }
         }
