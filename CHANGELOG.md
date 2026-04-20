@@ -1,11 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.504 -->
+<!-- latest_release 2.0.505 -->
+## [2.0.505](https://github.com/habitat-sh/habitat/tree/2.0.505) (2026-04-20)
 
+#### Merged Pull Requests
+- update changelog for 2.0.504 release [#10343](https://github.com/habitat-sh/habitat/pull/10343) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
+
+#### Merged Pull Requests
+- update changelog for 2.0.504 release [#10343](https://github.com/habitat-sh/habitat/pull/10343) ([mwrock](https://github.com/mwrock)) <!-- 2.0.505 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release 2.0.504 -->
