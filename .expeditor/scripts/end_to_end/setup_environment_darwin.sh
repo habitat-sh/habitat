@@ -36,7 +36,7 @@ sudo -E "$hab_binary" pkg install chef/hab \
 # The Anka VM may have a pre-existing /usr/local/bin/hab as a regular
 # file (not a symlink). --binlink --force only overwrites symlinks,
 # so remove the old file first, then binlink using the newly installed hab.
-HAB_PKG_PATH=$(hab pkg path chef/hab)
+HAB_PKG_PATH=$("$hab_binary" pkg path chef/hab)
 sudo rm -f "${HAB_BINLINK_DIR}/hab" "${HAB_BINLINK_DIR}/NOTICES.txt"
 sudo -E "${HAB_PKG_PATH}/bin/hab" pkg binlink chef/hab \
      --dest="${HAB_BINLINK_DIR}" \

@@ -44,7 +44,7 @@ ${bootstrap_hab_binary} pkg install chef/hab-studio -c aarch64-darwin-opt -u htt
 # locally missing
 export HAB_INTERNAL_BLDR_CHANNEL="aarch64-darwin-opt"
 
-# Required to downloade the deps of the package to be built
+# Required to download the deps of the package to be built
 export HAB_STUDIO_SECRET_HAB_BLDR_CHANNEL="aarch64-darwin-opt"
 
 # Required till we *release* the builder changes to Prod builder
