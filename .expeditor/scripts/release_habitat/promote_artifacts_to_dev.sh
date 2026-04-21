@@ -19,6 +19,14 @@ source .expeditor/scripts/release_habitat/shared.sh
 
 export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
+# The following holds true only for aarch64-darwin as we are only setting that
+# environment variable for macos aarch64 jobs. TODO: Remove it once we start
+# using the SAAS builder for macOS
+if [[ -n "${JOB_HAB_BLDR_URL:-}" ]]; then
+    export HAB_BLDR_URL="${JOB_HAB_BLDR_URL}"
+    export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
+fi
+
 # Take advantage of the fact that we're just promoting and we can run
 # 100% on linux
 declare -g hab_binary
