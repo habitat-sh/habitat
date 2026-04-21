@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.507 -->
-## [2.0.507](https://github.com/habitat-sh/habitat/tree/2.0.507) (2026-04-20)
+<!-- latest_release 2.0.508 -->
+## [2.0.508](https://github.com/habitat-sh/habitat/tree/2.0.508) (2026-04-21)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.59 to 1.2.60 [#10337](https://github.com/habitat-sh/habitat/pull/10337) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rustls from 0.23.37 to 0.23.38 [#10334](https://github.com/habitat-sh/habitat/pull/10334) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump rustls from 0.23.37 to 0.23.38 [#10334](https://github.com/habitat-sh/habitat/pull/10334) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.508 -->
 - Bump cc from 1.2.59 to 1.2.60 [#10337](https://github.com/habitat-sh/habitat/pull/10337) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.507 -->
 - remove convenience dependencies of docker and buildah [#10340](https://github.com/habitat-sh/habitat/pull/10340) ([mwrock](https://github.com/mwrock)) <!-- 2.0.507 -->
 - Rustfmt and Nightly Rust Bump to nightly-2026-04-20 [#10342](https://github.com/habitat-sh/habitat/pull/10342) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 2.0.507 -->
