@@ -109,6 +109,7 @@ do_install() {
 	install -D components/plan-build/bin/environment.bash "$pkg_prefix"/bin/
 	install -D components/plan-build/bin/darwin-sandbox.sb "$pkg_prefix"/bin/
 	install -D components/plan-build/bin/hab-plan-build-darwin-internal.bash "$pkg_prefix"/bin/
+	install -D components/plan-build/bin/internal.sh "$pkg_prefix"/bin/
 
 	# Fix scripts
 	fix_interpreter "${pkg_prefix}/bin/*" core/bash bin/bash

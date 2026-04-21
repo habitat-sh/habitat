@@ -74,5 +74,6 @@ PROFILE_ENTER
       done
     fi
 
+    info "Setup Finished."
     return 0
 }

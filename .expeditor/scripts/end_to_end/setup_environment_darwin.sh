@@ -13,44 +13,30 @@ source .expeditor/scripts/shared.sh
 # e.g. `dev`, `acceptance` etc.
 channel=${1:?You must specify a channel value}
 
-# On macOS, /hab is on a read-only root volume (SIP). Create a writable
-# APFS volume and mount it at /hab before installing any packages.
-# setup_hab_root_macos_pipeline writes to /etc/synthetic.conf which
-# requires root privileges, so we run the setup in a sudo bash context
-# and persist the volume device for later teardown.
-HAB_VOLUME_DEVICE_FILE=$(mktemp /tmp/hab-vol-device.XXXXXX)
-export HAB_VOLUME_DEVICE_FILE
-sudo -E bash -c "
-    source .expeditor/scripts/shared.sh
-    setup_hab_root_macos_pipeline
-    echo \"\$HAB_VOLUME_DEVICE\" > \"$HAB_VOLUME_DEVICE_FILE\"
-"
-HAB_VOLUME_DEVICE=$(cat "$HAB_VOLUME_DEVICE_FILE")
-rm -f "$HAB_VOLUME_DEVICE_FILE"
-export HAB_VOLUME_DEVICE
-
-# Clean up the writable APFS volume mounted at /hab when done
-trap 'sudo -E bash -c "source .expeditor/scripts/shared.sh && \
-	HAB_VOLUME_DEVICE=$HAB_VOLUME_DEVICE \
-	teardown_hab_root_macos_pipeline"' ERR EXIT
-
 # Note: We should always have a `hab` binary installed in our CI
 # Anka VMs.
 
-echo "--- Installing latest chef/hab from ${HAB_BLDR_URL}, ${channel} channel"
+HAB_BLDR_URL="https://bldr.acceptance.habitat.sh"
+HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
+
 # On macOS, /usr/bin is SIP-protected so we use /usr/local/bin.
 HAB_BINLINK_DIR="/usr/local/bin"
-hab_path="$(command -v hab)"
+hab_binary="$(command -v hab)"
 
+install_acceptance_bootstrap_hab_binary
+
+
+# Now we are ready to install the `hab`
 # Install the package first (without binlinking)
-sudo -E "$hab_path" pkg install chef/hab \
+echo "--- Installing latest chef/hab from ${HAB_BLDR_URL}, ${channel} channel"
+sudo -E "$hab_binary" pkg install chef/hab \
      --channel="${channel}" \
      --url="${HAB_BLDR_URL}"
 
 # The Anka VM may have a pre-existing /usr/local/bin/hab as a regular
 # file (not a symlink). --binlink --force only overwrites symlinks,
 # so remove the old file first, then binlink using the newly installed hab.
-HAB_PKG_PATH=$(hab pkg path chef/hab)
+HAB_PKG_PATH=$("$hab_binary" pkg path chef/hab)
 sudo rm -f "${HAB_BINLINK_DIR}/hab" "${HAB_BINLINK_DIR}/NOTICES.txt"
 sudo -E "${HAB_PKG_PATH}/bin/hab" pkg binlink chef/hab \
      --dest="${HAB_BINLINK_DIR}" \
@@ -68,35 +54,34 @@ echo "--- Using chef/hab version $("${hab_binary}" --version)"
 
 # Enable macOS native studio support (same flags used in release builds)
 export HAB_FEAT_MACOS_NATIVE_SUPPORT=1
-export CI_INTERNAL_MAC_NATIVE_SUPPORT=1
 
 # Install hab-studio for native studio tests
-echo "--- Installing chef/hab-studio from ${HAB_BLDR_URL}, aarch64-darwin channel"
-sudo -E "$hab_path" pkg install chef/hab-studio \
-     --channel="aarch64-darwin" \
-     --url="${HAB_BLDR_URL}"
+# echo "--- Installing chef/hab-studio from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
+# sudo -E "$hab_binary" pkg install chef/hab-studio \
+     # --channel="aarch64-darwin-opt" \
+     # --url="${HAB_BLDR_URL}"
 
 # hab-backline is required by the studio but is only available in stable
-echo "--- Installing chef/hab-backline from ${HAB_BLDR_URL}, stable channel"
-sudo -E "$hab_path" pkg install chef/hab-backline \
-     --channel="stable" \
-     --url="${HAB_BLDR_URL}"
-export HAB_STUDIO_BACKLINE_PKG
-HAB_STUDIO_BACKLINE_PKG="$(cat "$(hab pkg path chef/hab-backline)/IDENT")"
-echo "--- HAB_STUDIO_BACKLINE_PKG=${HAB_STUDIO_BACKLINE_PKG}"
+#echo "--- Installing chef/hab-backline from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
+#sudo -E "$hab_binary" pkg install chef/hab-backline \
+     #--channel="stable" \
+     #--url="${HAB_BLDR_URL}"
+#export HAB_STUDIO_BACKLINE_PKG
+#HAB_STUDIO_BACKLINE_PKG="$(cat "$(hab pkg path chef/hab-backline)/IDENT")"
+#echo "--- HAB_STUDIO_BACKLINE_PKG=${HAB_STUDIO_BACKLINE_PKG}"
 
 # Override the interpreter identity to core/coreutils (installed via
 # hab-backline) because core/busybox-static is not available for
 # aarch64-darwin. This is needed for install hook execution.
 export HAB_INTERPRETER_IDENT="core/coreutils"
 
-echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, base channel"
+echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
 # Try the hab package first, fall back to Homebrew
-if sudo -E "$hab_path" pkg install core/powershell \
+if sudo -E "$hab_binary" pkg install core/powershell \
     --binlink \
     --binlink-dir="/usr/local/bin" \
     --force \
-    --channel="base" \
+    --channel="aarch64-darwin-opt" \
     --url="${HAB_BLDR_URL}"; then
     echo "--- Using core/powershell version $(pwsh --version)"
 else
@@ -109,18 +94,18 @@ else
         # Explicit update to refresh the stale Anka VM index; the pipeline-level
         # HOMEBREW_NO_AUTO_UPDATE=1 only suppresses the *automatic* update that
         # brew install would otherwise trigger, so there is no double-update.
-        brew update
-        brew install powershell
+        sudo -u anka brew update
+        sudo -u anka brew install powershell
     fi
     echo "--- Using system pwsh version $(pwsh --version)"
 fi
 
 pwsh_path="$(command -v pwsh)"
 
-echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, stable channel"
+echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
 # Try the hab package first, fall back to PowerShell module
-if ! sudo -E "$hab_path" pkg install core/pester \
-    --channel="stable" \
+if ! sudo -E "$hab_binary" pkg install core/pester \
+    --channel="aarch64-darwin-opt" \
     --url="${HAB_BLDR_URL}"; then
     echo "--- core/pester not available for this platform, installing via PowerShell module"
     # Pin to Pester 4.x to match core/pester on Linux. All existing test

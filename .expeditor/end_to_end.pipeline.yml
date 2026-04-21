@@ -3,6 +3,9 @@ expeditor:
     HAB_AUTH_TOKEN:
       path: account/static/habitat/chef-ci
       field: auth_token # Production Builder
+    ACCEPTANCE_HAB_AUTH_TOKEN:
+      path: account/static/habitat/chef-ci
+      field: acceptance_auth_token # Acceptance Builder
   accounts:
     - aws/chef-cd
   defaults:
@@ -1169,8 +1172,9 @@ steps:
   #######################################################################
 
   - label: "[:mac: test_studio_auto_installs]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_studio_auto_installs
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_studio_auto_installs"
     artifact_paths:
       - "*.log"
     agents:
@@ -1185,10 +1189,14 @@ steps:
       BUILD_PKG_TARGET: aarch64-darwin
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_studio_version]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_studio_version
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_studio_version"
     artifact_paths:
       - "*.log"
     agents:
@@ -1203,10 +1211,14 @@ steps:
       BUILD_PKG_TARGET: aarch64-darwin
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_studio_can_build_packages]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_studio_can_build_packages
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_studio_can_build_packages"
     artifact_paths:
       - "*.log"
     agents:
@@ -1221,10 +1233,14 @@ steps:
       BUILD_PKG_TARGET: aarch64-darwin
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_pkg_download]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_pkg_download
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_pkg_download"
     artifact_paths:
       - "*.log"
     agents:
@@ -1239,10 +1255,14 @@ steps:
       BUILD_PKG_TARGET: aarch64-darwin
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_fresh_install_can_communicate_with_builder]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_fresh_install_can_communicate_with_builder
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_fresh_install_can_communicate_with_builder"
     artifact_paths:
       - "*.log"
     agents:
@@ -1257,10 +1277,14 @@ steps:
       BUILD_PKG_TARGET: aarch64-darwin
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_self_signed_cert_is_loaded_by_hab]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_self_signed_cert_is_loaded_by_hab
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_self_signed_cert_is_loaded_by_hab"
     artifact_paths:
       - "*.log"
     agents:
@@ -1275,10 +1299,14 @@ steps:
       BUILD_PKG_TARGET: aarch64-darwin
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_hab_plan_cli]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_hab_plan_cli
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_hab_plan_cli"
     artifact_paths:
       - "*.log"
     agents:
@@ -1293,10 +1321,14 @@ steps:
       BUILD_PKG_TARGET: aarch64-darwin
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_pkg_uninstall_darwin]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_pkg_uninstall_darwin
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_pkg_uninstall_darwin"
     artifact_paths:
       - "*.log"
     agents:
@@ -1311,10 +1343,14 @@ steps:
       BUILD_PKG_TARGET: aarch64-darwin
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_simple_hooks_darwin]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_simple_hooks_darwin
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_simple_hooks_darwin"
     artifact_paths:
       - "*.log"
     agents:
@@ -1329,10 +1365,14 @@ steps:
       BUILD_PKG_TARGET: aarch64-darwin
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - label: "[:mac: test_external_binaries_darwin]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_external_binaries_darwin
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/end_to_end/run_e2e_test_darwin.sh dev test_external_binaries_darwin"
     artifact_paths:
       - "*.log"
     agents:
@@ -1347,6 +1387,9 @@ steps:
       BUILD_PKG_TARGET: aarch64-darwin
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
   - wait
 
