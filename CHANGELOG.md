@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.511 -->
-## [2.0.511](https://github.com/habitat-sh/habitat/tree/2.0.511) (2026-04-21)
+<!-- latest_release 2.0.512 -->
+## [2.0.512](https://github.com/habitat-sh/habitat/tree/2.0.512) (2026-04-21)
 
 #### Merged Pull Requests
-- macOS support for &quot;/opt&quot; based habitat [#10328](https://github.com/habitat-sh/habitat/pull/10328) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump aws-config from 1.8.15 to 1.8.16 [#10346](https://github.com/habitat-sh/habitat/pull/10346) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump aws-config from 1.8.15 to 1.8.16 [#10346](https://github.com/habitat-sh/habitat/pull/10346) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.512 -->
 - macOS support for &quot;/opt&quot; based habitat [#10328](https://github.com/habitat-sh/habitat/pull/10328) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.511 -->
 - Bump rustls-webpki from 0.103.10 to 0.103.12 [#10344](https://github.com/habitat-sh/habitat/pull/10344) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.510 -->
 - bump libflate from 2.2.1 to 2.3.0 [#10345](https://github.com/habitat-sh/habitat/pull/10345) ([mwrock](https://github.com/mwrock)) <!-- 2.0.509 -->
