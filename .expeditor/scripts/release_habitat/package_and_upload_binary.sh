@@ -9,13 +9,6 @@ source .expeditor/scripts/release_habitat/shared.sh
 
 export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
-# We need to do special things for aarch64-darwin till we have a new builder
-# release. TODO: Remove this and JOB_BLDR_URL setting when we release builder
-if [[ "${BUILD_PKG_TARGET}" == "aarch64-darwin" ]]; then
-    export HAB_BLDR_URL="${JOB_HAB_BLDR_URL}"
-    export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
-fi
-
 channel=$(get_release_channel)
 
 echo "--- Channel: $channel - bldr url: $HAB_BLDR_URL"
@@ -29,6 +22,13 @@ import_gpg_keys
 # it does help to contain things a bit.
 tmp_root="$(mktemp --directory --tmpdir="$(pwd)" -t "repackage-XXXX")"
 cd "${tmp_root}"
+
+# We need to do special things for aarch64-darwin till we have a new builder
+# release. TODO: Remove this and JOB_BLDR_URL setting when we release builder
+if [[ "${BUILD_PKG_TARGET}" == "aarch64-darwin" ]]; then
+    export HAB_BLDR_URL="${JOB_HAB_BLDR_URL}"
+    export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
+fi
 
 echo "--- Downloading chef/hab for $BUILD_PKG_TARGET from ${channel} channel"
 
