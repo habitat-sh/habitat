@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.513 -->
-## [2.0.513](https://github.com/habitat-sh/habitat/tree/2.0.513) (2026-04-21)
+<!-- latest_release 2.0.514 -->
+## [2.0.514](https://github.com/habitat-sh/habitat/tree/2.0.514) (2026-04-21)
 
 #### Merged Pull Requests
-- Bump tokio from 1.51.1 to 1.52.1 [#10347](https://github.com/habitat-sh/habitat/pull/10347) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libc from 0.2.184 to 0.2.185 [#10348](https://github.com/habitat-sh/habitat/pull/10348) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.184 to 0.2.185 [#10348](https://github.com/habitat-sh/habitat/pull/10348) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.514 -->
 - Bump tokio from 1.51.1 to 1.52.1 [#10347](https://github.com/habitat-sh/habitat/pull/10347) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.513 -->
 - Bump wincode from 0.5.1 to 0.5.3 [#10349](https://github.com/habitat-sh/habitat/pull/10349) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.513 -->
 - Bump clap_complete from 4.6.1 to 4.6.2 [#10350](https://github.com/habitat-sh/habitat/pull/10350) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.513 -->
