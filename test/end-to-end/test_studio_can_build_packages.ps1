@@ -41,11 +41,11 @@ Describe "Studio build" {
         Invoke-Build minimal-package
         . ./results/last_build.ps1
 
-	if($IsMacOS) {
+        if($IsMacOS) {
             "/opt/hab/cache/artifacts/$pkg_artifact" | Should -Exist
-	} else {
+        } else {
             "/hab/cache/artifacts/$pkg_artifact" | Should -Exist
-	}
+        }
     }
 
     if($IsWindows) {
@@ -68,11 +68,11 @@ Describe "Studio build" {
         Invoke-BuildAndInstall hook-extension-plan
         . ./results/last_build.ps1
 
-	if ($IsMacOS) {
+        if ($IsMacOS) {
             "/opt/hab/pkgs/$pkg_ident/hooks/install" | Should -Exist
-	} else {
+        } else {
             "/hab/pkgs/$pkg_ident/hooks/install" | Should -Exist
-	}
+        }
     }
 
     It "fails when there are multiple extensions" {
