@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.515 -->
-## [2.0.515](https://github.com/habitat-sh/habitat/tree/2.0.515) (2026-04-22)
+<!-- latest_release 2.0.516 -->
+## [2.0.516](https://github.com/habitat-sh/habitat/tree/2.0.516) (2026-04-22)
 
 #### Merged Pull Requests
-- Bump bitflags from 2.11.0 to 2.11.1 [#10352](https://github.com/habitat-sh/habitat/pull/10352) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump aws-sdk-ecr from 1.114.0 to 1.115.0 [#10353](https://github.com/habitat-sh/habitat/pull/10353) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump aws-sdk-ecr from 1.114.0 to 1.115.0 [#10353](https://github.com/habitat-sh/habitat/pull/10353) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.516 -->
+- Bump rustls-webpki from 0.103.12 to 0.103.13 [#10355](https://github.com/habitat-sh/habitat/pull/10355) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.516 -->
 - Bump bitflags from 2.11.0 to 2.11.1 [#10352](https://github.com/habitat-sh/habitat/pull/10352) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.515 -->
 - Bump libc from 0.2.184 to 0.2.185 [#10348](https://github.com/habitat-sh/habitat/pull/10348) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.514 -->
 - Bump tokio from 1.51.1 to 1.52.1 [#10347](https://github.com/habitat-sh/habitat/pull/10347) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.513 -->
