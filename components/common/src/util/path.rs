@@ -96,7 +96,11 @@ async fn interpreter_paths(token: Option<&str>) -> Result<Vec<PathBuf>> {
                 // interpreter command is present on `PATH`.
                 Err(_) => {
                     // Prefer the explicitly-passed token; fall back to the environment variable.
-                    let env_token = env::var(habitat_core::AUTH_TOKEN_ENVVAR).ok();
+                    let env_token = if token.is_none() {
+                        env::var(habitat_core::AUTH_TOKEN_ENVVAR).ok()
+                    } else {
+                        None
+                    };
                     let auth_token = token.or(env_token.as_deref());
                     match install::type_erased_start(&mut ui::NullUi::new(),
                                                      &default_bldr_url(),

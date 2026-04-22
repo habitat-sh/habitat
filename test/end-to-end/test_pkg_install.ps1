@@ -41,13 +41,17 @@ Describe "pkg install" {
 
     if ($IsLinux) {
         It "installs interpreter from builder for install hooks using --auth token" {
-            Remove-Item /hab/pkgs/core/busybox-static -Recurse -force -ErrorAction Ignore
+            Remove-Item /hab/pkgs/core/busybox-static -Recurse -Force -ErrorAction Ignore
             Remove-Item "/hab/cache/artifacts/core-busybox-static-*" -ErrorAction Ignore
             $token = $env:HAB_AUTH_TOKEN
-            $env:HAB_AUTH_TOKEN = $null
-            $cached = Get-Item "/hab/cache/artifacts/$env:HAB_ORIGIN-dep-pkg-1*"
-            Write-Host (hab pkg install $cached.FullName --auth "$token" | Out-String)
-            $env:HAB_AUTH_TOKEN = $token
+            try {
+                $env:HAB_AUTH_TOKEN = $null
+                $cached = Get-Item "/hab/cache/artifacts/$env:HAB_ORIGIN-dep-pkg-1*"
+                Write-Host (hab pkg install $cached.FullName --auth "$token" | Out-String)
+            }
+            finally {
+                $env:HAB_AUTH_TOKEN = $token
+            }
             $LASTEXITCODE | Should -Be 0
             Get-Content "$(hab pkg path $env:HAB_ORIGIN/dep-pkg-1)/INSTALL_HOOK_STATUS" | Should -Be "0"
         }
