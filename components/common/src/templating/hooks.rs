@@ -288,12 +288,11 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
                 let hook_name = Self::FILE_NAME;
                 ui.status(Status::Executing,
                           format!("{} hook for '{}'", hook_name, package.ident()))?;
-                templating::compile_for_package_install(package, feature_flags).await?;
+                templating::compile_for_package_install(package, feature_flags, token).await?;
 
-                // Only windows uses svc_password
                 #[cfg(target_os = "windows")]
                 let pkg = {
-                    let mut pkg = Pkg::from_install(package).await?;
+                    let mut pkg = Pkg::from_install(package, token).await?;
                     // Hooks do not have access to svc_passwords so we execute them under the
                     // current user account.
                     if let Some(user) = habitat_core::os::users::get_current_username()? {
@@ -309,7 +308,7 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
                 };
                 #[cfg(not(target_os = "windows"))]
                 let pkg = {
-                    let mut pkg = Pkg::from_install(package).await?;
+                    let mut pkg = Pkg::from_install(package, token).await?;
                     // Pass through auth token if provided
                     if let Some(token_value) = token {
                         pkg.env
@@ -866,8 +865,8 @@ echo "The message is Hola Mundo"
                                            .join(MetaFile::PackageType.to_string()),
                                 "native");
         }
-        let pkg = Pkg::from_install(&pkg_install).await
-                                                 .expect("Could not create package!");
+        let pkg = Pkg::from_install(&pkg_install, None).await
+                                                       .expect("Could not create package!");
 
         // This is gross, but it actually works
         let cfg_path = concrete_path.as_ref().join("default.toml");

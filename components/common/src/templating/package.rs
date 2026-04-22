@@ -45,9 +45,9 @@ impl Env {
     ///
     /// This means we work on any operating system, as long as you can invoke the Supervisor,
     /// without having to worry much about context.
-    pub async fn new(package: &PackageInstall) -> Result<Self> {
+    pub async fn new(package: &PackageInstall, token: Option<&str>) -> Result<Self> {
         let mut env = package.environment_for_command()?;
-        let path = Self::transform_path(env.get(PATH_KEY), package.package_type()?).await?;
+        let path = Self::transform_path(env.get(PATH_KEY), package.package_type()?, token).await?;
         env.insert(PATH_KEY.to_string(), path);
         Ok(Env(env))
     }
@@ -60,13 +60,16 @@ impl Env {
         self.0.insert(key, value);
     }
 
-    async fn transform_path(path: Option<&String>, package_type: PackageType) -> Result<String> {
+    async fn transform_path(path: Option<&String>,
+                            package_type: PackageType,
+                            token: Option<&str>)
+                            -> Result<String> {
         let mut paths: Vec<PathBuf> = match path {
             Some(path) => env::split_paths(&path).collect(),
             None => vec![],
         };
         match package_type {
-            PackageType::Standard => path::append_interpreter_and_env_path(&mut paths).await,
+            PackageType::Standard => path::append_interpreter_and_env_path(&mut paths, token).await,
             PackageType::Native => path::append_env_path(&mut paths),
         }
     }
@@ -101,7 +104,7 @@ pub struct Pkg {
 }
 
 impl Pkg {
-    pub async fn from_install(package: &PackageInstall) -> Result<Self> {
+    pub async fn from_install(package: &PackageInstall, token: Option<&str>) -> Result<Self> {
         let ident = FullyQualifiedPackageIdent::try_from(&package.ident)?;
         let (svc_user, svc_group) = get_user_and_group(package)?;
         let pkg = Pkg { svc_path: fs::svc_path(&package.ident.name),
@@ -116,7 +119,7 @@ impl Pkg {
                         svc_pid_file: fs::svc_pid_file(&package.ident.name),
                         svc_user,
                         svc_group,
-                        env: Env::new(package).await?,
+                        env: Env::new(package, token).await?,
                         deps: package.tdeps()?,
                         exposes: package.exposes()?,
                         exports: package.exports()?,

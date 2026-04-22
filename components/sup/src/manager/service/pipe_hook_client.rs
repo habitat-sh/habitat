@@ -331,7 +331,7 @@ mod tests {
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"));
-        Pkg::from_install(&pkg_install).await.unwrap()
+        Pkg::from_install(&pkg_install, None).await.unwrap()
     }
 
     #[tokio::test]
