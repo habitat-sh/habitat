@@ -3107,6 +3107,7 @@ dependencies = [
  "mock_instant",
  "serde",
  "serde-value",
+ "serde_yaml",
  "thiserror 2.0.18",
  "thread-id",
  "typemap-ors",

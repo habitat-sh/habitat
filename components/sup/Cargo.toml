@@ -38,7 +38,7 @@ habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 lazy_static = "*"
 libc = "*"
 log = "0.4"
-log4rs = { version = "*", default-features = false, features = ["console_appender", "config_parsing", "pattern_encoder"] }
+log4rs = { version = "*", default-features = false, features = ["console_appender", "config_parsing", "pattern_encoder", "yaml_format"] }
 multimap = "*"
 notify = "*"
 num_cpus = "*"
@@ -78,7 +78,7 @@ winapi = { version = "^0.3", features = ["namedpipeapi", "tlhelp32"] }
 [dev-dependencies]
 habitat_core = { path = "../core" }
 hyper = "*"
-jsonschema = { version = "*", default-features = false, features = ["resolve-file"] }
+jsonschema = { version = "*", default-features = false }
 # reqwest 0.13.0 changed the default TLS support from native-tls to rustls
 # this feature configuration is about using the features that were in effect
 # when our code was still locked to 0.12.8 (so reqwest defaults + our additions)
