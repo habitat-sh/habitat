@@ -65,7 +65,6 @@ tokio-util = { version = "0.7", features = ["full"] }
 toml = { version = "*", features = ["preserve_order"] }
 url = "*"
 uuid = { version = "*", features = ["v4"] }
-jsonschema = { version = "*", default-features = false, features = ["resolve-file"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
@@ -79,6 +78,7 @@ winapi = { version = "^0.3", features = ["namedpipeapi", "tlhelp32"] }
 [dev-dependencies]
 habitat_core = { path = "../core" }
 hyper = "*"
+jsonschema = { version = "*", default-features = false, features = ["resolve-file"] }
 # reqwest 0.13.0 changed the default TLS support from native-tls to rustls
 # this feature configuration is about using the features that were in effect
 # when our code was still locked to 0.12.8 (so reqwest defaults + our additions)
