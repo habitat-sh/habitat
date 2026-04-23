@@ -115,13 +115,12 @@ fn build_validator(path: &Path) -> jsonschema::Validator {
 fn rewrite_cross_schema_refs(val: &mut serde_json::Value) {
     match val {
         serde_json::Value::Object(obj) => {
-            if let Some(ref_val) = obj.get("$ref").and_then(|v| v.as_str()).map(str::to_owned) {
-                if let Some((file, ptr)) = ref_val.split_once('#') {
-                    if !file.is_empty() {
-                        obj.insert("$ref".to_string(),
-                                   serde_json::Value::String(format!("#{ptr}")));
-                    }
-                }
+            if let Some(ref_val) = obj.get("$ref").and_then(|v| v.as_str()).map(str::to_owned)
+               && let Some((file, ptr)) = ref_val.split_once('#')
+               && !file.is_empty()
+            {
+                obj.insert("$ref".to_string(),
+                           serde_json::Value::String(format!("#{ptr}")));
             }
             for v in obj.values_mut() {
                 rewrite_cross_schema_refs(v);
