@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.518 -->
-## [2.0.518](https://github.com/habitat-sh/habitat/tree/2.0.518) (2026-04-23)
+<!-- latest_release 2.0.519 -->
+## [2.0.519](https://github.com/habitat-sh/habitat/tree/2.0.519) (2026-04-23)
 
 #### Merged Pull Requests
-- Bump clap from 4.6.0 to 4.6.1 [#10354](https://github.com/habitat-sh/habitat/pull/10354) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- fix release pipeline upload [#10356](https://github.com/habitat-sh/habitat/pull/10356) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- fix release pipeline upload [#10356](https://github.com/habitat-sh/habitat/pull/10356) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.519 -->
 - Bump clap from 4.6.0 to 4.6.1 [#10354](https://github.com/habitat-sh/habitat/pull/10354) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.518 -->
 - Bump actix-http from 3.12.0 to 3.12.1 [#10351](https://github.com/habitat-sh/habitat/pull/10351) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.517 -->
 - Bump aws-sdk-ecr from 1.114.0 to 1.115.0 [#10353](https://github.com/habitat-sh/habitat/pull/10353) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.516 -->
