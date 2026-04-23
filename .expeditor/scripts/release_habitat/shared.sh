@@ -155,7 +155,7 @@ extract_hab_binaries_from_hart() {
     local origin="${3:-chef}"
     local target="${4:-"x86_64-linux"}"
 
-    if [[ ${target} == "aarch64-darwin" ]]; then
+    if [[ "${target}" == "aarch64-darwin" ]]; then
         tail --lines=+6 "${hart}" | \
             tar --extract \
                 --directory="${dir}" \
