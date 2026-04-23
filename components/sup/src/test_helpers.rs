@@ -116,7 +116,7 @@ fn build_validator(path: &Path) -> jsonschema::Validator {
 
 /// Recursively rewrite every `$ref` of the form `"other.json#/pointer"` to the
 /// purely-local form `"#/pointer"`, leaving local refs (those that already
-/// start with `#`) and plain URIs unchanged.
+/// start with `#`) unchanged.
 fn rewrite_cross_schema_refs(val: &mut serde_json::Value) {
     match val {
         serde_json::Value::Object(obj) => {
