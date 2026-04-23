@@ -77,7 +77,8 @@ pub fn validate_string(input: &str, schema: &str) -> ValidationResult {
                .expect("could not read schema file");
     let parsed_schema: serde_json::Value =
         serde_json::from_str(&raw_schema).expect("Could not parse schema as JSON");
-    let validator = jsonschema::validator_for(&parsed_schema).expect("Could not compile the schema");
+    let validator =
+        jsonschema::validator_for(&parsed_schema).expect("Could not compile the schema");
 
     let input_json: serde_json::Value =
         serde_json::from_str(input).expect("Could not parse input as JSON");

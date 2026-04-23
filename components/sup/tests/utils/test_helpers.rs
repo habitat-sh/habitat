@@ -62,10 +62,10 @@ pub fn validate_string(input: &str, schema: &str) -> ValidationResult {
 /// `referencing` crate used internally by jsonschema does not ship a working
 /// file-system retriever, so we pre-process the root schema instead:
 ///
-/// 1. Merge the `definitions` sections of every sibling `.json` file into
-///    the root schema's own `definitions`, keeping existing entries intact.
-/// 2. Rewrite every cross-schema `$ref` of the form `other.json#/ptr` to the
-///    purely-local form `#/ptr`.
+/// 1. Merge the `definitions` sections of every sibling `.json` file into the root schema's own
+///    `definitions`, keeping existing entries intact.
+/// 2. Rewrite every cross-schema `$ref` of the form `other.json#/ptr` to the purely-local form
+///    `#/ptr`.
 ///
 /// After these two steps all `$ref`s are self-contained and `jsonschema` can
 /// compile the schema without needing an external retriever.
@@ -77,10 +77,9 @@ fn build_validator(path: &Path) -> jsonschema::Validator {
             .expect("Could not parse schema as JSON");
 
     // 1 — merge sibling definitions
-    for entry in fs::read_dir(schema_dir).expect("could not read schema directory").flatten() {
-        let sibling_path = entry.path();
-        if sibling_path.extension().and_then(|e| e.to_str()) != Some("json")
-           || sibling_path == path
+    for entry in fs::read_dir(schema_dir).expect("could not read schema directory") {
+        let sibling_path = entry.expect("could not read schema directory entry").path();
+        if sibling_path.extension().and_then(|e| e.to_str()) != Some("json") || sibling_path == path
         {
             continue;
         }
@@ -90,14 +89,16 @@ fn build_validator(path: &Path) -> jsonschema::Validator {
         .expect("could not parse sibling schema as JSON");
 
         if let Some(sibling_defs) = sibling.get("definitions").and_then(|v| v.as_object()) {
-            let root_obj = root.as_object_mut().expect("schema root must be a JSON object");
-            let root_defs = root_obj
-                .entry("definitions")
-                .or_insert_with(|| serde_json::Value::Object(Default::default()));
-            let root_defs_map =
-                root_defs.as_object_mut().expect("'definitions' must be a JSON object");
+            let root_obj = root.as_object_mut()
+                               .expect("schema root must be a JSON object");
+            let root_defs =
+                root_obj.entry("definitions")
+                        .or_insert_with(|| serde_json::Value::Object(Default::default()));
+            let root_defs_map = root_defs.as_object_mut()
+                                         .expect("'definitions' must be a JSON object");
             for (key, value) in sibling_defs {
-                root_defs_map.entry(key.clone()).or_insert_with(|| value.clone());
+                root_defs_map.entry(key.clone())
+                             .or_insert_with(|| value.clone());
             }
         }
     }
@@ -134,4 +135,3 @@ fn rewrite_cross_schema_refs(val: &mut serde_json::Value) {
         _ => {}
     }
 }
-

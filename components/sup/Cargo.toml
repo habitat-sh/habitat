@@ -65,7 +65,7 @@ tokio-util = { version = "0.7", features = ["full"] }
 toml = { version = "*", features = ["preserve_order"] }
 url = "*"
 uuid = { version = "*", features = ["v4"] }
-jsonschema = "*"
+jsonschema = { version = "*", default-features = false, features = ["resolve-file"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
