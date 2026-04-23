@@ -38,7 +38,7 @@ habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 lazy_static = "*"
 libc = "*"
 log = "0.4"
-log4rs = "*"
+log4rs = { version = "*", default-features = false, features = ["console_appender", "config_parsing", "pattern_encoder"] }
 multimap = "*"
 notify = "*"
 num_cpus = "*"
