@@ -48,8 +48,7 @@ Describe "pkg install" {
                 $env:HAB_AUTH_TOKEN = $null
                 $cached = Get-Item "/hab/cache/artifacts/$env:HAB_ORIGIN-dep-pkg-1*"
                 Write-Host (hab pkg install $cached.FullName --auth "$token" | Out-String)
-            }
-            finally {
+            } finally {
                 $env:HAB_AUTH_TOKEN = $token
             }
             $LASTEXITCODE | Should -Be 0
