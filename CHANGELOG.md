@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.519 -->
-## [2.0.519](https://github.com/habitat-sh/habitat/tree/2.0.519) (2026-04-23)
+<!-- latest_release 2.0.520 -->
+## [2.0.520](https://github.com/habitat-sh/habitat/tree/2.0.520) (2026-04-23)
 
 #### Merged Pull Requests
-- fix release pipeline upload [#10356](https://github.com/habitat-sh/habitat/pull/10356) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump rustls from 0.23.38 to 0.23.39 [#10360](https://github.com/habitat-sh/habitat/pull/10360) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump rustls from 0.23.38 to 0.23.39 [#10360](https://github.com/habitat-sh/habitat/pull/10360) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.520 -->
 - fix release pipeline upload [#10356](https://github.com/habitat-sh/habitat/pull/10356) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.519 -->
 - Bump clap from 4.6.0 to 4.6.1 [#10354](https://github.com/habitat-sh/habitat/pull/10354) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.518 -->
 - Bump actix-http from 3.12.0 to 3.12.1 [#10351](https://github.com/habitat-sh/habitat/pull/10351) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.517 -->
