@@ -73,6 +73,27 @@ for pkg in "${packages_to_promote[@]}"; do
     done
 done
 
+# BEGIN: aarch64-darwin specific quirks till we can do this on SaaS builder.
+# Don't need the 'HAB_AUTH_TOKEN' as we are doing simple curl.
+echo "--- Getting list of aarch64-darwin packages to be added to manifest.json file."
+mac_channel_pkgs_json=$(curl -s "${JOB_HAB_BLDR_URL}/v1/depot/channels/${HAB_ORIGIN}/${source_channel}/pkgs")
+mapfile -t mac_packages_to_promote < <(echo "${mac_channel_pkgs_json}" | \
+                         jq -r \
+                         '.data |
+                         map(.origin + "/" + .name + "/" + .version + "/" + .release)
+                         | .[]')
+
+for pkg in "${mac_packages_to_promote[@]}"; do
+    pkg_target="aarch64-darwin"
+    if ident_has_target "${pkg}" "${pkg_target}"; then
+        echo ":thumbsup: Adding ${pkg} (${pkg_target}) to the '${manifest_input_file}' file"
+        echo "${pkg} ${pkg_target}" >> "${manifest_input_file}"
+    else
+        echo ":thumbsdown: ${pkg} (${pkg_target}) was not a valid combination"
+    fi
+done
+# END: aarch64-darwin specific quirks till we can do this on SaaS builder.
+
 echo "--- Generating manifest.json file"
 version=$(get_version_from_repo)
 sha="${BUILDKITE_COMMIT}"

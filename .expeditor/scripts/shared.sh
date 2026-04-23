@@ -246,14 +246,27 @@ promote_packages_to_builder_channel() {
 
     mapfile -t targets < <(echo "${manifest_json}" | jq -r ".packages | keys | .[]")
 
+    local hab_auth_token_promote
+    local hab_bldr_url_promote
     echo "--- Promoting Habitat packages to the ${destination_channel} channel of ${HAB_BLDR_URL}"
     for target in "${targets[@]}"; do
+
+	# BEGIN: Additional Quirks for aarch64-darwin
+	if [[ "${target}" == "aarch64-darwin" ]]; then
+            hab_auth_token_promote=${ACCEPTANCE_HAB_AUTH_TOKEN}
+            hab_bldr_url_promote=${JOB_HAB_BLDR_URL}
+        else
+            hab_auth_token_promote=${HAB_AUTH_TOKEN}
+            hab_bldr_url_promote=${HAB_BLDR_URL}
+	fi
+	# END: Additional Quirks for aarch64-darwin
+
         mapfile -t idents < <(echo "${manifest_json}" | jq -r ".packages.\"${target}\" | .[]")
         for ident in "${idents[@]}"; do
             echo "--- Promoting ${ident} (${target}) to '${destination_channel}'"
             ${hab_binary} pkg promote \
-                          --auth="${HAB_AUTH_TOKEN}" \
-                          --url="${HAB_BLDR_URL}" \
+                          --auth="${hab_auth_token_promote}" \
+                          --url="${hab_bldr_url_promote}" \
                           "${ident}" "${destination_channel}" "${target}"
         done
     done

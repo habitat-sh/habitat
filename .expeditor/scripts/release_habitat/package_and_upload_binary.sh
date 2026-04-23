@@ -23,6 +23,13 @@ import_gpg_keys
 tmp_root="$(mktemp --directory --tmpdir="$(pwd)" -t "repackage-XXXX")"
 cd "${tmp_root}"
 
+# We need to do special things for aarch64-darwin till we have a new builder
+# release. TODO: Remove this and JOB_BLDR_URL setting when we release builder
+if [[ "${BUILD_PKG_TARGET}" == "aarch64-darwin" ]]; then
+    export HAB_BLDR_URL="${JOB_HAB_BLDR_URL}"
+    export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
+fi
+
 echo "--- Downloading chef/hab for $BUILD_PKG_TARGET from ${channel} channel"
 
 # Currently, we must explicitly specify `--url`, despite the presence

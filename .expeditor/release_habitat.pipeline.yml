@@ -436,7 +436,7 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=aarch64-darwin
-            - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
+            - JOB_HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
 
   - label: "Update Habitat Documentation"
     command:
@@ -535,3 +535,5 @@ steps:
       executor:
         docker:
           privileged: true
+          environment:
+            - JOB_HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
