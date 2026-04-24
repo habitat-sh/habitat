@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.521 -->
-## [2.0.521](https://github.com/habitat-sh/habitat/tree/2.0.521) (2026-04-23)
+<!-- latest_release 2.0.522 -->
+## [2.0.522](https://github.com/habitat-sh/habitat/tree/2.0.522) (2026-04-24)
 
 #### Merged Pull Requests
-- Bump rants from `ac43e56` to `0fef31a` [#10359](https://github.com/habitat-sh/habitat/pull/10359) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- migrate from valico to jsonschema and remove rand 0.8 dep [#10361](https://github.com/habitat-sh/habitat/pull/10361) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- migrate from valico to jsonschema and remove rand 0.8 dep [#10361](https://github.com/habitat-sh/habitat/pull/10361) ([mwrock](https://github.com/mwrock)) <!-- 2.0.522 -->
 - Bump rants from `ac43e56` to `0fef31a` [#10359](https://github.com/habitat-sh/habitat/pull/10359) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.521 -->
 - Bump rustls from 0.23.38 to 0.23.39 [#10360](https://github.com/habitat-sh/habitat/pull/10360) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.520 -->
 - fix release pipeline upload [#10356](https://github.com/habitat-sh/habitat/pull/10356) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.519 -->
