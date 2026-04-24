@@ -131,8 +131,7 @@ impl Supervisor {
                            match launcher.pid_of(&self.service_group) {
                                Ok(maybe_pid) => maybe_pid,
                                Err(err) => {
-                                   error!("Error getting pid from launcher: {:#}",
-                                          anyhow!(err));
+                                   error!("Error getting pid from launcher: {:#}", anyhow!(err));
                                    None
                                }
                            }
@@ -379,4 +378,3 @@ impl Supervisor {
             .expect("our time should ALWAYS be after the UNIX Epoch")
     }
 }
-

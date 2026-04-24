@@ -164,7 +164,6 @@ habitat_core::env_config_duration!( HttpStartupTimeout,
                                     HAB_HTTP_STARTUP_TIMEOUT_SECS => from_secs,
                                     Duration::from_secs(10));
 
-
 /// A Supervisor can stop in a handful of ways.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 enum ShutdownMode {
