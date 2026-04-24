@@ -7,7 +7,10 @@
 [advisories]
 
 # advisory IDs to ignore e.g. ["RUSTSEC-2019-0001", ...]
-ignore = []
+ignore = [
+    # ignoring until ipc-channel bumps its rand to >= 0.10.1
+    "RUSTSEC-2026-0097",
+]
 
 # warn for categories of informational advisories
 informational_warnings = ["notice", "unmaintained", "unsound"]

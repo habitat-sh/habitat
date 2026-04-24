@@ -17,11 +17,11 @@
                 },
                 "version": {
                     "description": "The version of the Habitat package",
-                    "type": "string"
+                    "type": ["null", "string"]
                 },
                 "release": {
                     "description": "The release of the Habitat package",
-                    "type": "string"
+                    "type": ["null", "string"]
                 }
             },
             "required": [
