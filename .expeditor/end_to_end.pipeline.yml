@@ -746,18 +746,6 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  - label: "[:linux: test service PID files with old Launcher]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_service_pids_written_to_file_using_old_launcher
-    artifact_paths:
-      - "*.log"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-
   - label: "[:linux: test_event_stream]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_event_stream

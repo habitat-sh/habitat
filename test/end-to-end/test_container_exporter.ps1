@@ -149,6 +149,9 @@ Describe "hab pkg export container --multi-layer" {
 if ($IsLinux) {
     # TODO: Try to run the container when we have a core/podman package
     Describe "hab pkg export container --engine=buildah" {
+        hab pkg install core/buildah --binlink --channel=base
+        hab pkg install core/netavark --binlink --channel=base
+        $env:CONTAINERS_HELPER_BINARY_DIR="$(hab pkg path core/netavark)/bin"
         It "Runs successfully" {
             $tag = New-CustomTag
             Invoke-NativeCommand hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --engine=buildah --tag-custom="$tag"
