@@ -1046,7 +1046,7 @@ mod tests {
         let output_dir = root.join("output");
         fs::create_dir_all(&output_dir).expect("create output dir");
 
-        let pkg = Pkg::from_install(&pkg_install).await.unwrap();
+        let pkg = Pkg::from_install(&pkg_install, None).await.unwrap();
         let cfg = Cfg::new(&pkg, None).unwrap();
         let ctx = RenderContext::new(&pkg, &cfg);
 

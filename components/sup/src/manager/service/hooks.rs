@@ -751,7 +751,7 @@ mod tests {
                                            .join(MetaFile::PackageType.to_string()),
                                 "native");
         }
-        Pkg::from_install(&pkg_install).await.unwrap()
+        Pkg::from_install(&pkg_install, None).await.unwrap()
     }
 
     fn ctx<'a>(service_group: &'a ServiceGroup,

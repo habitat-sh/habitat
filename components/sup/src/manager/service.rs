@@ -605,7 +605,7 @@ impl Service {
     // the current user.
     #[cfg(windows)]
     async fn resolve_pkg(package: &PackageInstall, spec: &ServiceSpec) -> Result<Pkg> {
-        let mut pkg = Pkg::from_install(package).await?;
+        let mut pkg = Pkg::from_install(package, None).await?;
         if spec.svc_encrypted_password.is_none()
            && pkg.svc_user == DEFAULT_USER
            && let Some(user) = users::get_current_username()?
@@ -617,7 +617,7 @@ impl Service {
 
     #[cfg(unix)]
     async fn resolve_pkg(package: &PackageInstall, _spec: &ServiceSpec) -> Result<Pkg> {
-        Ok(Pkg::from_install(package).await?)
+        Ok(Pkg::from_install(package, None).await?)
     }
 
     /// Returns the config root given the package and optional config-from path.

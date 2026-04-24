@@ -39,9 +39,10 @@ lazy_static! {
 /// A convenience method that compiles a package's install and uninstall hooks and any configuration
 /// templates in its config_install folder
 pub async fn compile_for_package_install(package: &PackageInstall,
-                                         feature_flags: FeatureFlag)
+                                         feature_flags: FeatureFlag,
+                                         token: Option<&str>)
                                          -> Result<()> {
-    let pkg = package::Pkg::from_install(package).await?;
+    let pkg = package::Pkg::from_install(package, token).await?;
 
     fs::SvcDir::new(&pkg.name, &pkg.svc_user, &pkg.svc_group).create()?;
 
@@ -464,7 +465,7 @@ mod tests {
         create_with_content(config_path.join("config.txt"),
                             "config message is {{cfg.message}}");
 
-        compile_for_package_install(&pkg_install, FeatureFlag::empty()).await
+        compile_for_package_install(&pkg_install, FeatureFlag::empty(), None).await
                                                                        .expect("compile package");
 
         assert_eq!(

@@ -58,7 +58,7 @@ const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 /// * If a known-working package identifier string cannot be parsed
 /// * If the Supervisor is not executing inside a package, and if no interpreter package is
 ///   installed
-async fn interpreter_paths() -> Result<Vec<PathBuf>> {
+async fn interpreter_paths(token: Option<&str>) -> Result<Vec<PathBuf>> {
     // First, we'll check if we're running inside a package. If we are, then we should  be able to
     // access the `../DEPS` metadata file and read it to get the specific version of the
     // interpreter.
@@ -95,6 +95,13 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
                 // Nope, no packages of the interpreter installed. Now we're going to see if the
                 // interpreter command is present on `PATH`.
                 Err(_) => {
+                    // Prefer the explicitly-passed token; fall back to the environment variable.
+                    let env_token = if token.is_none() {
+                        env::var(habitat_core::AUTH_TOKEN_ENVVAR).ok()
+                    } else {
+                        None
+                    };
+                    let auth_token = token.or(env_token.as_deref());
                     match install::type_erased_start(&mut ui::NullUi::new(),
                                                      &default_bldr_url(),
                                                      &ChannelIdent::default(),
@@ -105,7 +112,7 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
                                                      VERSION,
                                                      FS_ROOT_PATH.as_path(),
                                                      &cache_artifact_path(None::<String>),
-                                                     env::var("HAB_AUTH_TOKEN").ok().as_deref(),
+                                                     auth_token,
                                                      &InstallMode::default(),
                                                      &LocalPackageUsage::default(),
                                                      InstallHookMode::default()).await
@@ -129,8 +136,10 @@ fn root_paths(paths: &mut [PathBuf]) {
 }
 
 /// Append the the interpreter path and environment PATH variable to the provided path entries
-pub async fn append_interpreter_and_env_path(path_entries: &mut Vec<PathBuf>) -> Result<String> {
-    let mut paths = interpreter_paths().await?;
+pub async fn append_interpreter_and_env_path(path_entries: &mut Vec<PathBuf>,
+                                             token: Option<&str>)
+                                             -> Result<String> {
+    let mut paths = interpreter_paths(token).await?;
     root_paths(&mut paths);
     path_entries.append(&mut paths);
     append_env_path(path_entries)
