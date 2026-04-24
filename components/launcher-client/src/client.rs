@@ -28,9 +28,8 @@ type IpcServer = IpcOneShotServer<Vec<u8>>;
 
 // Defines how long to wait to receive a reply from the Launcher.
 //
-// Initially used for calls to get the PID from a service as a way to
-// deal with older Launchers that don't know about that protocol
-// message, and don't reply back on unknown messages.
+// Used to guard against hung or unresponsive launchers on calls that
+// should always receive a reply (e.g., pid_of, version).
 //
 // Don't override this value unless you know what you're doing.
 habitat_core::env_config_duration!(LauncherInteractionTimeout,
@@ -97,23 +96,10 @@ impl LauncherCli {
         }
     }
 
-    /// EXPERIMENTAL! BEWARE! EXPERIMENTAL!
+    /// A bounded receive for protocol messages from the Launcher.
     ///
-    /// When this was added, we needed a way for a Supervisor to be
-    /// able to recover from sending a message to an older version of
-    /// the Launcher that didn't know how to process that message. At
-    /// the time, the Launcher would just ignore the message, but we
-    /// always use a `recv` to wait for the response, so the
-    /// Supervisor would hang.
-    ///
-    /// This function is an attempt to get around this situation, but
-    /// ONLY for the specific scenarios where it is appropriate. I am
-    /// hesitant to introduce a global timeout at this point, because
-    /// it's difficult to know how that will affect the overall
-    /// interactions between the Supervisor and the Launcher (it
-    /// *should* be fine, but I can't guarantee that right now).
-    ///
-    /// As such, use this with caution and intention.
+    /// Use this instead of `recv` for calls where a non-responsive launcher
+    /// should be treated as an error rather than blocking indefinitely.
     fn recv_timeout<T>(rx: &IpcReceiver<Vec<u8>>, timeout: Duration) -> Result<T, TryReceiveError>
         where T: protocol::LauncherMessage
     {
@@ -241,10 +227,6 @@ impl LauncherCli {
     pub fn pid_of(&self, service_name: &str) -> Result<Option<Pid>, TryIPCCommandError> {
         let msg = protocol::PidOf { service_name: service_name.to_string(), };
         Self::send(&self.tx, &msg).map_err(|err| TryIPCCommandError::Send("pid_of", err))?;
-        // This should be a recv_timeout until pidfile-less
-        // supervisors are the norm. We only expect to not receive a
-        // response when dealing with older Launchers that didn't know
-        // how to return PIDs.
         let reply = Self::recv_timeout::<protocol::PidIs>(&self.rx, self.timeout).map_err(|err| TryIPCCommandError::TryReceive("pid_of", err))?;
         // TODO (CM): really, we need to have all our protocol types
         // that use pids actually use a Pid type that's nonzero, with
@@ -261,8 +243,6 @@ impl LauncherCli {
         let msg = protocol::Version {};
         Self::send(&self.tx, &msg).map_err(|err| TryIPCCommandError::Send("version", err))?;
 
-        // We only expect to not receive a response when dealing with
-        // older Launchers that didn't know how to return its version.
         let reply = Self::recv_timeout::<protocol::VersionNumber>(&self.rx, self.timeout).map_err(|err| TryIPCCommandError::TryReceive("version", err))?;
         Ok(reply.version)
     }
