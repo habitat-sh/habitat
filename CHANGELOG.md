@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.524 -->
-## [2.0.524](https://github.com/habitat-sh/habitat/tree/2.0.524) (2026-04-24)
+<!-- latest_release 2.0.525 -->
+## [2.0.525](https://github.com/habitat-sh/habitat/tree/2.0.525) (2026-04-24)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.185 to 0.2.186 [#10362](https://github.com/habitat-sh/habitat/pull/10362) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- bump rand 0.9.2 to 0.9.4 [#10364](https://github.com/habitat-sh/habitat/pull/10364) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- bump rand 0.9.2 to 0.9.4 [#10364](https://github.com/habitat-sh/habitat/pull/10364) ([mwrock](https://github.com/mwrock)) <!-- 2.0.525 -->
 - Bump libc from 0.2.185 to 0.2.186 [#10362](https://github.com/habitat-sh/habitat/pull/10362) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.524 -->
 - thread token passed from --auth through to check for interpreter [#10357](https://github.com/habitat-sh/habitat/pull/10357) ([mwrock](https://github.com/mwrock)) <!-- 2.0.523 -->
 - migrate from valico to jsonschema and remove rand 0.8 dep [#10361](https://github.com/habitat-sh/habitat/pull/10361) ([mwrock](https://github.com/mwrock)) <!-- 2.0.522 -->
