@@ -164,40 +164,6 @@ habitat_core::env_config_duration!( HttpStartupTimeout,
                                     HAB_HTTP_STARTUP_TIMEOUT_SECS => from_secs,
                                     Duration::from_secs(10));
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-/// Determines whether the new pidfile-less behavior is enabled, or
-/// the old behavior is used.
-pub enum ServicePidSource {
-    /// The "old" behavior; find out a Service's PID by reading a pidfile.
-    Files,
-    /// The "new" behavior; query the Launcher directly to discover a
-    /// Service's PID.
-    Launcher,
-}
-
-impl ServicePidSource {
-    /// This check is to determine if the user is working with a
-    /// Launcher that can provide service PIDs. If not, we will
-    /// continue to use the old pidfile logic.
-    ///
-    /// You should call this function once early in the Supservisor's
-    /// lifecycle and cache the results. We only want to incur the
-    /// timeout hit when we check to see if the launcher can answer
-    /// our query once. Otherwise, if we were using an older launcher,
-    /// we would incur that hit each time we start a new service.
-    fn determine_source(launcher: &LauncherCli) -> Self {
-        if launcher.pid_of("fake_service.just_to_see_if_the_launcher_can_handle_this_message")
-                   .is_err()
-        {
-            warn!("You do not appear to be running a Launcher that can provide service PIDs to \
-                   the Supervisor. Using pidfiles for services instead.");
-            ServicePidSource::Files
-        } else {
-            ServicePidSource::Launcher
-        }
-    }
-}
-
 /// A Supervisor can stop in a handful of ways.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 enum ShutdownMode {
@@ -692,7 +658,6 @@ pub struct Manager {
     services_need_reconciliation:     ReconciliationFlag,
 
     feature_flags: FeatureFlag,
-    pid_source:    ServicePidSource,
 
     /// Open file handle to the Launcher's lock file. As long as we hold this,
     /// we are the only Supervisor process that may run on this host. We don't
@@ -802,8 +767,6 @@ impl Manager {
             event::init(&sys, fqdn, config).await?;
         }
 
-        let pid_source = ServicePidSource::determine_source(&launcher);
-
         let census_ring = Arc::new(RwLock::new(CensusRing::new(sys.member_id.clone())));
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,
                                                     services,
@@ -830,7 +793,6 @@ impl Manager {
                      updated_service_pkg_incarnations: Arc::default(),
                      services_need_reconciliation: ReconciliationFlag::new(false),
                      feature_flags: cfg.feature_flags,
-                     pid_source,
                      _lock_file: lock_file })
     }
 
@@ -939,7 +901,6 @@ impl Manager {
                                              self.organization.as_deref(),
                                              self.census_ring.clone(),
                                              self.state.gateway_state.clone(),
-                                             self.pid_source,
                                              self.feature_flags).await
         {
             Ok(service) => {
@@ -1658,7 +1619,6 @@ impl Manager {
                                            self.organization.as_deref(),
                                            self.census_ring.clone(),
                                            self.state.gateway_state.clone(),
-                                           self.pid_source,
                                            self.feature_flags).await
                         {
                             Ok(service) => {
@@ -1679,7 +1639,6 @@ impl Manager {
                                    self.organization.as_deref(),
                                    self.census_ring.clone(),
                                    self.state.gateway_state.clone(),
-                                   self.pid_source,
                                    self.feature_flags).await
                 {
                     Ok(service) => {

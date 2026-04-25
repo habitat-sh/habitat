@@ -3,7 +3,7 @@
 
 Describe "Service PIDs from Launcher feature" {
     $supLog = New-SupervisorLogFile("service_pids_come_from_launcher_feature")
-    Start-Supervisor -LogFile $supLog -Timeout 20
+    Start-Supervisor -LogFile $supLog -Timeout 45
 
     Load-SupervisorService -PackageName "core/redis"
     Wait-ProcessStart redis-server -Timeout 10

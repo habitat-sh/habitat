@@ -41,7 +41,6 @@ use crate::{census::{CensusGroup,
             error::{Error,
                     Result},
             manager::{FsCfg,
-                      ServicePidSource,
                       ShutdownConfig,
                       Sys,
                       event,
@@ -540,7 +539,6 @@ impl Service {
                           organization: Option<&str>,
                           census_ring: Arc<RwLock<CensusRing>>,
                           gateway_state: Arc<GatewayState>,
-                          pid_source: ServicePidSource,
                           feature_flags: FeatureFlag)
                           -> Result<Service> {
         spec.validate(package)?;
@@ -569,8 +567,7 @@ impl Service {
                       initialization_state:
                           Arc::new(RwLock::new(InitializationState::Uninitialized)),
                       manager_fs_cfg,
-                      supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group,
-                                                                      pid_source))),
+                      supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group))),
                       pkg,
                       service_group,
                       all_pkg_binds,
@@ -641,7 +638,6 @@ impl Service {
                      organization: Option<&str>,
                      census_ring: Arc<RwLock<CensusRing>>,
                      gateway_state: Arc<GatewayState>,
-                     pid_source: ServicePidSource,
                      feature_flags: FeatureFlag)
                      -> Result<Service> {
         // The package for a spec should already be installed.
@@ -654,7 +650,6 @@ impl Service {
                            organization,
                            census_ring,
                            gateway_state,
-                           pid_source,
                            feature_flags).await
     }
 
@@ -1301,6 +1296,14 @@ impl Service {
                      launcher: &LauncherCli,
                      template_update: &TemplateUpdate) {
         let pid_update = self.update_process_state(launcher);
+
+        // If the launcher returned an error we cannot determine the process state.
+        // Skip all recovery actions to avoid incorrectly restarting or initializing
+        // a service that may still be running.
+        if pid_update.launcher_error {
+            return;
+        }
+
         // We copy the current process id to the run state to avoid
         // having to lock the supervisor for this information.
         run_state.current_pid = pid_update.new_pid;
@@ -1725,7 +1728,6 @@ mod tests {
                               Some("haha"),
                               census_ring,
                               gs,
-                              ServicePidSource::Launcher,
                               FeatureFlag::empty()).await
                                                    .expect("I wanted a service to load, but it \
                                                             didn't"), &ServiceRestartConfig::default())
