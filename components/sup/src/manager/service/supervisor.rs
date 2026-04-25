@@ -54,11 +54,15 @@ const PIDFILE_PERMISSIONS: Permissions = Permissions::Explicit(0o644);
 #[derive(Debug)]
 pub struct PidUpdate {
     /// The last known pid, will be None if the process was not running
-    pub old_pid:   Option<Pid>,
+    pub old_pid:        Option<Pid>,
     /// The current pid, will be None if the process is not running
-    pub new_pid:   Option<Pid>,
+    pub new_pid:        Option<Pid>,
     /// The time at which the process changed, will be None if there is no change
-    pub timestamp: Option<SystemTime>,
+    pub timestamp:      Option<SystemTime>,
+    /// True when the launcher returned an error for the PID query. Process state
+    /// is unknown; callers must not take recovery actions (restart, initialize, etc.)
+    /// based on a `launcher_error` update.
+    pub launcher_error: bool,
 }
 
 impl PidUpdate {
@@ -120,30 +124,43 @@ impl Supervisor {
                      pid_file }
     }
 
-    /// Updates the process state from the pid source and returns a PidUpdate
+    /// Updates the process state from the launcher and returns a PidUpdate
     /// object containing the details of the change.
+    ///
+    /// If the launcher returns an error, the returned `PidUpdate` will have
+    /// `launcher_error` set to `true` and the supervisor's state will be
+    /// unchanged. Callers must not act on process state (restart, initialize,
+    /// PID-file cleanup, etc.) when `launcher_error` is set.
     pub fn update_process_state(&mut self, launcher: &LauncherCli) -> PidUpdate {
-        let mut pid_update = PidUpdate { old_pid:   self.pid,
-                                         new_pid:   None,
-                                         timestamp: None, };
-        self.pid = self.pid
-                       .or_else(|| {
-                           match launcher.pid_of(&self.service_group) {
-                               Ok(maybe_pid) => maybe_pid,
-                               Err(err) => {
-                                   error!("Error getting pid from launcher: {:#}", anyhow!(err));
+        let mut pid_update = PidUpdate { old_pid:        self.pid,
+                                         new_pid:        None,
+                                         timestamp:      None,
+                                         launcher_error: false, };
+
+        // When we don't already hold the PID in memory, ask the launcher.
+        // Any communication error means we cannot determine the current process
+        // state; return immediately so we don't incorrectly clean up the PID
+        // file or trigger an unwanted restart/initialization.
+        if self.pid.is_none() {
+            match launcher.pid_of(&self.service_group) {
+                Ok(maybe_pid) => self.pid = maybe_pid,
+                Err(err) => {
+                    error!("Error getting pid from launcher: {:#}", anyhow!(err));
+                    pid_update.launcher_error = true;
+                    return pid_update;
+                }
+            }
+        }
+
+        self.pid = self.pid.and_then(|pid| {
+                               if process::is_alive(pid) {
+                                   Some(pid)
+                               } else {
+                                   debug!("Could not find a live process with PID: {:?}", pid);
                                    None
                                }
-                           }
-                       })
-                       .and_then(|pid| {
-                           if process::is_alive(pid) {
-                               Some(pid)
-                           } else {
-                               debug!("Could not find a live process with PID: {:?}", pid);
-                               None
-                           }
-                       });
+                           });
+
         pid_update.new_pid = self.pid;
         if self.pid.is_some() {
             pid_update.timestamp = self.change_state(ProcessState::Up);

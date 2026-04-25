@@ -1296,6 +1296,14 @@ impl Service {
                      launcher: &LauncherCli,
                      template_update: &TemplateUpdate) {
         let pid_update = self.update_process_state(launcher);
+
+        // If the launcher returned an error we cannot determine the process state.
+        // Skip all recovery actions to avoid incorrectly restarting or initializing
+        // a service that may still be running.
+        if pid_update.launcher_error {
+            return;
+        }
+
         // We copy the current process id to the run state to avoid
         // having to lock the supervisor for this information.
         run_state.current_pid = pid_update.new_pid;
