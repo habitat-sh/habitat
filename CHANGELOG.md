@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.536 -->
-## [2.0.536](https://github.com/habitat-sh/habitat/tree/2.0.536) (2026-05-05)
+<!-- latest_release 2.0.537 -->
+## [2.0.537](https://github.com/habitat-sh/habitat/tree/2.0.537) (2026-05-06)
 
 #### Merged Pull Requests
-- Bump tokio from 1.52.1 to 1.52.2 [#10375](https://github.com/habitat-sh/habitat/pull/10375) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Updated ci branch and version [#10376](https://github.com/habitat-sh/habitat/pull/10376) ([sougata-progress](https://github.com/sougata-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Updated ci branch and version [#10376](https://github.com/habitat-sh/habitat/pull/10376) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.537 -->
 - Bump tokio from 1.52.1 to 1.52.2 [#10375](https://github.com/habitat-sh/habitat/pull/10375) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.536 -->
 - Bump aws-sdk-ecr from 1.115.0 to 1.115.1 [#10374](https://github.com/habitat-sh/habitat/pull/10374) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.535 -->
 - macOS Studio handling [#10372](https://github.com/habitat-sh/habitat/pull/10372) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.534 -->
