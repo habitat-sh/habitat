@@ -36,7 +36,7 @@ sudo -E hab pkg install chef/hab-pkg-export-container \
     --channel="${channel}" \
     --url="${HAB_BLDR_URL}"
 
-echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
+echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, base channel"
 # Binlink to '/usr/local/bin' to ensure we do not run the system installed version. The system
 # version is installed in `/usr/bin` which occurs earlier in the PATH than '/bin' (the default)
 # binlink location).
@@ -48,9 +48,15 @@ sudo -E hab pkg install core/powershell \
     --url="${HAB_BLDR_URL}"
 echo "--- Using core/powershell version $(pwsh --version)"
 
-echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, stable channel"
+
+if [[ "${BUILD_PKG_TARGET}" == "aarch64-linux" ]]; then
+    pester_channel="base"
+else
+    pester_channel="stable"
+fi
+echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, ${pester_channel} channel"
 sudo -E hab pkg install core/pester \
-    --channel="base" \
+    --channel="${pester_channel}" \
     --url="${HAB_BLDR_URL}"
 
 sudo useradd --system --no-create-home hab
