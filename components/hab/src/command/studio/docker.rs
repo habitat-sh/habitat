@@ -454,6 +454,8 @@ mod tests {
                    format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION));
         assert_eq!(image_identifier(None, target::X86_64_LINUX),
                    format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION));
+        assert_eq!(image_identifier(None, target::AARCH64_LINUX),
+                   format!("{}-{}:{}", DOCKER_IMAGE, "aarch64-linux", VERSION));
         assert_eq!(image_identifier(None, target::X86_64_WINDOWS),
                    format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION));
         assert_eq!(image_identifier(Some("ltsc2016"), target::X86_64_WINDOWS),
@@ -463,10 +465,6 @@ mod tests {
                    format!("{}-{}:{}-{}",
                            DOCKER_WINDOWS_IMAGE, "x86_64-windows", "ltsc2016", VERSION));
     }
-
-    #[should_panic]
-    #[cfg(feature = "aarch64-linux")]
-    fn retrieve_aarch64_image_identifier() { image_identifier(None, target::AARCH64_LINUX); }
 
     #[test]
     fn update_ssl_cert_file_envvar_not_set() {
