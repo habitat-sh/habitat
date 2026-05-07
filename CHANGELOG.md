@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.537 -->
-## [2.0.537](https://github.com/habitat-sh/habitat/tree/2.0.537) (2026-05-06)
+<!-- latest_release 2.0.538 -->
+## [2.0.538](https://github.com/habitat-sh/habitat/tree/2.0.538) (2026-05-07)
 
 #### Merged Pull Requests
-- Updated ci branch and version [#10376](https://github.com/habitat-sh/habitat/pull/10376) ([sougata-progress](https://github.com/sougata-progress))
+- Bump pin-project from 1.1.11 to 1.1.12 [#10378](https://github.com/habitat-sh/habitat/pull/10378) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump pin-project from 1.1.11 to 1.1.12 [#10378](https://github.com/habitat-sh/habitat/pull/10378) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.538 -->
+- Bump actions/labeler from 6.0.1 to 6.1.0 [#10377](https://github.com/habitat-sh/habitat/pull/10377) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.538 -->
 - Updated ci branch and version [#10376](https://github.com/habitat-sh/habitat/pull/10376) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.537 -->
 - Bump tokio from 1.52.1 to 1.52.2 [#10375](https://github.com/habitat-sh/habitat/pull/10375) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.536 -->
 - Bump aws-sdk-ecr from 1.115.0 to 1.115.1 [#10374](https://github.com/habitat-sh/habitat/pull/10374) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.535 -->
