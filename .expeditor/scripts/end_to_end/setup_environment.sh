@@ -36,13 +36,6 @@ sudo -E hab pkg install chef/hab-pkg-export-container \
     --channel="${channel}" \
     --url="${HAB_BLDR_URL}"
 
-echo "--- Installing latest core/netcat from ${HAB_BLDR_URL}, base-2025 channel"
-sudo -E hab pkg install core/netcat \
-    --binlink \
-    --force \
-    --channel="base" \
-    --url="${HAB_BLDR_URL}"
-
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
 # Binlink to '/usr/local/bin' to ensure we do not run the system installed version. The system
 # version is installed in `/usr/bin` which occurs earlier in the PATH than '/bin' (the default)
