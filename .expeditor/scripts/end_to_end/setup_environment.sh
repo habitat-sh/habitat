@@ -50,7 +50,7 @@ echo "--- Using core/powershell version $(pwsh --version)"
 
 echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, stable channel"
 sudo -E hab pkg install core/pester \
-    --channel="stable" \
+    --channel="base" \
     --url="${HAB_BLDR_URL}"
 
 sudo useradd --system --no-create-home hab
