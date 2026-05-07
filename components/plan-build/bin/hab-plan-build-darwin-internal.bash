@@ -747,24 +747,35 @@ _resolve_dependency() {
 # _install_dependency acme/zlib/1.2.8/20151216221001
 # ```
 _install_dependency() {
-  local dep="${1}"
-  if [[ -z "${NO_INSTALL_DEPS:-}" ]]; then
+    local dep="${1}"
+    local origin
+    local channel="$HAB_BLDR_CHANNEL"
+    if [[ -z "${NO_INSTALL_DEPS:-}" || ${NO_INSTALL_DEPS} == "false" ]]; then
+        origin="$(echo "$dep" | cut -d "/" -f 1)"
+        if [[ $origin == "core" || $origin == "chef" ]]; then
+            if [[ $origin == "core" ]]; then
+                channel="$HAB_REFRESH_CHANNEL"
+            fi
+            if [[ $HAB_PREFER_LOCAL_CHEF_DEPS == "false" ]]; then
+                IGNORE_LOCAL="--ignore-local"
+            fi
+        fi
 
-    # Enable --ignore-local if invoked with HAB_FEAT_IGNORE_LOCAL in
-    # the environment, set to either "true" or "TRUE" (features are
-    # not currently enabled by the mere presence of an environment variable)
-    if [[ "${HAB_FEAT_IGNORE_LOCAL:-}" = "true" ||
-      "${HAB_FEAT_IGNORE_LOCAL:-}" = "TRUE" ]]; then
-      IGNORE_LOCAL="--ignore-local"
+        $HAB_BIN pkg install -u $HAB_BLDR_URL --channel $channel ${IGNORE_LOCAL:-} "$@" || {
+            if [[ "$channel" != "$HAB_FALLBACK_CHANNEL" ]]; then
+                build_line "Trying to install '$dep' from '$HAB_FALLBACK_CHANNEL'"
+                $HAB_BIN pkg install -u $HAB_BLDR_URL --channel "$HAB_FALLBACK_CHANNEL" ${IGNORE_LOCAL:-} "$@" || true
+            fi
+        }
+    else
+        if resolved=$(_resolve_dependency "${dep}" |  sed "s|${HAB_PKG_PATH}[/]\?||g"); then
+            echo "${resolved}"
+            return 0
+        else
+            return 1
+        fi
     fi
-    $HAB_BIN pkg install -u $HAB_BLDR_URL --channel $HAB_BLDR_CHANNEL ${IGNORE_LOCAL:-} "$@" || {
-      if [[ "$HAB_BLDR_CHANNEL" != "$HAB_FALLBACK_CHANNEL" ]]; then
-        build_line "Trying to install '$dep' from '$HAB_FALLBACK_CHANNEL'"
-        $HAB_BIN pkg install -u $HAB_BLDR_URL --channel "$HAB_FALLBACK_CHANNEL" ${IGNORE_LOCAL:-} "$@" || true
-      fi
-    }
-  fi
-  return 0
+    return 0
 }
 
 # **Internal** Returns (on stdout) the `TDEPS` file contents of another locally
