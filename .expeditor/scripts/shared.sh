@@ -586,7 +586,7 @@ need_cmd() {
 # Use the binary from the acceptance bldr bootstrap package that provides
 # the support for hab CLI with "/opt" support.
 # When we have the support *released* we do not need to do this anymore.
-install_acceptance_bootstrap_hab_binary() {
+install_bootstrap_hab_binary() {
     need_cmd install
 
     # Install the macOS bootstrap package that gives us GNU tar and GNU tail.
@@ -602,8 +602,8 @@ install_acceptance_bootstrap_hab_binary() {
     mkdir "${hab_scratch_dir}"
 
     "${hab_binary}" pkg download chef/hab \
-        --channel aarch64-darwin-opt \
-        --url https://bldr.acceptance.habitat.sh  \
+        --channel base-2025 \
+        --url https://bldr.habitat.sh  \
         --download-directory="${hab_scratch_dir}"
 
     local hab_artifact

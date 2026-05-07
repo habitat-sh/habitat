@@ -262,10 +262,10 @@ _install_dependency() {
             fi
         fi
 
-        $HAB_BIN pkg install -u $HAB_BLDR_URL --channel $channel ${IGNORE_LOCAL:-} "$@" || {
+        $HAB_BIN pkg install -u "$HAB_BLDR_URL" --channel "$channel" ${IGNORE_LOCAL:-} "$@" || {
             if [[ "$channel" != "$HAB_FALLBACK_CHANNEL" ]]; then
                 build_line "Trying to install '$dep' from '$HAB_FALLBACK_CHANNEL'"
-                $HAB_BIN pkg install -u $HAB_BLDR_URL --channel "$HAB_FALLBACK_CHANNEL" ${IGNORE_LOCAL:-} "$@" || true
+                $HAB_BIN pkg install -u "$HAB_BLDR_URL" --channel "$HAB_FALLBACK_CHANNEL" ${IGNORE_LOCAL:-} "$@" || true
             fi
         }
     else

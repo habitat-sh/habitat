@@ -18,7 +18,9 @@ hab_binary=
 curlbash_hab "${BUILD_PKG_TARGET}" acceptance
 
 
-install_acceptance_bootstrap_hab_binary
+# TODO: remove the following line and the associated function as we are now able to get
+# required binaries using curl_bash
+# install_bootstrap_hab_binary
 bootstrap_hab_binary=$(command -v hab)
 echo "Bootstrap Package Version is : $($bootstrap_hab_binary -V)."
 
