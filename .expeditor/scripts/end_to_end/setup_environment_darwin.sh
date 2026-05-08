@@ -13,17 +13,12 @@ source .expeditor/scripts/shared.sh
 # e.g. `dev`, `acceptance` etc.
 channel=${1:?You must specify a channel value}
 
-# Note: We should always have a `hab` binary installed in our CI
-# Anka VMs.
-
-HAB_BLDR_URL="https://bldr.acceptance.habitat.sh"
-HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
-
 # On macOS, /usr/bin is SIP-protected so we use /usr/local/bin.
 HAB_BINLINK_DIR="/usr/local/bin"
 hab_binary="$(command -v hab)"
 
-install_acceptance_bootstrap_hab_binary
+# This is required till we have binaries
+curlbash_hab "aarch64-darwin" acceptance
 
 
 # Now we are ready to install the `hab`
@@ -52,36 +47,18 @@ echo "--- Using chef/hab version $("${hab_binary}" --version)"
 # Supervisor tests are skipped on macOS (supervisor support is not yet
 # mature on aarch64-darwin), so we do not install hab-sup / hab-launcher.
 
-# Enable macOS native studio support (same flags used in release builds)
-export HAB_FEAT_MACOS_NATIVE_SUPPORT=1
-
-# Install hab-studio for native studio tests
-# echo "--- Installing chef/hab-studio from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
-# sudo -E "$hab_binary" pkg install chef/hab-studio \
-     # --channel="aarch64-darwin-opt" \
-     # --url="${HAB_BLDR_URL}"
-
-# hab-backline is required by the studio but is only available in stable
-#echo "--- Installing chef/hab-backline from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
-#sudo -E "$hab_binary" pkg install chef/hab-backline \
-     #--channel="stable" \
-     #--url="${HAB_BLDR_URL}"
-#export HAB_STUDIO_BACKLINE_PKG
-#HAB_STUDIO_BACKLINE_PKG="$(cat "$(hab pkg path chef/hab-backline)/IDENT")"
-#echo "--- HAB_STUDIO_BACKLINE_PKG=${HAB_STUDIO_BACKLINE_PKG}"
-
 # Override the interpreter identity to core/coreutils (installed via
 # hab-backline) because core/busybox-static is not available for
 # aarch64-darwin. This is needed for install hook execution.
 export HAB_INTERPRETER_IDENT="core/coreutils"
 
-echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
+echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, base-2025 channel"
 # Try the hab package first, fall back to Homebrew
 if sudo -E "$hab_binary" pkg install core/powershell \
     --binlink \
     --binlink-dir="/usr/local/bin" \
     --force \
-    --channel="aarch64-darwin-opt" \
+    --channel="base-2025" \
     --url="${HAB_BLDR_URL}"; then
     echo "--- Using core/powershell version $(pwsh --version)"
 else
@@ -102,10 +79,10 @@ fi
 
 pwsh_path="$(command -v pwsh)"
 
-echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, aarch64-darwin-opt channel"
+echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, base-2025 channel"
 # Try the hab package first, fall back to PowerShell module
 if ! sudo -E "$hab_binary" pkg install core/pester \
-    --channel="aarch64-darwin-opt" \
+    --channel="base-2025" \
     --url="${HAB_BLDR_URL}"; then
     echo "--- core/pester not available for this platform, installing via PowerShell module"
     # Pin to Pester 4.x to match core/pester on Linux. All existing test
