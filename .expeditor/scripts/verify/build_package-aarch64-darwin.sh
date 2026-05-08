@@ -18,9 +18,6 @@ hab_binary=
 curlbash_hab "${BUILD_PKG_TARGET}" acceptance
 
 
-# TODO: remove the following line and the associated function as we are now able to get
-# required binaries using curl_bash
-# install_bootstrap_hab_binary
 bootstrap_hab_binary=$(command -v hab)
 echo "Bootstrap Package Version is : $($bootstrap_hab_binary -V)."
 
@@ -32,7 +29,7 @@ HAB_ORIGIN=throwaway
 echo "--- :key: Generating fake origin key"
 sudo -E "${bootstrap_hab_binary}" origin key generate
 
-# Install hab-studio from the chef origin via the acceptance channel.
+# Install hab-studio from the chef origin via the base-2025 channel.
 # By default, it installs from the stable channel only,
 # so this may need updating to support other channels.
 ${bootstrap_hab_binary} pkg install chef/hab-studio -c base-2025

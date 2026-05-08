@@ -13,9 +13,6 @@ trap 'rm -rf /opt/hab' ERR
 
 export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
-# Following env variable is required to run MacOS Native Studio
-export HAB_FEAT_MACOS_NATIVE_SUPPORT=1
-
 channel=$(get_release_channel)
 
 hab_binary=
