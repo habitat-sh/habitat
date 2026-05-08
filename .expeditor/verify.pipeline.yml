@@ -5,9 +5,6 @@ expeditor:
     HAB_AUTH_TOKEN:
       path: account/static/habitat/chef-ci
       field: auth_token # Production Builder
-    ACCEPTANCE_HAB_AUTH_TOKEN:
-      path: account/static/habitat/chef-ci
-      field: acceptance_auth_token # acceptance builder (for macOS)
   defaults:
     buildkite:
       timeout_in_minutes: 60
