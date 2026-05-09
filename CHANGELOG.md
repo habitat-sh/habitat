@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.540 -->
-## [2.0.540](https://github.com/habitat-sh/habitat/tree/2.0.540) (2026-05-07)
+<!-- latest_release 2.0.541 -->
+## [2.0.541](https://github.com/habitat-sh/habitat/tree/2.0.541) (2026-05-09)
 
 #### Merged Pull Requests
-- fix aarch64-linux docker studio [#10381](https://github.com/habitat-sh/habitat/pull/10381) ([mwrock](https://github.com/mwrock))
+- Using &#39;base-2025&#39; channel for pipelines and plan-build fix [#10380](https://github.com/habitat-sh/habitat/pull/10380) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Using &#39;base-2025&#39; channel for pipelines and plan-build fix [#10380](https://github.com/habitat-sh/habitat/pull/10380) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.541 -->
 - fix aarch64-linux docker studio [#10381](https://github.com/habitat-sh/habitat/pull/10381) ([mwrock](https://github.com/mwrock)) <!-- 2.0.540 -->
 - Bump openssl from 0.10.78 to 0.10.79 [#10379](https://github.com/habitat-sh/habitat/pull/10379) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.539 -->
 - Bump pin-project from 1.1.11 to 1.1.12 [#10378](https://github.com/habitat-sh/habitat/pull/10378) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.538 -->
