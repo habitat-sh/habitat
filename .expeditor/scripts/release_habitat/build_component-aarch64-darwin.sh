@@ -11,13 +11,7 @@ set -E
 
 trap 'rm -rf /opt/hab' ERR
 
-export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
-# TODO: Remove the job specific override in the pipeline yaml once
-# builder changes are released.
 export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
-
-# Following env variable is required to run MacOS Native Studio
-export HAB_FEAT_MACOS_NATIVE_SUPPORT=1
 
 channel=$(get_release_channel)
 
@@ -27,13 +21,13 @@ install_release_channel_hab_binary "${BUILD_PKG_TARGET}"
 echo "--- :key: Importing keys"
 import_keys
 
-# Install the 'hab-studio' from the aarch64-darwin-opt channel.
+# Install the 'hab-studio' from the base-2025 channel.
 # TODO: Move this to acceptance once we publish.
 # so this may need updating to support other channels.
-${hab_binary} pkg install chef/hab-studio -c aarch64-darwin-opt
+${hab_binary} pkg install chef/hab-studio -c base-2025
 
 export HAB_BLDR_CHANNEL="$channel"
-export HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL="aarch64-darwin-opt"
+export HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL="base-2025"
 
 echo "--- :hab: Running hab pkg build for $package_path"
 sudo -E "${hab_binary}" pkg build "$package_path"

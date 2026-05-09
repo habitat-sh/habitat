@@ -3,9 +3,6 @@ expeditor:
     HAB_AUTH_TOKEN:
       path: account/static/habitat/chef-ci
       field: auth_token # Production Builder
-    ACCEPTANCE_HAB_AUTH_TOKEN:
-      path: account/static/habitat/chef-ci
-      field: acceptance_auth_token # Acceptance Builder
   accounts:
     - aws/chef-cd
   defaults:
@@ -1399,5 +1396,3 @@ steps:
       executor:
         docker:
           privileged: true
-          environment:
-            - JOB_HAB_BLDR_URL=https://bldr.acceptance.habitat.sh

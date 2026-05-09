@@ -251,15 +251,8 @@ promote_packages_to_builder_channel() {
     echo "--- Promoting Habitat packages to the ${destination_channel} channel of ${HAB_BLDR_URL}"
     for target in "${targets[@]}"; do
 
-	# BEGIN: Additional Quirks for aarch64-darwin
-	if [[ "${target}" == "aarch64-darwin" ]]; then
-            hab_auth_token_promote=${ACCEPTANCE_HAB_AUTH_TOKEN}
-            hab_bldr_url_promote=${JOB_HAB_BLDR_URL}
-        else
-            hab_auth_token_promote=${HAB_AUTH_TOKEN}
-            hab_bldr_url_promote=${HAB_BLDR_URL}
-	fi
-	# END: Additional Quirks for aarch64-darwin
+        hab_auth_token_promote=${HAB_AUTH_TOKEN}
+        hab_bldr_url_promote=${HAB_BLDR_URL}
 
         mapfile -t idents < <(echo "${manifest_json}" | jq -r ".packages.\"${target}\" | .[]")
         for ident in "${idents[@]}"; do
@@ -586,7 +579,7 @@ need_cmd() {
 # Use the binary from the acceptance bldr bootstrap package that provides
 # the support for hab CLI with "/opt" support.
 # When we have the support *released* we do not need to do this anymore.
-install_acceptance_bootstrap_hab_binary() {
+install_bootstrap_hab_binary() {
     need_cmd install
 
     # Install the macOS bootstrap package that gives us GNU tar and GNU tail.
@@ -602,8 +595,8 @@ install_acceptance_bootstrap_hab_binary() {
     mkdir "${hab_scratch_dir}"
 
     "${hab_binary}" pkg download chef/hab \
-        --channel aarch64-darwin-opt \
-        --url https://bldr.acceptance.habitat.sh  \
+        --channel base-2025 \
+        --url https://bldr.habitat.sh  \
         --download-directory="${hab_scratch_dir}"
 
     local hab_artifact
