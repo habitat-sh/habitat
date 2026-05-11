@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.543 -->
-## [2.0.543](https://github.com/habitat-sh/habitat/tree/2.0.543) (2026-05-11)
+<!-- latest_release 2.0.544 -->
+## [2.0.544](https://github.com/habitat-sh/habitat/tree/2.0.544) (2026-05-11)
 
 #### Merged Pull Requests
-- Bump tokio from 1.52.2 to 1.52.3 [#10384](https://github.com/habitat-sh/habitat/pull/10384) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump clap_complete from 4.6.3 to 4.6.4 [#10382](https://github.com/habitat-sh/habitat/pull/10382) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump clap_complete from 4.6.3 to 4.6.4 [#10382](https://github.com/habitat-sh/habitat/pull/10382) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.544 -->
 - Bump tokio from 1.52.2 to 1.52.3 [#10384](https://github.com/habitat-sh/habitat/pull/10384) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.543 -->
 - Fix e2e tests pointing to aarch64-darwin-opt [#10386](https://github.com/habitat-sh/habitat/pull/10386) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.542 -->
 - Using &#39;base-2025&#39; channel for pipelines and plan-build fix [#10380](https://github.com/habitat-sh/habitat/pull/10380) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.541 -->
