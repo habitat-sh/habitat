@@ -277,17 +277,27 @@ install_hab_macos_x64() {
 
 install_hab_macos_aarch64() {
     need_cmd mkdir
+    need_cmd sudo
 
     local _origin=${1:-chef}
     local _ident="${_origin}/hab"
+    if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
+      _ident+="/$version"
+    fi
+
 
     # Just make sure that /usr/local/bin exists
-    mkdir -pv /usr/local/bin
+    sudo -E mkdir -pv /usr/local/bin
 
     # If we have a 'hab' as a file in `/usr/local/bin` --binlink doesn't work,
     # So we store it into a separate file first.
     if test -f /usr/local/bin/hab; then
         sudo -E mv -f /usr/local/bin/hab /usr/local/bin/.hab-orig
+	# Restore the file on interrupt, error or term (but not on legal exit).
+	# Since this trap will overwrite the 'INT' and 'TERM' logic make sure we do those
+	# things as well.
+	trap 'code=$?; sudo -E mv /usr/local/bin/.hab-orig /usr/local/bin/hab; \
+		rm -f $workdir; exit $code;' ERR TERM INT
     fi
 
 
@@ -300,10 +310,10 @@ install_hab_macos_aarch64() {
     fi
 
     if [ -L "/usr/local/bin/hab" ] && [ -e "/usr/local/bin/hab" ]; then
-        sudo -E rm -f /usr/local/bin/.hab-orig
+        sudo -E rm -f /usr/local/bin/.hab-orig 2>/dev/null
     else
         # Something didn't work - restore the saved original hab
-        sudo -E mv -f /usr/local/bin/.hab-orig /usr/local/bin/hab
+        sudo -E mv -f /usr/local/bin/.hab-orig /usr/local/bin/hab 2>/dev/null
         exit_with "Unable to determine that /usr/local/bin/hab is a symlink." 6
     fi
 }
