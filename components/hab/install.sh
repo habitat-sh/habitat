@@ -256,7 +256,7 @@ extract_archive() {
   esac
 }
 
-install_hab_macos_x64() {
+install_hab_macos_stable() {
     need_cmd mkdir
     need_cmd install
 
@@ -271,8 +271,6 @@ install_hab_macos_x64() {
         install -v "${archive_dir}/NOTICES.txt" /usr/local/share/habitat/NOTICES.txt
     fi
 
-    # TODO: We need to install the latest 'hab' once the '/opt' channel support is available
-    # in the main
 }
 
 install_hab_macos_aarch64() {
@@ -326,10 +324,14 @@ install_hab() {
   darwin)
     case "${arch}" in
         x86_64)
-            install_hab_macos_x64
+            install_hab_macos_stable
             ;;
         aarch64)
-            install_hab_macos_aarch64 "$_origin"
+            if [ "$channel" == "stable" ]; then
+                install_hab_macos_stable
+            else
+               install_hab_macos_aarch64 "$_origin"
+            fi
             ;;
         *)
             exit_with "Unrecognized arch when installing for ${sys}: ${arch}" 5
