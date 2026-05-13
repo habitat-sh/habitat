@@ -104,7 +104,7 @@ create_workdir() {
   workdir="$(mktemp -d -p "$_tmp" 2>/dev/null || mktemp -d "${_tmp}/hab.XXXX")"
   # Add a trap to clean up any interrupted file downloads
   # shellcheck disable=SC2154
-  trap 'code=$?; rm -rf $workdir; exit $code' INT TERM EXIT
+  trap 'code=$?; rm -rf "$workdir"; exit $code' INT TERM EXIT
   cd "${workdir}"
 }
 
@@ -295,7 +295,7 @@ install_hab_macos_aarch64() {
 	# Since this trap will overwrite the 'INT' and 'TERM' logic make sure we do those
 	# things as well.
 	trap 'code=$?; sudo -E mv /usr/local/bin/.hab-orig /usr/local/bin/hab; \
-		rm -f $workdir; exit $code;' ERR TERM INT
+		rm -rf "$workdir"; exit $code;' ERR TERM INT
     fi
 
 
