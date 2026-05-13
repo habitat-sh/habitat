@@ -104,7 +104,7 @@ create_workdir() {
   workdir="$(mktemp -d -p "$_tmp" 2>/dev/null || mktemp -d "${_tmp}/hab.XXXX")"
   # Add a trap to clean up any interrupted file downloads
   # shellcheck disable=SC2154
-  trap 'code=$?; rm -rf $workdir; exit $code' INT TERM EXIT
+  trap 'code=$?; rm -rf "$workdir"; exit $code' INT TERM EXIT
   cd "${workdir}"
 }
 
@@ -256,8 +256,7 @@ extract_archive() {
   esac
 }
 
-install_hab_macos() {
-    # Generic non-native-support fallback path used when macOS native support is unavailable
+install_hab_macos_stable() {
     need_cmd mkdir
     need_cmd install
 
@@ -272,9 +271,51 @@ install_hab_macos() {
         install -v "${archive_dir}/NOTICES.txt" /usr/local/share/habitat/NOTICES.txt
     fi
 
-    # TODO: We need to install the latest 'hab' once the '/opt' channel support is available
-    # in the main
 }
+
+install_hab_macos_aarch64() {
+    need_cmd mkdir
+    need_cmd sudo
+
+    local _origin=${1:-chef}
+    local _ident="${_origin}/hab"
+    if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
+      _ident+="/$version"
+    fi
+
+
+    # Just make sure that /usr/local/bin exists
+    sudo -E mkdir -pv /usr/local/bin
+
+    # If we have a 'hab' as a file in `/usr/local/bin` --binlink doesn't work,
+    # So we store it into a separate file first.
+    if test -f /usr/local/bin/hab; then
+        sudo -E mv -f /usr/local/bin/hab /usr/local/bin/.hab-orig
+	# Restore the file on interrupt, error or term (but not on legal exit).
+	# Since this trap will overwrite the 'INT' and 'TERM' logic make sure we do those
+	# things as well.
+	trap 'code=$?; sudo -E mv /usr/local/bin/.hab-orig /usr/local/bin/hab; \
+		rm -rf "$workdir"; exit $code;' ERR TERM INT
+    fi
+
+
+    if [ -n "${bldrUrl:-}" ]; then
+        info "Installing the habitat package from the builder: $bldrUrl, channel: $channel."
+        sudo -E "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident" -u "$bldrUrl"
+    else
+        info "Installing the habitat package from channel: $channel."
+        sudo -E "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
+    fi
+
+    if [ -L "/usr/local/bin/hab" ] && [ -e "/usr/local/bin/hab" ]; then
+        sudo -E rm -f /usr/local/bin/.hab-orig 2>/dev/null
+    else
+        # Something didn't work - restore the saved original hab
+        sudo -E mv -f /usr/local/bin/.hab-orig /usr/local/bin/hab 2>/dev/null
+        exit_with "Unable to determine that /usr/local/bin/hab is a symlink." 6
+    fi
+}
+
 
 install_hab() {
   local _origin="${1:-chef}"
@@ -282,8 +323,15 @@ install_hab() {
   case "${sys}" in
   darwin)
     case "${arch}" in
-        x86_64 | aarch64)
-            install_hab_macos
+        x86_64)
+            install_hab_macos_stable
+            ;;
+        aarch64)
+            if [ "$channel" == "stable" ]; then
+                install_hab_macos_stable
+            else
+               install_hab_macos_aarch64 "$_origin"
+            fi
             ;;
         *)
             exit_with "Unrecognized arch when installing for ${sys}: ${arch}" 5

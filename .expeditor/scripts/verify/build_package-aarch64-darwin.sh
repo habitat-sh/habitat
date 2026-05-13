@@ -11,6 +11,9 @@ set -E
 
 trap 'rm -rf /opt/hab' ERR
 
+# TODO: Right now we are doing everything from acceptance, when we release - we need not
+# pass the 'acceptance' channel.
+
 # Since we are using the *bootstrap* packages right now, we will need to 'install' `hab`
 # CLI twice - first get the original `hab` CLI and then use that to download the
 # 'bootstrap' version.
@@ -29,17 +32,17 @@ HAB_ORIGIN=throwaway
 echo "--- :key: Generating fake origin key"
 sudo -E "${bootstrap_hab_binary}" origin key generate
 
-# Install hab-studio from the chef origin via the base-2025 channel.
-# By default, it installs from the stable channel only,
-# so this may need updating to support other channels.
-${bootstrap_hab_binary} pkg install chef/hab-studio -c base-2025
+# Install chef studio from the 'acceptance' channel where we downloaded 'chef/hab'
+# from. Once we release we will not use 'acceptance' but the released 'hab' and
+# 'hab/studio'
+${bootstrap_hab_binary} pkg install chef/hab-studio -c acceptance
 
-# Required for the `hab pkg build` command to download the studio and deps when
-# locally missing
-export HAB_INTERNAL_BLDR_CHANNEL="base-2025"
+# This is the channel we need to download chef/hab-* packages from
+export HAB_BLDR_CHANNEL="acceptance"
 
-# Required to download the deps of the package to be built
-export HAB_BLDR_CHANNEL="base-2025"
+# This is the channel for all the 'core' build dependencies. When these packages
+# are promoted to 'base' we do not need to set this.
+export HAB_REFRESH_CHANNEL="base-2025"
 
 echo "--- :hab: Running hab pkg build for $package_path"
 sudo -E "${bootstrap_hab_binary}" pkg build "$package_path"
