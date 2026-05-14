@@ -21,13 +21,19 @@ install_release_channel_hab_binary "${BUILD_PKG_TARGET}"
 echo "--- :key: Importing keys"
 import_keys
 
-# Install the 'hab-studio' from the base-2025 channel.
+# Install the 'hab-studio' from the acceptance channel.
 # TODO: Move this to acceptance once we publish.
 # so this may need updating to support other channels.
-${hab_binary} pkg install chef/hab-studio -c base-2025
+${hab_binary} pkg install chef/hab-studio -c acceptance
 
+# To pick up chef/hab-* packages from here
 export HAB_BLDR_CHANNEL="$channel"
-export HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL="base-2025"
+
+# To pick up chef/hab-* packages from here if they are not available in the 'release_channel'
+export HAB_STUDIO_SECRET_HAB_FALLBACK_CHANNEL="acceptance"
+
+# To pick up core/* dependencies
+export HAB_REFRESH_CHANNEL="base-2025"
 
 echo "--- :hab: Running hab pkg build for $package_path"
 sudo -E "${hab_binary}" pkg build "$package_path"
