@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.549 -->
-## [2.0.549](https://github.com/habitat-sh/habitat/tree/2.0.549) (2026-05-14)
+<!-- latest_release 2.0.550 -->
+## [2.0.550](https://github.com/habitat-sh/habitat/tree/2.0.550) (2026-05-15)
 
 #### Merged Pull Requests
-- Fix release pipeline after install fixes [#10393](https://github.com/habitat-sh/habitat/pull/10393) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump pin-project from 1.1.12 to 1.1.13 [#10394](https://github.com/habitat-sh/habitat/pull/10394) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump pin-project from 1.1.12 to 1.1.13 [#10394](https://github.com/habitat-sh/habitat/pull/10394) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.550 -->
 - Fix release pipeline after install fixes [#10393](https://github.com/habitat-sh/habitat/pull/10393) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.549 -->
 - Fixes install.sh for Darwin aarch64  [#10385](https://github.com/habitat-sh/habitat/pull/10385) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.548 -->
 - Updated hab version to 2.0.536 in ci [#10392](https://github.com/habitat-sh/habitat/pull/10392) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.0.547 -->
