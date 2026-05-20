@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.551 -->
-## [2.0.551](https://github.com/habitat-sh/habitat/tree/2.0.551) (2026-05-20)
+<!-- latest_release 2.0.552 -->
+## [2.0.552](https://github.com/habitat-sh/habitat/tree/2.0.552) (2026-05-20)
 
 #### Merged Pull Requests
-- Bump wincode from 0.5.3 to 0.5.4 [#10397](https://github.com/habitat-sh/habitat/pull/10397) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tar from 0.4.45 to 0.4.46 [#10399](https://github.com/habitat-sh/habitat/pull/10399) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump tar from 0.4.45 to 0.4.46 [#10399](https://github.com/habitat-sh/habitat/pull/10399) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.552 -->
+- Bump handlebars from 6.4.0 to 6.4.1 [#10398](https://github.com/habitat-sh/habitat/pull/10398) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.552 -->
 - Bump wincode from 0.5.3 to 0.5.4 [#10397](https://github.com/habitat-sh/habitat/pull/10397) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.551 -->
 - Bump pin-project from 1.1.12 to 1.1.13 [#10394](https://github.com/habitat-sh/habitat/pull/10394) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.550 -->
 - Fix release pipeline after install fixes [#10393](https://github.com/habitat-sh/habitat/pull/10393) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.549 -->
