@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.553 -->
-## [2.0.553](https://github.com/habitat-sh/habitat/tree/2.0.553) (2026-05-22)
+<!-- latest_release 2.0.554 -->
+## [2.0.554](https://github.com/habitat-sh/habitat/tree/2.0.554) (2026-05-22)
 
 #### Merged Pull Requests
-- Bump os_info from 3.14.0 to 3.15.0 [#10401](https://github.com/habitat-sh/habitat/pull/10401) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_json from 1.0.149 to 1.0.150 [#10404](https://github.com/habitat-sh/habitat/pull/10404) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.149 to 1.0.150 [#10404](https://github.com/habitat-sh/habitat/pull/10404) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.554 -->
+- Bump aws-sdk-ecr from 1.115.1 to 1.116.0 [#10402](https://github.com/habitat-sh/habitat/pull/10402) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.554 -->
+- Bump aws-config from 1.8.16 to 1.8.17 [#10403](https://github.com/habitat-sh/habitat/pull/10403) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.554 -->
 - Bump os_info from 3.14.0 to 3.15.0 [#10401](https://github.com/habitat-sh/habitat/pull/10401) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.553 -->
 - Bump tar from 0.4.45 to 0.4.46 [#10399](https://github.com/habitat-sh/habitat/pull/10399) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.552 -->
 - Bump handlebars from 6.4.0 to 6.4.1 [#10398](https://github.com/habitat-sh/habitat/pull/10398) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.552 -->
