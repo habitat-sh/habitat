@@ -144,12 +144,18 @@ jobs:
       - name: Set BD_VERSION_NAME from VERSION file
         run: echo "BD_VERSION_NAME=$(cat VERSION)" >> "$GITHUB_ENV"
 
-      # Use the same toolchain pinned in rust-toolchain
+      # Read the pinned toolchain from rust-toolchain at the repo root so we
+      # don't have to hardcode the version here.
+      - name: Read Rust toolchain version
+        id: rust-version
+        run: |
+          echo "toolchain=$(grep ^channel rust-toolchain | cut -d'"' -f2)" >> "$GITHUB_OUTPUT"
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
         id: toolchain
         with:
-          toolchain: '1.91.1'
+          toolchain: ${{ steps.rust-version.outputs.toolchain }}
       - run: rustup override set ${{ steps.toolchain.outputs.name }}
 
       # Install target triples we ship for.
@@ -160,6 +166,7 @@ jobs:
         run: |
           rustup target add \
             x86_64-unknown-linux-gnu \
+            aarch64-unknown-linux-gnu \
             x86_64-pc-windows-msvc \
             aarch64-apple-darwin \
             x86_64-apple-darwin
@@ -185,6 +192,9 @@ jobs:
       # in each member's directory).
       - name: Generate SBOM — Linux x86_64
         run: cargo cyclonedx --all --format json --target x86_64-unknown-linux-gnu --target-in-filename
+
+      - name: Generate SBOM — Linux aarch64
+        run: cargo cyclonedx --all --format json --target aarch64-unknown-linux-gnu --target-in-filename
 
       - name: Generate SBOM — Windows x86_64
         run: cargo cyclonedx --all --format json --target x86_64-pc-windows-msvc --target-in-filename
