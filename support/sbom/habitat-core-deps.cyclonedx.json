@@ -1,0 +1,344 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "habitat-core-deps",
+      "description": "Habitat core origin packages bundled with or depended on by the Habitat supervisor and toolchain. These are non-Rust runtime dependencies not captured by cargo metadata."
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "Habitat core_7zip",
+      "version": "26.00",
+      "purl": "pkg:generic/7zip@26.00?download_url=https://www.7-zip.org/a/7z2600-x64.exe"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_acl",
+      "version": "2.3.2",
+      "purl": "pkg:generic/acl@2.3.2?download_url=http://download.savannah.gnu.org/releases/acl/acl-2.3.2.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_attr",
+      "version": "2.5.2",
+      "purl": "pkg:generic/attr@2.5.2?download_url=http://download.savannah.gnu.org/releases/attr/attr-2.5.2.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_bash",
+      "version": "5.2.37",
+      "purl": "pkg:generic/bash@5.2.37?download_url=http://ftp.gnu.org/gnu/bash/bash-5.2.37.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_binutils",
+      "version": "2.44",
+      "purl": "pkg:gem/binutils@2.44?download_url=http://ftp.gnu.org/gnu/binutils/binutils-2.44.tar.bz2"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_busybox-static",
+      "version": "1.36.1",
+      "purl": "pkg:gem/busybox-static@1.36.1?download_url=https://busybox.net/downloads/busybox-1.36.1.tar.bz2"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_bzip2",
+      "version": "1.0.8",
+      "purl": "pkg:generic/bzip2@1.0.8?download_url=https://fossies.org/linux/misc/bzip2-1.0.8.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_cacerts",
+      "version": "2025-05-20",
+      "purl": "pkg:generic/cacerts@2025-05-20?download_url=http://curl.haxx.se/ca/cacert-2025-05-20.pem"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_coreutils",
+      "version": "9.7",
+      "purl": "pkg:generic/coreutils@9.7?download_url=http://ftp.gnu.org/gnu/coreutils/coreutils-9.7.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_diffutils",
+      "version": "3.11",
+      "purl": "pkg:generic/diffutils@3.11?download_url=http://ftp.gnu.org/gnu/diffutils/diffutils-3.11.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_file",
+      "version": "5.46",
+      "purl": "pkg:gem/file@5.46?download_url=ftp://ftp.astron.com/pub/file/file-5.46.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_findutils",
+      "version": "4.10.0",
+      "purl": "pkg:gem/findutils@4.10.0?download_url=http://ftp.gnu.org/gnu/findutils/findutils-4.10.0.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_gawk",
+      "version": "5.3.1",
+      "purl": "pkg:gem/gawk@5.3.1?download_url=http://ftp.gnu.org/gnu/gawk/gawk-5.3.1.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_gcc-base",
+      "version": "14.3.0",
+      "purl": "pkg:gem/gcc-base@14.3.0?download_url=http://ftp.gnu.org/gnu/gcc/gcc-14.3.0/gcc-14.3.0.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_gcc-libs",
+      "version": "14.3.0",
+      "purl": "pkg:generic/gcc-libs@14.3.0?download_url=http://ftp.gnu.org/gnu/gcc/gcc-14.3.0/gcc-14.3.0.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_glibc",
+      "version": "2.41",
+      "purl": "pkg:generic/glibc@2.41?download_url=http://ftp.gnu.org/gnu/glibc/glibc-2.41.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_gmp",
+      "version": "6.3.0",
+      "purl": "pkg:generic/gmp@6.3.0?download_url=http://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_grep",
+      "version": "3.11",
+      "purl": "pkg:generic/grep@3.11?download_url=http://ftp.gnu.org/gnu/grep/grep-3.11.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_gzip",
+      "version": "1.14",
+      "purl": "pkg:generic/gzip@1.14?download_url=http://ftp.gnu.org/gnu/gzip/gzip-1.14.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_hab-cc-wrapper",
+      "version": "1.0.0",
+      "purl": "pkg:gem/hab-cc-wrapper@1.0.0?download_url=https://github.com/habitat-sh/hab-pkg-wrappers/archive/v1.0.0.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_hab-ld-wrapper",
+      "version": "1.0.0",
+      "purl": "pkg:gem/hab-ld-wrapper@1.0.0?download_url=https://github.com/habitat-sh/hab-pkg-wrappers/archive/v1.0.0.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_less",
+      "version": "668",
+      "purl": "pkg:generic/less@668?download_url=http://www.greenwoodsoftware.com/less/less-668.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_libbsd",
+      "version": "0.12.2",
+      "purl": "pkg:gem/libbsd@0.12.2?download_url=https://libbsd.freedesktop.org/releases/libbsd-0.12.2.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_libcap",
+      "version": "2.73",
+      "purl": "pkg:generic/libcap@2.73?download_url=https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-2.73.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_libidn2",
+      "version": "2.3.3",
+      "purl": "pkg:generic/libidn2@2.3.3?download_url=https://ftp.gnu.org/gnu/libidn/libidn2-2.3.3.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_libmd",
+      "version": "1.1.0",
+      "purl": "pkg:gem/libmd@1.1.0?download_url=https://archive.hadrons.org/software/libmd/libmd-1.1.0.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_libpcre2",
+      "version": "10.42",
+      "purl": "pkg:generic/libpcre2@10.42?download_url=https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.42/pcre2-10.42.tar.bz2"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_libpsl",
+      "version": "0.21.1",
+      "purl": "pkg:generic/libpsl@0.21.1?download_url=https://github.com/rockdaboot/libpsl/releases/download/0.21.1/libpsl-0.21.1.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_libsodium",
+      "version": "1.0.18",
+      "purl": "pkg:gem/libsodium@1.0.18?download_url=https://download.libsodium.org/libsodium/releases/libsodium-1.0.18.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_libunistring",
+      "version": "1.0",
+      "purl": "pkg:generic/libunistring@1.0?download_url=https://ftp.gnu.org/gnu/libunistring/libunistring-1.0.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_linux-headers",
+      "version": "5.19.8",
+      "purl": "pkg:generic/linux-headers@5.19.8?download_url=https://www.kernel.org/pub/linux/kernel/v4.x/linux-5.19.8.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_lzip",
+      "version": "1.25",
+      "purl": "pkg:gem/lzip@1.25?download_url=http://download.savannah.gnu.org/releases/lzip/lzip-1.25.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_lzo",
+      "version": "2.10",
+      "purl": "pkg:gem/lzo@2.10?download_url=http://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_lzop",
+      "version": "1.04",
+      "purl": "pkg:gem/lzop@1.04?download_url=https://www.lzop.org/download/lzop-1.04.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_make",
+      "version": "4.4.1",
+      "purl": "pkg:generic/make@4.4.1?download_url=http://ftp.gnu.org/gnu/make/make-4.4.1.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_mg",
+      "version": "20250523",
+      "purl": "pkg:gem/mg@20250523?download_url=https://github.com/hboetes/mg/archive/20250523.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_mpfr",
+      "version": "4.2.1",
+      "purl": "pkg:gem/mpfr@4.2.1?download_url=http://www.mpfr.org/mpfr-4.2.1/mpfr-4.2.1.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_ncurses",
+      "version": "6.5",
+      "purl": "pkg:generic/ncurses@6.5?download_url=http://ftp.gnu.org/gnu/ncurses/ncurses-6.5.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_openssl",
+      "version": "3.5.6",
+      "purl": "pkg:generic/openssl@3.5.6?download_url=https://s3.amazonaws.com/chef-releng/openssl/openssl-3.5.6.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_pcre2",
+      "version": "10.42",
+      "purl": "pkg:generic/pcre2@10.42?download_url=https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.42/pcre2-10.42.tar.bz2"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_powershell",
+      "version": "7.5.4",
+      "purl": "pkg:gem/powershell@7.5.4?download_url=https://github.com/PowerShell/PowerShell/releases/download/v7.5.4/PowerShell-7.5.4-win-x64.zip"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_readline",
+      "version": "8.2.13",
+      "purl": "pkg:generic/readline@8.2.13?download_url=http://ftp.gnu.org/gnu/readline/readline-8.2.13.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_sed",
+      "version": "4.9",
+      "purl": "pkg:generic/sed@4.9?download_url=http://ftp.gnu.org/gnu/sed/sed-4.9.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_sqlite",
+      "version": "3.50.4",
+      "purl": "pkg:gem/sqlite@3.50.4?download_url=https://www.sqlite.org/2025/sqlite-autoconf-3500400.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_tar",
+      "version": "1.35",
+      "purl": "pkg:gem/tar@1.35?download_url=http://ftp.gnu.org/gnu/tar/tar-1.35.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_toml-cli",
+      "version": "0.2.3",
+      "purl": "pkg:gem/toml-cli@0.2.3?download_url=https://github.com/gnprice/toml-cli/archive/refs/tags/v0.2.3.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_unzip",
+      "version": "6.0",
+      "purl": "pkg:gem/unzip@6.0?download_url=https://downloads.sourceforge.net/infozip/unzip60.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_util-linux",
+      "version": "2.40.4",
+      "purl": "pkg:gem/util-linux@2.40.4?download_url=https://www.kernel.org/pub/linux/utils/util-linux/v2.40/util-linux-2.40.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_vim",
+      "version": "9.1.1166",
+      "purl": "pkg:gem/vim@9.1.1166?download_url=http://github.com/vim/vim/archive/v9.1.1166.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_visual-cpp-redist-2022",
+      "version": "14.44.35208.0",
+      "purl": "pkg:gem/visual-cpp-redist-2022@14.44.35208.0?download_url=https://download.visualstudio.microsoft.com/download/pr/40b59c73-1480-4caf-ab5b-4886f176bf71/D62841375B90782B1829483AC75695CCEF680A8F13E7DE569B992EF33C6CD14A/VC_redist.x64.exe"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_wget",
+      "version": "1.25.0",
+      "purl": "pkg:gem/wget@1.25.0?download_url=https://ftp.gnu.org/gnu/wget/wget-1.25.0.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_xz",
+      "version": "5.8.1",
+      "purl": "pkg:gem/xz@5.8.1?download_url=http://tukaani.org/xz/xz-5.8.1.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_zeromq",
+      "version": "4.3.5",
+      "purl": "pkg:gem/zeromq@4.3.5?download_url=https://github.com/zeromq/libzmq/releases/download/v4.3.5/zeromq-4.3.5.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_zlib",
+      "version": "1.3.1",
+      "purl": "pkg:generic/zlib@1.3.1?download_url=https://zlib.net/fossils/zlib-1.3.1.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_zstd",
+      "version": "1.5.7",
+      "purl": "pkg:gem/zstd@1.5.7?download_url=https://github.com/facebook/zstd/archive/v1.5.7.tar.gz"
+    }
+  ]
+}
