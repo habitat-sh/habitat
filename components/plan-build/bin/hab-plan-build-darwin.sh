@@ -66,6 +66,11 @@ export HAB_BLDR_CHANNEL
 # Also note that this only really comes into play if HAB_BLDR_CHANNEL
 # has been set to something different.
 : "${HAB_FALLBACK_CHANNEL=stable}"
+# Use the refresh channel for dependencies in the core origin.
+# Defaults to base so that core deps are fetched from the base channel when
+# no explicit refresh channel has been requested.
+: "${HAB_REFRESH_CHANNEL:=base}"
+export HAB_REFRESH_CHANNEL
 # The value of `$PATH` on initial start of this program
 INITIAL_PATH="$PATH"
 # The value of `pwd` on initial start of this program
