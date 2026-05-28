@@ -25,6 +25,48 @@ _pkgpath_for() {
 
 # shellcheck disable=SC2154
 finish_setup() {
+    # Import origin keys from the host key cache (HAB_CACHE_KEY_PATH, typically
+    # ~/.hab/cache/keys) into the studio's key cache (/opt/hab/cache/keys).
+    # Unlike Linux (which uses a chroot), the darwin studio runs directly on the
+    # host, so we must explicitly target HAB_ROOT_PATH/cache/keys on import.
+    if [ -n "${HAB_ORIGIN_KEYS:-}" ]; then
+        $mkdir_cmd -p "$HAB_ROOT_PATH/cache/keys"
+        for key in $(echo "$HAB_ORIGIN_KEYS" | $sed_cmd 's/,/ /g'); do
+            info "Importing '$key' secret origin key"
+            # shellcheck disable=SC2154
+            if key_text=$(HAB_LICENSE="${HAB_LICENSE:-}" "$system_hab_cmd" origin key export --type secret "$key"); then
+                printf -- "%s" "${key_text}" | HAB_CACHE_KEY_PATH="$HAB_ROOT_PATH/cache/keys" "$system_hab_cmd" origin key import
+            else
+                echo "Error exporting $key key"
+                echo "${key_text}"
+                echo "Habitat was unable to export your secret signing key. Please"
+                echo "verify that you have a signing key for $key present in"
+                echo "~/.hab/cache/keys. You can test this by running:"
+                echo ""
+                echo "    hab origin key export --type secret $key"
+                echo ""
+                echo "This will print your signing key or error if it cannot be found."
+                echo "To create a signing key, run:"
+                echo ""
+                echo "    hab origin key generate $key"
+                echo ""
+                exit 1
+            fi
+            # Import the public key too; required for verifying installed packages.
+            if key_text=$("$system_hab_cmd" origin key export --type public "$key" 2>/dev/null); then
+                info "Importing '$key' public origin key"
+                printf -- "%s" "${key_text}" | HAB_CACHE_KEY_PATH="$HAB_ROOT_PATH/cache/keys" "$system_hab_cmd" origin key import
+            else
+                info "Tried to import '$key' public origin key, but key was not found"
+            fi
+        done
+    else
+        info "No secret keys imported! Did you mean to set HAB_ORIGIN?"
+        echo "To specify a HAB_ORIGIN, either set the HAB_ORIGIN environment"
+        echo "variable to your origin name or run 'hab cli setup' and specify a"
+        echo "default origin."
+    fi
+
     src_dir="$($pwd_cmd)"
     $mkdir_cmd -p "$HAB_STUDIO_ROOT"/etc
     $mkdir_cmd -p "$HAB_STUDIO_ROOT"/bin
