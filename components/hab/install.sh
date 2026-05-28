@@ -327,10 +327,20 @@ install_hab() {
             install_hab_macos_stable
             ;;
         aarch64)
-            if [ "$channel" == "stable" ]; then
-                install_hab_macos_stable
+            # Use the aarch64-native install path for versions > 2.0.504.
+            # When version is "latest", resolve the actual version from the
+            # already-downloaded manifest.json before comparing.
+            local _resolved_version="${version:-}"
+            if [ -z "$_resolved_version" ] || [ "$_resolved_version" = "latest" ]; then
+                _resolved_version="$(get_version_from_manifest)" || _resolved_version=""
+            fi
+            # Strip any version/release suffix (e.g. "2.0.504/20241020") so
+            # version_gt always receives a bare X.Y.Z string.
+            _resolved_version="${_resolved_version%%/*}"
+            if [ -n "$_resolved_version" ] && version_gt "$_resolved_version" "2.0.504"; then
+                install_hab_macos_aarch64 "$_origin"
             else
-               install_hab_macos_aarch64 "$_origin"
+                install_hab_macos_stable
             fi
             ;;
         *)
@@ -457,7 +467,36 @@ dl_file() {
   exit_with "Required: SSL-enabled 'curl' or 'wget' on PATH with" 6
 }
 
-# Extract origin from manifest.json file
+# Extract the hab package version from manifest.json.
+# Returns the version string (e.g. "2.1.1"), or empty string on failure.
+get_version_from_manifest() {
+  grep -o '"[^"]*/hab/[0-9][^"]*"' "$manifest_file" 2>/dev/null \
+    | head -1 \
+    | sed 's|^"[^/]*/hab/\([^/]*\)/[^"]*"$|\1|' \
+    || true
+}
+
+# Returns 0 (true) if version $1 is strictly greater than version $2.
+# Versions must be in X.Y.Z format. Returns 1 (false) for any input that
+# contains non-numeric segments rather than erroring under set -e.
+version_gt() {
+  local IFS=.
+  # Word-split on IFS=. to populate the arrays; must be unquoted.
+  # shellcheck disable=SC2206
+  local -a ver1=($1) ver2=($2)
+  local i
+  for ((i = 0; i < 3; i++)); do
+    local v1=${ver1[i]:-0}
+    local v2=${ver2[i]:-0}
+    # Treat any non-numeric segment as invalid input; return false safely.
+    [[ "$v1" =~ ^[0-9]+$ ]] || return 1
+    [[ "$v2" =~ ^[0-9]+$ ]] || return 1
+    if ((v1 > v2)); then return 0; fi
+    if ((v1 < v2)); then return 1; fi
+  done
+  return 1  # equal is not greater
+}
+
 get_origin_from_manifest() {
   local origin="chef"  # Default fallback
 
