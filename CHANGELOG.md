@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.0 -->
-## [2.1.0](https://github.com/habitat-sh/habitat/tree/2.1.0) (2026-05-28)
+<!-- latest_release 2.1.1 -->
+## [2.1.1](https://github.com/habitat-sh/habitat/tree/2.1.1) (2026-05-28)
 
 #### Merged Pull Requests
-- Fully automate SBOM generation and import to blackduck [#10396](https://github.com/habitat-sh/habitat/pull/10396) ([mwrock](https://github.com/mwrock))
+- mac plan build needs base as default refresh channel [#10407](https://github.com/habitat-sh/habitat/pull/10407) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- mac plan build needs base as default refresh channel [#10407](https://github.com/habitat-sh/habitat/pull/10407) ([mwrock](https://github.com/mwrock)) <!-- 2.1.1 -->
 - Fully automate SBOM generation and import to blackduck [#10396](https://github.com/habitat-sh/habitat/pull/10396) ([mwrock](https://github.com/mwrock)) <!-- 2.1.0 -->
 - Bump openssl from 0.10.79 to 0.10.80 [#10400](https://github.com/habitat-sh/habitat/pull/10400) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.555 -->
 - Bump serde_json from 1.0.149 to 1.0.150 [#10404](https://github.com/habitat-sh/habitat/pull/10404) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.554 -->
