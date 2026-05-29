@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.2 -->
-## [2.1.2](https://github.com/habitat-sh/habitat/tree/2.1.2) (2026-05-29)
+<!-- latest_release 2.1.3 -->
+## [2.1.3](https://github.com/habitat-sh/habitat/tree/2.1.3) (2026-05-29)
 
 #### Merged Pull Requests
-- install into /opt/hab on aarch64 if version is greater than 2.0.504 [#10412](https://github.com/habitat-sh/habitat/pull/10412) ([mwrock](https://github.com/mwrock))
+- add key import logic to darwin studio [#10413](https://github.com/habitat-sh/habitat/pull/10413) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- add key import logic to darwin studio [#10413](https://github.com/habitat-sh/habitat/pull/10413) ([mwrock](https://github.com/mwrock)) <!-- 2.1.3 -->
 - install into /opt/hab on aarch64 if version is greater than 2.0.504 [#10412](https://github.com/habitat-sh/habitat/pull/10412) ([mwrock](https://github.com/mwrock)) <!-- 2.1.2 -->
 - mac plan build needs base as default refresh channel [#10407](https://github.com/habitat-sh/habitat/pull/10407) ([mwrock](https://github.com/mwrock)) <!-- 2.1.1 -->
 - Fully automate SBOM generation and import to blackduck [#10396](https://github.com/habitat-sh/habitat/pull/10396) ([mwrock](https://github.com/mwrock)) <!-- 2.1.0 -->
