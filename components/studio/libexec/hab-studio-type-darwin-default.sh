@@ -41,6 +41,7 @@ finish_setup() {
                 echo "${key_text}"
                 echo "Habitat was unable to export your secret signing key. Please"
                 echo "verify that you have a signing key for $key present in"
+                # shellcheck disable=2088
                 echo "~/.hab/cache/keys. You can test this by running:"
                 echo ""
                 echo "    hab origin key export --type secret $key"
