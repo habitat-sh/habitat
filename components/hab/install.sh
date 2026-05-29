@@ -472,8 +472,7 @@ dl_file() {
 get_version_from_manifest() {
   grep -o '"[^"]*/hab/[0-9][^"]*"' "$manifest_file" 2>/dev/null \
     | head -1 \
-    | sed 's|^"[^/]*/hab/\([^/]*\)/[^"]*"$|\1|' \
-    || true
+    | sed 's|^"[^/]*/hab/\([^/]*\)/[^"]*"$|\1|'
 }
 
 # Returns 0 (true) if version $1 is strictly greater than version $2.
