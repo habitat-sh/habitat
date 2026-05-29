@@ -30,7 +30,7 @@ export HAB_ORIGIN
 HAB_ORIGIN=throwaway
 
 echo "--- :key: Generating fake origin key"
-sudo -E "${bootstrap_hab_binary}" origin key generate
+"${bootstrap_hab_binary}" origin key generate
 
 # Install chef studio from the 'acceptance' channel where we downloaded 'chef/hab'
 # from. Once we release we will not use 'acceptance' but the released 'hab' and
@@ -45,7 +45,7 @@ export HAB_BLDR_CHANNEL="acceptance"
 export HAB_REFRESH_CHANNEL="base-2025"
 
 echo "--- :hab: Running hab pkg build for $package_path"
-sudo -E "${bootstrap_hab_binary}" pkg build "$package_path"
+"${bootstrap_hab_binary}" pkg build "$package_path"
 
 source results/last_build.env
 # shellcheck disable=SC2154
