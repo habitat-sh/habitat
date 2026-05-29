@@ -554,7 +554,7 @@ steps:
 
   ###############################################################
   # MacOS tests
-  - label: "[unit] :darwin: install script"
+  - label: "[unit] :darwin: x86_64 install script"
     env:
       HAB_LICENSE: "accept-no-persist"
       HOMEBREW_NO_AUTO_UPDATE: 1
@@ -563,6 +563,25 @@ steps:
     plugins:
      - chef/anka#v0.7.2:
         vm-name: buildkite-core-12-x86_64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
+      - .expeditor/scripts/verify/test_install_script.sh
+    retry:
+      automatic:
+        limit: 2 # Addressing current Anka system timeouts due to oversubscription
+
+  - label: "[unit] :darwin: aarch64 install script"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
         always-pull: true
         wait-network: true
         inherit-environment-vars: true

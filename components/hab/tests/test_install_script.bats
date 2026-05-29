@@ -8,6 +8,13 @@ setup() {
     # fine.
     rm -f /usr/bin/hab
     rm -rf /hab/pkgs/core/hab
+    # On macOS, hab pkg install puts packages under /opt/hab.
+    # Remove it so aarch64 routing tests start from a clean state.
+    rm -rf /opt/hab 2>/dev/null || true
+    # Remove any stale symlink or binary left at the macOS install location.
+    rm -f /usr/local/bin/hab 2>/dev/null || true
+    # Remove any stale share directory
+    rm -rf /usr/local/share/habitat 2>/dev/null || true
   else
     echo "Not running in CI, skipping cleanup"
   fi
@@ -15,6 +22,14 @@ setup() {
 
 darwin() {
   [ "$(uname)" == "Darwin" ]
+}
+
+darwin_aarch64() {
+  [ "$(uname)" == "Darwin" ] && [ "$(uname -m)" == "arm64" ]
+}
+
+darwin_x86_64() {
+  [ "$(uname)" == "Darwin" ] && [ "$(uname -m)" == "x86_64" ]
 }
 
 linux() {
@@ -69,7 +84,7 @@ installed_target() {
   [ "$(installed_target)" == "x86_64-linux" ]
 }
 
-@test "Install latest for x86_64-darwin" {
+@test "Install latest for darwin" {
   darwin || skip "Did not detect a Darwin system"
   run components/hab/install.sh
 
@@ -77,7 +92,7 @@ installed_target() {
 }
 
 @test "Install package for x86_64-darwin from acceptance" {
-  darwin || skip "Did not detect a Darwin system"
+  darwin_x86_64 || skip "Did not detect a Darwin system"
   run components/hab/install.sh -c acceptance
 
   [ "$status" -eq 0 ]
@@ -85,7 +100,7 @@ installed_target() {
 }
 
 @test "Install specific version for x86_64-darwin" {
-  darwin || skip "Did not detect a Darwin system"
+  darwin_x86_64 || skip "Did not detect an x86_64 Darwin system"
   run components/hab/install.sh -v 0.90.6
 
   [ "$status" -eq 0 ]
@@ -93,7 +108,7 @@ installed_target() {
 }
 
 @test "Install legacy package for x86_84-darwin" {
-  darwin || skip "Did not detect a Darwin system"
+  darwin_x86_64 || skip "Did not detect an x86_64 Darwin system"
   run components/hab/install.sh -v 0.79.1
 
   [ "$status" -eq 0 ]
@@ -101,7 +116,25 @@ installed_target() {
 }
 
 @test "Install ignores release when installing from packages.chef.io" {
+  ! darwin_aarch64 || skip "Old version 0.90.6 has no aarch64-darwin binary"
   run components/hab/install.sh -v "0.90.6/20191112141314"
   [ "$status" -eq 0 ]
   [ "$(installed_version)" == "hab 0.90.6" ]
+}
+
+@test "Install version <= 2.0.504 on aarch64-darwin uses stable install path (no /opt/hab)" {
+  darwin_aarch64 || skip "Did not detect an aarch64 Darwin system"
+  run components/hab/install.sh -v 2.0.504
+
+  [ "$status" -eq 0 ]
+  [ "$(installed_version)" == "hab 2.0.504" ]
+  [ ! -d "/opt/hab" ]
+}
+
+@test "Install version > 2.0.504 on aarch64-darwin uses aarch64 install path (/opt/hab exists)" {
+  darwin_aarch64 || skip "Did not detect an aarch64 Darwin system"
+  run components/hab/install.sh -c acceptance
+
+  [ "$status" -eq 0 ]
+  [ -d "/opt/hab" ]
 }
