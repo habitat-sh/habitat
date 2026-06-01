@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.3 -->
-## [2.1.3](https://github.com/habitat-sh/habitat/tree/2.1.3) (2026-05-29)
+<!-- latest_release 2.1.4 -->
+## [2.1.4](https://github.com/habitat-sh/habitat/tree/2.1.4) (2026-06-01)
 
 #### Merged Pull Requests
-- add key import logic to darwin studio [#10413](https://github.com/habitat-sh/habitat/pull/10413) ([mwrock](https://github.com/mwrock))
+- add process-exec sandbox rule to /Library/Developer [#10415](https://github.com/habitat-sh/habitat/pull/10415) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- add process-exec sandbox rule to /Library/Developer [#10415](https://github.com/habitat-sh/habitat/pull/10415) ([mwrock](https://github.com/mwrock)) <!-- 2.1.4 -->
 - add key import logic to darwin studio [#10413](https://github.com/habitat-sh/habitat/pull/10413) ([mwrock](https://github.com/mwrock)) <!-- 2.1.3 -->
 - install into /opt/hab on aarch64 if version is greater than 2.0.504 [#10412](https://github.com/habitat-sh/habitat/pull/10412) ([mwrock](https://github.com/mwrock)) <!-- 2.1.2 -->
 - mac plan build needs base as default refresh channel [#10407](https://github.com/habitat-sh/habitat/pull/10407) ([mwrock](https://github.com/mwrock)) <!-- 2.1.1 -->
