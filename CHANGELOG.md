@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.4 -->
-## [2.1.4](https://github.com/habitat-sh/habitat/tree/2.1.4) (2026-06-01)
+<!-- latest_release 2.1.5 -->
+## [2.1.5](https://github.com/habitat-sh/habitat/tree/2.1.5) (2026-06-01)
 
 #### Merged Pull Requests
-- add process-exec sandbox rule to /Library/Developer [#10415](https://github.com/habitat-sh/habitat/pull/10415) ([mwrock](https://github.com/mwrock))
+- Bump aws-sdk-ecr from 1.116.0 to 1.117.0 [#10414](https://github.com/habitat-sh/habitat/pull/10414) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump aws-sdk-ecr from 1.116.0 to 1.117.0 [#10414](https://github.com/habitat-sh/habitat/pull/10414) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.5 -->
 - add process-exec sandbox rule to /Library/Developer [#10415](https://github.com/habitat-sh/habitat/pull/10415) ([mwrock](https://github.com/mwrock)) <!-- 2.1.4 -->
 - add key import logic to darwin studio [#10413](https://github.com/habitat-sh/habitat/pull/10413) ([mwrock](https://github.com/mwrock)) <!-- 2.1.3 -->
 - install into /opt/hab on aarch64 if version is greater than 2.0.504 [#10412](https://github.com/habitat-sh/habitat/pull/10412) ([mwrock](https://github.com/mwrock)) <!-- 2.1.2 -->
