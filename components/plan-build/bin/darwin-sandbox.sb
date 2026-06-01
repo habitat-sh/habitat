@@ -17,7 +17,7 @@
 (allow file-read-data (literal "/opt"))
 (allow file-read-metadata (literal "/Users"))
 (allow file-read-metadata (subpath "/usr/local"))
-(allow file-read* (subpath "/Library/Developer"))
+(allow file-read* process-exec (subpath "/Library/Developer"))
 (allow file-read* (literal "/private/etc/passwd"))
 (allow file-read* (literal "/private/etc/localtime"))
 (allow file-read-data (literal "/Library/Preferences/Logging/com.apple.diagnosticd.filter.plist"))
