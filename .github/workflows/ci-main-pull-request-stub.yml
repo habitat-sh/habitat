@@ -249,7 +249,7 @@ jobs:
 
       # Always upload the merged SBOM as an artifact for auditing/review
       - name: Upload merged SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cyclonedx-sbom-all-platforms
           path: sbom-all-platforms.json
