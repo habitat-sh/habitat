@@ -8,7 +8,7 @@ pkg_license=('Apache-2.0')
 # This is getting resolved from the system, while we have a habitat package for that
 # so we shoud use the one from 'our' habitat package.
 pkg_deps=(
-	core/libiconv
+    core/libiconv
 )
 
 pkg_build_deps=(
@@ -101,7 +101,8 @@ do_prepare() {
     build_type="--release"
     build_line "Building artifacts with \`${build_type#--}' mode"
 
-    export RUSTFLAGS="-L $(pkg_path_for libiconv)/lib"
+    RUSTFLAGS="${RUSTFLAGS:+$RUSTFLAGS }-L $(pkg_path_for libiconv)/lib"
+    export RUSTFLAGS
     build_line "Setting RUSTFLAGS=$RUSTFLAGS"
 }
 
