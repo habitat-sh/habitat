@@ -5,8 +5,12 @@ pkg_origin=chef
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 
-# There is no true equivalent here (yet), so dependency arrays will be empty.
-pkg_deps=()
+# This is getting resolved from the system, while we have a habitat package for that
+# so we shoud use the one from 'our' habitat package.
+pkg_deps=(
+	core/libiconv
+)
+
 pkg_build_deps=(
     core/tar
     core/coreutils
@@ -97,6 +101,7 @@ do_prepare() {
     build_type="--release"
     build_line "Building artifacts with \`${build_type#--}' mode"
 
+    export RUSTFLAGS="-L $(pkg_path_for libiconv)/lib"
     build_line "Setting RUSTFLAGS=$RUSTFLAGS"
 }
 
