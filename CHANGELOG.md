@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.6 -->
-## [2.1.6](https://github.com/habitat-sh/habitat/tree/2.1.6) (2026-06-01)
+<!-- latest_release 2.1.7 -->
+## [2.1.7](https://github.com/habitat-sh/habitat/tree/2.1.7) (2026-06-03)
 
 #### Merged Pull Requests
-- Bump log from 0.4.29 to 0.4.30 [#10405](https://github.com/habitat-sh/habitat/pull/10405) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Removed core/docker from pkg export tar plan.ps1 [#10416](https://github.com/habitat-sh/habitat/pull/10416) ([sougata-progress](https://github.com/sougata-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Removed core/docker from pkg export tar plan.ps1 [#10416](https://github.com/habitat-sh/habitat/pull/10416) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.1.7 -->
 - Bump log from 0.4.29 to 0.4.30 [#10405](https://github.com/habitat-sh/habitat/pull/10405) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.6 -->
 - Bump wincode from 0.5.4 to 0.5.5 [#10411](https://github.com/habitat-sh/habitat/pull/10411) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.6 -->
 - Bump hyper from 1.9.0 to 1.10.0 [#10410](https://github.com/habitat-sh/habitat/pull/10410) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.6 -->
