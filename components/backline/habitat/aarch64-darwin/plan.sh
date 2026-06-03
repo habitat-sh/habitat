@@ -12,7 +12,6 @@ pkg_deps=(
     core/diffutils
     core/less
     core/make
-    core/mg
     core/patch
     core/vim
 )
