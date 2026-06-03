@@ -131,14 +131,6 @@ alias fgrep='fgrep --color=auto'
 export TERMINFO
 TERMINFO=$(_pkgpath_for core/ncurses)/share/terminfo
 
-emacs() {
-  if type -P emacs > /dev/null; then
-    command emacs "\$@"
-  else
-    mg "\$@"
-  fi
-}
-
 if [[ -n "\${HAB_STUDIO_SUP}" ]]; then
   # This environment variable does not handle spaces well, so we'll re-add
   # them...
