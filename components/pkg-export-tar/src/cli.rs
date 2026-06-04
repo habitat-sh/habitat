@@ -90,6 +90,7 @@ pub(crate) struct Cli {
     pub(crate) no_hab_bin: bool,
 
     /// Exclude supervisor and launcher packages from the exported tar
+    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
     #[arg(name = "NO_HAB_SUP", long = "no-hab-sup")]
     pub(crate) no_hab_sup: bool,
 
