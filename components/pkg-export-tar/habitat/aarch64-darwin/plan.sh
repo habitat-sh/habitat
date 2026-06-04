@@ -5,7 +5,9 @@ pkg_origin=chef
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 
-pkg_deps=()
+pkg_deps=(
+    core/libiconv
+)
 pkg_build_deps=(
     core/tar
     core/coreutils
