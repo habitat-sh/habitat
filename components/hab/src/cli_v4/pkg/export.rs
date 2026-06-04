@@ -31,7 +31,7 @@ pub(crate) enum PkgExportCommand {
     Container(PkgExportCommandOptions),
 
     /// Tar Exporter
-    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[command(disable_help_flag = true)]
     Tar(PkgExportCommandOptions),
 }
@@ -47,7 +47,7 @@ impl PkgExportCommand {
                                               .map(OsString::from)
                                               .collect::<Vec<_>>()).await
             }
-            #[cfg(any(target_os = "linux", target_os = "windows"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             PkgExportCommand::Tar(opts) => {
                 export::tar::start(ui,
                                    &opts.args
