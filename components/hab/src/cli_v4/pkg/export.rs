@@ -31,7 +31,9 @@ pub(crate) enum PkgExportCommand {
     Container(PkgExportCommandOptions),
 
     /// Tar Exporter
-    #[cfg(any(target_os = "linux", target_os = "windows", all(target_os = "macos", target_arch = "aarch64")))]
+    #[cfg(any(target_os = "linux",
+              target_os = "windows",
+              all(target_os = "macos", target_arch = "aarch64")))]
     #[command(disable_help_flag = true)]
     Tar(PkgExportCommandOptions),
 }
