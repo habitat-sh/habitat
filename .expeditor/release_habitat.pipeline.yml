@@ -352,6 +352,27 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
+  - label: "[:mac: aarch64 build hab-pkg-export-tar]"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/release_habitat/build_component-aarch64-darwin.sh components/pkg-export-tar"
+    env:
+      BUILD_PKG_TARGET: "aarch64-darwin"
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
+
   - wait
 
   # Windows Service must be built after the Windows Launcher

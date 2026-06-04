@@ -5,8 +5,9 @@ mod build;
 mod rootfs;
 
 use crate::{common::ui::UI,
-            hcore::package::{PackageIdent,
-                             PackageInstall}};
+            hcore::{fs::ROOT_PATH,
+                    package::{PackageIdent,
+                              PackageInstall}}};
 use anyhow::Result;
 use flate2::{Compression,
              write::GzEncoder};
@@ -59,7 +60,7 @@ fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, hab_pkg: &str, no_
     tar_builder.follow_symlinks(false);
 
     let root_fs = temp_dir_path.join("rootfs");
-    let hab_pkgs_path = temp_dir_path.join("rootfs/hab");
+    let hab_pkgs_path = root_fs.join(ROOT_PATH);
 
     // Although this line of code DOES work (it adds the required directories
     // and subdirectories to the tarball), it also returns an error
@@ -69,7 +70,7 @@ fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, hab_pkg: &str, no_
     // https://github.com/alexcrichton/tar-rs/issues/147
     // Until this is sorted out, I am not doing anything with the result
     // that is returned by this command -NSH
-    tar_builder.append_dir_all("hab", hab_pkgs_path);
+    tar_builder.append_dir_all(ROOT_PATH, hab_pkgs_path);
 
     // Conditionally include the hab binary if not excluded
     if !no_hab_bin {
@@ -78,7 +79,7 @@ fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, hab_pkg: &str, no_
         hab_pkg_binary_path.push("bin");
 
         // Append the hab binary to the tar ball
-        tar_builder.append_dir_all("hab/bin", hab_pkg_binary_path);
+        tar_builder.append_dir_all(format!("{ROOT_PATH}/bin"), hab_pkg_binary_path);
     }
 }
 
