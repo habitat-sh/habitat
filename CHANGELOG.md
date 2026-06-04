@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.10 -->
-## [2.1.10](https://github.com/habitat-sh/habitat/tree/2.1.10) (2026-06-04)
+<!-- latest_release 2.1.11 -->
+## [2.1.11](https://github.com/habitat-sh/habitat/tree/2.1.11) (2026-06-04)
 
 #### Merged Pull Requests
-- Bump log from 0.4.30 to 0.4.31 [#10422](https://github.com/habitat-sh/habitat/pull/10422) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump aws-config from 1.8.17 to 1.8.18 [#10420](https://github.com/habitat-sh/habitat/pull/10420) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump aws-config from 1.8.17 to 1.8.18 [#10420](https://github.com/habitat-sh/habitat/pull/10420) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.11 -->
+- Bump mio from 1.2.0 to 1.2.1 [#10419](https://github.com/habitat-sh/habitat/pull/10419) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.11 -->
+- Bump bitflags from 2.11.1 to 2.12.1 [#10423](https://github.com/habitat-sh/habitat/pull/10423) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.11 -->
 - Bump log from 0.4.30 to 0.4.31 [#10422](https://github.com/habitat-sh/habitat/pull/10422) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.10 -->
 - Bump cc from 1.2.62 to 1.2.63 [#10421](https://github.com/habitat-sh/habitat/pull/10421) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.9 -->
 - Removes &#39;emacs&#39; function and &#39;core/mg&#39; dep on backline [#10418](https://github.com/habitat-sh/habitat/pull/10418) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.1.8 -->
