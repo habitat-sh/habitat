@@ -668,6 +668,25 @@ steps:
       automatic:
         limit: 2 # Addressing current Anka system timeouts due to oversubscription
 
+  - label: "[unit] :darwin: pkg-export-tar"
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
+      - .expeditor/scripts/verify/run_cargo_test-darwin.sh pkg-export-tar
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 2 # Addressing current Anka system timeouts due to oversubscription
+
  #################################################################
 
   # See "[unit] :linux: ignored"; the same approach applies here for windows
@@ -1393,6 +1412,28 @@ steps:
     commands:
       - ". vault-util-init"
       - "sudo -E .expeditor/scripts/verify/build_package-aarch64-darwin.sh components/studio"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "aarch64-darwin"
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 3 # Addressing current Anka system timeouts due to oversubscription
+
+  - label: "[build] :mac: aarch64 pkg-export-tar"
+    agents:
+      queue: 'default-macos-arm64-privileged'
+    plugins:
+     - chef/anka#v0.7.2:
+        vm-name: buildkite-core-14-arm64
+        always-pull: true
+        wait-network: true
+        inherit-environment-vars: true
+    commands:
+      - ". vault-util-init"
+      - "sudo -E .expeditor/scripts/verify/build_package-aarch64-darwin.sh components/pkg-export-tar"
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-darwin"
