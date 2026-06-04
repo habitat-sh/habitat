@@ -76,7 +76,12 @@ Describe "hab pkg export tar core/nginx --no-hab-bin" {
 
 Context "hab pkg export tar core/nginx --no-hab-sup" {
     # --no-hab-sup is not available on aarch64-darwin (supervisor is always excluded there)
-    if (-not $IsDarwinArm64) {
+    if ($IsDarwinArm64) {
+        It "Rejects --no-hab-sup flag with a non-zero exit code" {
+            hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+            $LASTEXITCODE | Should -Not -Be 0
+        }
+    } else {
         hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
         $tar = Get-Item core-nginx-*.tar.gz
         It "Creates tarball" {
