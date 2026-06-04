@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.9 -->
-## [2.1.9](https://github.com/habitat-sh/habitat/tree/2.1.9) (2026-06-04)
+<!-- latest_release 2.1.10 -->
+## [2.1.10](https://github.com/habitat-sh/habitat/tree/2.1.10) (2026-06-04)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.62 to 1.2.63 [#10421](https://github.com/habitat-sh/habitat/pull/10421) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump log from 0.4.30 to 0.4.31 [#10422](https://github.com/habitat-sh/habitat/pull/10422) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump log from 0.4.30 to 0.4.31 [#10422](https://github.com/habitat-sh/habitat/pull/10422) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.10 -->
 - Bump cc from 1.2.62 to 1.2.63 [#10421](https://github.com/habitat-sh/habitat/pull/10421) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.9 -->
 - Removes &#39;emacs&#39; function and &#39;core/mg&#39; dep on backline [#10418](https://github.com/habitat-sh/habitat/pull/10418) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.1.8 -->
 - Removed core/docker from pkg export tar plan.ps1 [#10416](https://github.com/habitat-sh/habitat/pull/10416) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.1.7 -->
