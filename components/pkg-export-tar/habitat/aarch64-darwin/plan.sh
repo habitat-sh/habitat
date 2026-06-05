@@ -79,6 +79,11 @@ do_prepare() {
     export PLAN_PACKAGE_TARGET="$pkg_target"
     build_line "Setting PLAN_PACKAGE_TARGET=$PLAN_PACKAGE_TARGET"
 
+    RUSTFLAGS="${RUSTFLAGS:+${RUSTFLAGS} }-L $(pkg_path_for libiconv)/lib"
+    export RUSTFLAGS
+    build_line "Setting RUSTFLAGS=$RUSTFLAGS"
+
+
     # Can be either `--release` or `--debug` to determine cargo build strategy
     build_type="--release"
     build_line "Building artifacts with \`${build_type#--}' mode"

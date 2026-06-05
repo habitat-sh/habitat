@@ -79,9 +79,18 @@ impl<'a> BuildSpec<'a> {
     pub(crate) fn new_from_cli(cli: &'a crate::cli::Cli) -> Self {
         BuildSpec { hab: cli.hab_pkg.as_str(),
 
-                    hab_launcher: cli.hab_launcher_pkg.as_str(),
+                    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+                    hab_launcher:
+                        "",
+                    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+                    hab_launcher:
+                        cli.hab_launcher_pkg.as_str(),
 
-                    hab_sup: cli.hab_sup_pkg.as_str(),
+                    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+                    hab_sup:                                                                "",
+                    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+                    hab_sup:
+                        cli.hab_sup_pkg.as_str(),
 
                     url: cli.bldr_url.as_str(),
 
