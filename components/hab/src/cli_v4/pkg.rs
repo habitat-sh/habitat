@@ -25,7 +25,8 @@ mod download;
 mod env;
 mod exec;
 
-#[cfg(any(all(target_os = "linux",
+#[cfg(any(all(target_os = "macos", target_arch = "aarch64"),
+          all(target_os = "linux",
               any(target_arch = "x86_64", target_arch = "aarch64")),
           all(target_os = "windows", target_arch = "x86_64")))]
 mod export;
@@ -93,7 +94,8 @@ pub(super) enum PkgCommand {
     /// Execute a command using the 'PATH' context of an installed package
     Exec(exec::PkgExecOptions),
 
-    #[cfg(any(all(target_os = "linux",
+    #[cfg(any(all(target_os = "macos", target_arch = "aarch64"),
+              all(target_os = "linux",
                   any(target_arch = "x86_64", target_arch = "aarch64")),
               all(target_os = "windows", target_arch = "x86_64")))]
     #[clap(subcommand)]
@@ -161,7 +163,8 @@ impl PkgCommand {
 
             Self::Env(opts) => opts.do_env(),
             Self::Exec(opts) => opts.do_exec(),
-            #[cfg(any(all(target_os = "linux",
+            #[cfg(any(all(target_os = "macos", target_arch = "aarch64"),
+                      all(target_os = "linux",
                           any(target_arch = "x86_64", target_arch = "aarch64")),
                       all(target_os = "windows", target_arch = "x86_64")))]
             Self::Export(cmd) => cmd.do_export(ui).await,

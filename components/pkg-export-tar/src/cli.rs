@@ -3,10 +3,11 @@ use clap::Parser;
 use habitat_common::{cli::clap_validators::{HabPackageInstallSourceValueParser,
                                             UrlValueParser},
                      consts::{DEFAULT_BUILDER_URL,
-                              DEFAULT_HAB_LAUNCHER_PKG_IDENT,
-                              DEFAULT_HAB_PKG_IDENT,
-                              DEFAULT_HAB_SUP_PKG_IDENT}};
+                              DEFAULT_HAB_PKG_IDENT}};
 
+#[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+use habitat_common::consts::{DEFAULT_HAB_LAUNCHER_PKG_IDENT,
+                             DEFAULT_HAB_SUP_PKG_IDENT};
 #[derive(Debug, Clone, Parser)]
 #[command(
     name = "hab-pkg-export-tar",
@@ -28,6 +29,7 @@ pub(crate) struct Cli {
 
     /// Launcher package identifier (ex: chef/hab-launcher) or filepath to a Habitat artifact
     /// (ex: /home/chef-hab-launcher-19633-20250610094807-x86_64-linux.hart) to install
+    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
     #[arg(name = "HAB_LAUNCHER_PKG",
           long = "launcher-pkg",
           value_name = "HAB_LAUNCHER_PKG",
@@ -37,6 +39,7 @@ pub(crate) struct Cli {
 
     /// Supervisor package identifier (ex: chef/hab-sup) or filepath to a Habitat artifact
     /// (ex: /home/chef-hab-sup-2.0.134-20250610093735-x86_64-linux.hart) to install
+    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
     #[arg(name = "HAB_SUP_PKG",
           long = "sup-pkg",
           value_name = "HAB_SUP_PKG",
@@ -58,7 +61,7 @@ pub(crate) struct Cli {
           long = "channel",
           short = 'c',
           value_name = "CHANNEL",
-          default_value = "stable")]
+          default_value = "base")]
     pub(crate) channel: String,
 
     /// URL to install base packages from
@@ -73,7 +76,7 @@ pub(crate) struct Cli {
     #[arg(name = "BASE_PKGS_CHANNEL",
           long = "base-pkgs-channel",
           value_name = "BASE_PKGS_CHANNEL",
-          default_value = "stable")]
+          default_value = "base")]
     pub(crate) base_pkgs_channel: String,
 
     /// Provide a Builder auth token for private pkg export
