@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.15 -->
-## [2.1.15](https://github.com/habitat-sh/habitat/tree/2.1.15) (2026-06-05)
+<!-- latest_release 2.1.16 -->
+## [2.1.16](https://github.com/habitat-sh/habitat/tree/2.1.16) (2026-06-05)
 
 #### Merged Pull Requests
-- macOS pkg export tar fixes  [#10427](https://github.com/habitat-sh/habitat/pull/10427) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump aws-sdk-ecr from 1.117.0 to 1.119.0 [#10431](https://github.com/habitat-sh/habitat/pull/10431) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- Bump aws-sdk-ecr from 1.117.0 to 1.119.0 [#10431](https://github.com/habitat-sh/habitat/pull/10431) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.16 -->
 - macOS pkg export tar fixes  [#10427](https://github.com/habitat-sh/habitat/pull/10427) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.1.15 -->
 - Add more tar exporter for macos [#10425](https://github.com/habitat-sh/habitat/pull/10425) ([mwrock](https://github.com/mwrock)) <!-- 2.1.14 -->
 - pin System.Security.Cryptography.Xml to 8.0.3 [#10426](https://github.com/habitat-sh/habitat/pull/10426) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.1.13 -->
