@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="8.0.7" />
     <PackageReference Include="System.IO.Packaging" Version="8.0.1" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.3" />
   </ItemGroup>
 
   <ItemGroup>
