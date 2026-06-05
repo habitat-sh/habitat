@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.12 -->
-## [2.1.12](https://github.com/habitat-sh/habitat/tree/2.1.12) (2026-06-04)
+<!-- latest_release 2.1.13 -->
+## [2.1.13](https://github.com/habitat-sh/habitat/tree/2.1.13) (2026-06-05)
 
 #### Merged Pull Requests
-- adding aarch64-darwin tar exporter [#10424](https://github.com/habitat-sh/habitat/pull/10424) ([mwrock](https://github.com/mwrock))
+- pin System.Security.Cryptography.Xml to 8.0.3 [#10426](https://github.com/habitat-sh/habitat/pull/10426) ([sougata-progress](https://github.com/sougata-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- pin System.Security.Cryptography.Xml to 8.0.3 [#10426](https://github.com/habitat-sh/habitat/pull/10426) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.1.13 -->
 - adding aarch64-darwin tar exporter [#10424](https://github.com/habitat-sh/habitat/pull/10424) ([mwrock](https://github.com/mwrock)) <!-- 2.1.12 -->
 - Bump aws-config from 1.8.17 to 1.8.18 [#10420](https://github.com/habitat-sh/habitat/pull/10420) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.11 -->
 - Bump mio from 1.2.0 to 1.2.1 [#10419](https://github.com/habitat-sh/habitat/pull/10419) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.11 -->
