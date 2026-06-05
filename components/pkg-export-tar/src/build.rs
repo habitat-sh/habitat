@@ -97,7 +97,11 @@ impl<'a> BuildSpec<'a> {
 
                     no_hab_bin: cli.no_hab_bin,
 
-                    no_hab_sup: cli.no_hab_sup, }
+                    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+                    no_hab_sup:                                                                true,
+                    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+                    no_hab_sup:
+                        cli.no_hab_sup, }
     }
 
     /// Creates a `BuildRoot` for the given specification.
