@@ -55,8 +55,8 @@
     {
       "type": "library",
       "name": "Habitat core_cacerts",
-      "version": "2025-05-20",
-      "purl": "pkg:generic/cacerts@2025-05-20?download_url=http://curl.haxx.se/ca/cacert-2025-05-20.pem"
+      "version": "2025.05.20",
+      "purl": "pkg:generic/cacerts@2025.05.20"
     },
     {
       "type": "library",
@@ -102,6 +102,12 @@
     },
     {
       "type": "library",
+      "name": "Habitat core_gettext",
+      "version": "0.24",
+      "purl": "pkg:generic/gettext@0.24"
+    },
+    {
+      "type": "library",
       "name": "Habitat core_glibc",
       "version": "2.41",
       "purl": "pkg:generic/glibc@2.41?download_url=http://ftp.gnu.org/gnu/glibc/glibc-2.41.tar.xz"
@@ -138,15 +144,15 @@
     },
     {
       "type": "library",
-      "name": "Habitat core_less",
-      "version": "668",
-      "purl": "pkg:generic/less@668?download_url=http://www.greenwoodsoftware.com/less/less-668.tar.gz"
+      "name": "Habitat core_icu",
+      "version": "74.2",
+      "purl": "pkg:generic/icu@74.2"
     },
     {
       "type": "library",
-      "name": "Habitat core_libbsd",
-      "version": "0.12.2",
-      "purl": "pkg:gem/libbsd@0.12.2?download_url=https://libbsd.freedesktop.org/releases/libbsd-0.12.2.tar.xz"
+      "name": "Habitat core_less",
+      "version": "668",
+      "purl": "pkg:generic/less@668?download_url=http://www.greenwoodsoftware.com/less/less-668.tar.gz"
     },
     {
       "type": "library",
@@ -156,15 +162,15 @@
     },
     {
       "type": "library",
-      "name": "Habitat core_libidn2",
-      "version": "2.3.3",
-      "purl": "pkg:generic/libidn2@2.3.3?download_url=https://ftp.gnu.org/gnu/libidn/libidn2-2.3.3.tar.gz"
+      "name": "Habitat core_libiconv",
+      "version": "1.18",
+      "purl": "pkg:generic/libiconv@1.18"
     },
     {
       "type": "library",
-      "name": "Habitat core_libmd",
-      "version": "1.1.0",
-      "purl": "pkg:gem/libmd@1.1.0?download_url=https://archive.hadrons.org/software/libmd/libmd-1.1.0.tar.xz"
+      "name": "Habitat core_libidn2",
+      "version": "2.3.3",
+      "purl": "pkg:generic/libidn2@2.3.3?download_url=https://ftp.gnu.org/gnu/libidn/libidn2-2.3.3.tar.gz"
     },
     {
       "type": "library",
@@ -181,14 +187,20 @@
     {
       "type": "library",
       "name": "Habitat core_libsodium",
-      "version": "1.0.18",
-      "purl": "pkg:gem/libsodium@1.0.18?download_url=https://download.libsodium.org/libsodium/releases/libsodium-1.0.18.tar.gz"
+      "version": "1.0.20",
+      "purl": "pkg:generic/libsodium@1.0.20"
     },
     {
       "type": "library",
       "name": "Habitat core_libunistring",
       "version": "1.0",
       "purl": "pkg:generic/libunistring@1.0?download_url=https://ftp.gnu.org/gnu/libunistring/libunistring-1.0.tar.xz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_libxml2",
+      "version": "2.14.3",
+      "purl": "pkg:generic/libxml2@2.14.3"
     },
     {
       "type": "library",
@@ -222,12 +234,6 @@
     },
     {
       "type": "library",
-      "name": "Habitat core_mg",
-      "version": "20250523",
-      "purl": "pkg:gem/mg@20250523?download_url=https://github.com/hboetes/mg/archive/20250523.tar.gz"
-    },
-    {
-      "type": "library",
       "name": "Habitat core_mpfr",
       "version": "4.2.1",
       "purl": "pkg:gem/mpfr@4.2.1?download_url=http://www.mpfr.org/mpfr-4.2.1/mpfr-4.2.1.tar.xz"
@@ -243,6 +249,12 @@
       "name": "Habitat core_openssl",
       "version": "3.5.6",
       "purl": "pkg:generic/openssl@3.5.6?download_url=https://s3.amazonaws.com/chef-releng/openssl/openssl-3.5.6.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_patch",
+      "version": "2.7.6",
+      "purl": "pkg:generic/patch@2.7.6"
     },
     {
       "type": "library",
@@ -318,9 +330,21 @@
     },
     {
       "type": "library",
+      "name": "Habitat core_xcode",
+      "version": "1.0.0",
+      "purl": "pkg:generic/xcode@1.0.0"
+    },
+    {
+      "type": "library",
       "name": "Habitat core_xz",
       "version": "5.8.1",
       "purl": "pkg:gem/xz@5.8.1?download_url=http://tukaani.org/xz/xz-5.8.1.tar.gz"
+    },
+    {
+      "type": "library",
+      "name": "Habitat core_zeromq",
+      "version": "4.3.4",
+      "purl": "pkg:generic/zeromq@4.3.4"
     },
     {
       "type": "library",
