@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.18 -->
-## [2.1.18](https://github.com/habitat-sh/habitat/tree/2.1.18) (2026-06-05)
+<!-- latest_release 2.1.19 -->
+## [2.1.19](https://github.com/habitat-sh/habitat/tree/2.1.19) (2026-06-05)
 
 #### Merged Pull Requests
-- dynamically update core deps in sbom [#10432](https://github.com/habitat-sh/habitat/pull/10432) ([mwrock](https://github.com/mwrock))
+- remove xcode from core package deps since we do not distribute code itself [#10433](https://github.com/habitat-sh/habitat/pull/10433) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- remove xcode from core package deps since we do not distribute code itself [#10433](https://github.com/habitat-sh/habitat/pull/10433) ([mwrock](https://github.com/mwrock)) <!-- 2.1.19 -->
 - dynamically update core deps in sbom [#10432](https://github.com/habitat-sh/habitat/pull/10432) ([mwrock](https://github.com/mwrock)) <!-- 2.1.18 -->
 - Bump chrono from 0.4.44 to 0.4.45 [#10429](https://github.com/habitat-sh/habitat/pull/10429) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.17 -->
 - Bump log from 0.4.31 to 0.4.32 [#10428](https://github.com/habitat-sh/habitat/pull/10428) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.17 -->
