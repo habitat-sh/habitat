@@ -330,12 +330,6 @@
     },
     {
       "type": "library",
-      "name": "Habitat core_xcode",
-      "version": "1.0.0",
-      "purl": "pkg:generic/xcode@1.0.0"
-    },
-    {
-      "type": "library",
       "name": "Habitat core_xz",
       "version": "5.8.1",
       "purl": "pkg:gem/xz@5.8.1?download_url=http://tukaani.org/xz/xz-5.8.1.tar.gz"
