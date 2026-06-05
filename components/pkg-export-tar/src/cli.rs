@@ -61,7 +61,7 @@ pub(crate) struct Cli {
           long = "channel",
           short = 'c',
           value_name = "CHANNEL",
-          default_value = "stable")]
+          default_value = "base")]
     pub(crate) channel: String,
 
     /// URL to install base packages from
@@ -76,7 +76,7 @@ pub(crate) struct Cli {
     #[arg(name = "BASE_PKGS_CHANNEL",
           long = "base-pkgs-channel",
           value_name = "BASE_PKGS_CHANNEL",
-          default_value = "stable")]
+          default_value = "base")]
     pub(crate) base_pkgs_channel: String,
 
     /// Provide a Builder auth token for private pkg export
