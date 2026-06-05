@@ -101,8 +101,17 @@ echo "" >&2
 declare -A CORE_DEPS       # key: "name@version" → value: "1"
 declare -A CORE_DEP_META   # key: "name@version" → value: "name version"
 
+# Packages to exclude from the generated dep list.
+OMIT_PACKAGES=(
+  "xcode"
+)
+
 add_dep() {
   local name="$1" version="$2"
+  # Check exclusion list.
+  for omit in "${OMIT_PACKAGES[@]}"; do
+    [ "$name" = "$omit" ] && return 0
+  done
   local key="${name}@${version}"
   if [ -z "${CORE_DEPS[$key]+_}" ]; then
     CORE_DEPS["$key"]="1"
