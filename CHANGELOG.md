@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.20 -->
-## [2.1.20](https://github.com/habitat-sh/habitat/tree/2.1.20) (2026-06-08)
+<!-- latest_release 2.1.21 -->
+## [2.1.21](https://github.com/habitat-sh/habitat/tree/2.1.21) (2026-06-09)
 
 #### Merged Pull Requests
-- run grype scans at the end of the release pipeline [#10438](https://github.com/habitat-sh/habitat/pull/10438) ([mwrock](https://github.com/mwrock))
+- bump powershell from 7.5.4 to 7.5.7 [#10439](https://github.com/habitat-sh/habitat/pull/10439) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- bump powershell from 7.5.4 to 7.5.7 [#10439](https://github.com/habitat-sh/habitat/pull/10439) ([mwrock](https://github.com/mwrock)) <!-- 2.1.21 -->
 - run grype scans at the end of the release pipeline [#10438](https://github.com/habitat-sh/habitat/pull/10438) ([mwrock](https://github.com/mwrock)) <!-- 2.1.20 -->
 - remove xcode from core package deps since we do not distribute code itself [#10433](https://github.com/habitat-sh/habitat/pull/10433) ([mwrock](https://github.com/mwrock)) <!-- 2.1.19 -->
 - dynamically update core deps in sbom [#10432](https://github.com/habitat-sh/habitat/pull/10432) ([mwrock](https://github.com/mwrock)) <!-- 2.1.18 -->
