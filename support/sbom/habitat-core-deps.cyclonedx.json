@@ -13,8 +13,8 @@
     {
       "type": "library",
       "name": "Habitat core_7zip",
-      "version": "26.00",
-      "purl": "pkg:generic/7zip@26.00?download_url=https://www.7-zip.org/a/7z2600-x64.exe"
+      "version": "26.01",
+      "purl": "pkg:generic/7zip@26.01?download_url=https://www.7-zip.org/a/7z2601-x64.exe"
     },
     {
       "type": "library",
