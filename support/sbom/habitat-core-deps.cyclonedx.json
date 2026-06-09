@@ -265,8 +265,8 @@
     {
       "type": "library",
       "name": "Habitat core_powershell",
-      "version": "7.5.4",
-      "purl": "pkg:gem/powershell@7.5.4?download_url=https://github.com/PowerShell/PowerShell/releases/download/v7.5.4/PowerShell-7.5.4-win-x64.zip"
+      "version": "7.5.7",
+      "purl": "pkg:gem/powershell@7.5.7?download_url=https://github.com/PowerShell/PowerShell/releases/download/v7.5.7/PowerShell-7.5.7-win-x64.zip"
     },
     {
       "type": "library",
