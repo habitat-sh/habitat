@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.22 -->
-## [2.1.22](https://github.com/habitat-sh/habitat/tree/2.1.22) (2026-06-09)
+<!-- latest_release 2.1.23 -->
+## [2.1.23](https://github.com/habitat-sh/habitat/tree/2.1.23) (2026-06-10)
 
 #### Merged Pull Requests
-- bumping 7zip to clear new cve [#10440](https://github.com/habitat-sh/habitat/pull/10440) ([mwrock](https://github.com/mwrock))
+- updating notices.txt [#10442](https://github.com/habitat-sh/habitat/pull/10442) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.0.504-->
 ### Changes since 2.0.504 release
 
 #### Merged Pull Requests
+- updating notices.txt [#10442](https://github.com/habitat-sh/habitat/pull/10442) ([mwrock](https://github.com/mwrock)) <!-- 2.1.23 -->
 - bumping 7zip to clear new cve [#10440](https://github.com/habitat-sh/habitat/pull/10440) ([mwrock](https://github.com/mwrock)) <!-- 2.1.22 -->
 - bump powershell from 7.5.4 to 7.5.7 [#10439](https://github.com/habitat-sh/habitat/pull/10439) ([mwrock](https://github.com/mwrock)) <!-- 2.1.21 -->
 - run grype scans at the end of the release pipeline [#10438](https://github.com/habitat-sh/habitat/pull/10438) ([mwrock](https://github.com/mwrock)) <!-- 2.1.20 -->
