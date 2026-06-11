@@ -1,14 +1,15 @@
 # Habitat CHANGELOG
 
 <!-- latest_release 2.1.23 -->
-## [2.1.23](https://github.com/habitat-sh/habitat/tree/2.1.23) (2026-06-10)
 
-#### Merged Pull Requests
-- updating notices.txt [#10442](https://github.com/habitat-sh/habitat/pull/10442) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=2.0.504-->
-### Changes since 2.0.504 release
+<!-- release_rollup since=2.1.23-->
+### Changes since 2.1.23 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release 2.1.23 -->
+## [2.1.23](https://github.com/habitat-sh/habitat/tree/2.1.23) (2026-06-10)
 
 #### Merged Pull Requests
 - updating notices.txt [#10442](https://github.com/habitat-sh/habitat/pull/10442) ([mwrock](https://github.com/mwrock)) <!-- 2.1.23 -->
@@ -109,9 +110,7 @@
 - Bump clap_complete from 4.6.0 to 4.6.1 [#10335](https://github.com/habitat-sh/habitat/pull/10335) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.507 -->
 - Bump log4net from 2.0.15 to 3.3.0 [#10338](https://github.com/habitat-sh/habitat/pull/10338) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.506 -->
 - update changelog for 2.0.504 release [#10343](https://github.com/habitat-sh/habitat/pull/10343) ([mwrock](https://github.com/mwrock)) <!-- 2.0.505 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release 2.0.504 -->
 ## [2.0.504](https://github.com/habitat-sh/habitat/tree/2.0.504) (2026-04-16)
 
 #### Merged Pull Requests
