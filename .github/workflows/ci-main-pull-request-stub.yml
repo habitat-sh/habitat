@@ -139,7 +139,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set BD_VERSION_NAME from VERSION file
         run: echo "BD_VERSION_NAME=$(cat VERSION)" >> "$GITHUB_ENV"
