@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.26 -->
-## [2.1.26](https://github.com/habitat-sh/habitat/tree/2.1.26) (2026-06-25)
+<!-- latest_release 2.1.27 -->
+## [2.1.27](https://github.com/habitat-sh/habitat/tree/2.1.27) (2026-06-25)
 
 #### Merged Pull Requests
-- Bump actix-web from 4.13.0 to 4.14.0 [#10453](https://github.com/habitat-sh/habitat/pull/10453) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.64 to 1.2.65 [#10451](https://github.com/habitat-sh/habitat/pull/10451) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.64 to 1.2.65 [#10451](https://github.com/habitat-sh/habitat/pull/10451) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.27 -->
 - Bump actix-web from 4.13.0 to 4.14.0 [#10453](https://github.com/habitat-sh/habitat/pull/10453) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.26 -->
 - Bump log from 0.4.32 to 0.4.33 [#10452](https://github.com/habitat-sh/habitat/pull/10452) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.26 -->
 - Bump bytes from 1.11.1 to 1.12.0 [#10450](https://github.com/habitat-sh/habitat/pull/10450) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.25 -->
