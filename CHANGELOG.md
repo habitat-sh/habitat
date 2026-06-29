@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.29 -->
-## [2.1.29](https://github.com/habitat-sh/habitat/tree/2.1.29) (2026-06-29)
+<!-- latest_release 2.1.30 -->
+## [2.1.30](https://github.com/habitat-sh/habitat/tree/2.1.30) (2026-06-29)
 
 #### Merged Pull Requests
-- Bump quote from 1.0.45 to 1.0.46 [#10458](https://github.com/habitat-sh/habitat/pull/10458) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump env_logger from 0.11.10 to 0.11.11 [#10454](https://github.com/habitat-sh/habitat/pull/10454) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump env_logger from 0.11.10 to 0.11.11 [#10454](https://github.com/habitat-sh/habitat/pull/10454) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.30 -->
+- Bump rustls from 0.23.40 to 0.23.41 [#10456](https://github.com/habitat-sh/habitat/pull/10456) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.30 -->
 - Bump quote from 1.0.45 to 1.0.46 [#10458](https://github.com/habitat-sh/habitat/pull/10458) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.29 -->
 - Bump actions/checkout from 6 to 7 [#10449](https://github.com/habitat-sh/habitat/pull/10449) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.28 -->
 - Bump syn from 2.0.117 to 2.0.118 [#10448](https://github.com/habitat-sh/habitat/pull/10448) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.28 -->
