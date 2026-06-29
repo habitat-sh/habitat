@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.28 -->
-## [2.1.28](https://github.com/habitat-sh/habitat/tree/2.1.28) (2026-06-25)
+<!-- latest_release 2.1.29 -->
+## [2.1.29](https://github.com/habitat-sh/habitat/tree/2.1.29) (2026-06-29)
 
 #### Merged Pull Requests
-- Bump actions/checkout from 6 to 7 [#10449](https://github.com/habitat-sh/habitat/pull/10449) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump quote from 1.0.45 to 1.0.46 [#10458](https://github.com/habitat-sh/habitat/pull/10458) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump quote from 1.0.45 to 1.0.46 [#10458](https://github.com/habitat-sh/habitat/pull/10458) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.29 -->
 - Bump actions/checkout from 6 to 7 [#10449](https://github.com/habitat-sh/habitat/pull/10449) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.28 -->
 - Bump syn from 2.0.117 to 2.0.118 [#10448](https://github.com/habitat-sh/habitat/pull/10448) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.28 -->
 - Bump cc from 1.2.64 to 1.2.65 [#10451](https://github.com/habitat-sh/habitat/pull/10451) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.27 -->
