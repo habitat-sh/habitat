@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.33 -->
-## [2.1.33](https://github.com/habitat-sh/habitat/tree/2.1.33) (2026-07-01)
+<!-- latest_release 2.1.34 -->
+## [2.1.34](https://github.com/habitat-sh/habitat/tree/2.1.34) (2026-07-01)
 
 #### Merged Pull Requests
-- Bump clap_complete from 4.6.5 to 4.6.6 [#10460](https://github.com/habitat-sh/habitat/pull/10460) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rustls-pki-types from 1.14.1 to 1.15.0 [#10461](https://github.com/habitat-sh/habitat/pull/10461) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump rustls-pki-types from 1.14.1 to 1.15.0 [#10461](https://github.com/habitat-sh/habitat/pull/10461) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.34 -->
 - Bump clap_complete from 4.6.5 to 4.6.6 [#10460](https://github.com/habitat-sh/habitat/pull/10460) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.33 -->
 - Bump actix-http from 3.13.0 to 3.13.1 [#10459](https://github.com/habitat-sh/habitat/pull/10459) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.32 -->
 - Bump handlebars from 6.4.1 to 6.4.2 [#10455](https://github.com/habitat-sh/habitat/pull/10455) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.31 -->
