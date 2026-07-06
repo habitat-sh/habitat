@@ -4109,7 +4109,7 @@ dependencies = [
  "native-tls",
  "nom",
  "pin-project",
- "rand 0.9.4",
+ "rand 0.10.2",
  "safer_owning_ref",
  "serde",
  "serde_json",
@@ -4291,7 +4291,7 @@ name = "retry"
 version = "1.0.0"
 source = "git+https://github.com/habitat-sh/retry#f2fca07dac8c17820352ad329109a5652f19ff07"
 dependencies = [
- "rand 0.9.4",
+ "rand 0.10.2",
  "tokio",
 ]
 
