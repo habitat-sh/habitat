@@ -2120,7 +2120,7 @@ dependencies = [
  "log",
  "prost",
  "prost-build",
- "rand 0.10.1",
+ "rand 0.10.2",
  "serde",
  "tempfile",
  "tokio",
@@ -2141,7 +2141,7 @@ dependencies = [
  "log",
  "pbr",
  "percent-encoding",
- "rand 0.10.1",
+ "rand 0.10.2",
  "regex",
  "reqwest",
  "serde",
@@ -2168,7 +2168,7 @@ dependencies = [
  "prometheus",
  "prost",
  "prost-build",
- "rand 0.10.1",
+ "rand 0.10.2",
  "serde",
  "serde_json",
  "tempfile",
@@ -2247,7 +2247,7 @@ dependencies = [
  "os_info",
  "pem",
  "pin-project",
- "rand 0.10.1",
+ "rand 0.10.2",
  "rcgen",
  "regex",
  "reqwest",
@@ -2378,7 +2378,7 @@ dependencies = [
  "prost",
  "prost-build",
  "prost-types",
- "rand 0.10.1",
+ "rand 0.10.2",
  "rants",
  "regex",
  "reqwest",
@@ -4064,9 +4064,9 @@ dependencies = [
 
 [[package]]
 name = "rand"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2e8e8bcc7961af1fdac401278c6a831614941f6164ee3bf4ce61b7edb162207"
+checksum = "c7f5fa3a058cd35567ef9bfa5e75732bee0f9e4c55fa90477bef2dfcdbc4be80"
 dependencies = [
  "chacha20",
  "getrandom 0.4.1",
@@ -4109,7 +4109,7 @@ dependencies = [
  "native-tls",
  "nom",
  "pin-project",
- "rand 0.10.1",
+ "rand 0.10.2",
  "safer_owning_ref",
  "serde",
  "serde_json",
@@ -4291,7 +4291,7 @@ name = "retry"
 version = "1.0.0"
 source = "git+https://github.com/habitat-sh/retry#f2fca07dac8c17820352ad329109a5652f19ff07"
 dependencies = [
- "rand 0.10.1",
+ "rand 0.10.2",
  "tokio",
 ]
 
