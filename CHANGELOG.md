@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.37 -->
-## [2.1.37](https://github.com/habitat-sh/habitat/tree/2.1.37) (2026-07-06)
+<!-- latest_release 2.1.38 -->
+## [2.1.38](https://github.com/habitat-sh/habitat/tree/2.1.38) (2026-07-07)
 
 #### Merged Pull Requests
-- Bump clap_complete from 4.6.6 to 4.6.7 [#10462](https://github.com/habitat-sh/habitat/pull/10462) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rand from 0.10.1 to 0.10.2 [#10463](https://github.com/habitat-sh/habitat/pull/10463) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump rand from 0.10.1 to 0.10.2 [#10463](https://github.com/habitat-sh/habitat/pull/10463) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.38 -->
 - Bump clap_complete from 4.6.6 to 4.6.7 [#10462](https://github.com/habitat-sh/habitat/pull/10462) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.37 -->
 - Bump cmov from 0.5.3 to 0.5.4 [#10465](https://github.com/habitat-sh/habitat/pull/10465) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.36 -->
 - Bump cc from 1.2.65 to 1.2.66 [#10464](https://github.com/habitat-sh/habitat/pull/10464) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.35 -->
