@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.40 -->
-## [2.1.40](https://github.com/habitat-sh/habitat/tree/2.1.40) (2026-07-10)
+<!-- latest_release 2.1.41 -->
+## [2.1.41](https://github.com/habitat-sh/habitat/tree/2.1.41) (2026-07-10)
 
 #### Merged Pull Requests
-- Bump actions/labeler from 6.1.0 to 6.2.0 [#10467](https://github.com/habitat-sh/habitat/pull/10467) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump regex from 1.12.4 to 1.13.0 [#10469](https://github.com/habitat-sh/habitat/pull/10469) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump regex from 1.12.4 to 1.13.0 [#10469](https://github.com/habitat-sh/habitat/pull/10469) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.41 -->
+- Bump bytes from 1.12.0 to 1.12.1 [#10468](https://github.com/habitat-sh/habitat/pull/10468) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.41 -->
 - Bump actions/labeler from 6.1.0 to 6.2.0 [#10467](https://github.com/habitat-sh/habitat/pull/10467) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.40 -->
 - bump crossbeam-epoch from 0.9.18 to 0.9.20 [#10466](https://github.com/habitat-sh/habitat/pull/10466) ([mwrock](https://github.com/mwrock)) <!-- 2.1.39 -->
 - Bump rand from 0.10.1 to 0.10.2 [#10463](https://github.com/habitat-sh/habitat/pull/10463) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.38 -->
