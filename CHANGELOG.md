@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.43 -->
-## [2.1.43](https://github.com/habitat-sh/habitat/tree/2.1.43) (2026-07-15)
+<!-- latest_release 2.1.44 -->
+## [2.1.44](https://github.com/habitat-sh/habitat/tree/2.1.44) (2026-07-15)
 
 #### Merged Pull Requests
-- Bump rustls from 0.23.41 to 0.23.42 [#10472](https://github.com/habitat-sh/habitat/pull/10472) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.66 to 1.2.67 [#10470](https://github.com/habitat-sh/habitat/pull/10470) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.66 to 1.2.67 [#10470](https://github.com/habitat-sh/habitat/pull/10470) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.44 -->
+- Bump handlebars from 6.4.2 to 6.4.3 [#10471](https://github.com/habitat-sh/habitat/pull/10471) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.44 -->
 - Bump rustls from 0.23.41 to 0.23.42 [#10472](https://github.com/habitat-sh/habitat/pull/10472) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.43 -->
 - Bump mio from 1.2.1 to 1.2.2 [#10473](https://github.com/habitat-sh/habitat/pull/10473) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.43 -->
 - Bump syn from 2.0.118 to 2.0.119 [#10474](https://github.com/habitat-sh/habitat/pull/10474) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.42 -->
