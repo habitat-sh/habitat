@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.41 -->
-## [2.1.41](https://github.com/habitat-sh/habitat/tree/2.1.41) (2026-07-10)
+<!-- latest_release 2.1.42 -->
+## [2.1.42](https://github.com/habitat-sh/habitat/tree/2.1.42) (2026-07-15)
 
 #### Merged Pull Requests
-- Bump regex from 1.12.4 to 1.13.0 [#10469](https://github.com/habitat-sh/habitat/pull/10469) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump syn from 2.0.118 to 2.0.119 [#10474](https://github.com/habitat-sh/habitat/pull/10474) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump syn from 2.0.118 to 2.0.119 [#10474](https://github.com/habitat-sh/habitat/pull/10474) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.42 -->
 - Bump regex from 1.12.4 to 1.13.0 [#10469](https://github.com/habitat-sh/habitat/pull/10469) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.41 -->
 - Bump bytes from 1.12.0 to 1.12.1 [#10468](https://github.com/habitat-sh/habitat/pull/10468) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.41 -->
 - Bump actions/labeler from 6.1.0 to 6.2.0 [#10467](https://github.com/habitat-sh/habitat/pull/10467) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.40 -->
