@@ -13,7 +13,7 @@ jobs:
       - uses: ClementTsang/cargo-action@v0.0.7
         with:
           command: install
-          args: cargo-audit
+          args: cargo-audit --locked
       - uses: ClementTsang/cargo-action@v0.0.7
         with:
           command: audit
