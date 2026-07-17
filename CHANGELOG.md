@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.44 -->
-## [2.1.44](https://github.com/habitat-sh/habitat/tree/2.1.44) (2026-07-15)
+<!-- latest_release 2.1.45 -->
+## [2.1.45](https://github.com/habitat-sh/habitat/tree/2.1.45) (2026-07-17)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.66 to 1.2.67 [#10470](https://github.com/habitat-sh/habitat/pull/10470) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tokio from 1.52.3 to 1.52.4 [#10480](https://github.com/habitat-sh/habitat/pull/10480) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump tokio from 1.52.3 to 1.52.4 [#10480](https://github.com/habitat-sh/habitat/pull/10480) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.45 -->
+- Bump bitflags from 2.13.0 to 2.13.1 [#10477](https://github.com/habitat-sh/habitat/pull/10477) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.45 -->
+- Bump toml from 1.1.2+spec-1.1.0 to 1.1.3+spec-1.1.0 [#10476](https://github.com/habitat-sh/habitat/pull/10476) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.45 -->
+- use locked deps for cargo audit [#10479](https://github.com/habitat-sh/habitat/pull/10479) ([mwrock](https://github.com/mwrock)) <!-- 2.1.45 -->
+- Bump regex from 1.13.0 to 1.13.1 [#10475](https://github.com/habitat-sh/habitat/pull/10475) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.45 -->
 - Bump cc from 1.2.66 to 1.2.67 [#10470](https://github.com/habitat-sh/habitat/pull/10470) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.44 -->
 - Bump handlebars from 6.4.2 to 6.4.3 [#10471](https://github.com/habitat-sh/habitat/pull/10471) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.44 -->
 - Bump rustls from 0.23.41 to 0.23.42 [#10472](https://github.com/habitat-sh/habitat/pull/10472) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.43 -->
