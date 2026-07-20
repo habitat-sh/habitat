@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.45 -->
-## [2.1.45](https://github.com/habitat-sh/habitat/tree/2.1.45) (2026-07-17)
+<!-- latest_release 2.1.46 -->
+## [2.1.46](https://github.com/habitat-sh/habitat/tree/2.1.46) (2026-07-20)
 
 #### Merged Pull Requests
-- Bump tokio from 1.52.3 to 1.52.4 [#10480](https://github.com/habitat-sh/habitat/pull/10480) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tokio from 1.52.4 to 1.53.0 [#10481](https://github.com/habitat-sh/habitat/pull/10481) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump tokio from 1.52.4 to 1.53.0 [#10481](https://github.com/habitat-sh/habitat/pull/10481) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.46 -->
 - Bump tokio from 1.52.3 to 1.52.4 [#10480](https://github.com/habitat-sh/habitat/pull/10480) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.45 -->
 - Bump bitflags from 2.13.0 to 2.13.1 [#10477](https://github.com/habitat-sh/habitat/pull/10477) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.45 -->
 - Bump toml from 1.1.2+spec-1.1.0 to 1.1.3+spec-1.1.0 [#10476](https://github.com/habitat-sh/habitat/pull/10476) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.45 -->
