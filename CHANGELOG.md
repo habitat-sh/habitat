@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.46 -->
-## [2.1.46](https://github.com/habitat-sh/habitat/tree/2.1.46) (2026-07-20)
+<!-- latest_release 2.1.47 -->
+## [2.1.47](https://github.com/habitat-sh/habitat/tree/2.1.47) (2026-07-20)
 
 #### Merged Pull Requests
-- Bump tokio from 1.52.4 to 1.53.0 [#10481](https://github.com/habitat-sh/habitat/pull/10481) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump futures from 0.3.32 to 0.3.33 [#10485](https://github.com/habitat-sh/habitat/pull/10485) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump futures from 0.3.32 to 0.3.33 [#10485](https://github.com/habitat-sh/habitat/pull/10485) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.47 -->
+- Bump proc-macro2 from 1.0.106 to 1.0.107 [#10483](https://github.com/habitat-sh/habitat/pull/10483) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.47 -->
+- Bump wincode from 0.5.5 to 0.6.0 [#10484](https://github.com/habitat-sh/habitat/pull/10484) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.47 -->
 - Bump tokio from 1.52.4 to 1.53.0 [#10481](https://github.com/habitat-sh/habitat/pull/10481) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.46 -->
 - Bump tokio from 1.52.3 to 1.52.4 [#10480](https://github.com/habitat-sh/habitat/pull/10480) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.45 -->
 - Bump bitflags from 2.13.0 to 2.13.1 [#10477](https://github.com/habitat-sh/habitat/pull/10477) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.45 -->
