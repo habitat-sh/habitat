@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.47 -->
-## [2.1.47](https://github.com/habitat-sh/habitat/tree/2.1.47) (2026-07-20)
+<!-- latest_release 2.1.48 -->
+## [2.1.48](https://github.com/habitat-sh/habitat/tree/2.1.48) (2026-07-22)
 
 #### Merged Pull Requests
-- Bump futures from 0.3.32 to 0.3.33 [#10485](https://github.com/habitat-sh/habitat/pull/10485) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libc from 0.2.186 to 0.2.187 [#10491](https://github.com/habitat-sh/habitat/pull/10491) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.186 to 0.2.187 [#10491](https://github.com/habitat-sh/habitat/pull/10491) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.48 -->
 - Bump futures from 0.3.32 to 0.3.33 [#10485](https://github.com/habitat-sh/habitat/pull/10485) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.47 -->
 - Bump proc-macro2 from 1.0.106 to 1.0.107 [#10483](https://github.com/habitat-sh/habitat/pull/10483) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.47 -->
 - Bump wincode from 0.5.5 to 0.6.0 [#10484](https://github.com/habitat-sh/habitat/pull/10484) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.47 -->
