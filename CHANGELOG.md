@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.49 -->
-## [2.1.49](https://github.com/habitat-sh/habitat/tree/2.1.49) (2026-07-22)
+<!-- latest_release 2.1.50 -->
+## [2.1.50](https://github.com/habitat-sh/habitat/tree/2.1.50) (2026-07-22)
 
 #### Merged Pull Requests
-- Bump async-trait from 0.1.89 to 0.1.91 [#10489](https://github.com/habitat-sh/habitat/pull/10489) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump syn from 3.0.2 to 3.0.3 [#10494](https://github.com/habitat-sh/habitat/pull/10494) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump syn from 3.0.2 to 3.0.3 [#10494](https://github.com/habitat-sh/habitat/pull/10494) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.50 -->
 - Bump async-trait from 0.1.89 to 0.1.91 [#10489](https://github.com/habitat-sh/habitat/pull/10489) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.49 -->
 - Bump System.Security.Cryptography.Xml from 8.0.3 to 9.0.18 [#10486](https://github.com/habitat-sh/habitat/pull/10486) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.49 -->
 - Bump hyper from 1.10.1 to 1.11.0 [#10488](https://github.com/habitat-sh/habitat/pull/10488) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.49 -->
