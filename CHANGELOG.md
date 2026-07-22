@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.48 -->
-## [2.1.48](https://github.com/habitat-sh/habitat/tree/2.1.48) (2026-07-22)
+<!-- latest_release 2.1.49 -->
+## [2.1.49](https://github.com/habitat-sh/habitat/tree/2.1.49) (2026-07-22)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.186 to 0.2.187 [#10491](https://github.com/habitat-sh/habitat/pull/10491) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump async-trait from 0.1.89 to 0.1.91 [#10489](https://github.com/habitat-sh/habitat/pull/10489) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.89 to 0.1.91 [#10489](https://github.com/habitat-sh/habitat/pull/10489) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.49 -->
+- Bump System.Security.Cryptography.Xml from 8.0.3 to 9.0.18 [#10486](https://github.com/habitat-sh/habitat/pull/10486) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.49 -->
+- Bump hyper from 1.10.1 to 1.11.0 [#10488](https://github.com/habitat-sh/habitat/pull/10488) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.49 -->
+- Bump serde_json from 1.0.150 to 1.0.151 [#10490](https://github.com/habitat-sh/habitat/pull/10490) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.49 -->
+- Bump actions/labeler from 6.2.0 to 7.0.0 [#10487](https://github.com/habitat-sh/habitat/pull/10487) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.49 -->
 - Bump libc from 0.2.186 to 0.2.187 [#10491](https://github.com/habitat-sh/habitat/pull/10491) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.48 -->
 - Bump futures from 0.3.32 to 0.3.33 [#10485](https://github.com/habitat-sh/habitat/pull/10485) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.47 -->
 - Bump proc-macro2 from 1.0.106 to 1.0.107 [#10483](https://github.com/habitat-sh/habitat/pull/10483) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.47 -->
