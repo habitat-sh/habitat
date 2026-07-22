@@ -12,9 +12,7 @@ use syn::{Attribute,
           Lit,
           Meta,
           MetaNameValue,
-          Token,
-          parse_macro_input,
-          punctuated::Punctuated};
+          parse_macro_input};
 
 use quote::quote;
 
@@ -95,16 +93,20 @@ fn get_field_doc(attrs: &[Attribute]) -> String {
 
 fn is_hidden_field(field: &Field) -> bool {
     for attr in &field.attrs {
-        if attr.path().is_ident("arg") {
-            let nested = attr.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
-                             .expect("parse_args_with:hidden:");
-            for meta in nested {
-                if let Meta::NameValue(MetaNameValue { path, value, .. }) = meta
-                   && path.is_ident("hide")
-                   && let Expr::Lit(ExprLit { lit: Lit::Bool(hide),
-                                              .. }) = value
+        if attr.path().is_ident("arg")
+           && let Ok(ts) = attr.parse_args::<proc_macro2::TokenStream>()
+        {
+            let tokens: Vec<_> = ts.into_iter().collect();
+            for i in 0..tokens.len().saturating_sub(2) {
+                if let (proc_macro2::TokenTree::Ident(id),
+                        proc_macro2::TokenTree::Punct(eq),
+                        proc_macro2::TokenTree::Ident(val)) =
+                    (&tokens[i], &tokens[i + 1], &tokens[i + 2])
+                   && id == "hide"
+                   && eq.as_char() == '='
+                   && val == "true"
                 {
-                    return hide.value;
+                    return true;
                 }
             }
         }
@@ -114,11 +116,19 @@ fn is_hidden_field(field: &Field) -> bool {
 
 fn is_flattened_field(field: &Field) -> bool {
     for attr in &field.attrs {
-        if attr.path().is_ident("command") {
-            let nested = attr.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
-                             .expect("parse_args_with");
-            for meta in nested {
-                if meta.path().is_ident("flatten") {
+        if attr.path().is_ident("command")
+           && let Ok(ts) = attr.parse_args::<proc_macro2::TokenStream>()
+        {
+            let tokens: Vec<_> = ts.into_iter().collect();
+            for i in 0..tokens.len() {
+                // Only match `flatten` as a bare path, not as a value (e.g. `x = flatten`)
+                let preceded_by_eq = i > 0
+                                     && matches!(&tokens[i - 1],
+                                proc_macro2::TokenTree::Punct(p) if p.as_char() == '=');
+                if let proc_macro2::TokenTree::Ident(id) = &tokens[i]
+                   && id == "flatten"
+                   && !preceded_by_eq
+                {
                     return true;
                 }
             }
