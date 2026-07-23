@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.51 -->
-## [2.1.51](https://github.com/habitat-sh/habitat/tree/2.1.51) (2026-07-23)
+<!-- latest_release 2.1.52 -->
+## [2.1.52](https://github.com/habitat-sh/habitat/tree/2.1.52) (2026-07-23)
 
 #### Merged Pull Requests
-- Bump anyhow from 1.0.103 to 1.0.104 [#10497](https://github.com/habitat-sh/habitat/pull/10497) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libc from 0.2.187 to 0.2.189 [#10495](https://github.com/habitat-sh/habitat/pull/10495) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.187 to 0.2.189 [#10495](https://github.com/habitat-sh/habitat/pull/10495) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.52 -->
+- Bump tokio from 1.53.0 to 1.53.1 [#10496](https://github.com/habitat-sh/habitat/pull/10496) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.52 -->
 - Bump anyhow from 1.0.103 to 1.0.104 [#10497](https://github.com/habitat-sh/habitat/pull/10497) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.51 -->
 - Bump syn from 3.0.2 to 3.0.3 [#10494](https://github.com/habitat-sh/habitat/pull/10494) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.50 -->
 - Bump async-trait from 0.1.89 to 0.1.91 [#10489](https://github.com/habitat-sh/habitat/pull/10489) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.49 -->
