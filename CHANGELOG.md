@@ -1,16 +1,20 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.55 -->
-## [2.1.55](https://github.com/habitat-sh/habitat/tree/2.1.55) (2026-07-24)
+<!-- latest_release 2.1.56 -->
+## [2.1.56](https://github.com/habitat-sh/habitat/tree/2.1.56) (2026-07-24)
 
 #### Merged Pull Requests
-- Bump rustls-pki-types from 1.15.0 to 1.15.1 [#10503](https://github.com/habitat-sh/habitat/pull/10503) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump base64 from 0.22.1 to 0.23.0 [#10502](https://github.com/habitat-sh/habitat/pull/10502) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump base64 from 0.22.1 to 0.23.0 [#10502](https://github.com/habitat-sh/habitat/pull/10502) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.56 -->
+- Bump thiserror from 2.0.18 to 2.0.19 [#10501](https://github.com/habitat-sh/habitat/pull/10501) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.56 -->
+- Bump glob from 0.3.3 to 0.3.4 [#10500](https://github.com/habitat-sh/habitat/pull/10500) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.56 -->
+- Bump tokio-util from 0.7.18 to 0.7.19 [#10499](https://github.com/habitat-sh/habitat/pull/10499) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.56 -->
 - Bump rustls-pki-types from 1.15.0 to 1.15.1 [#10503](https://github.com/habitat-sh/habitat/pull/10503) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.55 -->
 - Bump cc from 1.2.67 to 1.3.0 [#10498](https://github.com/habitat-sh/habitat/pull/10498) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.54 -->
 - Bump clap from 4.6.2 to 4.6.4 [#10493](https://github.com/habitat-sh/habitat/pull/10493) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.53 -->
