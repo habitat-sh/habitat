@@ -47,11 +47,6 @@ echo "--- Using chef/hab version $("${hab_binary}" --version)"
 # Supervisor tests are skipped on macOS (supervisor support is not yet
 # mature on aarch64-darwin), so we do not install hab-sup / hab-launcher.
 
-# Override the interpreter identity to core/coreutils (installed via
-# hab-backline) because core/busybox-static is not available for
-# aarch64-darwin. This is needed for install hook execution.
-export HAB_INTERPRETER_IDENT="core/coreutils"
-
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, base-2025 channel"
 # Try the hab package first, fall back to Homebrew
 if sudo -E "$hab_binary" pkg install core/powershell \
