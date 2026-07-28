@@ -1,8 +1,6 @@
 # macOS-specific hooks tests.
 # Tests hook extension stripping, hook execution during package install,
 # and bad hook extension detection.
-# HAB_INTERPRETER_IDENT is set to core/coreutils in setup_environment_darwin.sh
-# since core/busybox-static is not available for aarch64-darwin.
 
 Describe "Hook extension stripping and execution" {
     BeforeAll {
