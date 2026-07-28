@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.58 -->
-## [2.1.58](https://github.com/habitat-sh/habitat/tree/2.1.58) (2026-07-27)
+<!-- latest_release 2.1.59 -->
+## [2.1.59](https://github.com/habitat-sh/habitat/tree/2.1.59) (2026-07-28)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.228 to 1.0.229 [#10506](https://github.com/habitat-sh/habitat/pull/10506) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- add core/bash as macos interpreter [#10507](https://github.com/habitat-sh/habitat/pull/10507) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- add core/bash as macos interpreter [#10507](https://github.com/habitat-sh/habitat/pull/10507) ([mwrock](https://github.com/mwrock)) <!-- 2.1.59 -->
 - Bump serde from 1.0.228 to 1.0.229 [#10506](https://github.com/habitat-sh/habitat/pull/10506) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.58 -->
 - Bump quote from 1.0.46 to 1.0.47 [#10505](https://github.com/habitat-sh/habitat/pull/10505) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.58 -->
 - Bump cc from 1.3.0 to 1.4.0 [#10504](https://github.com/habitat-sh/habitat/pull/10504) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.57 -->
