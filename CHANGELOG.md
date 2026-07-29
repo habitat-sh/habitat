@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.61 -->
-## [2.1.61](https://github.com/habitat-sh/habitat/tree/2.1.61) (2026-07-29)
+<!-- latest_release 2.1.62 -->
+## [2.1.62](https://github.com/habitat-sh/habitat/tree/2.1.62) (2026-07-29)
 
 #### Merged Pull Requests
-- Bump pem from 3.0.6 to 4.0.0 [#10509](https://github.com/habitat-sh/habitat/pull/10509) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump toml from 1.1.3+spec-1.1.0 to 1.1.4+spec-1.1.0 [#10510](https://github.com/habitat-sh/habitat/pull/10510) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump toml from 1.1.3+spec-1.1.0 to 1.1.4+spec-1.1.0 [#10510](https://github.com/habitat-sh/habitat/pull/10510) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.62 -->
 - Bump pem from 3.0.6 to 4.0.0 [#10509](https://github.com/habitat-sh/habitat/pull/10509) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.61 -->
 - Bump clap_complete from 4.6.7 to 4.6.8 [#10508](https://github.com/habitat-sh/habitat/pull/10508) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.60 -->
 - add core/bash as macos interpreter [#10507](https://github.com/habitat-sh/habitat/pull/10507) ([mwrock](https://github.com/mwrock)) <!-- 2.1.59 -->
