@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.63 -->
-## [2.1.63](https://github.com/habitat-sh/habitat/tree/2.1.63) (2026-07-31)
+<!-- latest_release 2.1.64 -->
+## [2.1.64](https://github.com/habitat-sh/habitat/tree/2.1.64) (2026-07-31)
 
 #### Merged Pull Requests
-- Bump rustls from 0.23.42 to 0.23.43 [#10511](https://github.com/habitat-sh/habitat/pull/10511) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump github/codeql-action from 4 to 4.37.3 [#10512](https://github.com/habitat-sh/habitat/pull/10512) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump github/codeql-action from 4 to 4.37.3 [#10512](https://github.com/habitat-sh/habitat/pull/10512) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.64 -->
 - Bump rustls from 0.23.42 to 0.23.43 [#10511](https://github.com/habitat-sh/habitat/pull/10511) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.63 -->
 - Bump toml from 1.1.3+spec-1.1.0 to 1.1.4+spec-1.1.0 [#10510](https://github.com/habitat-sh/habitat/pull/10510) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.62 -->
 - Bump pem from 3.0.6 to 4.0.0 [#10509](https://github.com/habitat-sh/habitat/pull/10509) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.61 -->
