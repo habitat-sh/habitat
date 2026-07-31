@@ -978,6 +978,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux"
+      HAB_BLDR_CHANNEL: "dev"
 
     command:
       - .expeditor/scripts/verify/build_package.sh components/backline
@@ -995,6 +996,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "aarch64-linux"
+      HAB_BLDR_CHANNEL: "dev"
     command:
       - sudo -E .expeditor/scripts/verify/build_package.sh components/backline
     retry:
