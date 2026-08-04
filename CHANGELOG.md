@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.65 -->
-## [2.1.65](https://github.com/habitat-sh/habitat/tree/2.1.65) (2026-08-04)
+<!-- latest_release 2.1.66 -->
+## [2.1.66](https://github.com/habitat-sh/habitat/tree/2.1.66) (2026-08-04)
 
 #### Merged Pull Requests
-- build backline against dev channel ot avoid conflicts [#10513](https://github.com/habitat-sh/habitat/pull/10513) ([mwrock](https://github.com/mwrock))
+- Bump github/codeql-action from 4.37.3 to 4.37.4 [#10514](https://github.com/habitat-sh/habitat/pull/10514) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump github/codeql-action from 4.37.3 to 4.37.4 [#10514](https://github.com/habitat-sh/habitat/pull/10514) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.66 -->
+- Bump clap from 4.6.4 to 4.6.5 [#10515](https://github.com/habitat-sh/habitat/pull/10515) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.66 -->
 - build backline against dev channel ot avoid conflicts [#10513](https://github.com/habitat-sh/habitat/pull/10513) ([mwrock](https://github.com/mwrock)) <!-- 2.1.65 -->
 - Bump github/codeql-action from 4 to 4.37.3 [#10512](https://github.com/habitat-sh/habitat/pull/10512) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.64 -->
 - Bump rustls from 0.23.42 to 0.23.43 [#10511](https://github.com/habitat-sh/habitat/pull/10511) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.63 -->
