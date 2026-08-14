@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.71 -->
-## [2.1.71](https://github.com/habitat-sh/habitat/tree/2.1.71) (2026-08-14)
+<!-- latest_release 2.1.72 -->
+## [2.1.72](https://github.com/habitat-sh/habitat/tree/2.1.72) (2026-08-14)
 
 #### Merged Pull Requests
-- Bump async-trait from 0.1.91 to 0.1.92 [#10527](https://github.com/habitat-sh/habitat/pull/10527) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.4.0 to 1.4.2 [#10523](https://github.com/habitat-sh/habitat/pull/10523) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump cc from 1.4.0 to 1.4.2 [#10523](https://github.com/habitat-sh/habitat/pull/10523) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.72 -->
+- Bump thiserror from 2.0.19 to 2.0.20 [#10526](https://github.com/habitat-sh/habitat/pull/10526) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.72 -->
 - Bump async-trait from 0.1.91 to 0.1.92 [#10527](https://github.com/habitat-sh/habitat/pull/10527) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.71 -->
 - Bump clap from 4.6.5 to 4.6.6 [#10519](https://github.com/habitat-sh/habitat/pull/10519) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.70 -->
 - Bump clap_complete from 4.6.8 to 4.6.9 [#10520](https://github.com/habitat-sh/habitat/pull/10520) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.70 -->
