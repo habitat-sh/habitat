@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.74 -->
-## [2.1.74](https://github.com/habitat-sh/habitat/tree/2.1.74) (2026-08-18)
+<!-- latest_release 2.1.75 -->
+## [2.1.75](https://github.com/habitat-sh/habitat/tree/2.1.75) (2026-08-18)
 
 #### Merged Pull Requests
-- Bump rcgen from 0.14.8 to 0.14.9 [#10533](https://github.com/habitat-sh/habitat/pull/10533) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump wincode from 0.6.0 to 0.6.1 [#10532](https://github.com/habitat-sh/habitat/pull/10532) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump wincode from 0.6.0 to 0.6.1 [#10532](https://github.com/habitat-sh/habitat/pull/10532) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.75 -->
 - Bump rcgen from 0.14.8 to 0.14.9 [#10533](https://github.com/habitat-sh/habitat/pull/10533) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.74 -->
 - Bump rustls-webpki from 0.103.13 to 0.103.14 [#10531](https://github.com/habitat-sh/habitat/pull/10531) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.74 -->
 - Bump github/codeql-action from 4.37.6 to 4.37.7 [#10530](https://github.com/habitat-sh/habitat/pull/10530) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.73 -->
