@@ -149,7 +149,12 @@ Describe "hab pkg export container --multi-layer" {
 if ($IsLinux) {
     # TODO: Try to run the container when we have a core/podman package
     Describe "hab pkg export container --engine=buildah" {
-        hab pkg install core/buildah --binlink --channel=base
+        # Pinned to 1.43.1 instead of the latest (1.44.0) because that
+        # version's bumped containers/common vendor dependency is
+        # incompatible with core/netavark versions currently available
+        # in our test environment, causing netavark to fail parsing
+        # network options: "IO error: invalid type: sequence, expected a map"
+        hab pkg install core/buildah/1.43.1/20260410222715 --binlink
         hab pkg install core/netavark --binlink --channel=base
         $env:CONTAINERS_HELPER_BINARY_DIR="$(hab pkg path core/netavark)/bin"
         It "Runs successfully" {
