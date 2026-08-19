@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.76 -->
-## [2.1.76](https://github.com/habitat-sh/habitat/tree/2.1.76) (2026-08-19)
+<!-- latest_release 2.1.77 -->
+## [2.1.77](https://github.com/habitat-sh/habitat/tree/2.1.77) (2026-08-19)
 
 #### Merged Pull Requests
-- use previous buildah package to fix e2e pipeline [#10534](https://github.com/habitat-sh/habitat/pull/10534) ([mwrock](https://github.com/mwrock))
+- Bump cc from 1.4.2 to 1.4.3 [#10535](https://github.com/habitat-sh/habitat/pull/10535) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump cc from 1.4.2 to 1.4.3 [#10535](https://github.com/habitat-sh/habitat/pull/10535) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.77 -->
 - use previous buildah package to fix e2e pipeline [#10534](https://github.com/habitat-sh/habitat/pull/10534) ([mwrock](https://github.com/mwrock)) <!-- 2.1.76 -->
 - Bump wincode from 0.6.0 to 0.6.1 [#10532](https://github.com/habitat-sh/habitat/pull/10532) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.75 -->
 - Bump rcgen from 0.14.8 to 0.14.9 [#10533](https://github.com/habitat-sh/habitat/pull/10533) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.74 -->
