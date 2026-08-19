@@ -7,7 +7,12 @@
 [advisories]
 
 # advisory IDs to ignore e.g. ["RUSTSEC-2019-0001", ...]
-ignore = []
+# RUSTSEC-2026-0258: h2 unbounded empty DATA frames (low severity DoS).
+# Only patched in h2 >= 0.4.16, but actix-http 3.13.3 (latest) still
+# requires h2 0.3.x / http 0.2.x, so this cannot be resolved via a
+# normal dependency update. Tracking upstream actix-web's migration to
+# http 1.0/h2 0.4 before this can be cleared.
+ignore = ["RUSTSEC-2026-0258"]
 
 # warn for categories of informational advisories
 informational_warnings = ["notice", "unmaintained", "unsound"]
