@@ -19,7 +19,7 @@ Whether you are looking to leverage the SaaS or on-prem version of Chef Habitat 
 You need to set a few things up before you can get started with Chef Habitat Builder:
 
 * Download and install the [Chef Habitat CLI]({{< relref "install_habitat" >}})
-* A [GitHub account](https://github.com/join)
+* A [GitHub account](https://github.com/signup)
 
 ## Sign-in and Authorize Chef Habitat Builder
 
