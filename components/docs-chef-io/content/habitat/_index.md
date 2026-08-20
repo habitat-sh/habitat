@@ -86,7 +86,7 @@ You can also develop your application if you are unsure of the infrastructure yo
 
 ### Learning
 
-- [Chef Habitat tutorials](https://www.chef.io/training/tutorials)
+- [LearnChef: Tutorials](https://www.chef.io/training/tutorials)
 - [Chef Habitat webinars](https://www.chef.io/webinars?products=chef-habitat&page=1)
 - [Resource Library](https://www.chef.io/resources?products=chef-habitat&page=1)
 
