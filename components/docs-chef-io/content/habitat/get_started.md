@@ -18,7 +18,7 @@ This getting started guide will show you how to use Chef Habitat to build and de
 Before getting started with this tutorial, you will need:
 
 - a workstation running Linux or macOS
-- a [GitHub account](https://github.com/join)
+- a [GitHub account](https://github.com/signup)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed locally (optional)
 - the [Chef Habitat CLI]({{< relref "/habitat/install_habitat" >}}) installed locally
 - an account on [Chef Habitat Builder]({{< relref "builder_account" >}})
