@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.77 -->
-## [2.1.77](https://github.com/habitat-sh/habitat/tree/2.1.77) (2026-08-19)
+<!-- latest_release 2.1.78 -->
+## [2.1.78](https://github.com/habitat-sh/habitat/tree/2.1.78) (2026-08-20)
 
 #### Merged Pull Requests
-- Bump cc from 1.4.2 to 1.4.3 [#10535](https://github.com/habitat-sh/habitat/pull/10535) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Address h2 security advisory [#10536](https://github.com/habitat-sh/habitat/pull/10536) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Address h2 security advisory [#10536](https://github.com/habitat-sh/habitat/pull/10536) ([mwrock](https://github.com/mwrock)) <!-- 2.1.78 -->
 - Bump cc from 1.4.2 to 1.4.3 [#10535](https://github.com/habitat-sh/habitat/pull/10535) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.77 -->
 - use previous buildah package to fix e2e pipeline [#10534](https://github.com/habitat-sh/habitat/pull/10534) ([mwrock](https://github.com/mwrock)) <!-- 2.1.76 -->
 - Bump wincode from 0.6.0 to 0.6.1 [#10532](https://github.com/habitat-sh/habitat/pull/10532) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.75 -->
