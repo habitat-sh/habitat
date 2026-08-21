@@ -30,7 +30,13 @@ tempfile = "*"
 threadpool = "*"
 toml = { version = "*", features = ["preserve_order"] }
 uuid = { version = "*", features = ["v4"] }
-zmq = "*"
+# Pinned to 0.9.x: zmq-sys 0.12.0 (pulled in by zmq >=0.10) always vendors
+# and statically builds libzmq (zeromq-src) with no opt-out. zmq 0.9.x
+# depends on zmq-sys ^0.11.0 instead, whose default (non-"vendored")
+# build path dynamically links against the Habitat-provided libzmq via
+# the LIBZMQ_PREFIX env var already exported in habitat/plan.sh
+# (pkg_path_for zeromq).
+zmq = "0.9"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "^0.3", features = ["handleapi", "winbase"] }
