@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.79 -->
-## [2.1.79](https://github.com/habitat-sh/habitat/tree/2.1.79) (2026-08-24)
+<!-- latest_release 2.1.80 -->
+## [2.1.80](https://github.com/habitat-sh/habitat/tree/2.1.80) (2026-08-24)
 
 #### Merged Pull Requests
-- Bump github/codeql-action from 4.37.7 to 4.37.8 [#10540](https://github.com/habitat-sh/habitat/pull/10540) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump blake2b_simd from 1.0.4 to 1.0.5 [#10541](https://github.com/habitat-sh/habitat/pull/10541) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump blake2b_simd from 1.0.4 to 1.0.5 [#10541](https://github.com/habitat-sh/habitat/pull/10541) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.80 -->
 - Bump github/codeql-action from 4.37.7 to 4.37.8 [#10540](https://github.com/habitat-sh/habitat/pull/10540) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.79 -->
 - Address h2 security advisory [#10536](https://github.com/habitat-sh/habitat/pull/10536) ([mwrock](https://github.com/mwrock)) <!-- 2.1.78 -->
 - Bump cc from 1.4.2 to 1.4.3 [#10535](https://github.com/habitat-sh/habitat/pull/10535) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.77 -->
