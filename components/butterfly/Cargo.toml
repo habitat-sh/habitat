@@ -36,7 +36,7 @@ uuid = { version = "*", features = ["v4"] }
 # build path dynamically links against the Habitat-provided libzmq via
 # the LIBZMQ_PREFIX env var already exported in habitat/plan.sh
 # (pkg_path_for zeromq).
-zmq = "0.9"
+zmq = "0.10"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "^0.3", features = ["handleapi", "winbase"] }
