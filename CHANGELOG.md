@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.81 -->
-## [2.1.81](https://github.com/habitat-sh/habitat/tree/2.1.81) (2026-08-25)
+<!-- latest_release 2.1.82 -->
+## [2.1.82](https://github.com/habitat-sh/habitat/tree/2.1.82) (2026-08-25)
 
 #### Merged Pull Requests
-- Bump actix-web from 4.14.1 to 4.15.0 [#10544](https://github.com/habitat-sh/habitat/pull/10544) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump actix-rt from 2.11.0 to 2.12.0 [#10545](https://github.com/habitat-sh/habitat/pull/10545) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump actix-rt from 2.11.0 to 2.12.0 [#10545](https://github.com/habitat-sh/habitat/pull/10545) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.82 -->
+- Bump cc from 1.4.3 to 1.4.4 [#10542](https://github.com/habitat-sh/habitat/pull/10542) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.82 -->
 - Bump actix-web from 4.14.1 to 4.15.0 [#10544](https://github.com/habitat-sh/habitat/pull/10544) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.81 -->
 - Bump blake2b_simd from 1.0.4 to 1.0.5 [#10541](https://github.com/habitat-sh/habitat/pull/10541) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.80 -->
 - Bump github/codeql-action from 4.37.7 to 4.37.8 [#10540](https://github.com/habitat-sh/habitat/pull/10540) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.79 -->
