@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.88 -->
-## [2.1.88](https://github.com/habitat-sh/habitat/tree/2.1.88) (2026-09-01)
+<!-- latest_release 2.1.89 -->
+## [2.1.89](https://github.com/habitat-sh/habitat/tree/2.1.89) (2026-09-01)
 
 #### Merged Pull Requests
-- Bump rcgen from 0.14.9 to 0.14.10 [#10553](https://github.com/habitat-sh/habitat/pull/10553) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- bump chacha20 to 0.10.2 [#10555](https://github.com/habitat-sh/habitat/pull/10555) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- bump chacha20 to 0.10.2 [#10555](https://github.com/habitat-sh/habitat/pull/10555) ([mwrock](https://github.com/mwrock)) <!-- 2.1.89 -->
 - Bump rcgen from 0.14.9 to 0.14.10 [#10553](https://github.com/habitat-sh/habitat/pull/10553) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.88 -->
 - Bump actix-rt from 2.12.0 to 2.13.0 [#10554](https://github.com/habitat-sh/habitat/pull/10554) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.88 -->
 - Bump hyper from 1.11.0 to 1.11.1 [#10552](https://github.com/habitat-sh/habitat/pull/10552) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.87 -->
