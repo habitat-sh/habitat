@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.87 -->
-## [2.1.87](https://github.com/habitat-sh/habitat/tree/2.1.87) (2026-09-01)
+<!-- latest_release 2.1.88 -->
+## [2.1.88](https://github.com/habitat-sh/habitat/tree/2.1.88) (2026-09-01)
 
 #### Merged Pull Requests
-- Bump hyper from 1.11.0 to 1.11.1 [#10552](https://github.com/habitat-sh/habitat/pull/10552) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rcgen from 0.14.9 to 0.14.10 [#10553](https://github.com/habitat-sh/habitat/pull/10553) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump rcgen from 0.14.9 to 0.14.10 [#10553](https://github.com/habitat-sh/habitat/pull/10553) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.88 -->
+- Bump actix-rt from 2.12.0 to 2.13.0 [#10554](https://github.com/habitat-sh/habitat/pull/10554) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.88 -->
 - Bump hyper from 1.11.0 to 1.11.1 [#10552](https://github.com/habitat-sh/habitat/pull/10552) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.87 -->
 - Bump dns-lookup from 3.0.1 to 4.0.1 [#10550](https://github.com/habitat-sh/habitat/pull/10550) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.86 -->
 - Bump github/codeql-action from 4.37.8 to 4.37.9 [#10549](https://github.com/habitat-sh/habitat/pull/10549) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.86 -->
