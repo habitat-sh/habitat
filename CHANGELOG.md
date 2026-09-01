@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.86 -->
-## [2.1.86](https://github.com/habitat-sh/habitat/tree/2.1.86) (2026-08-31)
+<!-- latest_release 2.1.87 -->
+## [2.1.87](https://github.com/habitat-sh/habitat/tree/2.1.87) (2026-09-01)
 
 #### Merged Pull Requests
-- Bump dns-lookup from 3.0.1 to 4.0.1 [#10550](https://github.com/habitat-sh/habitat/pull/10550) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump hyper from 1.11.0 to 1.11.1 [#10552](https://github.com/habitat-sh/habitat/pull/10552) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump hyper from 1.11.0 to 1.11.1 [#10552](https://github.com/habitat-sh/habitat/pull/10552) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.87 -->
 - Bump dns-lookup from 3.0.1 to 4.0.1 [#10550](https://github.com/habitat-sh/habitat/pull/10550) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.86 -->
 - Bump github/codeql-action from 4.37.8 to 4.37.9 [#10549](https://github.com/habitat-sh/habitat/pull/10549) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.86 -->
 - Bump flate2 from 1.1.9 to 1.1.10 [#10548](https://github.com/habitat-sh/habitat/pull/10548) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.85 -->
