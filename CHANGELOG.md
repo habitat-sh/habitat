@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.89 -->
-## [2.1.89](https://github.com/habitat-sh/habitat/tree/2.1.89) (2026-09-01)
+<!-- latest_release 2.1.90 -->
+## [2.1.90](https://github.com/habitat-sh/habitat/tree/2.1.90) (2026-09-02)
 
 #### Merged Pull Requests
-- bump chacha20 to 0.10.2 [#10555](https://github.com/habitat-sh/habitat/pull/10555) ([mwrock](https://github.com/mwrock))
+- fix build issues for hab.exe on aarch64 [#10551](https://github.com/habitat-sh/habitat/pull/10551) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- fix build issues for hab.exe on aarch64 [#10551](https://github.com/habitat-sh/habitat/pull/10551) ([mwrock](https://github.com/mwrock)) <!-- 2.1.90 -->
 - bump chacha20 to 0.10.2 [#10555](https://github.com/habitat-sh/habitat/pull/10555) ([mwrock](https://github.com/mwrock)) <!-- 2.1.89 -->
 - Bump rcgen from 0.14.9 to 0.14.10 [#10553](https://github.com/habitat-sh/habitat/pull/10553) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.88 -->
 - Bump actix-rt from 2.12.0 to 2.13.0 [#10554](https://github.com/habitat-sh/habitat/pull/10554) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.88 -->
