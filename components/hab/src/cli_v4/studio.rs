@@ -21,7 +21,8 @@ impl StudioOpts {
         #[cfg(any(target_os = "macos",
                   any(all(target_os = "linux",
                           any(target_arch = "x86_64", target_arch = "aarch64")),
-                      all(target_os = "windows", target_arch = "x86_64"),)))]
+                      all(target_os = "windows",
+                          any(target_arch = "x86_64", target_arch = "aarch64")),)))]
         enter::start(ui, &self.args.args).await
     }
 }
