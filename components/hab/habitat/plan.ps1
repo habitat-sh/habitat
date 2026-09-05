@@ -3,15 +3,15 @@ $pkg_origin = "chef"
 $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_deps=@(
-    "core/visual-cpp-redist-2022"
+    "core/visual-cpp-redist-2022/14.44.35208.0/20260903174959"
 )
 $pkg_bin_dirs = @("bin")
 $pkg_build_deps = @(
-    "core/visual-build-tools-2022",
-    "core/rust/$((ConvertFrom-StringData (Get-Content "$PLAN_CONTEXT/../../../rust-toolchain")[1]).channel.Replace('"', ''))",
-    "core/cacerts",
-    "core/windows-11-sdk",
-    "core/protobuf"
+    "core/visual-build-tools-2022/17.14.7/20260904000310",
+    "core/rust/1.91.1/20260903204730",
+    "core/cacerts/2026.08.13/20260902204355",
+    "core/windows-11-sdk/10.0.26100/20260902220215",
+    "core/protobuf/3.27.3/20260903202124"
 )
 
 function pkg_version {

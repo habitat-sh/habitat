@@ -3,10 +3,10 @@ $pkg_origin="chef"
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license=@("Apache-2.0")
 $pkg_build_deps=@(
-    "chef/hab",
-    "chef/hab-plan-build-ps1",
-    "core/powershell/$(Get-Content "$PLAN_CONTEXT/../../../POWERSHELL_VERSION")",
-    "core/7zip")
+    "chef/hab/2.1.84/20260904050021",
+    "chef/hab-plan-build-ps1/2.1.84/20260901214555",
+    "core/powershell/7.5.7/20260901221643",
+    "core/7zip/26.01/20260901221035")
 $pkg_bin_dirs=@(
     "bin",
     "bin/powershell")
