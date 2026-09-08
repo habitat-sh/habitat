@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.92 -->
-## [2.1.92](https://github.com/habitat-sh/habitat/tree/2.1.92) (2026-09-08)
+<!-- latest_release 2.1.93 -->
+## [2.1.93](https://github.com/habitat-sh/habitat/tree/2.1.93) (2026-09-08)
 
 #### Merged Pull Requests
-- Bump toml from 1.1.4+spec-1.1.0 to 1.1.5+spec-1.1.0 [#10558](https://github.com/habitat-sh/habitat/pull/10558) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tokio-rustls from 0.26.4 to 0.26.5 [#10560](https://github.com/habitat-sh/habitat/pull/10560) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump tokio-rustls from 0.26.4 to 0.26.5 [#10560](https://github.com/habitat-sh/habitat/pull/10560) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.93 -->
 - Bump toml from 1.1.4+spec-1.1.0 to 1.1.5+spec-1.1.0 [#10558](https://github.com/habitat-sh/habitat/pull/10558) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.92 -->
 - Bump mio from 1.2.2 to 1.2.3 [#10559](https://github.com/habitat-sh/habitat/pull/10559) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.92 -->
 - Bump actix-http from 3.13.3 to 3.13.5 [#10557](https://github.com/habitat-sh/habitat/pull/10557) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.91 -->
