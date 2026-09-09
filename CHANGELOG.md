@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.93 -->
-## [2.1.93](https://github.com/habitat-sh/habitat/tree/2.1.93) (2026-09-08)
+<!-- latest_release 2.1.94 -->
+## [2.1.94](https://github.com/habitat-sh/habitat/tree/2.1.94) (2026-09-09)
 
 #### Merged Pull Requests
-- Bump tokio-rustls from 0.26.4 to 0.26.5 [#10560](https://github.com/habitat-sh/habitat/pull/10560) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump dirs from 6.0.0 to 7.0.0 [#10562](https://github.com/habitat-sh/habitat/pull/10562) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump dirs from 6.0.0 to 7.0.0 [#10562](https://github.com/habitat-sh/habitat/pull/10562) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.94 -->
+- Bump cc from 1.4.4 to 1.4.5 [#10561](https://github.com/habitat-sh/habitat/pull/10561) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.94 -->
+- Bump syn from 3.0.4 to 3.0.5 [#10563](https://github.com/habitat-sh/habitat/pull/10563) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.94 -->
 - Bump tokio-rustls from 0.26.4 to 0.26.5 [#10560](https://github.com/habitat-sh/habitat/pull/10560) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.93 -->
 - Bump toml from 1.1.4+spec-1.1.0 to 1.1.5+spec-1.1.0 [#10558](https://github.com/habitat-sh/habitat/pull/10558) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.92 -->
 - Bump mio from 1.2.2 to 1.2.3 [#10559](https://github.com/habitat-sh/habitat/pull/10559) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.92 -->
