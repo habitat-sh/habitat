@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.97 -->
-## [2.1.97](https://github.com/habitat-sh/habitat/tree/2.1.97) (2026-09-14)
+<!-- latest_release 2.1.98 -->
+## [2.1.98](https://github.com/habitat-sh/habitat/tree/2.1.98) (2026-09-14)
 
 #### Merged Pull Requests
-- Bump toml from 1.1.5+spec-1.1.0 to 1.1.6+spec-1.1.0 [#10565](https://github.com/habitat-sh/habitat/pull/10565) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- rustls updated from 0.23.44 to 0.23.45 [#10569](https://github.com/habitat-sh/habitat/pull/10569) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- rustls updated from 0.23.44 to 0.23.45 [#10569](https://github.com/habitat-sh/habitat/pull/10569) ([mwrock](https://github.com/mwrock)) <!-- 2.1.98 -->
 - Bump toml from 1.1.5+spec-1.1.0 to 1.1.6+spec-1.1.0 [#10565](https://github.com/habitat-sh/habitat/pull/10565) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.97 -->
 - Bump bitflags from 2.13.1 to 2.13.2 [#10568](https://github.com/habitat-sh/habitat/pull/10568) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.97 -->
 - Bump reqwest from 0.13.4 to 0.13.5 [#10566](https://github.com/habitat-sh/habitat/pull/10566) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.97 -->
