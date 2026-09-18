@@ -494,7 +494,7 @@ impl CensusGroup {
                                        service_file_rumors: &HashMap<String, ServiceFileRumor>)
     {
         self.changed_service_files.clear();
-        for (_m_id, service_file_rumor) in service_file_rumors.iter() {
+        for service_file_rumor in service_file_rumors.values() {
             let filename = service_file_rumor.filename.to_string();
             let file = self.service_files.entry(filename.clone()).or_default();
 
