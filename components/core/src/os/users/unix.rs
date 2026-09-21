@@ -80,7 +80,7 @@ pub fn assert_pkg_user_and_group(user: &str, group: &str) -> Result<()> {
     if current_user == "root" || (current_user == user && current_group == group) {
         Ok(())
     } else {
-        let msg = format!("Package must run as {}:{} or root", user, &group);
+        let msg = format!("Package must run as {}:{} or root", user, group);
         Err(Error::PermissionFailed(msg))
     }
 }

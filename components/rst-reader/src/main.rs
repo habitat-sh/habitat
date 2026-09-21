@@ -39,7 +39,7 @@ fn main() -> error::Result<()> {
         dat_file::DatFileReader::read(PathBuf::from(&rst_reader.file)).unwrap_or_else(|e| {
                                                                           error!("Could not read \
                                                                                   dat file {}: {}",
-                                                                                 &rst_reader.file,
+                                                                                 rst_reader.file,
                                                                                  e);
                                                                           process::exit(1);
                                                                       });

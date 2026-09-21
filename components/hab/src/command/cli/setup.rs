@@ -107,12 +107,12 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
         if is_origin_in_cache(&origin, key_cache) {
             ui.para(&format!("You already have an origin key for {} created and installed. \
                               Great work!",
-                             &origin))?;
+                             origin))?;
         } else {
             ui.heading("Create origin key pair")?;
             ui.para(&format!("It doesn't look like you have a signing key for the origin `{}'. \
                               Without it, you won't be able to build new packages successfully.",
-                             &origin))?;
+                             origin))?;
             ui.para("You can either create a new signing key now, or, if you are building \
                      packages for an origin that already exists, ask the owner to give you the \
                      signing key.")?;
@@ -123,7 +123,7 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
             } else {
                 ui.para(&format!("You might want to create an origin key later with: `hab \
                                   origin key generate {}'",
-                                 &origin))?;
+                                 origin))?;
             }
         }
     } else {
@@ -280,7 +280,7 @@ fn prompt_origin(ui: &mut UI) -> Result<Origin> {
         Some(o) => {
             ui.para(&format!("You already have a default origin set up as `{}', but feel free \
                               to change it if you wish.",
-                             &o))?;
+                             o))?;
             Some(o.to_string())
         }
         None => henv::var(ORIGIN_ENVVAR).or_else(|_| henv::var("USER")).ok(),
@@ -362,7 +362,7 @@ fn prompt_refresh_channel(ui: &mut UI) -> Result<String> {
 fn valid_url(val: &str) -> result::Result<(), String> {
     match Url::parse(val) {
         Ok(_) => Ok(()),
-        Err(_) => Err(format!("URL: '{}' is not valid", &val)),
+        Err(_) => Err(format!("URL: '{}' is not valid", val)),
     }
 }
 

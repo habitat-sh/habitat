@@ -386,7 +386,7 @@ impl BuilderAPIClient {
 
         let resp = self.0
                        .get_with_custom_url(&url, |u| {
-                           u.set_query(Some(&format!("target={}", &target.to_string())))
+                           u.set_query(Some(&format!("target={}", target)))
                        })
                        .bearer_auth(token)
                        .send()
@@ -873,7 +873,7 @@ impl BuilderAPIClient {
                                     -> Result<()> {
         debug!("Uploading origin key: {}, {}", origin, revision);
 
-        let path = format!("depot/origins/{}/keys/{}", &origin, &revision);
+        let path = format!("depot/origins/{}/keys/{}", origin, revision);
         let body = Self::upload_body(src_path, progress).await?;
         let resp = self.0
                        .post(&path)
@@ -903,7 +903,7 @@ impl BuilderAPIClient {
                                            -> Result<()> {
         debug!("Uploading origin secret key: {}, {}", origin, revision);
 
-        let path = format!("depot/origins/{}/secret_keys/{}", &origin, &revision);
+        let path = format!("depot/origins/{}/secret_keys/{}", origin, revision);
         let body = Self::upload_body(src_path, progress).await?;
         let resp = self.0
                        .post(&path)
@@ -1076,7 +1076,7 @@ impl BuilderAPIClient {
                .append_pair("forced", &force_upload.to_string());
         };
 
-        debug!("Reading from {}", &pa.path.display());
+        debug!("Reading from {}", pa.path.display());
         let body = Self::upload_body(&pa.path, progress).await?;
 
         let resp = self.0

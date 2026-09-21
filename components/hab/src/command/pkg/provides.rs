@@ -53,7 +53,7 @@ pub fn start(filename: &str,
             // the result into the found HashSet, as we want to
             // print out each path we find.
             if full_path {
-                println!("{}: {}", &pkg_name, &entry.path().to_string_lossy());
+                println!("{}: {}", pkg_name, entry.path().to_string_lossy());
             } else {
                 found.insert(pkg_name);
             }

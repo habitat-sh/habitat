@@ -84,7 +84,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
 
         if !template.exists() {
             debug!("{} not found at {}, not loading",
-                   &file_name,
+                   file_name,
                    template.display());
             return None;
         }
@@ -117,7 +117,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
         } else {
             debug!("{}, already compiled to {}",
                    Self::FILE_NAME,
-                   &path.display());
+                   path.display());
             Ok(false)
         }
     }
@@ -225,16 +225,16 @@ pub trait Hook: fmt::Debug + Sized + Send {
             // user; otherwise, we'll just run it as ourselves.
             let uid = users::get_uid_by_name(&pkg.svc_user)?
                 .map(Uid::from_raw)
-                .ok_or_else(|| {Error::PermissionFailed(format!("No uid for user '{}' could be found", &pkg.svc_user))})?;
+                .ok_or_else(|| {Error::PermissionFailed(format!("No uid for user '{}' could be found", pkg.svc_user))})?;
             let gid = users::get_gid_by_name(&pkg.svc_group)?
                 .map(Gid::from_raw)
-                .ok_or_else(|| {Error::PermissionFailed(format!("No gid for group '{}' could be found", &pkg.svc_group))})?;
+                .ok_or_else(|| {Error::PermissionFailed(format!("No gid for group '{}' could be found", pkg.svc_group))})?;
             Some((uid, gid))
         } else {
             debug!("Current user lacks sufficient capabilites to run {:?} as \"{}\"; running as \
                     self!",
                    path.as_ref(),
-                   &pkg.svc_user);
+                   pkg.svc_user);
             None
         };
 
@@ -584,7 +584,7 @@ impl<'a> HookOutput<'a> {
         {
             outputln!(preamble preamble_str, &line);
             if let Ok(file) = &mut file_result {
-                writeln!(file, "{}", &line).unwrap_or_else(|e| {
+                writeln!(file, "{}", line).unwrap_or_else(|e| {
                                                error!("Failed to write hook output to {:?}, {}",
                                                       path, e)
                                            });

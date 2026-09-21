@@ -477,7 +477,7 @@ impl Server {
                 return Err(Error::BadDataPath(path.to_path_buf(), err));
             }
 
-            let dat_path = path.join(format!("{}.rst", &self.member_id));
+            let dat_path = path.join(format!("{}.rst", self.member_id));
             let mut reader = DatFileReader::read_or_create_rsr_mlr(dat_path.clone(),
                                                                    &self.member_list,
                                                                    &self.service_store,
@@ -657,7 +657,7 @@ impl Server {
     /// * `Server::member` (write)
     /// * `RumorHeat::inner` (write)
     pub fn set_departed_mlw_smw_rhw(&self) {
-        if self.socket.is_some() {
+        if let Some(ref socket) = self.socket {
             self.myself.lock_smw().increment_incarnation();
             // TODO (CM): It's not clear that this operation is actually needed.
             self.myself.lock_smw().mark_departed();
@@ -684,7 +684,7 @@ impl Server {
             for member in check_list.iter().take(SELF_DEPARTURE_RUMOR_FANOUT) {
                 let addr = member.swim_socket_address();
                 // Safe because we checked above
-                outbound::ack_mlr_smr_rhw(self, self.socket.as_ref().unwrap(), member, addr, None);
+                outbound::ack_mlr_smr_rhw(self, socket, member, addr, None);
             }
         } else {
             debug!("No socket present; server was never started, so nothing to depart");

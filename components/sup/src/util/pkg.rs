@@ -126,6 +126,7 @@ pub async fn install_channel_head(url: &str,
     install_no_ui(url, &channel_latest_ident.into(), channel).await
 }
 
+#[allow(clippy::result_large_err)]
 pub async fn uninstall_all_but_latest(ident: impl AsRef<PackageIdent>,
                                       number_latest_to_keep: usize)
                                       -> HabResult<usize> {
@@ -145,6 +146,7 @@ pub async fn uninstall_all_but_latest(ident: impl AsRef<PackageIdent>,
 /// Note: This will uninstall the package even if the service correlated with the package is
 /// loaded by the Supervisor. This is needed for service rollback where the package we are
 /// uninstalling is the currently loaded package.
+#[allow(clippy::result_large_err)]
 pub async fn uninstall_even_if_loaded(ident: impl AsRef<PackageIdent>) -> HabResult<()> {
     uninstall::uninstall(&mut NullUi::new(),
                          &ident.as_ref(),

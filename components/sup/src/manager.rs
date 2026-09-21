@@ -1988,8 +1988,8 @@ impl Manager {
                       .disk = Some(ds);
         }
 
-        svc_states.into_iter()
-                  .filter_map(|(_ident, ss)| ServiceSpec::reconcile(ss.running, ss.disk))
+        svc_states.into_values()
+                  .filter_map(|ss| ServiceSpec::reconcile(ss.running, ss.disk))
                   .collect()
     }
 

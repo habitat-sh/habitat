@@ -31,7 +31,7 @@ async fn set_path() -> Result<()> {
     let mut paths: Vec<PathBuf> = Vec::new();
     let new_path = path::append_interpreter_and_env_path(&mut paths, None).await?;
 
-    debug!("Setting the PATH to {}", &new_path);
+    debug!("Setting the PATH to {}", new_path);
     // TODO: Audit that the environment access only happens in single-threaded code.
     unsafe { env::set_var("PATH", &new_path) };
     Ok(())

@@ -64,7 +64,7 @@ fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
 
     let cert_filename = match cert_path.file_name() {
         Some(cert_filename) => cert_filename,
-        None => return Err(Error::CacheSslCertError(format!("{:?} is not a file", &cert_file))),
+        None => return Err(Error::CacheSslCertError(format!("{:?} is not a file", cert_file))),
     };
     let cache_file = cert_cache_dir.join(cert_filename);
 

@@ -14,14 +14,14 @@ pub fn start(ui: &mut UI, content: &str, key_cache: &KeyCache) -> Result<()> {
     match content.parse::<PublicOriginSigningKey>() {
         Ok(key) => {
             key_cache.write_key(&key)?;
-            ui.end(format!("Imported public origin key {}", &key.named_revision()))?;
+            ui.end(format!("Imported public origin key {}", key.named_revision()))?;
             Ok(())
         }
         _ => {
             match content.parse::<SecretOriginSigningKey>() {
                 Ok(key) => {
                     key_cache.write_key(&key)?;
-                    ui.end(format!("Imported secret origin key {}", &key.named_revision()))?;
+                    ui.end(format!("Imported secret origin key {}", key.named_revision()))?;
                     Ok(())
                 }
                 _ => {

@@ -225,7 +225,7 @@ pub(crate) trait Engine {
 fn run<F>(mut cmd: Command, err_fn: F) -> Result<()>
     where F: Fn(ExitStatus) -> EngineError
 {
-    debug!("Running: {:?}", &cmd);
+    debug!("Running: {:?}", cmd);
     let exit_status = cmd.spawn()?.wait()?;
     if !exit_status.success() {
         return Err(err_fn(exit_status).into());

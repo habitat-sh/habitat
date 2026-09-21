@@ -337,12 +337,12 @@ impl DownloadTask<'_> {
                 ui.warn(format!("No packages matching ident {} for {} exist in the '{}' \
                                  channel. Check the package ident, target, channel and Builder \
                                  url ({}) for correctness.",
-                                ident, target, &channel, self.url))?;
+                                ident, target, channel, self.url))?;
                 if self.ignore_missing_seeds {
                     Ok(None)
                 } else {
                     Err(CommonError::PackageNotFound(format!("{} for {} in channel {}",
-                                                             ident, target, &channel)).into())
+                                                             ident, target, channel)).into())
                 }
             }
             Err(e) => {
@@ -452,7 +452,7 @@ impl DownloadTask<'_> {
         if self.verify {
             ui.status(Status::Verifying, artifact.ident()?)?;
             artifact::verify(&artifact.path, &cache)?;
-            debug!("Verified {} for {} signed by {}", ident, target, &signer);
+            debug!("Verified {} for {} signed by {}", ident, target, signer);
         }
         Ok(())
     }

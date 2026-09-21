@@ -249,7 +249,7 @@ pub async fn setup_package_files(origin_name: &str,
         PackageInstall::load(&hab_root.pkg_ident(&origin_name, &package_name),
                              Some(hab_root.as_ref())).with_context(|| {
                                                          format!("Failed to load package {:?}/{:?}",
-                                                                 &origin_name, &package_name)
+                                                                 origin_name, package_name)
                                                      })?;
     if let Ok(tdeps) = install.tdeps() {
         for dependency in tdeps.iter() {

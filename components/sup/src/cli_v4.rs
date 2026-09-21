@@ -187,7 +187,7 @@ pub(crate) async fn split_apart_sup_run(
     -> Result<(ManagerConfig, Option<sup_proto::ctl::SvcLoad>)> {
     let ring_key = get_ring_key(&sup_run)?;
     let shared_load = sup_run.shared_load;
-    let event_stream_config = if sup_run.event_stream_url.is_some() {
+    let event_stream_config = if let Some(event_stream_url) = sup_run.event_stream_url {
         Some(EventStreamConfig { environment:
                                      sup_run.event_stream_environment
                                             .expect("Required option for EventStream feature"),
@@ -199,10 +199,7 @@ pub(crate) async fn split_apart_sup_run(
                                  token:
                                      sup_run.event_stream_token
                                             .expect("Required option for EventStream feature"),
-                                 url:
-                                     sup_run.event_stream_url
-                                            .expect("Required option for EventStream feature")
-                                            .into(),
+                                 url:                event_stream_url.into(),
                                  connect_method:     sup_run.event_stream_connect_timeout,
                                  server_certificate: sup_run.event_stream_server_certificate, })
     } else {

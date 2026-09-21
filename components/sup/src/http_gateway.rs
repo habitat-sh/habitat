@@ -454,7 +454,7 @@ fn health_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -
         HttpResponse::build(http_status).json(&body)
     } else {
         debug!("Didn't find any health data for service group {:?}",
-               &service_group);
+               service_group);
         HttpResponse::NotFound().finish()
     }
 }
@@ -544,10 +544,10 @@ mod tests {
                                                             .join("http-gateway")
                                                             .join(name);
 
-        let mut f = File::open(path).unwrap_or_else(|_| panic!("could not open {}", &name));
+        let mut f = File::open(path).unwrap_or_else(|_| panic!("could not open {}", name));
         let mut json = String::new();
         f.read_to_string(&mut json)
-         .unwrap_or_else(|_| panic!("could not read {}", &name));
+         .unwrap_or_else(|_| panic!("could not read {}", name));
 
         assert_valid(&json, schema);
     }

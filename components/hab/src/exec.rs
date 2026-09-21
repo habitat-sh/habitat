@@ -90,7 +90,7 @@ async fn command_from_min_pkg_with_optional_channel(ui: &mut UI,
     let pi = match PackageInstall::load_at_least(ident, Some(fs_root_path)) {
         Ok(pi) => pi,
         Err(hcore::Error::PackageNotFound(_)) => {
-            ui.status(Status::Missing, format!("package for {}", &ident))?;
+            ui.status(Status::Missing, format!("package for {}", ident))?;
 
             let channel = internal_tooling_channel(channel);
 

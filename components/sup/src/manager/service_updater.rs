@@ -46,8 +46,8 @@ impl IncarnatedPackageIdent {
 
 impl fmt::Display for IncarnatedPackageIdent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.incarnation.is_some() {
-            write!(f, "{}/{}", self.incarnation.unwrap(), self.ident)
+        if let Some(incarnation) = self.incarnation {
+            write!(f, "{}/{}", incarnation, self.ident)
         } else {
             write!(f, "{}", self.ident)
         }

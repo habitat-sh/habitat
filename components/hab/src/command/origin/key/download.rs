@@ -72,7 +72,7 @@ async fn handle_public(ui: &mut UI,
                         let named_revision = format!("{}-{}", key.origin, key.revision).parse()?;
                         download_key(ui, api_client, &named_revision, token, key_cache).await?;
                     }
-                    ui.end(format!("Download of {} public origin keys completed.", &origin))?;
+                    ui.end(format!("Download of {} public origin keys completed.", origin))?;
                     Ok(())
                 }
                 Err(e) => Err(Error::from(e)),
@@ -111,7 +111,7 @@ async fn handle_encryption(ui: &mut UI,
 
     ui.begin(format!("Downloading public encryption origin key for {}", origin))?;
     download_public_encryption_key(ui, api_client, origin, token.unwrap(), key_cache).await?; // unwrap is safe because we already checked it above
-    ui.end(format!("Download of {} public encryption keys completed.", &origin))?;
+    ui.end(format!("Download of {} public encryption keys completed.", origin))?;
     Ok(())
 }
 

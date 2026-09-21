@@ -70,7 +70,7 @@ pub async fn start(ui: &mut UI,
     {
         Ok(_) if !force_upload => {
             ui.status(Status::Using,
-                      format!("existing {} already on target", &ident))?;
+                      format!("existing {} already on target", ident))?;
             // Always promote to additional_release_channel if specified
             if let Some(channel) = additional_release_channel.clone() {
                 promote_to_channel(ui, &api_client, (&ident, target), channel, token).await?
@@ -82,7 +82,7 @@ pub async fn start(ui: &mut UI,
                 match api_client.check_package((&dep, target), Some(token)).await {
                     Ok(_) => {
                         ui.status(Status::Using,
-                                  format!("existing {} already on target", &dep))?
+                                  format!("existing {} already on target", dep))?
                     }
                     Err(api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {
                         let candidate_path = match archive_path.parent() {
@@ -102,7 +102,7 @@ pub async fn start(ui: &mut UI,
                             Err(_) => {
                                 return Err(Error::from(api_client::Error::UploadFailed(format!(
                                     "We tried {} times but could not upload {}. Giving up.",
-                                    RETRIES, &dep
+                                    RETRIES, dep
                                 ))));
                             }
                         }
@@ -124,11 +124,11 @@ pub async fn start(ui: &mut UI,
                 Err(_) => {
                     return Err(Error::from(api_client::Error::UploadFailed(format!(
                         "We tried {} times but could not upload {}. Giving up.",
-                        RETRIES, &ident
+                        RETRIES, ident
                     ))));
                 }
             }
-            ui.end(format!("Upload of {} complete.", &ident))?;
+            ui.end(format!("Upload of {} complete.", ident))?;
             Ok(())
         }
         Err(e) => Err(Error::from(e)),

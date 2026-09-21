@@ -112,7 +112,7 @@ impl ApiClient {
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
-        debug!("GET {} with {:?}", &url, &self);
+        debug!("GET {} with {:?}", url, self);
         self.inner.get(url)
     }
 
@@ -125,7 +125,7 @@ impl ApiClient {
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
-        debug!("HEAD {} with {:?}", &url, &self);
+        debug!("HEAD {} with {:?}", url, self);
         self.inner.head(url)
     }
 
@@ -138,7 +138,7 @@ impl ApiClient {
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
-        debug!("PATH {} with {:?}", &url, &self);
+        debug!("PATH {} with {:?}", url, self);
         self.inner.patch(url)
     }
 
@@ -151,7 +151,7 @@ impl ApiClient {
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
-        debug!("POST {} with {:?}", &url, &self);
+        debug!("POST {} with {:?}", url, self);
         self.inner.post(url)
     }
 
@@ -164,7 +164,7 @@ impl ApiClient {
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
-        debug!("PUT {} with {:?}", &url, &self);
+        debug!("PUT {} with {:?}", url, self);
         self.inner.put(url)
     }
 
@@ -177,7 +177,7 @@ impl ApiClient {
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
-        debug!("DELETE {} with {:?}", &url, &self);
+        debug!("DELETE {} with {:?}", url, self);
         self.inner.delete(url)
     }
 
@@ -250,6 +250,6 @@ fn user_agent(product: &str, version: &str) -> Result<HeaderValue> {
                      version.trim(),
                      PackageTarget::active_target(),
                      uname.release.trim().to_lowercase());
-    debug!("User-Agent: {}", &ua);
+    debug!("User-Agent: {}", ua);
     Ok(HeaderValue::from_str(&ua).expect("Valid User Agent header"))
 }

@@ -36,7 +36,7 @@ pub fn package_list(listing: &ListingType) -> Result<Vec<PackageIdent>> {
 pub fn start(listing: &ListingType) -> Result<()> {
     let packages = package_list(listing)?;
     for p in &packages {
-        println!("{}", &p);
+        println!("{}", p);
     }
 
     Ok(())
