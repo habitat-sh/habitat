@@ -116,7 +116,7 @@ impl Process {
 
 pub fn run(msg: protocol::Spawn) -> Result<Service, ServiceRunError> {
     debug!("launcher is spawning {}", msg.binary);
-    let ps_cmd = format!("iex $(gc {} | out-string)", &msg.binary);
+    let ps_cmd = format!("iex $(gc {} | out-string)", msg.binary);
     let password = msg.svc_password.clone();
 
     let user = match msg.svc_user.as_ref() {
