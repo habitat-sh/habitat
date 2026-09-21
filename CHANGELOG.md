@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.100 -->
-## [2.1.100](https://github.com/habitat-sh/habitat/tree/2.1.100) (2026-09-21)
+<!-- latest_release 2.1.101 -->
+## [2.1.101](https://github.com/habitat-sh/habitat/tree/2.1.101) (2026-09-21)
 
 #### Merged Pull Requests
-- Bump github/codeql-action from 4.38.0 to 4.38.1 [#10576](https://github.com/habitat-sh/habitat/pull/10576) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump clap_complete from 4.6.9 to 4.6.11 [#10578](https://github.com/habitat-sh/habitat/pull/10578) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump clap_complete from 4.6.9 to 4.6.11 [#10578](https://github.com/habitat-sh/habitat/pull/10578) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.101 -->
+- Bump syn from 3.0.5 to 3.0.6 [#10577](https://github.com/habitat-sh/habitat/pull/10577) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.101 -->
 - Bump github/codeql-action from 4.38.0 to 4.38.1 [#10576](https://github.com/habitat-sh/habitat/pull/10576) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.100 -->
 - Bump actix-rt from 2.13.0 to 2.15.0 [#10572](https://github.com/habitat-sh/habitat/pull/10572) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.99 -->
 - rustls updated from 0.23.44 to 0.23.45 [#10569](https://github.com/habitat-sh/habitat/pull/10569) ([mwrock](https://github.com/mwrock)) <!-- 2.1.98 -->
