@@ -188,9 +188,7 @@ impl fmt::Display for PackageIdent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (&self.version, &self.release) {
             (Some(version), Some(release)) => {
-                write!(f,
-                       "{}/{}/{}/{}",
-                       self.origin, self.name, version, release)
+                write!(f, "{}/{}/{}/{}", self.origin, self.name, version, release)
             }
             (Some(version), None) => {
                 write!(f, "{}/{}/{}", self.origin, self.name, version)

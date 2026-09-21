@@ -261,8 +261,7 @@ async fn uninstall_many<U>(ui: &mut U,
                                ident, count))?;
             }
             ExecutionStrategy::Run => {
-                ui.end(format!("Uninstall of {} and {} dependencies complete",
-                               ident, count))?;
+                ui.end(format!("Uninstall of {} and {} dependencies complete", ident, count))?;
             }
         };
     }

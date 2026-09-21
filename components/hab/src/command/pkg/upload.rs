@@ -81,8 +81,7 @@ pub async fn start(ui: &mut UI,
             for dep in tdeps.into_iter() {
                 match api_client.check_package((&dep, target), Some(token)).await {
                     Ok(_) => {
-                        ui.status(Status::Using,
-                                  format!("existing {} already on target", dep))?
+                        ui.status(Status::Using, format!("existing {} already on target", dep))?
                     }
                     Err(api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {
                         let candidate_path = match archive_path.parent() {

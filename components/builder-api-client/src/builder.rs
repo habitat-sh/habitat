@@ -384,13 +384,12 @@ impl BuilderAPIClient {
 
         let url = format!("rdeps/{}", ident);
 
-        let resp = self.0
-                       .get_with_custom_url(&url, |u| {
-                           u.set_query(Some(&format!("target={}", target)))
-                       })
-                       .bearer_auth(token)
-                       .send()
-                       .await?;
+        let resp =
+            self.0
+                .get_with_custom_url(&url, |u| u.set_query(Some(&format!("target={}", target))))
+                .bearer_auth(token)
+                .send()
+                .await?;
         let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
         let encoded = resp.text().await.map_err(Error::BadResponseBody)?;

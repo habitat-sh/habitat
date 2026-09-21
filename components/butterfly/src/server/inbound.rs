@@ -198,7 +198,7 @@ fn process_ack_mlw_smw_rhw(server: &Server,
                            mut msg: Ack) {
     trace!("Ack from {}@{}", msg.from.id, addr);
     if let Some(forward_to) = msg.forward_to.as_ref()
-        && *server.member_id != forward_to.id
+       && *server.member_id != forward_to.id
     {
         let (forward_to_addr, from_addr) = {
             let forward_addr_str = format!("{}:{}", forward_to.address, forward_to.swim_port);

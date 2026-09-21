@@ -585,9 +585,9 @@ impl<'a> HookOutput<'a> {
             outputln!(preamble preamble_str, &line);
             if let Ok(file) = &mut file_result {
                 writeln!(file, "{}", line).unwrap_or_else(|e| {
-                                               error!("Failed to write hook output to {:?}, {}",
-                                                      path, e)
-                                           });
+                                              error!("Failed to write hook output to {:?}, {}",
+                                                     path, e)
+                                          });
             }
         }
     }

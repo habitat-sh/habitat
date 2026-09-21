@@ -95,8 +95,7 @@ pub fn start(ui: &mut UI,
     if print {
         if !quiet {
             ui.br()?;
-            ui.warn(format!("###======== Rendered template: {}",
-                            template_path.display()))?;
+            ui.warn(format!("###======== Rendered template: {}", template_path.display()))?;
         }
 
         println!("{}", rendered_template);

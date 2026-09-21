@@ -48,8 +48,7 @@ pub fn start(ui: &mut UI) -> Result<()> {
     tar.follow_symlinks(false);
 
     if sup_root.exists() {
-        ui.status(Status::Adding,
-                  format!("files from {}", sup_root.display()))?;
+        ui.status(Status::Adding, format!("files from {}", sup_root.display()))?;
         if let Err(why) = tar.append_dir_all(format!("hab{}sup", MAIN_SEPARATOR), &sup_root) {
             ui.fatal(format!("Failed to add all files into the tarball: {}", why))?;
             fs::remove_file(&tarball_name)?;
