@@ -244,7 +244,7 @@ fn probe_mlw_smr_rhw(server: &Server,
         // We mark as suspect when we fail to get a response from the PingReq. That moves us
         // into the suspicion phase, where anyone marked as suspect has a certain number of
         // protocol periods to recover.
-        warn!("Marking {} as Suspect", &member.id);
+        warn!("Marking {} as Suspect", member.id);
         server.insert_member_mlw_rhw(member, Health::Suspect);
         SWIM_PROBES_SENT.with_label_values(&["pingreq/failure"])
                         .inc();
@@ -301,7 +301,7 @@ fn recv_ack_mlw_rhw(server: &Server,
             }
             Err(mpsc::TryRecvError::Empty) => {
                 if start_time.elapsed() > timeout {
-                    warn!("Timed out waiting for Ack from {}@{}", &member.id, addr);
+                    warn!("Timed out waiting for Ack from {}@{}", member.id, addr);
                     return false;
                 }
                 thread::sleep(Duration::from_millis(PING_RECV_QUEUE_EMPTY_SLEEP_MS));
@@ -394,16 +394,16 @@ fn pingreq(server: &Server, // TODO: eliminate this arg
             SWIM_BYTES_SENT.with_label_values(label_values)
                            .set(payload.len().to_i64());
             trace!("Sent PingReq to {}@{} for {}@{}",
-                   &pingreq_target.id,
+                   pingreq_target.id,
                    addr,
-                   &target.id,
+                   target.id,
                    target.swim_socket_address());
         }
         Err(e) => {
             error!("Failed PingReq to {}@{} for {}@{}: {}",
-                   &pingreq_target.id,
+                   pingreq_target.id,
                    addr,
-                   &target.id,
+                   target.id,
                    target.swim_socket_address(),
                    e)
         }

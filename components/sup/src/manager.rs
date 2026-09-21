@@ -1376,7 +1376,6 @@ impl Manager {
                 outputln!("Gracefully departing from butterfly network.");
                 self.butterfly.set_departed_mlw_smw_rhw();
 
-                #[allow(clippy::from_iter_instead_of_collect)]
                 let service_stop_futures =
                     FuturesUnordered::from_iter(self.state
                                                     .services
@@ -1989,8 +1988,8 @@ impl Manager {
                       .disk = Some(ds);
         }
 
-        svc_states.into_iter()
-                  .filter_map(|(_ident, ss)| ServiceSpec::reconcile(ss.running, ss.disk))
+        svc_states.into_values()
+                  .filter_map(|ss| ServiceSpec::reconcile(ss.running, ss.disk))
                   .collect()
     }
 

@@ -65,7 +65,7 @@ pub mod test_support {
         PackageInstall::load(&pkg_ident, Some(fs_root)).unwrap_or_else(|_| {
                                                            panic!("PackageInstall should load for \
                                                                    {}",
-                                                                  &pkg_ident)
+                                                                  pkg_ident)
                                                        })
     }
 }

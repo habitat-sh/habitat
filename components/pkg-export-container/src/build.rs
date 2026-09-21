@@ -239,7 +239,7 @@ impl BuildSpec {
     /// * If the root file system cannot be created
     /// * If the `BuildRootContext` cannot be created
     pub(crate) async fn create(self, ui: &mut UI) -> Result<BuildRoot> {
-        debug!("Creating BuildRoot from {:?}", &self);
+        debug!("Creating BuildRoot from {:?}", self);
         let workdir = TempDir::new()?;
         let rootfs = workdir.path().join("rootfs");
         ui.status(Status::Creating,

@@ -74,7 +74,7 @@ impl ContainerImage {
         fs::create_dir_all(&dst)?;
         let name_tags: Vec<_> = self.tags
                                     .iter()
-                                    .map(|t| format!("{}:{}", &self.name, t))
+                                    .map(|t| format!("{}:{}", self.name, t))
                                     .collect();
         let json = json!({
             "id": &self.id,
@@ -184,7 +184,7 @@ impl BuildContext {
                                           .open(ctx.rootfs().join(file))?;
             for user in users {
                 ui.status(Status::Creating,
-                          format!("user '{}' in /{}", user.name, &file))?;
+                          format!("user '{}' in /{}", user.name, file))?;
                 writeln!(f, "{}", user)?;
             }
         }
@@ -194,7 +194,7 @@ impl BuildContext {
                                           .open(ctx.rootfs().join(file))?;
             for group in groups {
                 ui.status(Status::Creating,
-                          format!("group '{}' in /{}", group.name, &file))?;
+                          format!("group '{}' in /{}", group.name, file))?;
                 writeln!(f, "{}", group)?;
             }
         }

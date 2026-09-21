@@ -597,10 +597,10 @@ impl<'a> SvcDir<'a> {
     }
 
     fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<()> {
-        debug!("Creating dir with subdirs: {:?}", &path.as_ref());
+        debug!("Creating dir with subdirs: {:?}", path.as_ref());
         if let Err(e) = fs::create_dir_all(&path) {
             Err(Error::PermissionFailed(format!("Can't create {:?}, {}",
-                                                &path.as_ref(),
+                                                path.as_ref(),
                                                 e)))
         } else {
             Ok(())
@@ -743,24 +743,24 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
                 Ok(None) => {
                     panic!("Could not find '{}' in the '{}' package! This is required for the \
                             proper operation of this program.",
-                           program, &ident)
+                           program, ident)
                 }
                 Err(err) => {
                     panic!("Error finding '{}' in the '{}' package! This is required for the \
                             proper operation of this program. (Err: {:?})",
-                           program, &ident, err)
+                           program, ident, err)
                 }
             }
         }
         Err(err) => {
             panic!("Package installation for '{}' not found on disk! This is required for the \
                     proper operation of this program (Err: {:?})",
-                   &ident, err)
+                   ident, err)
         }
     };
     debug!("resolved absolute path to program, program={}, ident={}, abs_path={}",
            program,
-           &ident,
+           ident,
            abs_path.display());
     abs_path
 }

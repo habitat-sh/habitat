@@ -156,7 +156,7 @@ impl ServiceSpec {
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         debug!("Writing service spec to '{}': {:?}",
                path.as_ref().display(),
-               &self);
+               self);
         let dst_path = path.as_ref()
                            .parent()
                            .expect("Cannot determine parent directory for service spec");

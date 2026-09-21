@@ -786,7 +786,7 @@ mod tests {
             Ok(i) => {
                 panic!("Should not load successfully, install_ident={}, install_target={}, \
                         active_target={}",
-                       &i,
+                       i,
                        i.target().unwrap(),
                        active_target,)
             }
@@ -826,7 +826,7 @@ mod tests {
             Ok(i) => {
                 panic!("Should not load successfully, install_ident={}, install_target={}, \
                         active_target={}",
-                       &i,
+                       i,
                        i.target().unwrap(),
                        active_target,)
             }
@@ -872,7 +872,7 @@ mod tests {
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
                 panic!("Should not load successfully, install_ident={}, install_target=missing",
-                       &i,)
+                       i,)
             }
         }
     }
@@ -892,7 +892,7 @@ mod tests {
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
                 panic!("Should not load successfully, install_ident={}, install_target=missing",
-                       &i,)
+                       i,)
             }
         }
     }
@@ -929,7 +929,7 @@ mod tests {
             Ok(i) => {
                 panic!("Should not load successfully, install_ident={}, install_target={}, \
                         active_target={}",
-                       &i,
+                       i,
                        i.target().unwrap(),
                        active_target,)
             }
@@ -970,7 +970,7 @@ mod tests {
             Ok(i) => {
                 panic!("Should not load successfully, install_ident={}, install_target={}, \
                         active_target={}",
-                       &i,
+                       i,
                        i.target().unwrap(),
                        active_target,)
             }
@@ -1017,7 +1017,7 @@ mod tests {
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
                 panic!("Should not load successfully, install_ident={}, install_target=missing",
-                       &i,)
+                       i,)
             }
         }
     }
@@ -1037,7 +1037,7 @@ mod tests {
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
                 panic!("Should not load successfully, install_ident={}, install_target=missing",
-                       &i,)
+                       i,)
             }
         }
     }

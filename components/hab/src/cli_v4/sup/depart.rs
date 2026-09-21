@@ -36,7 +36,7 @@ impl SupDepartOptions {
     pub(super) async fn do_depart(&self, ui: &mut UI) -> HabResult<()> {
         let msg = sup_proto::ctl::SupDepart { member_id: Some(self.member_id.clone()), };
 
-        ui.begin(format!("Permanently marking {} as departed", &self.member_id))?;
+        ui.begin(format!("Permanently marking {} as departed", self.member_id))?;
         ui.status(Status::Applying,
                   format!("via peer {}", self.remote_sup.inner()))?;
 

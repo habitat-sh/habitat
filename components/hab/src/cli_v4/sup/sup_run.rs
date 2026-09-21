@@ -354,7 +354,7 @@ impl SupRunOptions {
                 vec![]
             }
         } else {
-            other.config_files.drain(..).collect::<Vec<PathBuf>>()
+            std::mem::take(&mut other.config_files)
         };
 
         // We iterate in reverse order so that values from the *last* config file in the list

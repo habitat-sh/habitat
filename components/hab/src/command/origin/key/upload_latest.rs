@@ -22,7 +22,7 @@ pub async fn start(ui: &mut UI,
                    key_cache: &KeyCache)
                    -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
-    ui.begin(format!("Uploading latest public origin key {}", &origin))?;
+    ui.begin(format!("Uploading latest public origin key {}", origin))?;
 
     // Figure out the latest public key
     let public_key: PublicOriginSigningKey = key_cache.latest_public_origin_signing_key(origin)?;

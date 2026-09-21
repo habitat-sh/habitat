@@ -275,7 +275,7 @@ fn stream_output<T>(out: T, log_file: &Path, preamble_str: &str)
     File::create(log_file).unwrap_or_else(|_| {
                               panic!("{}: couldn't create log output file {}",
                                      preamble_str,
-                                     &log_file.to_string_lossy())
+                                     log_file.to_string_lossy())
                           });
 
     for line in BufReader::new(out).lines_lossy().flatten() {

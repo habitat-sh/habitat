@@ -21,10 +21,10 @@ pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
             }
         }
     } else {
-        ui.begin(format!("Reading PackageIdent from {}", &src.display()))?;
+        ui.begin(format!("Reading PackageIdent from {}", src.display()))?;
         ui.para("")?;
 
-        println!("Package Path   : {}", &src.display());
+        println!("Package Path   : {}", src.display());
         println!("Origin         : {}", info.origin);
         println!("Name           : {}", info.name);
         println!("Version        : {}", info.version);

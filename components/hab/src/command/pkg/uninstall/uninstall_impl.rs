@@ -165,7 +165,7 @@ async fn uninstall_many<U>(ui: &mut U,
         let ident = ident.as_ref();
         let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
         let ident = pkg_install.ident();
-        ui.begin(format!("Uninstalling {}", &ident))?;
+        ui.begin(format!("Uninstalling {}", ident))?;
 
         // 3.
         let deps = graph.owned_ordered_deps(ident);
@@ -181,7 +181,7 @@ async fn uninstall_many<U>(ui: &mut U,
                 ui.warn(format!("Tried to find dependant packages of {} but it wasn't in \
                                  graph.  Maybe another uninstall command was run at the same \
                                  time?",
-                                &ident))?;
+                                ident))?;
             }
             Some(0) => {
                 if maybe_delete(ui,
@@ -250,7 +250,7 @@ async fn uninstall_many<U>(ui: &mut U,
                     } else {
                         ui.status(Status::Skipping,
                                   format!("{}. It is a dependency of {} external packages",
-                                          &p, external_rdeps_count))?;
+                                          p, external_rdeps_count))?;
                     }
                 }
             }
@@ -258,11 +258,10 @@ async fn uninstall_many<U>(ui: &mut U,
         match execution_strategy {
             ExecutionStrategy::DryRun => {
                 ui.end(format!("Would uninstall {} and {} dependencies (Dry run)",
-                               &ident, count))?;
+                               ident, count))?;
             }
             ExecutionStrategy::Run => {
-                ui.end(format!("Uninstall of {} and {} dependencies complete",
-                               &ident, count))?;
+                ui.end(format!("Uninstall of {} and {} dependencies complete", ident, count))?;
             }
         };
     }
@@ -374,13 +373,13 @@ async fn maybe_delete<U>(ui: &mut U,
     let hab = PackageIdent::from_str("chef/hab")?;
     if ident.satisfies(&hab) {
         ui.status(Status::Skipping,
-                  format!("{}. You can't uninstall chef/hab", &ident))?;
+                  format!("{}. You can't uninstall chef/hab", ident))?;
         return Ok(false);
     }
 
     if safety.should_skip(ident) {
         ui.status(Status::Skipping,
-                  format!("{}. It is currently loaded by the supervisor", &ident))?;
+                  format!("{}. It is currently loaded by the supervisor", ident))?;
         return Ok(false);
     }
 
@@ -390,7 +389,7 @@ async fn maybe_delete<U>(ui: &mut U,
     let should_exclude = excludes.iter().any(|i| i.satisfies(ident));
     if should_exclude {
         ui.status(Status::Skipping,
-                  format!("{}. It is on the exclusion list", &ident))?;
+                  format!("{}. It is on the exclusion list", ident))?;
         return Ok(false);
     }
 

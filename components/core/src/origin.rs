@@ -17,7 +17,7 @@ impl Origin {
         } else {
             Err(format!("'{}' is not valid. A valid origin contains a-z, \
                          0-9, and _ or - after the first character",
-                        &value))
+                        value))
         }
     }
 }

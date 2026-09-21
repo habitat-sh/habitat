@@ -449,7 +449,7 @@ fn toml_merge_recurse(me: &mut toml::value::Table,
                 _ => {
                     return Err(Error::TomlMergeError(format!("Value at key {} should be \
                                                               a Table",
-                                                             &key)));
+                                                             key)));
                 }
             };
             toml_merge_recurse(me_at_key,

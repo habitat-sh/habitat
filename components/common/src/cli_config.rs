@@ -83,7 +83,7 @@ impl CliConfig {
     pub fn save(&self) -> Result<(), Error> {
         fs::create_dir_all(*CLI_CONFIG_PATH_PARENT)?;
         let raw = toml::ser::to_string(self)?;
-        debug!("Raw config toml:\n---\n{}\n---", &raw);
+        debug!("Raw config toml:\n---\n{}\n---", raw);
         fs::write(&*CLI_CONFIG_PATH, raw)?;
         Ok(())
     }

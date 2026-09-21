@@ -78,7 +78,7 @@ fn pipe_stdout<T>(out: T, id: &str)
                 let so = StructuredOutput::succinct(id, "O", output::get_format(), &line);
                 if let Err(e) = so.println() {
                     println!("printing output: '{}' to stdout resulted in error: {}",
-                             &line, e);
+                             line, e);
                 }
             }
             Err(e) => {
@@ -99,7 +99,7 @@ fn pipe_stderr<T>(err: T, id: &str)
                 let so = StructuredOutput::succinct(id, "E", output::get_format(), &line);
                 if let Err(e) = so.eprintln() {
                     println!("printing output: '{}' to stderr resulted in error: {}",
-                             &line, e);
+                             line, e);
                 }
             }
             Err(e) => {

@@ -186,21 +186,14 @@ impl Default for PackageIdent {
 
 impl fmt::Display for PackageIdent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.version.is_some() && self.release.is_some() {
-            write!(f,
-                   "{}/{}/{}/{}",
-                   self.origin,
-                   self.name,
-                   self.version.as_ref().unwrap(),
-                   self.release.as_ref().unwrap())
-        } else if self.version.is_some() {
-            write!(f,
-                   "{}/{}/{}",
-                   self.origin,
-                   self.name,
-                   self.version.as_ref().unwrap())
-        } else {
-            write!(f, "{}/{}", self.origin, self.name)
+        match (&self.version, &self.release) {
+            (Some(version), Some(release)) => {
+                write!(f, "{}/{}/{}/{}", self.origin, self.name, version, release)
+            }
+            (Some(version), None) => {
+                write!(f, "{}/{}/{}", self.origin, self.name, version)
+            }
+            (None, _) => write!(f, "{}/{}", self.origin, self.name),
         }
     }
 }
@@ -234,6 +227,7 @@ impl From<PackageIdent> for String {
     fn from(pkg_ident: PackageIdent) -> Self { pkg_ident.to_string() }
 }
 
+#[allow(clippy::non_canonical_partial_ord_impl)]
 impl PartialOrd for PackageIdent {
     /// Packages can be compared according to the following:
     ///
@@ -241,7 +235,6 @@ impl PartialOrd for PackageIdent {
     /// * If the names are not equal, they cannot be compared.
     /// * If the versions are greater/lesser, return that as the ordering.
     /// * If the versions are equal, return the greater/lesser for the release.
-    #[allow(clippy::non_canonical_partial_ord_impl)]
     fn partial_cmp(&self, other: &PackageIdent) -> Option<Ordering> {
         if self.name != other.name {
             return None;

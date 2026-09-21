@@ -37,7 +37,7 @@ pub fn start(ui: &mut UI) -> Result<()> {
     };
     let cwd = env::current_dir().unwrap();
     let tarball_name = format!("support-bundle-{}-{}.tar.gz",
-                               &host,
+                               host,
                                dt.format("%Y%m%d%H%M%S"));
 
     let sup_root = Path::new(&*FS_ROOT_PATH).join(ROOT_PATH).join("sup");
@@ -48,8 +48,7 @@ pub fn start(ui: &mut UI) -> Result<()> {
     tar.follow_symlinks(false);
 
     if sup_root.exists() {
-        ui.status(Status::Adding,
-                  format!("files from {}", &sup_root.display()))?;
+        ui.status(Status::Adding, format!("files from {}", sup_root.display()))?;
         if let Err(why) = tar.append_dir_all(format!("hab{}sup", MAIN_SEPARATOR), &sup_root) {
             ui.fatal(format!("Failed to add all files into the tarball: {}", why))?;
             fs::remove_file(&tarball_name)?;
@@ -57,12 +56,12 @@ pub fn start(ui: &mut UI) -> Result<()> {
         }
     } else {
         ui.fatal(format!("Failed to find Supervisor root directory {}",
-                         &sup_root.display()))?;
+                         sup_root.display()))?;
         process::exit(1)
     }
 
     ui.status(Status::Created,
-              format!("{}{}{}", cwd.display(), MAIN_SEPARATOR, &tarball_name))?;
+              format!("{}{}{}", cwd.display(), MAIN_SEPARATOR, tarball_name))?;
 
     Ok(())
 }

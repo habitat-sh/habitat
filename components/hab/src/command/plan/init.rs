@@ -169,7 +169,7 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
             }
 
             ui.status(Status::Using,
-                      format!("existing file: {} ({} lines appended)", &target, appended))?;
+                      format!("existing file: {} ({} lines appended)", target, appended))?;
         }
     }
     Ok(())

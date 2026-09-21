@@ -88,7 +88,7 @@ impl From<Signal> for SignalCode {
 ///
 /// * If the system call fails the error will be returned, otherwise this function does not return
 fn become_exec_command(command: PathBuf, args: &[OsString]) -> Result<()> {
-    debug!("Calling execvp(): ({:?}) {:?}", command.display(), &args);
+    debug!("Calling execvp(): ({:?}) {:?}", command.display(), args);
     let error_if_failed = Command::new(command).args(args).exec();
     // The only possible return for the above function is an `Error` so return it, meaning that we
     // failed to exec to our target program
