@@ -89,7 +89,7 @@ pub fn terminate(pid: Pid) -> Result<()> {
 fn become_child_command(command: PathBuf, args: &[OsString]) -> Result<()> {
     debug!("Calling child process: ({:?}) {:?}",
            command.display(),
-           &args);
+           args);
     let status = Command::new(command).args(args).status()?;
     // Let's honor the exit codes from the child process we finished running
     process::exit(status.code().unwrap())
