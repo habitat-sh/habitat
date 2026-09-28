@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.106 -->
-## [2.1.106](https://github.com/habitat-sh/habitat/tree/2.1.106) (2026-09-28)
+<!-- latest_release 2.1.107 -->
+## [2.1.107](https://github.com/habitat-sh/habitat/tree/2.1.107) (2026-09-28)
 
 #### Merged Pull Requests
-- Bump github/codeql-action from 4.38.1 to 4.38.2 [#10583](https://github.com/habitat-sh/habitat/pull/10583) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump thiserror from 2.0.20 to 2.0.21 [#10585](https://github.com/habitat-sh/habitat/pull/10585) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump thiserror from 2.0.20 to 2.0.21 [#10585](https://github.com/habitat-sh/habitat/pull/10585) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.107 -->
+- Bump actix-http from 3.13.6 to 3.13.7 [#10584](https://github.com/habitat-sh/habitat/pull/10584) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.107 -->
 - Bump github/codeql-action from 4.38.1 to 4.38.2 [#10583](https://github.com/habitat-sh/habitat/pull/10583) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.106 -->
 - Bump cc from 1.4.6 to 1.4.7 [#10579](https://github.com/habitat-sh/habitat/pull/10579) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.105 -->
 - Updated rust version to 1.98.1 [#10570](https://github.com/habitat-sh/habitat/pull/10570) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.1.104 -->
