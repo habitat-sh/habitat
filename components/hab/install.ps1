@@ -301,21 +301,40 @@ Function Assert-HartChecksum($archive) {
 # (bundled with Windows since 10 1803 / Server 2019, with built-in xz support).
 Function Expand-Hart($hartPath) {
     $dest = $workdir
-    $bytes = [System.IO.File]::ReadAllBytes($hartPath)
-    $newlineCount = 0
-    $offset = -1
-    for ($i = 0; $i -lt $bytes.Length; $i++) {
-        if ($bytes[$i] -eq 10) {
-            $newlineCount++
-            if ($newlineCount -eq 5) { $offset = $i + 1; break }
-        }
-    }
-    if($offset -lt 0) {
-        Write-Error "Unable to parse .hart file header in $hartPath"
-    }
-
     $payloadPath = Join-Path $dest "hab.tar.xz"
-    [System.IO.File]::WriteAllBytes($payloadPath, $bytes[$offset..($bytes.Length - 1)])
+
+    $reader = [System.IO.File]::OpenRead($hartPath)
+    try {
+        # Scan for the end of the 5-line header a byte at a time. The header
+        # is always tiny (well under 1KB), so this never buffers more than
+        # that; the (potentially large) payload after it is never read into
+        # memory as a whole.
+        $newlineCount = 0
+        $pos = 0
+        $offset = -1
+        $b = $reader.ReadByte()
+        while ($b -ge 0) {
+            if ($b -eq 10) {
+                $newlineCount++
+                if ($newlineCount -eq 5) { $offset = $pos + 1; break }
+            }
+            $pos++
+            $b = $reader.ReadByte()
+        }
+        if ($offset -lt 0) {
+            Write-Error "Unable to parse .hart file header in $hartPath"
+        }
+
+        $reader.Seek($offset, [System.IO.SeekOrigin]::Begin) | Out-Null
+        $writer = [System.IO.File]::Create($payloadPath)
+        try {
+            $reader.CopyTo($writer)
+        } finally {
+            $writer.Dispose()
+        }
+    } finally {
+        $reader.Dispose()
+    }
 
     $tarExe = Get-Command "tar.exe" -ErrorAction SilentlyContinue
     if(!$tarExe) {
