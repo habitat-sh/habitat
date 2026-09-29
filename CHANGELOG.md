@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.108 -->
-## [2.1.108](https://github.com/habitat-sh/habitat/tree/2.1.108) (2026-09-28)
+<!-- latest_release 2.1.109 -->
+## [2.1.109](https://github.com/habitat-sh/habitat/tree/2.1.109) (2026-09-29)
 
 #### Merged Pull Requests
-- Bump rand from 0.10.2 to 0.10.3 [#10581](https://github.com/habitat-sh/habitat/pull/10581) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libsodium-rs from 0.2.4 to 0.2.5 [#10588](https://github.com/habitat-sh/habitat/pull/10588) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump libsodium-rs from 0.2.4 to 0.2.5 [#10588](https://github.com/habitat-sh/habitat/pull/10588) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.109 -->
 - Bump rand from 0.10.2 to 0.10.3 [#10581](https://github.com/habitat-sh/habitat/pull/10581) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.108 -->
 - Bump thiserror from 2.0.20 to 2.0.21 [#10585](https://github.com/habitat-sh/habitat/pull/10585) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.107 -->
 - Bump actix-http from 3.13.6 to 3.13.7 [#10584](https://github.com/habitat-sh/habitat/pull/10584) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.107 -->
