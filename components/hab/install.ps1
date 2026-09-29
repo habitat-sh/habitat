@@ -450,7 +450,7 @@ try {
         Expand-Hart $archive.hart
         $ident = $archive.ident
         $binDir = Join-Path $workdir "hab\pkgs\$($ident.origin)\$($ident.name)\$($ident.version)\$($ident.release)\bin"
-        $fullIdent = Install-Habitat -sourceDir $binDir -fullIdent "$($ident.version)/$($ident.release)"
+        $fullIdent = Install-Habitat -sourceDir $binDir -fullIdent "$($ident.version)-$($ident.release)-$Target"
     }
     Assert-Habitat -ident $fullIdent -target $Target
 
