@@ -48,13 +48,149 @@ Set-Variable packagesChefioRootUrl -Option ReadOnly -Value "https://packages.che
 Set-Variable defaultBldrUrl -Option ReadOnly -Value "https://bldr.habitat.sh"
 
 if(!$Target) {
-    $isArm64 = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64
+    # Use PROCESSOR_ARCHITECTURE/PROCESSOR_ARCHITEW6432 (set by Windows itself,
+    # not .NET) instead of [System.Runtime.InteropServices.RuntimeInformation],
+    # which requires .NET 4.7.1+ and is unavailable on older hosts such as
+    # Windows Server 2012 / Windows 8.
+    $isArm64 = ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") -Or ($env:PROCESSOR_ARCHITEW6432 -eq "ARM64")
     $Target = if($isArm64) { "aarch64-windows" } else { "x86_64-windows" }
 }
 
 if(!$BldrUrl) {
     $BldrUrl = if($env:HAB_BLDR_URL) { $env:HAB_BLDR_URL } else { $defaultBldrUrl }
 }
+
+# Habitat's Depot/.hart checksum is an unkeyed BLAKE2b-256 (32-byte) digest of
+# the full raw file (see components/core/src/crypto/hash.rs). .NET has no
+# built-in Blake2b support, so a minimal RFC 7693 implementation is embedded
+# here to allow verifying the downloaded .hart before it is extracted/run.
+$blake2bSource = @"
+using System;
+using System.IO;
+using System.Text;
+
+public static class HabBlake2b
+{
+    static readonly ulong[] IV = new ulong[]
+    {
+        0x6a09e667f3bcc908UL, 0xbb67ae8584caa73bUL, 0x3c6ef372fe94f82bUL, 0xa54ff53a5f1d36f1UL,
+        0x510e527fade682d1UL, 0x9b05688c2b3e6c1fUL, 0x1f83d9abfb41bd6bUL, 0x5be0cd19137e2179UL
+    };
+
+    static readonly byte[,] SIGMA = new byte[12, 16]
+    {
+        {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15},
+        {14,10,4,8,9,15,13,6,1,12,0,2,11,7,5,3},
+        {11,8,12,0,5,2,15,13,10,14,3,6,7,1,9,4},
+        {7,9,3,1,13,12,11,14,2,6,5,10,4,0,15,8},
+        {9,0,5,7,2,4,10,15,14,1,11,12,6,8,3,13},
+        {2,12,6,10,0,11,8,3,4,13,7,5,15,14,1,9},
+        {12,5,1,15,14,13,4,10,0,7,6,3,9,2,8,11},
+        {13,11,7,14,12,1,3,9,5,0,15,4,8,6,2,10},
+        {6,15,14,9,11,3,0,8,12,2,13,7,1,4,10,5},
+        {10,2,8,4,7,6,1,5,15,11,9,14,3,12,13,0},
+        {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15},
+        {14,10,4,8,9,15,13,6,1,12,0,2,11,7,5,3}
+    };
+
+    static ulong Rotr64(ulong x, int n) { return (x >> n) | (x << (64 - n)); }
+
+    static void G(ulong[] v, int a, int b, int c, int d, ulong x, ulong y)
+    {
+        v[a] = v[a] + v[b] + x;
+        v[d] = Rotr64(v[d] ^ v[a], 32);
+        v[c] = v[c] + v[d];
+        v[b] = Rotr64(v[b] ^ v[c], 24);
+        v[a] = v[a] + v[b] + y;
+        v[d] = Rotr64(v[d] ^ v[a], 16);
+        v[c] = v[c] + v[d];
+        v[b] = Rotr64(v[b] ^ v[c], 63);
+    }
+
+    static void Compress(ulong[] h, byte[] block, ulong t0, ulong t1, bool final)
+    {
+        ulong[] m = new ulong[16];
+        for (int i = 0; i < 16; i++)
+        {
+            m[i] = BitConverter.ToUInt64(block, i * 8);
+        }
+
+        ulong[] v = new ulong[16];
+        Array.Copy(h, v, 8);
+        Array.Copy(IV, 0, v, 8, 8);
+        v[12] ^= t0;
+        v[13] ^= t1;
+        if (final) { v[14] = ~v[14]; }
+
+        for (int round = 0; round < 12; round++)
+        {
+            G(v, 0, 4, 8, 12, m[SIGMA[round, 0]], m[SIGMA[round, 1]]);
+            G(v, 1, 5, 9, 13, m[SIGMA[round, 2]], m[SIGMA[round, 3]]);
+            G(v, 2, 6, 10, 14, m[SIGMA[round, 4]], m[SIGMA[round, 5]]);
+            G(v, 3, 7, 11, 15, m[SIGMA[round, 6]], m[SIGMA[round, 7]]);
+            G(v, 0, 5, 10, 15, m[SIGMA[round, 8]], m[SIGMA[round, 9]]);
+            G(v, 1, 6, 11, 12, m[SIGMA[round, 10]], m[SIGMA[round, 11]]);
+            G(v, 2, 7, 8, 13, m[SIGMA[round, 12]], m[SIGMA[round, 13]]);
+            G(v, 3, 4, 9, 14, m[SIGMA[round, 14]], m[SIGMA[round, 15]]);
+        }
+
+        for (int i = 0; i < 8; i++)
+        {
+            h[i] ^= v[i] ^ v[i + 8];
+        }
+    }
+
+    public static string HashBytes(byte[] data, int digestLength)
+    {
+        ulong[] h = new ulong[8];
+        Array.Copy(IV, h, 8);
+        h[0] ^= (0x01010000UL | (ulong)digestLength);
+
+        int totalLen = data.Length;
+        int offset = 0;
+        ulong bytesCompressed = 0;
+        byte[] block = new byte[128];
+
+        if (totalLen == 0)
+        {
+            Compress(h, new byte[128], 0, 0, true);
+        }
+        else
+        {
+            while (offset < totalLen)
+            {
+                int remaining = totalLen - offset;
+                int chunk = remaining < 128 ? remaining : 128;
+                Array.Clear(block, 0, 128);
+                Array.Copy(data, offset, block, 0, chunk);
+                offset += chunk;
+                bytesCompressed += (ulong)chunk;
+                bool isFinal = offset >= totalLen;
+                Compress(h, block, bytesCompressed, 0, isFinal);
+            }
+        }
+
+        byte[] result = new byte[64];
+        for (int i = 0; i < 8; i++)
+        {
+            BitConverter.GetBytes(h[i]).CopyTo(result, i * 8);
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < digestLength; i++)
+        {
+            sb.Append(result[i].ToString("x2"));
+        }
+        return sb.ToString();
+    }
+
+    public static string HashFile(string path, int digestLength)
+    {
+        return HashBytes(File.ReadAllBytes(path), digestLength);
+    }
+}
+"@
+Add-Type -TypeDefinition $blake2bSource -ErrorAction Stop
 
 Function Get-File($url, $dst) {
     Write-Host "Downloading $url"
@@ -114,12 +250,18 @@ Function Get-Archive($channel, $version) {
 Function Get-ArchiveFromBuilder($bldrUrl, $channel, $version, $target, $token) {
     $origin = "chef"
     $identPath = "depot/channels/$origin/$channel/pkgs/hab"
+    $fullyQualified = $false
     if($version -And $version -ne "latest") {
         $ver,$release = $version -split "/",2,"SimpleMatch"
         $identPath += "/$ver"
-        if($release) { $identPath += "/$release" }
+        if($release) {
+            $identPath += "/$release"
+            $fullyQualified = $true
+        }
     }
-    $identPath += "/latest"
+    if(!$fullyQualified) {
+        $identPath += "/latest"
+    }
 
     $metaUrl = "$bldrUrl/v1/$identPath`?target=$target"
     Write-Host "Resolving hab package via $metaUrl"
@@ -139,6 +281,16 @@ Function Get-ArchiveFromBuilder($bldrUrl, $channel, $version, $target, $token) {
     Invoke-WebRequest -Uri $downloadUrl -Headers $webRequestHeaders -OutFile $hartDest -UseBasicParsing
 
     @{ "hart" = $hartDest; "ident" = $ident; "checksum" = $metaJson.checksum }
+}
+
+Function Assert-HartChecksum($archive) {
+    Write-Host "Verifying the Blake2b checksum matches the downloaded .hart"
+    $actual = [HabBlake2b]::HashFile($archive.hart, 32)
+    if($actual -ne $archive.checksum) {
+        Write-Host "Expected: $($archive.checksum)"
+        Write-Host "Actual:   $actual"
+        Write-Error "Checksum '$($archive.checksum)' invalid. The downloaded .hart may be corrupted or tampered with; refusing to extract or install it."
+    }
 }
 
 # Strips the ASCII header off a .hart file (5 lines: format version,
@@ -286,19 +438,19 @@ try {
         }
         Expand-zip $archive.zip
         $folder = (Get-ChildItem (Join-Path ($workdir) "hab-*"))
-        $fullIdent = Install-Habitat $folder.FullName $folder.Name.Replace("hab-","")
+        $fullIdent = Install-Habitat -sourceDir $folder.FullName -fullIdent $folder.Name.Replace("hab-","")
     } else {
         # Targets not yet published to packages.chef.io (ex: aarch64-windows)
         # are installed directly from a Builder Depot instance instead.
         Write-Warning "$Target is not published to packages.chef.io. Downloading directly from $BldrUrl instead."
-        $archive = Get-ArchiveFromBuilder $BldrUrl $channel $version $Target $AuthToken
-        Write-Warning "Checksum verification is not yet supported for Builder-direct downloads (Blake2b checksum $($archive.checksum)). Skipping validation."
+        $archive = Get-ArchiveFromBuilder -bldrUrl $BldrUrl -channel $channel -version $version -target $Target -token $AuthToken
+        Assert-HartChecksum $archive
         Expand-Hart $archive.hart
         $ident = $archive.ident
         $binDir = Join-Path $workdir "hab\pkgs\$($ident.origin)\$($ident.name)\$($ident.version)\$($ident.release)\bin"
-        $fullIdent = Install-Habitat $binDir "$($ident.version)/$($ident.release)"
+        $fullIdent = Install-Habitat -sourceDir $binDir -fullIdent "$($ident.version)/$($ident.release)"
     }
-    Assert-Habitat $fullIdent $Target
+    Assert-Habitat -ident $fullIdent -target $Target
 
     Write-Host "Installation of Habitat 'hab' program complete."
 } finally {
