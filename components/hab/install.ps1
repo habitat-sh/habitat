@@ -190,7 +190,9 @@ public static class HabBlake2b
     }
 }
 "@
-Add-Type -TypeDefinition $blake2bSource -ErrorAction Stop
+if (-not ([System.Management.Automation.PSTypeName]"HabBlake2b").Type) {
+    Add-Type -TypeDefinition $blake2bSource -ErrorAction Stop
+}
 
 Function Get-File($url, $dst) {
     Write-Host "Downloading $url"
