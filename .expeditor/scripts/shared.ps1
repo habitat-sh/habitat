@@ -38,7 +38,7 @@ function Get-RustfmtToolchain {
     "$(Get-Content $PSScriptRoot\..\..\RUSTFMT_VERSION)-x86_64-pc-windows-msvc"
 }
 
-function Install-Habitat($HabChannel = "stable") {
+function Install-Habitat($HabChannel = $(if ($env:HAB_BLDR_CHANNEL) { $env:HAB_BLDR_CHANNEL } else { "base" })) {
     if (Get-Command -Name Add-MpPreference -ErrorAction SilentlyContinue) {
         # this should suppress the removal of hab.exe as a virus threat
         Write-Host "Adding Windows Defender exclusions for habitat"
@@ -50,7 +50,7 @@ function Install-Habitat($HabChannel = "stable") {
     if (Get-Command -Name hab -ErrorAction SilentlyContinue) {
         hab pkg install chef/hab --binlink --force --channel=$HabChannel
     } else {
-        ."$PSScriptRoot\..\..\components\hab\install.ps1"
+        ."$PSScriptRoot\..\..\components\hab\install.ps1" -Channel $HabChannel
         ."$env:ProgramData\habitat\hab.exe" pkg install chef/hab --binlink --force --channel=$HabChannel
     }
 

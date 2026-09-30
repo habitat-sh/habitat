@@ -1,0 +1,62 @@
+# Verify jobs for the aarch64-windows platform.
+#
+# This is a temporary home for aarch64-windows verification: our Buildkite
+# agents (driven by .expeditor/verify.pipeline.yml) do not have aarch64-windows
+# capacity, so these jobs run on a GitHub-hosted ARM64 Windows runner instead.
+# They reuse the exact same .expeditor/scripts/verify/build_package.ps1 script
+# that the Buildkite x86_64-windows "[build] :windows: ..." jobs use, so build
+# logic stays in one place.
+#
+# chef/hab is not yet published for aarch64-windows on packages.chef.io or on
+# the public Builder (bldr.habitat.sh) "stable" channel, so HAB_BLDR_URL/
+# HAB_BLDR_CHANNEL below point Install-Habitat (.expeditor/scripts/shared.ps1)
+# at the acceptance Builder's "unstable" channel instead, where the
+# aarch64-windows chef/hab package currently lives. Once aarch64-windows is
+# added to the release pipeline and ships on packages.chef.io, these env vars
+# (and eventually this whole workflow, in favor of the Buildkite pipeline)
+# can be removed.
+#
+# HAB_AUTH_TOKEN is only required if the Builder instance above enforces auth
+# on package downloads (bldr.acceptance.habitat.sh currently does). Configure
+# a repo/org secret named HAB_ACCEPTANCE_AUTH_TOKEN if so.
+
+name: Verify aarch64-windows
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  HAB_LICENSE: "accept-no-persist"
+  HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
+  HAB_BLDR_CHANNEL: "unstable"
+  HAB_REFRESH_CHANNEL: "unstable"
+  HAB_AUTH_TOKEN: ${{ secrets.HAB_ACCEPTANCE_AUTH_TOKEN }}
+
+jobs:
+  build-hab:
+    name: "[build] :windows-arm: hab"
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build components/hab
+        run: .expeditor/scripts/verify/build_package.ps1 components/hab
+        shell: powershell
+
+  build-plan-build-ps1:
+    name: "[build] :windows-arm: plan-build-ps1"
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build components/plan-build-ps1
+        run: .expeditor/scripts/verify/build_package.ps1 components/plan-build-ps1
+        shell: powershell
+
+  build-studio:
+    name: "[build] :windows-arm: studio"
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build components/studio
+        run: .expeditor/scripts/verify/build_package.ps1 components/studio
+        shell: powershell
