@@ -31,6 +31,7 @@ env:
   HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
   HAB_BLDR_CHANNEL: "unstable"
   HAB_REFRESH_CHANNEL: "unstable"
+  HAB_INTERNAL_BLDR_CHANNEL: "unstable"
   HAB_AUTH_TOKEN: ${{ secrets.HAB_ACCEPTANCE_AUTH_TOKEN }}
 
 jobs:
