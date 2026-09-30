@@ -4,6 +4,19 @@ $env:PathSeparator = if ($IsWindows -Or !$IsCoreCLR) {
     ":"
 }
 
+# Returns the Rust target triple matching the actual CPU architecture of the
+# host we're running on (ex: x86_64-pc-windows-msvc, aarch64-pc-windows-msvc).
+# Uses PROCESSOR_ARCHITECTURE/PROCESSOR_ARCHITEW6432 (set by Windows itself)
+# rather than [System.Runtime.InteropServices.RuntimeInformation], which
+# requires .NET 4.7.1+ and is unavailable on some older hosts.
+function Get-RustHostTriple {
+    $arch = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
+    switch ($arch) {
+        "ARM64" { "aarch64-pc-windows-msvc" }
+        default { "x86_64-pc-windows-msvc" }
+    }
+}
+
 # Run a command, and automatically throw an error if the exit code is non-zero.
 function Invoke-NativeCommand() {
     if ($args.Count -eq 0) {
@@ -35,7 +48,7 @@ function Get-RustfmtToolchain {
     # break the way rustfmt uses rustc. Therefore, before updating the pin below, double check
     # that the nightly version you're going to update it to includes rustfmt. You can do that
     # using https://mexus.github.io/rustup-components-history/x86_64-unknown-linux-gnu.html
-    "$(Get-Content $PSScriptRoot\..\..\RUSTFMT_VERSION)-x86_64-pc-windows-msvc"
+    "$(Get-Content $PSScriptRoot\..\..\RUSTFMT_VERSION)-$(Get-RustHostTriple)"
 }
 
 function Install-Habitat($HabChannel = $(if ($env:HAB_BLDR_CHANNEL) { $env:HAB_BLDR_CHANNEL } else { "base" })) {
@@ -58,7 +71,7 @@ function Install-Habitat($HabChannel = $(if ($env:HAB_BLDR_CHANNEL) { $env:HAB_B
 }
 
 function Get-Toolchain {
-    "$((ConvertFrom-StringData (Get-Content $PSScriptRoot\..\..\rust-toolchain)[1]).channel.Replace('"', ''))-x86_64-pc-windows-msvc"
+    "$((ConvertFrom-StringData (Get-Content $PSScriptRoot\..\..\rust-toolchain)[1]).channel.Replace('"', ''))-$(Get-RustHostTriple)"
 }
 
 function New-PathString([string]$StartingPath, [string]$Path) {
@@ -83,8 +96,9 @@ function Install-Rustup($Toolchain) {
 
     if (Get-Command -Name rustup.exe -ErrorAction SilentlyContinue) {
         Write-Host "rustup is currently installed"
-        rustup set default-host x86_64-pc-windows-msvc
-        rustup default stable-x86_64-pc-windows-msvc
+        $hostTriple = Get-RustHostTriple
+        rustup set default-host $hostTriple
+        rustup default "stable-$hostTriple"
     } else {
         Write-Host "Installing rustup and $toolchain Rust."
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
