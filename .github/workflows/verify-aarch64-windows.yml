@@ -62,6 +62,15 @@ jobs:
         run: .expeditor/scripts/verify/build_package.ps1 components/studio
         shell: powershell
 
+  build-test-probe:
+    name: "[build] :windows-arm: test-probe"
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build test-services/test-probe
+        run: .expeditor/scripts/verify/build_package.ps1 test-services/test-probe
+        shell: powershell
+
   #######################################################################
   # [unit] jobs below mirror every "[unit] :windows: ..." job in
   # .expeditor/verify.pipeline.yml, reusing the same underlying scripts.
