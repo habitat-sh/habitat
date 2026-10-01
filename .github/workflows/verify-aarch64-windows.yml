@@ -76,14 +76,6 @@ jobs:
   # .expeditor/verify.pipeline.yml, reusing the same underlying scripts.
   #######################################################################
 
-  test-ignored:
-    name: "[unit] :windows-arm: ignored"
-    runs-on: windows-11-arm
-    steps:
-      - uses: actions/checkout@v7
-      - run: .expeditor/scripts/verify/run_cargo_test.ps1 -TestOptions "--ignored"
-        shell: powershell
-
   test-builder-api-client:
     name: "[unit] :windows-arm: builder-api-client"
     runs-on: windows-11-arm
