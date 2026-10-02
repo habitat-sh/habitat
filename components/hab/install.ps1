@@ -8,7 +8,8 @@ Authors: The Habitat Maintainers <humans@habitat.sh>
 This script builds habitat components and ensures that all necesary prerequisites are installed.
 
 .Parameter Channel
-Specifies a channel
+Specifies a channel. Defaults to $env:HAB_BLDR_CHANNEL, or "stable" if that is
+not set.
 
 .Parameter Version
 Specifies a version (ex: 0.75.0, 0.75.0/20190219232208)
@@ -32,7 +33,7 @@ origin). Defaults to $env:HAB_AUTH_TOKEN.
 
 param (
     [Alias("c")]
-    [string]$Channel="stable",
+    [string]$Channel,
     [Alias("v")]
     [string]$Version,
     [Alias("t")]
@@ -46,6 +47,10 @@ $ErrorActionPreference="stop"
 
 Set-Variable packagesChefioRootUrl -Option ReadOnly -Value "https://packages.chef.io/files"
 Set-Variable defaultBldrUrl -Option ReadOnly -Value "https://bldr.habitat.sh"
+
+if(!$Channel) {
+    $Channel = if($env:HAB_BLDR_CHANNEL) { $env:HAB_BLDR_CHANNEL } else { "stable" }
+}
 
 if(!$Target) {
     # Use PROCESSOR_ARCHITECTURE/PROCESSOR_ARCHITEW6432 (set by Windows itself,

@@ -48,5 +48,5 @@ function Initialize-Environment {
 }
 
 function Get-NightlyToolchain {
-    "$(Get-Content $PSScriptRoot\..\..\..\RUST_NIGHTLY_VERSION)-x86_64-pc-windows-msvc"
+    "$(Get-Content $PSScriptRoot\..\..\..\RUST_NIGHTLY_VERSION)-$(Get-RustHostTriple)"
 }
