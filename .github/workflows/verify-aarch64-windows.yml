@@ -90,7 +90,7 @@ jobs:
         shell: powershell
 
   #######################################################################
-  # [unit] jobs below mirror every "[unit] :windows: ..." job in
+  # [unit] jobs below mirror selected "[unit] :windows: ..." job in
   # .expeditor/verify.pipeline.yml, reusing the same underlying scripts.
   #######################################################################
 
