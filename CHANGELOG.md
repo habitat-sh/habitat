@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.114 -->
-## [2.1.114](https://github.com/habitat-sh/habitat/tree/2.1.114) (2026-10-02)
+<!-- latest_release 2.1.115 -->
+## [2.1.115](https://github.com/habitat-sh/habitat/tree/2.1.115) (2026-10-05)
 
 #### Merged Pull Requests
-- Bump tokio-rustls from 0.26.5 to 0.26.6 [#10593](https://github.com/habitat-sh/habitat/pull/10593) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump lazy_static from 1.5.0 to 1.5.1 [#10595](https://github.com/habitat-sh/habitat/pull/10595) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump lazy_static from 1.5.0 to 1.5.1 [#10595](https://github.com/habitat-sh/habitat/pull/10595) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.115 -->
 - Bump tokio-rustls from 0.26.5 to 0.26.6 [#10593](https://github.com/habitat-sh/habitat/pull/10593) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.114 -->
 - Bump wincode from 0.6.1 to 0.6.2 [#10592](https://github.com/habitat-sh/habitat/pull/10592) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.113 -->
 - Bump actix-http from 3.18.9 to 3.18.12 [#10590](https://github.com/habitat-sh/habitat/pull/10590) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.112 -->
