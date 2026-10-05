@@ -5,5 +5,4 @@ Install-Habitat
 hab pkg install core/pester
 Import-Module "$(hab pkg path core/pester)\module\pester.psd1"
 
-$test_result = Invoke-Pester -PassThru
-exit $test_result.FailedCount
+Invoke-Pester $PSScriptRoot -EnableExit
