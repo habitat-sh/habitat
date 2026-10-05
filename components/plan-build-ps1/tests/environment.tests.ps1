@@ -21,16 +21,17 @@ BeforeAll {
         New-Item $root -ItemType Directory -Force | Out-Null
         New-PSDrive -Name PlanBuildTestDrive -PSProvider FileSystem -Root $root -Scope Global | Out-Null
     }
-}
 
-Describe "Invoke-SetupEnvironmentWrapper" {
-    BeforeAll {
+    # Sibling Context blocks that write package metadata files to disk must not share
+    # the same root directory, otherwise files written by one Context (e.g. a
+    # RUNTIME_ENVIRONMENT_PATHS file) persist on disk and leak into a later Context
+    # that reuses the same path, producing stale/duplicated results. So this gets a
+    # fresh PlanBuildTestDrive (and all paths derived from it) called fresh from each
+    # Context's own BeforeAll, rather than once per Describe.
+    function Initialize-EnvironmentTestState {
         New-PlanBuildTestDrive
         New-Item "PlanBuildTestDrive:\src" -ItemType Directory -Force | Out-Null
         $env:FS_ROOT = (Get-PSDrive PlanBuildTestDrive).Root
-        $envvars = @{}
-
-        Mock New-Item { $envvars[$name] = $value } -ParameterFilter {$Path -eq "Env:"}
 
         $script:HAB_PKG_PATH = Join-Path $env:FS_ROOT "hab\pkgs"
         $script:originalPath = "PlanBuildTestDrive:\src"
@@ -39,11 +40,29 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         $script:pkg_version = "0.1.0"
         $script:pkg_release = "30300101010000"
         $script:pkg_prefix = "$HAB_PKG_PATH\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
-        $unrooted = "\hab\pkgs\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
-    }
+        $script:unrooted = "\hab\pkgs\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
 
+        $script:env = @{
+            RunTime   = @{}
+            BuildTime = @{}
+        }
+        $script:provenance = @{
+            RunTime   = @{}
+            BuildTime = @{}
+        }
+        $script:pkg_all_deps_resolved = @()
+        $script:pkg_deps = @()
+        $script:pkg_build_deps = @()
+    }
+}
+
+Describe "Invoke-SetupEnvironmentWrapper" {
     Context "Unrooted values" {
         BeforeAll {
+            Initialize-EnvironmentTestState
+            $envvars = @{}
+            Mock New-Item { $envvars[$name] = $value } -ParameterFilter {$Path -eq "Env:"}
+
             function Invoke-SetupEnvironment {
                 Set-RuntimeEnv -IsPath "test_set_run_var" "$unrooted\test_set_run_var"
                 Set-BuildtimeEnv -IsPath "test_set_build_var" "$unrooted\test_set_build_var"
@@ -84,14 +103,9 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 
     Context "Rooted values" {
         BeforeAll {
-            $script:env = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
-            $script:provenance = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
+            Initialize-EnvironmentTestState
+            $envvars = @{}
+            Mock New-Item { $envvars[$name] = $value } -ParameterFilter {$Path -eq "Env:"}
 
             function Invoke-SetupEnvironment {
                 Set-RuntimeEnv -IsPath "test_set_run_var" "$pkg_prefix\test_set_run_var"
@@ -133,14 +147,9 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 
     Context "Non path values" {
         BeforeAll {
-            $script:env = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
-            $script:provenance = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
+            Initialize-EnvironmentTestState
+            $envvars = @{}
+            Mock New-Item { $envvars[$name] = $value } -ParameterFilter {$Path -eq "Env:"}
 
             function Invoke-SetupEnvironment {
                 Set-RuntimeEnv "test_set_run_var" "$pkg_prefix\test_set_run_var"
@@ -182,15 +191,9 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 
     Context "Dependency ENVIRONMENT_PATHS" {
         BeforeAll {
-            $script:env = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
-            $script:provenance = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
-            $script:pkg_all_deps_resolved = @()
+            Initialize-EnvironmentTestState
+            $envvars = @{}
+            Mock New-Item { $envvars[$name] = $value } -ParameterFilter {$Path -eq "Env:"}
 
             $script:pkg_deps = @("core/run-dep")
             $script:pkg_build_deps = @("core/build-dep")
@@ -225,15 +228,9 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 
     Context "Dependency unrooted ENVIRONMENT" {
         BeforeAll {
-            $script:env = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
-            $script:provenance = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
-            $script:pkg_all_deps_resolved = @()
+            Initialize-EnvironmentTestState
+            $envvars = @{}
+            Mock New-Item { $envvars[$name] = $value } -ParameterFilter {$Path -eq "Env:"}
 
             $script:pkg_deps = @("core/run-dep")
             $script:pkg_build_deps = @("core/build-dep")
@@ -263,18 +260,11 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 
     Context "PSModulePath" {
         BeforeAll {
+            Initialize-EnvironmentTestState
+            $envvars = @{}
+            Mock New-Item { $envvars[$name] = $value } -ParameterFilter {$Path -eq "Env:"}
             Mock Get-Content { $envvars["PSModulePath"] } -ParameterFilter {$Path -eq "env:\PSModulePath"}
             Mock Test-Path { $envvars.ContainsKey("PSModulePath") } -ParameterFilter {$Path -eq "env:\PSModulePath"}
-
-            $script:env = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
-            $script:provenance = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
-            $script:pkg_all_deps_resolved = @()
 
             $script:pkg_deps = @("core/run-dep")
             $script:pkg_build_deps = @("core/build-dep")
@@ -303,37 +293,10 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 }
 
 Describe "Write-EnvironmentFiles" {
-    BeforeAll {
-        New-PlanBuildTestDrive
-        New-Item "PlanBuildTestDrive:\src" -ItemType Directory -Force | Out-Null
-        $env:FS_ROOT = (Get-PSDrive PlanBuildTestDrive).Root
-
-        Mock New-Item { } -ParameterFilter {$Path -eq "Env:"}
-
-        $script:HAB_PKG_PATH = Join-Path $env:FS_ROOT "hab\pkgs"
-        $script:originalPath = "PlanBuildTestDrive:\src"
-        $script:pkg_origin = "testorigin"
-        $script:pkg_name = "testpkg"
-        $script:pkg_version = "0.1.0"
-        $script:pkg_release = "30300101010000"
-        $script:pkg_prefix = "$HAB_PKG_PATH\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
-        $unrooted = "\hab\pkgs\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
-
-        $script:pkg_all_deps_resolved = @()
-        $script:pkg_deps = @()
-        $script:pkg_build_deps = @()
-    }
-
     Context "environment path values" {
         BeforeAll {
-            $script:env = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
-            $script:provenance = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
+            Initialize-EnvironmentTestState
+            Mock New-Item { } -ParameterFilter {$Path -eq "Env:"}
             mkdir $pkg_prefix -Force | Out-Null
             function Invoke-SetupEnvironment {
                 Set-RuntimeEnv -IsPath "test_set_run_var" "$pkg_prefix\test_set_run_var"
@@ -360,14 +323,8 @@ Describe "Write-EnvironmentFiles" {
 
     Context "environment values" {
         BeforeAll {
-            $script:env = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
-            $script:provenance = @{
-                RunTime   = @{}
-                BuildTime = @{}
-            }
+            Initialize-EnvironmentTestState
+            Mock New-Item { } -ParameterFilter {$Path -eq "Env:"}
             mkdir $pkg_prefix -Force | Out-Null
             function Invoke-SetupEnvironment {
                 Set-RuntimeEnv "test_set_run_var" "$pkg_prefix\test_set_run_var"
