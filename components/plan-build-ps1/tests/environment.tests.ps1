@@ -1,15 +1,29 @@
 . $PSScriptRoot\..\bin\shared.ps1
 . $PSScriptRoot\..\bin\environment.ps1
 
+# Describe/Context bodies run during Pester's Discovery phase, before the built-in
+# TestDrive: PSDrive is created (that only exists during the Run phase). So we create
+# our own PSDrive rooted at a fresh temp directory here instead, mirroring what
+# TestDrive does, so it is available immediately.
+function New-PlanBuildTestDrive {
+    if (Get-PSDrive -Name PlanBuildTestDrive -ErrorAction SilentlyContinue) {
+        Remove-PSDrive -Name PlanBuildTestDrive -Force
+    }
+    $root = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid())
+    New-Item $root -ItemType Directory -Force | Out-Null
+    New-PSDrive -Name PlanBuildTestDrive -PSProvider FileSystem -Root $root -Scope Global | Out-Null
+}
+
 Describe "Invoke-SetupEnvironmentWrapper" {
-    New-Item "TestDrive:\src" -ItemType Directory -Force | Out-Null
-    $env:FS_ROOT = (Get-PSDrive TestDrive).Root
+    New-PlanBuildTestDrive
+    New-Item "PlanBuildTestDrive:\src" -ItemType Directory -Force | Out-Null
+    $env:FS_ROOT = (Get-PSDrive PlanBuildTestDrive).Root
     $envvars = @{}
 
     Mock New-Item { $envvars[$name] = $value } -ParameterFilter {$Path -eq "Env:"}
 
     $script:HAB_PKG_PATH = Join-Path $env:FS_ROOT "hab\pkgs"
-    $script:originalPath = "TestDrive:\src"
+    $script:originalPath = "PlanBuildTestDrive:\src"
     $script:pkg_origin = "testorigin"
     $script:pkg_name = "testpkg"
     $script:pkg_version = "0.1.0"
@@ -266,13 +280,14 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 }
 
 Describe "Write-EnvironmentFiles" {
-    New-Item "TestDrive:\src" -ItemType Directory -Force | Out-Null
-    $env:FS_ROOT = (Get-PSDrive TestDrive).Root
+    New-PlanBuildTestDrive
+    New-Item "PlanBuildTestDrive:\src" -ItemType Directory -Force | Out-Null
+    $env:FS_ROOT = (Get-PSDrive PlanBuildTestDrive).Root
 
     Mock New-Item { } -ParameterFilter {$Path -eq "Env:"}
 
     $script:HAB_PKG_PATH = Join-Path $env:FS_ROOT "hab\pkgs"
-    $script:originalPath = "TestDrive:\src"
+    $script:originalPath = "PlanBuildTestDrive:\src"
     $script:pkg_origin = "testorigin"
     $script:pkg_name = "testpkg"
     $script:pkg_version = "0.1.0"

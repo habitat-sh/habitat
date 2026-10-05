@@ -1,8 +1,22 @@
 . $PSScriptRoot\..\bin\shared.ps1
 
+# Describe/Context bodies run during Pester's Discovery phase, before the built-in
+# TestDrive: PSDrive is created (that only exists during the Run phase). So we create
+# our own PSDrive rooted at a fresh temp directory here instead, mirroring what
+# TestDrive does, so it is available immediately.
+function New-PlanBuildTestDrive {
+    if (Get-PSDrive -Name PlanBuildTestDrive -ErrorAction SilentlyContinue) {
+        Remove-PSDrive -Name PlanBuildTestDrive -Force
+    }
+    $root = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid())
+    New-Item $root -ItemType Directory -Force | Out-Null
+    New-PSDrive -Name PlanBuildTestDrive -PSProvider FileSystem -Root $root -Scope Global | Out-Null
+}
+
 Describe "Get-HabPackagePath" {
-    New-Item "TestDrive:\src" -ItemType Directory -Force | Out-Null
-    $script:HAB_PKG_PATH = Join-Path (Get-PSDrive TestDrive).Root "hab\pkgs"
+    New-PlanBuildTestDrive
+    New-Item "PlanBuildTestDrive:\src" -ItemType Directory -Force | Out-Null
+    $script:HAB_PKG_PATH = Join-Path (Get-PSDrive PlanBuildTestDrive).Root "hab\pkgs"
     New-Item -ItemType Directory $HAB_PKG_PATH
     $pkg_path = Join-Path $HAB_PKG_PATH "core\blah\0.1.0\111"
     $script:pkg_all_deps_resolved = @($pkg_path)
