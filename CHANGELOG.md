@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.118 -->
-## [2.1.118](https://github.com/habitat-sh/habitat/tree/2.1.118) (2026-10-07)
+<!-- latest_release 2.1.119 -->
+## [2.1.119](https://github.com/habitat-sh/habitat/tree/2.1.119) (2026-10-07)
 
 #### Merged Pull Requests
-- add verify jobs for aarch64-windows [#10591](https://github.com/habitat-sh/habitat/pull/10591) ([mwrock](https://github.com/mwrock))
+- Bump mio from 1.2.3 to 1.2.4 [#10599](https://github.com/habitat-sh/habitat/pull/10599) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump mio from 1.2.3 to 1.2.4 [#10599](https://github.com/habitat-sh/habitat/pull/10599) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.119 -->
 - add verify jobs for aarch64-windows [#10591](https://github.com/habitat-sh/habitat/pull/10591) ([mwrock](https://github.com/mwrock)) <!-- 2.1.118 -->
 - Bump libc from 0.2.189 to 0.2.190 [#10598](https://github.com/habitat-sh/habitat/pull/10598) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.117 -->
 - Bump cc from 1.5.1 to 1.6.0 [#10597](https://github.com/habitat-sh/habitat/pull/10597) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.116 -->
