@@ -1,3 +1,6 @@
+. $PSScriptRoot\shared.ps1
+Install-Habitat
+
 Write-Host "--- Installing pester"
 hab pkg install core/pester
 Import-Module "$(hab pkg path core/pester)\module\pester.psd1"

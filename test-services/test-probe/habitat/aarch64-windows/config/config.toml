@@ -1,0 +1,3 @@
+host = "{{cfg.host}}"
+port = {{cfg.port}}
+render_context_file = "{{cfg.render_context_file}}"

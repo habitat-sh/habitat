@@ -7,3 +7,12 @@ components/launcher-protocol/src/message/supervisor.rs linguist-generated
 components/eventsrv-protocol/src/message/event.rs linguist-generated
 www/source/partials/docs/_reference-template-data.html.md.erb linguist-generated
 www/source/docs/habitat-cli.html.md linguist-generated
+
+# Crypto/package test fixtures (keys, signed artifacts, .hart archives, hash
+# test inputs, etc.) must be checked out byte-for-byte identical on every
+# platform. Several unit tests hash or sign/verify this content, so even
+# newline normalization (e.g. LF -> CRLF, applied by git's autocrlf on some
+# Windows runners/images) silently changes the fixture bytes and breaks the
+# tests with "hash doesn't match" failures. Mark the whole tree binary so git
+# never performs end-of-line conversion on it, regardless of autocrlf config.
+components/core/tests/fixtures/** -text
