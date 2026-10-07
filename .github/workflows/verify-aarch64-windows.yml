@@ -10,15 +10,11 @@
 # chef/hab is not yet published for aarch64-windows on packages.chef.io or on
 # the public Builder (bldr.habitat.sh) "stable" channel, so HAB_BLDR_URL/
 # HAB_BLDR_CHANNEL below point Install-Habitat (.expeditor/scripts/shared.ps1)
-# at the acceptance Builder's "unstable" channel instead, where the
+# at the "unstable" channel instead, where the
 # aarch64-windows chef/hab package currently lives. Once aarch64-windows is
 # added to the release pipeline and ships on packages.chef.io, these env vars
 # (and eventually this whole workflow, in favor of the Buildkite pipeline)
 # can be removed.
-#
-# HAB_AUTH_TOKEN is only required if the Builder instance above enforces auth
-# on package downloads (bldr.acceptance.habitat.sh currently does). Configure
-# a repo/org secret named HAB_ACCEPTANCE_AUTH_TOKEN if so.
 #
 # HAB_REFRESH_CHANNEL/HAB_INTERNAL_BLDR_CHANNEL are only meaningful to `hab
 # studio build`/`hab pkg build` (they pick which channel the studio sources
@@ -36,9 +32,8 @@ on:
 
 env:
   HAB_LICENSE: "accept-no-persist"
-  HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
   HAB_BLDR_CHANNEL: "unstable"
-  HAB_AUTH_TOKEN: ${{ secrets.HAB_ACCEPTANCE_AUTH_TOKEN }}
+  HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
 
 jobs:
   build-hab:
