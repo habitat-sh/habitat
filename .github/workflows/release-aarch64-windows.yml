@@ -1,0 +1,102 @@
+name: Build aarch64-windows release package
+run-name: Habitat release ${{ inputs.component }} (${{ inputs.request_id }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      component:
+        description: Habitat component directory to build
+        required: true
+        type: choice
+        options:
+          - hab
+          - plan-build-ps1
+          - studio
+      release_channel:
+        description: Pipeline-scoped Builder channel
+        required: true
+        type: string
+      source_sha:
+        description: Trusted release-branch commit to build
+        required: true
+        type: string
+      request_id:
+        description: Unique Buildkite request identifier
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aarch64-windows-release-${{ inputs.request_id }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1_6'
+    runs-on: windows-11-arm
+    timeout-minutes: 60
+    # Configure this environment with required reviewers and restrict it to
+    # protected release branches before enabling this workflow.
+    environment: habitat-release
+    env:
+      COMPONENT: ${{ inputs.component }}
+      RELEASE_CHANNEL: ${{ inputs.release_channel }}
+      SOURCE_SHA: ${{ inputs.source_sha }}
+      REQUEST_ID: ${{ inputs.request_id }}
+      BUILD_PKG_TARGET: aarch64-windows
+      HAB_BOOTSTRAP_CHANNEL: unstable
+      HAB_LICENSE: accept-no-persist
+      HAB_ORIGIN: chef
+      HAB_STUDIO_SECRET_HAB_FEAT_IGNORE_LOCAL: "true"
+      PIPELINE_HAB_BLDR_URL: https://bldr.habitat.sh
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate dispatch and release source
+        shell: powershell
+        run: |
+          if ($env:COMPONENT -notin @("hab", "plan-build-ps1", "studio")) {
+              throw "Unsupported release component: $env:COMPONENT"
+          }
+          if ($env:RELEASE_CHANNEL -notmatch '^habitat-release-[A-Za-z0-9-]+$') {
+              throw "Invalid release channel: $env:RELEASE_CHANNEL"
+          }
+          if ($env:REQUEST_ID -notmatch '^[A-Za-z0-9-]+$') {
+              throw "Invalid request id: $env:REQUEST_ID"
+          }
+          if ($env:SOURCE_SHA -notmatch '^[0-9a-fA-F]{40}$') {
+              throw "Invalid source commit: $env:SOURCE_SHA"
+          }
+          git merge-base --is-ancestor $env:SOURCE_SHA "origin/$env:GITHUB_REF_NAME"
+          if ($LASTEXITCODE -ne 0) {
+              throw "Source commit is not reachable from the dispatched release branch"
+          }
+          git checkout --detach $env:SOURCE_SHA
+          if ($LASTEXITCODE -ne 0) {
+              throw "Could not check out source commit $env:SOURCE_SHA"
+          }
+
+      - name: Build and upload package
+        shell: powershell
+        env:
+          HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
+          HAB_INTERNAL_BLDR_CHANNEL: unstable
+          HAB_REFRESH_CHANNEL: unstable
+        run: |
+          .expeditor/scripts/release_habitat/build_component.ps1 `
+            -Component $env:COMPONENT `
+            -ReleaseChannel $env:RELEASE_CHANNEL `
+            -SkipBuildkiteReporting
+
+      - name: Upload Buildkite result
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-build-result
+          path: results/release-build-result.json
+          if-no-files-found: error
+          retention-days: 1
