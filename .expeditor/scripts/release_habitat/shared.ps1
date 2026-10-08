@@ -13,37 +13,55 @@ function Install-BuildkiteAgent() {
 }
 
 function Install-LatestHabitat() {
-    # Install latest hab from using install.ps1
+    # Bootstrap hab from the release channel unless the target requires a
+    # channel that already contains a package for that architecture.
     $env:HAB_LICENSE = "accept-no-persist"
-    Write-Host "--- :habicat: Installing latest hab binary for $Env:HAB_PACKAGE_TARGET using install.ps1"
-    # HAB_BLDR_CHANNEL is the pipeline output channel here, not the bootstrap channel.
-    Install-Habitat -HabChannel "stable" | Out-Null
+    $BuildChannel = $Env:HAB_BLDR_CHANNEL
+    $BootstrapChannel = if ($Env:HAB_BOOTSTRAP_CHANNEL) { $Env:HAB_BOOTSTRAP_CHANNEL } else { "stable" }
+    $HabitatPackageChannel = if ($Env:HAB_PACKAGE_TARGET -eq "aarch64-windows") { "unstable" } else { $BuildChannel }
+    Write-Host "--- :habicat: Installing bootstrap hab for $Env:HAB_PACKAGE_TARGET from $BootstrapChannel"
+    Install-Habitat -HabChannel $BootstrapChannel | Out-Null
+    $Env:HAB_BLDR_CHANNEL = $BuildChannel
     $baseHabExe="C:\hab\bin\hab"
 
-    $HabVersion=GetLatestPkgVersionFromChannel("hab")
-    $StudioVersion=GetLatestPkgVersionFromChannel("hab-studio")
+    $HabVersion = GetLatestPkgVersionFromChannel -PackageName "hab" -Channel $HabitatPackageChannel
+    $StudioVersion = GetLatestPkgVersionFromChannel -PackageName "hab-studio" -Channel $HabitatPackageChannel
 
     if((-not [string]::IsNullOrEmpty($HabVersion)) -and `
         (-not [string]::IsNullOrEmpty($StudioVersion)) -and `
         ($HabVersion -eq $StudioVersion)) {
 
-        Write-Host "-- Hab and studio versions match! Found hab: $HabVersion - studio: $StudioVersion. Upgrading :awesome:"
-        Invoke-Expression "$baseHabExe pkg install chef/hab --binlink --force --channel $Env:HAB_BLDR_CHANNEL" | Out-Null
-        Invoke-Expression "$baseHabExe pkg install chef/hab-studio --binlink --force --channel $Env:HAB_BLDR_CHANNEL" | Out-Null
+        Write-Host "-- Hab and studio versions match on $HabitatPackageChannel! Found hab: $HabVersion - studio: $StudioVersion. Upgrading :awesome:"
+        Invoke-Expression "$baseHabExe pkg install chef/hab --binlink --force --channel $HabitatPackageChannel" | Out-Null
+        Invoke-Expression "$baseHabExe pkg install chef/hab-studio --binlink --force --channel $HabitatPackageChannel" | Out-Null
         # This is weird. Why does binlinking go here but the install.ps1 go to ProgramData?
     } else {
-        Write-Host "-- Hab and studio versions did not match. hab: $HabVersion - studio: $StudioVersion"
+        Write-Host "-- Hab and studio versions did not match on $HabitatPackageChannel. hab: $HabVersion - studio: $StudioVersion"
     }
     $baseHabExe
 }
 
-function GetLatestPkgVersionFromChannel($PackageName) {
+function GetLatestPkgVersionFromChannel {
+    param(
+        $PackageName,
+        $Channel = $null
+    )
+
     if($PackageName.Equals("")) {
         Write-Error "--- :error: Package name required"
     }
-    $ReleaseChannel="habitat-release-$Env:BUILDKITE_BUILD_ID"
+    $Channel = if ($Channel) {
+        $Channel
+    } elseif ($Env:HAB_BLDR_CHANNEL) {
+        $Env:HAB_BLDR_CHANNEL
+    } elseif ($Env:BUILDKITE_BUILD_ID) {
+        "habitat-release-$Env:BUILDKITE_BUILD_ID"
+    } else {
+        throw "HAB_BLDR_CHANNEL or BUILDKITE_BUILD_ID must be set"
+    }
     try {
-        $version=(Invoke-WebRequest "$Env:HAB_BLDR_URL/v1/depot/channels/chef/$ReleaseChannel/pkgs/$PackageName/latest?target=$Env:BUILD_PKG_TARGET" -UseBasicParsing).Content | jq -r '.ident | .version'
+        $response = Invoke-RestMethod "$Env:HAB_BLDR_URL/v1/depot/channels/chef/$Channel/pkgs/$PackageName/latest?target=$Env:BUILD_PKG_TARGET" -UseBasicParsing
+        $version = $response.ident.version
         Write-Host "Found version of ${PackageName} - $version"
     } catch {
         Write-Host "No version found for $PackageName"
@@ -59,18 +77,24 @@ function GetLatestPkgVersionFromChannel($PackageName) {
 # Each time we put a package into our release channel, we'll record
 # what target it was built for.
 #
-# The corresponding Linux function accepts a target, but this one is
-# only ever going to be called on Windows, so we'll just hard-code
-# that.
+# The target is recorded explicitly so the same package ident can be
+# tracked separately for each Windows target.
 #
 # Note that there is no corresponding `IdentHasTarget` function
 # because *that* can be called from Linux hosts, so there's no need
 # for a Windows-only implementation.
 function Set-TargetMetadata {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '')]
-    param($PackageIdent)
+    param(
+        $PackageIdent,
+        $Target = $Env:BUILD_PKG_TARGET
+    )
 
-    Invoke-Expression "buildkite-agent meta-data set $PackageIdent-x86_64-windows true"
+    if ([string]::IsNullOrWhiteSpace($Target)) {
+        throw "Target is required when setting Buildkite package metadata"
+    }
+
+    Invoke-Expression "buildkite-agent meta-data set $PackageIdent-$Target true"
 }
 
 
