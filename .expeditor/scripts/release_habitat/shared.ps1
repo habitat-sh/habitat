@@ -16,7 +16,8 @@ function Install-LatestHabitat() {
     # Install latest hab from using install.ps1
     $env:HAB_LICENSE = "accept-no-persist"
     Write-Host "--- :habicat: Installing latest hab binary for $Env:HAB_PACKAGE_TARGET using install.ps1"
-    Install-Habitat | Out-Null
+    # HAB_BLDR_CHANNEL is the pipeline output channel here, not the bootstrap channel.
+    Install-Habitat -HabChannel "stable" | Out-Null
     $baseHabExe="C:\hab\bin\hab"
 
     $HabVersion=GetLatestPkgVersionFromChannel("hab")
