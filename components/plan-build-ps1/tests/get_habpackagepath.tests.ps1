@@ -45,6 +45,9 @@ Describe "Get-HabPackagePath" {
     }
 
     It "errors if there is no package found" {
-        Get-HabPackagePath "blah/0.11.0" | Should -Be $null
+        {
+            $ErrorActionPreference = "Stop"
+            Get-HabPackagePath "blah/0.11.0"
+        } | Should -Throw -ExpectedMessage "*Get-HabPackagePath 'blah/0.11.0' did not find a suitable installed package*"
     }
 }
