@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.122 -->
-## [2.1.122](https://github.com/habitat-sh/habitat/tree/2.1.122) (2026-10-08)
+<!-- latest_release 2.1.123 -->
+## [2.1.123](https://github.com/habitat-sh/habitat/tree/2.1.123) (2026-10-09)
 
 #### Merged Pull Requests
-- fix get_habpackagepath tests on aarch64 [#10602](https://github.com/habitat-sh/habitat/pull/10602) ([mwrock](https://github.com/mwrock))
+- add release-aarch64-windows workflow [#10604](https://github.com/habitat-sh/habitat/pull/10604) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- add release-aarch64-windows workflow [#10604](https://github.com/habitat-sh/habitat/pull/10604) ([mwrock](https://github.com/mwrock)) <!-- 2.1.123 -->
 - fix get_habpackagepath tests on aarch64 [#10602](https://github.com/habitat-sh/habitat/pull/10602) ([mwrock](https://github.com/mwrock)) <!-- 2.1.122 -->
 - fixes woindows hab install in release pipeline [#10601](https://github.com/habitat-sh/habitat/pull/10601) ([mwrock](https://github.com/mwrock)) <!-- 2.1.121 -->
 - Fix buildkite false positive [#10596](https://github.com/habitat-sh/habitat/pull/10596) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.1.120 -->
