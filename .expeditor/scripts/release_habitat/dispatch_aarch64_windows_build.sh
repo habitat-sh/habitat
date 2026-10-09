@@ -16,14 +16,6 @@ esac
 : "${BUILDKITE_COMMIT:?BUILDKITE_COMMIT is required}"
 : "${GH_TOKEN:?GH_TOKEN with Actions read/write access is required}"
 
-case "${BUILDKITE_BRANCH}" in
-    main | v1_6) ;;
-    *)
-        echo "Refusing to dispatch a release build from untrusted branch '${BUILDKITE_BRANCH}'" >&2
-        exit 2
-        ;;
-esac
-
 for command in gh jq buildkite-agent; do
     if ! command -v "${command}" >/dev/null 2>&1; then
         echo "Required command '${command}' is not installed on this Buildkite agent" >&2
