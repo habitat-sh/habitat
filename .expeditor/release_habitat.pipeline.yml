@@ -48,6 +48,16 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
+  - label: "[:windows: build aarch64-windows hab]"
+    command:
+      - bash .expeditor/scripts/release_habitat/dispatch_aarch64_windows_build.sh hab
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: token
+
   - label: "[:mac: x86_64 build hab]"
     command:
       - .expeditor/scripts/release_habitat/build_mac_hab_binary.sh
@@ -116,6 +126,16 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+
+  - label: "[:windows-arm: build aarch64-windows plan-build-ps1]"
+    command:
+      - bash .expeditor/scripts/release_habitat/dispatch_aarch64_windows_build.sh plan-build-ps1
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          account: github/habitat-sh
+          field: token
 
   - label: "[:mac: aarch64 build hab-plan-build]"
     agents:
@@ -209,6 +229,16 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+
+  - label: "[:windows-arm: build aarch64-windows studio]"
+    command:
+      - bash .expeditor/scripts/release_habitat/dispatch_aarch64_windows_build.sh studio
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: token
 
   - label: "[:mac: aarch64 build hab-studio]"
     agents:
@@ -428,6 +458,17 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
+
+  - label: "[:windows-arm: upload aarch64-windows hab binary]"
+    command:
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=aarch64-windows
 
   - label: "[:mac: x86_64 upload hab binary]"
     command:

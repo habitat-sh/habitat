@@ -4,7 +4,9 @@
 
 param (
     # The name of the component to be built. Defaults to none
-    [string]$Component
+    [string]$Component,
+    [string]$ReleaseChannel,
+    [switch]$SkipBuildkiteReporting
 )
 
 $ErrorActionPreference="stop"
@@ -16,22 +18,31 @@ if($Component.Equals("")) {
     Write-Error "--- :error: Component to build not specified, please use the -Component flag"
 }
 
+if ([string]::IsNullOrWhiteSpace($Env:BUILD_PKG_TARGET)) {
+    throw "BUILD_PKG_TARGET must be set"
+}
+if ([string]::IsNullOrWhiteSpace($Env:HAB_AUTH_TOKEN)) {
+    throw "HAB_AUTH_TOKEN must be set to publish release packages"
+}
+
 # We have to do this because everything that comes from vault is quoted on windows.
 $Rawtoken=$Env:HAB_AUTH_TOKEN
 $Env:HAB_AUTH_TOKEN=$Rawtoken.Replace("`"","")
 
-$Env:buildkiteAgentToken = $Env:BUILDKITE_AGENT_ACCESS_TOKEN
-
 $Env:HAB_BLDR_URL=$Env:PIPELINE_HAB_BLDR_URL
 $Env:HAB_PACKAGE_TARGET=$Env:BUILD_PKG_TARGET
 
-Install-BuildkiteAgent
+$Channel = if ([string]::IsNullOrWhiteSpace($ReleaseChannel)) {
+    Get-ReleaseChannel
+} else {
+    $ReleaseChannel
+}
 
-# Install jq if it doesn't exist
-choco install jq -y | Out-Null
+if (-not $SkipBuildkiteReporting) {
+    $Env:buildkiteAgentToken = $Env:BUILDKITE_AGENT_ACCESS_TOKEN
+    Install-BuildkiteAgent
+}
 
-# For viewability
-$Channel = "habitat-release-$Env:BUILDKITE_BUILD_ID"
 Write-Host "--- Channel: $Channel - bldr url: $Env:HAB_BLDR_URL"
 
 # Note: HAB_BLDR_CHANNEL *must* be set for the following `hab pkg
@@ -52,7 +63,9 @@ $Env:HAB_ORIGIN = "chef"
 
 # Run a build!
 Write-Host "--- Running hab pkg build for $Component"
-git config --global --add safe.directory C:/workdir
+if (-not $SkipBuildkiteReporting) {
+    git config --global --add safe.directory C:/workdir
+}
 
 Invoke-Expression "$baseHabExe pkg build components\$Component --keys chef"
 . results\last_build.ps1
@@ -61,8 +74,18 @@ Write-Host "--- Running hab pkg upload for $Component to channel $Channel"
 Invoke-Expression "$baseHabExe pkg upload results\$pkg_artifact --channel=$Channel"
 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
-Set-TargetMetadata $pkg_ident
-
-Invoke-Expression "buildkite-agent annotate --append --context 'release-manifest' '<br>* ${pkg_ident} (x86_64-windows)'"
+$result = [PSCustomObject]@{
+    component = $Component
+    ident = $pkg_ident
+    target = $Env:BUILD_PKG_TARGET
+    channel = $Channel
+}
+$resultPath = Join-Path (Get-Location) "results\release-build-result.json"
+if ($SkipBuildkiteReporting) {
+    $result | ConvertTo-Json -Compress | Set-Content -Path $resultPath -Encoding ascii
+} else {
+    Set-TargetMetadata $pkg_ident $Env:BUILD_PKG_TARGET
+    Invoke-Expression "buildkite-agent annotate --append --context 'release-manifest' '<br>* ${pkg_ident} ($Env:BUILD_PKG_TARGET)'"
+}
 
 exit $LASTEXITCODE
