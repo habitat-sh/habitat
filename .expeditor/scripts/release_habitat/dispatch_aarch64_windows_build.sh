@@ -84,6 +84,26 @@ else
     echo "Could not read GH_TOKEN permissions on ${repository}: ${repo_permissions}" >&2
 fi
 
+if github_auth_response="$(gh api --include user 2>&1)"; then
+    github_oauth_scopes=""
+    while IFS= read -r response_line; do
+        if [[ "${response_line,,}" == x-oauth-scopes:* ]]; then
+            github_oauth_scopes="${response_line#*:}"
+            github_oauth_scopes="${github_oauth_scopes# }"
+            github_oauth_scopes="${github_oauth_scopes%$'\r'}"
+            break
+        fi
+    done <<<"${github_auth_response}"
+
+    if [[ -n "${github_oauth_scopes}" ]]; then
+        echo "GH_TOKEN OAuth scopes: ${github_oauth_scopes}"
+    else
+        echo "GH_TOKEN OAuth scopes: not reported by GitHub; check token permissions in GitHub"
+    fi
+else
+    echo "Could not inspect GH_TOKEN OAuth scopes: ${github_auth_response}" >&2
+fi
+
 echo "--- Dispatching GitHub Actions release build for ${component} (${BUILDKITE_COMMIT})"
 gh workflow run "${workflow}" \
     --repo "${repository}" \
