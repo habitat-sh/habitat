@@ -71,6 +71,19 @@ release_channel="habitat-release-${BUILDKITE_BUILD_ID}"
 request_id="${BUILDKITE_BUILD_ID}-${component}-$(date -u +%Y%m%d%H%M%S)-${RANDOM}"
 run_name="Habitat release ${component} (${request_id})"
 
+echo "--- Checking GitHub token identity and repository access"
+if github_login="$(gh api user --jq '.login' 2>&1)"; then
+    echo "GH_TOKEN authenticated as: ${github_login}"
+else
+    echo "Could not identify GH_TOKEN via the GitHub API: ${github_login}" >&2
+fi
+
+if repo_permissions="$(gh api "repos/${repository}" --jq '.permissions' 2>&1)"; then
+    echo "GH_TOKEN permissions on ${repository}: ${repo_permissions}"
+else
+    echo "Could not read GH_TOKEN permissions on ${repository}: ${repo_permissions}" >&2
+fi
+
 echo "--- Dispatching GitHub Actions release build for ${component} (${BUILDKITE_COMMIT})"
 gh workflow run "${workflow}" \
     --repo "${repository}" \
