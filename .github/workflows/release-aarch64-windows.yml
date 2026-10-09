@@ -34,7 +34,8 @@ concurrency:
 
 jobs:
   build:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1_6'
+    # Temporary test branch; remove after pre-merge validation.
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1_6' || github.ref == 'refs/heads/aarch64_release'
     runs-on: windows-11-arm
     timeout-minutes: 60
     # Configure this environment with required reviewers and restrict it to
