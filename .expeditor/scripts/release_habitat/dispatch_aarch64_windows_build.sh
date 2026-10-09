@@ -16,7 +16,49 @@ esac
 : "${BUILDKITE_COMMIT:?BUILDKITE_COMMIT is required}"
 : "${GH_TOKEN:?GH_TOKEN with Actions read/write access is required}"
 
-for command in gh jq buildkite-agent; do
+runtime_dir="$(mktemp -d)"
+trap 'rm -rf "${runtime_dir}"' EXIT
+
+install_gh_cli() {
+    local version="2.72.0"
+    local checksum archive archive_root
+
+    case "$(uname -s)/$(uname -m)" in
+        Linux/x86_64 | Linux/amd64) ;;
+        *)
+            echo "Cannot install GitHub CLI on $(uname -s)/$(uname -m)" >&2
+            return 1
+            ;;
+    esac
+
+    checksum="ffd3a9791075cf6119531302b06554e658f38ed12675a7fbfbf4d6b114c77f38"
+    for command in curl sha256sum tar; do
+        if ! command -v "${command}" >/dev/null 2>&1; then
+            echo "Required command '${command}' is not installed on this Buildkite agent" >&2
+            return 127
+        fi
+    done
+
+    archive="gh_${version}_linux_amd64.tar.gz"
+    archive_root="gh_${version}_linux_amd64"
+    curl --fail --location --silent --show-error --retry 3 \
+        "https://github.com/cli/cli/releases/download/v${version}/${archive}" \
+        --output "${runtime_dir}/${archive}"
+    if ! printf '%s  %s\n' "${checksum}" "${runtime_dir}/${archive}" \
+        | sha256sum --check --status; then
+        echo "SHA-256 verification failed for GitHub CLI ${version}" >&2
+        return 1
+    fi
+    tar -xzf "${runtime_dir}/${archive}" -C "${runtime_dir}" "${archive_root}/bin/gh"
+    export PATH="${runtime_dir}/${archive_root}/bin:${PATH}"
+}
+
+if ! command -v gh >/dev/null 2>&1; then
+    echo "--- Installing pinned GitHub CLI"
+    install_gh_cli
+fi
+
+for command in jq buildkite-agent; do
     if ! command -v "${command}" >/dev/null 2>&1; then
         echo "Required command '${command}' is not installed on this Buildkite agent" >&2
         exit 127
@@ -88,8 +130,8 @@ if [[ "${status:-}" != "completed" ]]; then
     exit 1
 fi
 
-artifact_dir="$(mktemp -d)"
-trap 'rm -rf "${artifact_dir}"' EXIT
+artifact_dir="${runtime_dir}/artifacts"
+mkdir -p "${artifact_dir}"
 gh run download "${run_id}" \
     --repo "${repository}" \
     --name release-build-result \
