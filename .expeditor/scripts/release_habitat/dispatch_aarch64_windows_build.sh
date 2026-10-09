@@ -105,13 +105,19 @@ else
 fi
 
 echo "--- Dispatching GitHub Actions release build for ${component} (${BUILDKITE_COMMIT})"
-gh workflow run "${workflow}" \
-    --repo "${repository}" \
-    --ref "${BUILDKITE_BRANCH}" \
-    --raw-field "component=${component}" \
-    --raw-field "release_channel=${release_channel}" \
-    --raw-field "source_sha=${BUILDKITE_COMMIT}" \
+dispatch_command=(
+    gh workflow run "${workflow}"
+    --repo "${repository}"
+    --ref "${BUILDKITE_BRANCH}"
+    --raw-field "component=${component}"
+    --raw-field "release_channel=${release_channel}"
+    --raw-field "source_sha=${BUILDKITE_COMMIT}"
     --raw-field "request_id=${request_id}"
+)
+printf 'Command:'
+printf ' %q' "${dispatch_command[@]}"
+printf '\n'
+"${dispatch_command[@]}"
 
 run_id=""
 for _ in $(seq 1 36); do
