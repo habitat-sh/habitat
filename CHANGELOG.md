@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.126 -->
-## [2.1.126](https://github.com/habitat-sh/habitat/tree/2.1.126) (2026-10-12)
+<!-- latest_release 2.1.127 -->
+## [2.1.127](https://github.com/habitat-sh/habitat/tree/2.1.127) (2026-10-12)
 
 #### Merged Pull Requests
-- Bump toml from 1.1.6+spec-1.1.0 to 1.1.8+spec-1.1.0 [#10606](https://github.com/habitat-sh/habitat/pull/10606) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump hyper from 1.11.1 to 1.12.0 [#10605](https://github.com/habitat-sh/habitat/pull/10605) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump hyper from 1.11.1 to 1.12.0 [#10605](https://github.com/habitat-sh/habitat/pull/10605) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.127 -->
 - Bump toml from 1.1.6+spec-1.1.0 to 1.1.8+spec-1.1.0 [#10606](https://github.com/habitat-sh/habitat/pull/10606) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.126 -->
 - Bump tokio-util from 0.7.19 to 0.7.20 [#10607](https://github.com/habitat-sh/habitat/pull/10607) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.125 -->
 - Bump github/codeql-action from 4.38.2 to 4.38.3 [#10608](https://github.com/habitat-sh/habitat/pull/10608) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.124 -->
