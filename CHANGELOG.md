@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.124 -->
-## [2.1.124](https://github.com/habitat-sh/habitat/tree/2.1.124) (2026-10-12)
+<!-- latest_release 2.1.125 -->
+## [2.1.125](https://github.com/habitat-sh/habitat/tree/2.1.125) (2026-10-12)
 
 #### Merged Pull Requests
-- Bump github/codeql-action from 4.38.2 to 4.38.3 [#10608](https://github.com/habitat-sh/habitat/pull/10608) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tokio-util from 0.7.19 to 0.7.20 [#10607](https://github.com/habitat-sh/habitat/pull/10607) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump tokio-util from 0.7.19 to 0.7.20 [#10607](https://github.com/habitat-sh/habitat/pull/10607) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.125 -->
 - Bump github/codeql-action from 4.38.2 to 4.38.3 [#10608](https://github.com/habitat-sh/habitat/pull/10608) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.124 -->
 - add release-aarch64-windows workflow [#10604](https://github.com/habitat-sh/habitat/pull/10604) ([mwrock](https://github.com/mwrock)) <!-- 2.1.123 -->
 - fix get_habpackagepath tests on aarch64 [#10602](https://github.com/habitat-sh/habitat/pull/10602) ([mwrock](https://github.com/mwrock)) <!-- 2.1.122 -->
