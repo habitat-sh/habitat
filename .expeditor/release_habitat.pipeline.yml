@@ -56,7 +56,7 @@ steps:
       secrets:
         GH_TOKEN:
           path: account/static/github/chef-ci
-          field: token
+          field: habitat-chefci-enterprise-packages
 
   - label: "[:mac: x86_64 build hab]"
     command:
@@ -134,8 +134,8 @@ steps:
     expeditor:
       secrets:
         GH_TOKEN:
-          account: github/habitat-sh
-          field: token
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
 
   - label: "[:mac: aarch64 build hab-plan-build]"
     agents:
@@ -238,7 +238,7 @@ steps:
       secrets:
         GH_TOKEN:
           path: account/static/github/chef-ci
-          field: token
+          field: habitat-chefci-enterprise-packages
 
   - label: "[:mac: aarch64 build hab-studio]"
     agents:
