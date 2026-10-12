@@ -18,7 +18,7 @@ function Install-LatestHabitat() {
     $env:HAB_LICENSE = "accept-no-persist"
     $BuildChannel = $Env:HAB_BLDR_CHANNEL
     $BootstrapChannel = if ($Env:HAB_BOOTSTRAP_CHANNEL) { $Env:HAB_BOOTSTRAP_CHANNEL } else { "stable" }
-    $HabitatPackageChannel = if ($Env:HAB_PACKAGE_TARGET -eq "aarch64-windows") { "unstable" } else { $BuildChannel }
+    $HabitatPackageChannel = if ($Env:HAB_PACKAGE_TARGET -eq "aarch64-windows") { "dev" } else { $BuildChannel }
     Write-Host "--- :habicat: Installing bootstrap hab for $Env:HAB_PACKAGE_TARGET from $BootstrapChannel"
     Install-Habitat -HabChannel $BootstrapChannel | Out-Null
     $Env:HAB_BLDR_CHANNEL = $BuildChannel

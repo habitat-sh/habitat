@@ -10,16 +10,16 @@
 # chef/hab is not yet published for aarch64-windows on packages.chef.io or on
 # the public Builder (bldr.habitat.sh) "stable" channel, so HAB_BLDR_URL/
 # HAB_BLDR_CHANNEL below point Install-Habitat (.expeditor/scripts/shared.ps1)
-# at the "unstable" channel instead, where the
+# at the "dev" channel instead, where the promoted
 # aarch64-windows chef/hab package currently lives. Once aarch64-windows is
 # added to the release pipeline and ships on packages.chef.io, these env vars
 # (and eventually this whole workflow, in favor of the Buildkite pipeline)
 # can be removed.
 #
-# HAB_REFRESH_CHANNEL/HAB_INTERNAL_BLDR_CHANNEL are only meaningful to `hab
-# studio build`/`hab pkg build` (they pick which channel the studio sources
-# its "refresh" base packages from), so they're scoped to the build/studio
-# jobs below rather than set workflow-wide. `hab`'s own unit tests read
+# HAB_REFRESH_CHANNEL and HAB_INTERNAL_BLDR_CHANNEL are only meaningful to
+# `hab studio build`/`hab pkg build`, so they're scoped to the build/studio jobs
+# below rather than set workflow-wide. Core packages remain in "unstable", while
+# Habitat-specific packages are promoted to "dev". `hab`'s own unit tests read
 # HAB_REFRESH_CHANNEL directly (see components/hab/src/cli_v4/utils.rs), so
 # setting it globally would leak into the `cargo test` jobs and break tests
 # that assert on its absence/precedence.
@@ -32,7 +32,7 @@ on:
 
 env:
   HAB_LICENSE: "accept-no-persist"
-  HAB_BLDR_CHANNEL: "unstable"
+  HAB_BLDR_CHANNEL: "dev"
   HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
 
 jobs:
@@ -41,7 +41,7 @@ jobs:
     runs-on: windows-11-arm
     env:
       HAB_REFRESH_CHANNEL: "unstable"
-      HAB_INTERNAL_BLDR_CHANNEL: "unstable"
+      HAB_INTERNAL_BLDR_CHANNEL: "dev"
     steps:
       - uses: actions/checkout@v7
       - name: Build components/hab
@@ -53,7 +53,7 @@ jobs:
     runs-on: windows-11-arm
     env:
       HAB_REFRESH_CHANNEL: "unstable"
-      HAB_INTERNAL_BLDR_CHANNEL: "unstable"
+      HAB_INTERNAL_BLDR_CHANNEL: "dev"
     steps:
       - uses: actions/checkout@v7
       - name: Build components/plan-build-ps1
@@ -65,7 +65,7 @@ jobs:
     runs-on: windows-11-arm
     env:
       HAB_REFRESH_CHANNEL: "unstable"
-      HAB_INTERNAL_BLDR_CHANNEL: "unstable"
+      HAB_INTERNAL_BLDR_CHANNEL: "dev"
     steps:
       - uses: actions/checkout@v7
       - name: Build components/studio
@@ -77,7 +77,7 @@ jobs:
     runs-on: windows-11-arm
     env:
       HAB_REFRESH_CHANNEL: "unstable"
-      HAB_INTERNAL_BLDR_CHANNEL: "unstable"
+      HAB_INTERNAL_BLDR_CHANNEL: "dev"
     steps:
       - uses: actions/checkout@v7
       - name: Build test-services/test-probe
@@ -142,7 +142,7 @@ jobs:
     runs-on: windows-11-arm
     env:
       HAB_REFRESH_CHANNEL: "unstable"
-      HAB_INTERNAL_BLDR_CHANNEL: "unstable"
+      HAB_INTERNAL_BLDR_CHANNEL: "dev"
     steps:
       - uses: actions/checkout@v7
       - run: .expeditor/scripts/verify/run_studio_test.ps1
