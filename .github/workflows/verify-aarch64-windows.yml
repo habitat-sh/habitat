@@ -19,10 +19,12 @@
 # HAB_REFRESH_CHANNEL and HAB_INTERNAL_BLDR_CHANNEL are only meaningful to
 # `hab studio build`/`hab pkg build`, so they're scoped to the build/studio jobs
 # below rather than set workflow-wide. Core packages remain in "unstable", while
-# Habitat-specific packages are promoted to "dev". `hab`'s own unit tests read
-# HAB_REFRESH_CHANNEL directly (see components/hab/src/cli_v4/utils.rs), so
-# setting it globally would leak into the `cargo test` jobs and break tests
-# that assert on its absence/precedence.
+# Habitat-specific packages are promoted to "dev". The shared Windows Rust-test
+# setup also installs core prerequisites from "unstable" on ARM while keeping
+# HAB_BLDR_CHANNEL at "dev" for the Habitat packages. `hab`'s own unit tests
+# read HAB_REFRESH_CHANNEL directly (see components/hab/src/cli_v4/utils.rs), so
+# setting it globally would leak into the `cargo test` jobs and break tests that
+# assert on its absence/precedence.
 
 name: Verify aarch64-windows
 

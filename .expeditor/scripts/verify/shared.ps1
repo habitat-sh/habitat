@@ -1,6 +1,21 @@
 . $PSScriptRoot\..\shared.ps1
 
-function Install-HabPkg([string[]]$idents) {
+function Get-CorePackageChannel {
+    if ((Get-RustHostTriple) -eq "aarch64-pc-windows-msvc") {
+        "unstable"
+    } elseif ($env:HAB_BLDR_CHANNEL) {
+        $env:HAB_BLDR_CHANNEL
+    } else {
+        "base"
+    }
+}
+
+function Install-HabPkg {
+    param(
+        [string[]]$idents,
+        [string]$channel = (Get-CorePackageChannel)
+    )
+
     $idents | ForEach-Object {
         $id = $_
         $installedPkgs=hab pkg list $id | Where-Object { $_.StartsWith($id)}
@@ -8,7 +23,10 @@ function Install-HabPkg([string[]]$idents) {
         if($installedPkgs){
             Write-Host "$id already installed"
         } else {
-            hab pkg install $id
+            hab pkg install --channel $channel $id
+            if ($LASTEXITCODE -ne 0) {
+                throw "Failed to install $id from the '$channel' channel (exit code $LASTEXITCODE)"
+            }
         }
     }
 }
