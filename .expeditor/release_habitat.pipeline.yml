@@ -658,3 +658,15 @@ steps:
     retry:
       automatic:
         limit: 3
+
+  - label: "[:windows-arm: grype scan aarch64-windows]"
+    command:
+      - bash .expeditor/scripts/release_habitat/dispatch_aarch64_windows_grype_scan.sh
+    artifact_paths:
+      - "grype-scan-aarch64-windows.txt"
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages

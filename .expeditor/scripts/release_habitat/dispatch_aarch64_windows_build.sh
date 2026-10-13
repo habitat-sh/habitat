@@ -18,44 +18,11 @@ esac
 
 runtime_dir="$(mktemp -d)"
 trap 'rm -rf "${runtime_dir}"' EXIT
-
-install_gh_cli() {
-    local version="2.72.0"
-    local checksum archive archive_root
-
-    case "$(uname -s)/$(uname -m)" in
-        Linux/x86_64 | Linux/amd64) ;;
-        *)
-            echo "Cannot install GitHub CLI on $(uname -s)/$(uname -m)" >&2
-            return 1
-            ;;
-    esac
-
-    checksum="ffd3a9791075cf6119531302b06554e658f38ed12675a7fbfbf4d6b114c77f38"
-    for command in curl sha256sum tar; do
-        if ! command -v "${command}" >/dev/null 2>&1; then
-            echo "Required command '${command}' is not installed on this Buildkite agent" >&2
-            return 127
-        fi
-    done
-
-    archive="gh_${version}_linux_amd64.tar.gz"
-    archive_root="gh_${version}_linux_amd64"
-    curl --fail --location --silent --show-error --retry 3 \
-        "https://github.com/cli/cli/releases/download/v${version}/${archive}" \
-        --output "${runtime_dir}/${archive}"
-    if ! printf '%s  %s\n' "${checksum}" "${runtime_dir}/${archive}" \
-        | sha256sum --check --status; then
-        echo "SHA-256 verification failed for GitHub CLI ${version}" >&2
-        return 1
-    fi
-    tar -xzf "${runtime_dir}/${archive}" -C "${runtime_dir}" "${archive_root}/bin/gh"
-    export PATH="${runtime_dir}/${archive_root}/bin:${PATH}"
-}
+source "$(dirname "${BASH_SOURCE[0]}")/gh_cli.sh"
 
 if ! command -v gh >/dev/null 2>&1; then
     echo "--- Installing pinned GitHub CLI"
-    install_gh_cli
+    install_gh_cli "${runtime_dir}"
 fi
 
 for command in jq buildkite-agent; do
