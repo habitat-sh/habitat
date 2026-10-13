@@ -1,0 +1,70 @@
+name: Grype scan aarch64-windows
+run-name: Grype scan aarch64-windows (${{ inputs.request_id }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Release-branch commit to scan
+        required: true
+        type: string
+      request_id:
+        description: Unique Buildkite request identifier
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aarch64-windows-grype-${{ inputs.request_id }}
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: windows-11-arm
+    timeout-minutes: 60
+    environment: habitat-release
+    env:
+      BUILD_PKG_TARGET: aarch64-windows
+      HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
+      HAB_LICENSE: accept-no-persist
+      PIPELINE_HAB_BLDR_URL: https://bldr.habitat.sh
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate dispatch and release source
+        shell: powershell
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          REQUEST_ID: ${{ inputs.request_id }}
+        run: |
+          if ($env:REQUEST_ID -notmatch '^[A-Za-z0-9-]+$') {
+              throw "Invalid request id: $env:REQUEST_ID"
+          }
+          if ($env:SOURCE_SHA -notmatch '^[0-9a-fA-F]{40}$') {
+              throw "Invalid source commit: $env:SOURCE_SHA"
+          }
+          git merge-base --is-ancestor $env:SOURCE_SHA "origin/$env:GITHUB_REF_NAME"
+          if ($LASTEXITCODE -ne 0) {
+              throw "Source commit is not reachable from the dispatched release branch"
+          }
+          git checkout --detach $env:SOURCE_SHA
+          if ($LASTEXITCODE -ne 0) {
+              throw "Could not check out source commit $env:SOURCE_SHA"
+          }
+
+      - name: Run Grype scan
+        shell: powershell
+        run: .expeditor/scripts/release_habitat/grype_scan.ps1
+
+      - name: Upload Grype report
+        uses: actions/upload-artifact@v7
+        with:
+          name: grype-scan-aarch64-windows
+          path: grype-scan-aarch64-windows.txt
+          if-no-files-found: error
+          retention-days: 1
