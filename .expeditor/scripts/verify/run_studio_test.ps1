@@ -4,6 +4,7 @@ $ErrorActionPreference="stop"
 
 . $PSScriptRoot\shared.ps1
 Install-Habitat
+$corePackageChannel = Get-CorePackageChannel
 
 if(!(Get-PackageProvider -Name nuget -ErrorAction SilentlyContinue -ListAvailable)) {
     Write-Host "Installing Nuget provider..."
@@ -19,8 +20,7 @@ if(!(Get-Module Await -ListAvailable)) {
 # from the studio source directory
 Push-Location "components/studio"
 try {
-    & test/test.ps1
+    & test/test.ps1 -CorePackageChannel $corePackageChannel
 } finally { Pop-Location }
 
 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
-

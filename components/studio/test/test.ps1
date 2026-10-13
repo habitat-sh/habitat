@@ -5,13 +5,29 @@
 # Failure case: because this creates a studio from source, we don't exercise changes
 # in our plan.sh, and could still end up with a bad studio build.
 
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$CorePackageChannel
+)
+
 $ErrorActionPreference = "Stop"
 
 $env:HAB_LICENSE = "accept-no-persist"
 
-hab pkg install core/powershell
-hab pkg install core/7zip
+hab pkg install --channel $CorePackageChannel core/powershell
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to install core/powershell from the '$CorePackageChannel' channel (exit code $LASTEXITCODE)"
+}
+
+hab pkg install --channel $CorePackageChannel core/7zip
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to install core/7zip from the '$CorePackageChannel' channel (exit code $LASTEXITCODE)"
+}
+
 hab pkg install chef/hab-plan-build-ps1
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to install chef/hab-plan-build-ps1 from the '$env:HAB_BLDR_CHANNEL' channel (exit code $LASTEXITCODE)"
+}
 
 mkdir "bin/powershell" | Out-Null
 mkdir "bin/hab" | Out-Null
