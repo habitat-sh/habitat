@@ -71,39 +71,6 @@ release_channel="habitat-release-${BUILDKITE_BUILD_ID}"
 request_id="${BUILDKITE_BUILD_ID}-${component}-$(date -u +%Y%m%d%H%M%S)-${RANDOM}"
 run_name="Habitat release ${component} (${request_id})"
 
-echo "--- Checking GitHub token identity and repository access"
-if github_login="$(gh api user --jq '.login' 2>&1)"; then
-    echo "GH_TOKEN authenticated as: ${github_login}"
-else
-    echo "Could not identify GH_TOKEN via the GitHub API: ${github_login}" >&2
-fi
-
-if repo_permissions="$(gh api "repos/${repository}" --jq '.permissions' 2>&1)"; then
-    echo "GH_TOKEN permissions on ${repository}: ${repo_permissions}"
-else
-    echo "Could not read GH_TOKEN permissions on ${repository}: ${repo_permissions}" >&2
-fi
-
-if github_auth_response="$(gh api --include user 2>&1)"; then
-    github_oauth_scopes=""
-    while IFS= read -r response_line; do
-        if [[ "${response_line,,}" == x-oauth-scopes:* ]]; then
-            github_oauth_scopes="${response_line#*:}"
-            github_oauth_scopes="${github_oauth_scopes# }"
-            github_oauth_scopes="${github_oauth_scopes%$'\r'}"
-            break
-        fi
-    done <<<"${github_auth_response}"
-
-    if [[ -n "${github_oauth_scopes}" ]]; then
-        echo "GH_TOKEN OAuth scopes: ${github_oauth_scopes}"
-    else
-        echo "GH_TOKEN OAuth scopes: not reported by GitHub; check token permissions in GitHub"
-    fi
-else
-    echo "Could not inspect GH_TOKEN OAuth scopes: ${github_auth_response}" >&2
-fi
-
 echo "--- Dispatching GitHub Actions release build for ${component} (${BUILDKITE_COMMIT})"
 dispatch_command=(
     gh workflow run "${workflow}"
