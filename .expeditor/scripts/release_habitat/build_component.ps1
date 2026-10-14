@@ -76,9 +76,9 @@ if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
 $result = [PSCustomObject]@{
     component = $Component
-    ident = $pkg_ident
-    target = $pkg_target
-    channel = $Channel
+    ident     = $pkg_ident
+    target    = $pkg_target
+    channel   = $Channel
 }
 $resultPath = Join-Path (Get-Location) "results\release-build-result.json"
 if ($SkipBuildkiteReporting) {
