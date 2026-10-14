@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.129 -->
-## [2.1.129](https://github.com/habitat-sh/habitat/tree/2.1.129) (2026-10-14)
+<!-- latest_release 2.1.130 -->
+## [2.1.130](https://github.com/habitat-sh/habitat/tree/2.1.130) (2026-10-14)
 
 #### Merged Pull Requests
-- Replaced homebrew powershell fallback with pinned ARM64 installer [#10610](https://github.com/habitat-sh/habitat/pull/10610) ([sougata-progress](https://github.com/sougata-progress))
+- Bump serde_json from 1.0.151 to 1.0.154 [#10611](https://github.com/habitat-sh/habitat/pull/10611) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.151 to 1.0.154 [#10611](https://github.com/habitat-sh/habitat/pull/10611) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.130 -->
+- Bump cc from 1.6.0 to 1.8.0 [#10612](https://github.com/habitat-sh/habitat/pull/10612) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.130 -->
 - Replaced homebrew powershell fallback with pinned ARM64 installer [#10610](https://github.com/habitat-sh/habitat/pull/10610) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.1.129 -->
 - adding grype scan workflow for aarch64-windows [#10609](https://github.com/habitat-sh/habitat/pull/10609) ([mwrock](https://github.com/mwrock)) <!-- 2.1.128 -->
 - Bump hyper from 1.11.1 to 1.12.0 [#10605](https://github.com/habitat-sh/habitat/pull/10605) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.127 -->
