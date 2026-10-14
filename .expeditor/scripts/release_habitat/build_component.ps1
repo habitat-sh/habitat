@@ -77,15 +77,15 @@ if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 $result = [PSCustomObject]@{
     component = $Component
     ident = $pkg_ident
-    target = $Env:BUILD_PKG_TARGET
+    target = $pkg_target
     channel = $Channel
 }
 $resultPath = Join-Path (Get-Location) "results\release-build-result.json"
 if ($SkipBuildkiteReporting) {
     $result | ConvertTo-Json -Compress | Set-Content -Path $resultPath -Encoding ascii
 } else {
-    Set-TargetMetadata $pkg_ident $Env:BUILD_PKG_TARGET
-    Invoke-Expression "buildkite-agent annotate --append --context 'release-manifest' '<br>* ${pkg_ident} ($Env:BUILD_PKG_TARGET)'"
+    Set-TargetMetadata $pkg_ident $pkg_target
+    Invoke-Expression "buildkite-agent annotate --append --context 'release-manifest' '<br>* ${pkg_ident} ($pkg_target)'"
 }
 
 exit $LASTEXITCODE

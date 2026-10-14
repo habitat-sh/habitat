@@ -100,6 +100,7 @@ done
 
 if [[ "${status:-}" != "completed" ]]; then
     echo "Timed out waiting for GitHub Actions run ${run_id}" >&2
+    gh run cancel "${run_id}" --repo "${repository}" || true
     exit 1
 fi
 
