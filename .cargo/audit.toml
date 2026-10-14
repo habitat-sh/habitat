@@ -12,7 +12,10 @@
 # requires h2 0.3.x / http 0.2.x, so this cannot be resolved via a
 # normal dependency update. Tracking upstream actix-web's migration to
 # http 1.0/h2 0.4 before this can be cleared.
-ignore = ["RUSTSEC-2026-0258"]
+# RUSTSEC-2024-0449: unsafe-libyaml is unmaintained, with no patched versions.
+# It is pulled in by serde_yaml, used directly and through log4rs.
+# Ignore until these dependencies migrate away from unsafe-libyaml.
+ignore = ["RUSTSEC-2026-0258", "RUSTSEC-2024-0449"]
 
 # warn for categories of informational advisories
 informational_warnings = ["notice", "unmaintained", "unsound"]
