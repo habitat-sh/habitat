@@ -85,7 +85,6 @@ jobs:
         env:
           HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
           HAB_INTERNAL_BLDR_CHANNEL: dev
-          HAB_REFRESH_CHANNEL: unstable
         run: |
           .expeditor/scripts/release_habitat/build_component.ps1 `
             -Component $env:COMPONENT `

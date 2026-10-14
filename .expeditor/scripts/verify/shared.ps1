@@ -2,7 +2,7 @@
 
 function Get-CorePackageChannel {
     if ((Get-RustHostTriple) -eq "aarch64-pc-windows-msvc") {
-        "unstable"
+        "base"
     } elseif ($env:HAB_BLDR_CHANNEL) {
         $env:HAB_BLDR_CHANNEL
     } else {
