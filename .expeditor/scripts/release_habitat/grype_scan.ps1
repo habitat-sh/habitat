@@ -11,9 +11,18 @@ $ErrorActionPreference = "Stop"
 
 . $PSScriptRoot\shared.ps1
 
+$buildTarget = if ([string]::IsNullOrWhiteSpace($env:BUILD_PKG_TARGET)) {
+    "x86_64-windows"
+} else {
+    $env:BUILD_PKG_TARGET
+}
+if ($buildTarget -notin @("x86_64-windows", "aarch64-windows")) {
+    throw "Unsupported Windows Grype scan target: $buildTarget"
+}
+
 $env:HAB_BLDR_URL = $env:PIPELINE_HAB_BLDR_URL
 $env:HAB_LICENSE  = "accept-no-persist"
-$env:HAB_PACKAGE_TARGET = "x86_64-windows"
+$env:HAB_PACKAGE_TARGET = $buildTarget
 
 # ---------------------------------------------------------------------------
 # Clear the Habitat root to ensure a clean install of only the dev packages
@@ -34,6 +43,7 @@ $habExe = "C:\hab\bin\hab"
 Write-Host "--- :mag: Installing grype"
 $release    = (Invoke-RestMethod "https://api.github.com/repos/anchore/grype/releases/latest" -UseBasicParsing).tag_name
 $version    = $release.TrimStart("v")
+# Grype currently publishes only a Windows amd64 archive; Windows ARM runs it through emulation.
 $grypeUrl   = "https://github.com/anchore/grype/releases/download/${release}/grype_${version}_windows_amd64.zip"
 Write-Host "Downloading grype ${version}"
 Invoke-WebRequest -Uri $grypeUrl -OutFile "grype.zip" -UseBasicParsing
@@ -59,7 +69,7 @@ foreach ($pkg in $seeds) {
     Write-Host "  Installing $pkg..."
     & $habExe pkg install --channel dev $pkg
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "  WARNING: $pkg unavailable for x86_64-windows, skipping"
+        Write-Host "  WARNING: $pkg unavailable for $buildTarget, skipping"
     }
 }
 
@@ -67,8 +77,8 @@ foreach ($pkg in $seeds) {
 # Run grype scan and write Critical/High findings to the report file
 # ---------------------------------------------------------------------------
 $scanDir = "C:\hab"
-$report  = "grype-scan-x86_64-windows.txt"
-$rawFile = "grype-raw-x86_64-windows.json"
+$report  = "grype-scan-$buildTarget.txt"
+$rawFile = "grype-raw-$buildTarget.json"
 
 Write-Host "--- :shield: Scanning $scanDir for Critical and High vulnerabilities"
 grype "dir:$scanDir" --output json --quiet | Out-File -FilePath $rawFile -Encoding utf8
@@ -83,7 +93,7 @@ $critCount = @($allFindings | Where-Object { $_.vulnerability.severity -eq "Crit
 $highCount = @($allFindings | Where-Object { $_.vulnerability.severity -eq "High" }).Count
 
 $lines = @(
-    "Grype scan: x86_64-windows",
+    "Grype scan: $buildTarget",
     "Directory:  $scanDir",
     "Date:       $([System.DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))",
     "Critical:   $critCount",

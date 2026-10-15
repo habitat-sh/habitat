@@ -34,8 +34,6 @@ concurrency:
 
 jobs:
   build:
-    # Temporary test branch; remove after pre-merge validation.
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1_6' || github.ref == 'refs/heads/aarch64_release'
     runs-on: windows-11-arm
     timeout-minutes: 60
     # Configure this environment with required reviewers and restrict it to
@@ -47,7 +45,7 @@ jobs:
       SOURCE_SHA: ${{ inputs.source_sha }}
       REQUEST_ID: ${{ inputs.request_id }}
       BUILD_PKG_TARGET: aarch64-windows
-      HAB_BOOTSTRAP_CHANNEL: unstable
+      HAB_BOOTSTRAP_CHANNEL: dev
       HAB_LICENSE: accept-no-persist
       HAB_ORIGIN: chef
       HAB_STUDIO_SECRET_HAB_FEAT_IGNORE_LOCAL: "true"
@@ -86,8 +84,7 @@ jobs:
         shell: powershell
         env:
           HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
-          HAB_INTERNAL_BLDR_CHANNEL: unstable
-          HAB_REFRESH_CHANNEL: unstable
+          HAB_INTERNAL_BLDR_CHANNEL: dev
         run: |
           .expeditor/scripts/release_habitat/build_component.ps1 `
             -Component $env:COMPONENT `
