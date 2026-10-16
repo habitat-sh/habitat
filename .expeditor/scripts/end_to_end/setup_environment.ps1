@@ -6,6 +6,7 @@ param (
 $ErrorActionPreference = "stop"
 
 . .expeditor/scripts/shared.ps1
+$isWindowsArm64 = (Get-RustHostTriple) -eq "aarch64-pc-windows-msvc"
 $env:HAB_NOCOLORING = "true"
 $env:HAB_LICENSE = "accept-no-persist"
 
@@ -22,10 +23,12 @@ $habPath = hab pkg path chef/hab
 Invoke-NativeCommand "$habPath/bin/hab.exe" pkg binlink chef/hab --force
 Write-Host "--- Using chef/hab $(hab --version)"
 
-Write-Host "--- Installing latest chef/hab-pkg-export-container from $BuilderUrl, $Channel channel"
-Invoke-NativeCommand hab pkg install chef/hab-pkg-export-container `
-    --channel "$Channel" `
-    --url="$BuilderUrl"
+if (!$isWindowsArm64) {
+    Write-Host "--- Installing latest chef/hab-pkg-export-container from $BuilderUrl, $Channel channel"
+    Invoke-NativeCommand hab pkg install chef/hab-pkg-export-container `
+        --channel "$Channel" `
+        --url="$BuilderUrl"
+}
 
 Write-Host "--- Installing latest core/powershell from $BuilderUrl, stable channel"
 Invoke-NativeCommand hab pkg install core/powershell `
@@ -35,9 +38,10 @@ Invoke-NativeCommand hab pkg install core/powershell `
     --url="$BuilderUrl"
 Write-Host "--- Using core/powershell $(pwsh --version)"
 
-Write-Host "--- Installing latest core/pester from $BuilderUrl, stable channel"
+$pesterChannel = if ($isWindowsArm64) { "base" } else { "stable" }
+Write-Host "--- Installing latest core/pester from $BuilderUrl, $pesterChannel channel"
 # use --ignore-local because there is a local base-2025 pester package that is broken
 Invoke-NativeCommand hab pkg install core/pester `
-    --channel=stable `
+    --channel=$pesterChannel `
     --ignore-local `
     --url="$BuilderUrl"

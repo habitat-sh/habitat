@@ -14,7 +14,9 @@ Describe "Studio build" {
             "plan-in-target",
             "plan-in-habitat-target"
         )) {
-        It "builds $plan" {
+        It "builds $plan" -TestCases @{ Plan = $plan } {
+            param($Plan)
+
             hab pkg build test/fixtures/$plan
             $LASTEXITCODE | Should -Be 0
         }
@@ -82,8 +84,11 @@ Describe "Studio build" {
 }
 
 Describe "working after success callback" {
-    $result = hab pkg build test/fixtures/after-success-plan
-    $exit = $LASTEXITCODE
+    BeforeAll {
+        $result = hab pkg build test/fixtures/after-success-plan
+        $exit = $LASTEXITCODE
+    }
+
     It "exits 0" {
         $exit | Should -Be 0
     }
@@ -98,8 +103,11 @@ Describe "working after success callback" {
 }
 
 Describe "failing after success callback" {
-    $result = hab pkg build test/fixtures/broken-after-success-plan
-    $exit = $LASTEXITCODE
+    BeforeAll {
+        $result = hab pkg build test/fixtures/broken-after-success-plan
+        $exit = $LASTEXITCODE
+    }
+
     It "exits 0" {
         $exit | Should -Be 0
     }
@@ -114,8 +122,11 @@ Describe "failing after success callback" {
 }
 
 Describe "working after failure callback" {
-    $result = hab pkg build test/fixtures/after-failure-plan
-    $exit = $LASTEXITCODE
+    BeforeAll {
+        $result = hab pkg build test/fixtures/after-failure-plan
+        $exit = $LASTEXITCODE
+    }
+
     It "exits 1" {
         $exit | Should -Be 1
     }
@@ -130,8 +141,11 @@ Describe "working after failure callback" {
 }
 
 Describe "failing after failure callback" {
-    $result = hab pkg build test/fixtures/broken-after-failure-plan
-    $exit = $LASTEXITCODE
+    BeforeAll {
+        $result = hab pkg build test/fixtures/broken-after-failure-plan
+        $exit = $LASTEXITCODE
+    }
+
     It "exits 1" {
         $exit | Should -Be 1
     }
@@ -175,7 +189,8 @@ Describe "Targeting different refresh channels" {
         }
     }
 
-    if($IsWindows) {
+    # ARM64 packages were introduced after the historical refresh channels.
+    if($IsWindows -and $env:BUILD_PKG_TARGET -ne "aarch64-windows") {
         hab studio run "hab pkg install core/libarchive"
 
         It "Can target a downgraded channel" {

@@ -1,0 +1,109 @@
+name: End-to-end aarch64-windows
+run-name: Habitat e2e ${{ inputs.test_name }} (${{ inputs.request_id }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_name:
+        description: Windows end-to-end test to run
+        required: true
+        type: choice
+        options:
+          - test_studio_version
+          - test_studio_profile
+          - test_studio_can_build_packages
+          - test_studio_can_build_packages_with_pkg_version_function
+          - test_studio_can_build_scaffolded_package
+          - test_studio_with_ssl_cert_file_envvar_set
+          - test_ssl_certificate_loading
+          - test_pkg_install
+          - test_pkg_uninstall_hook
+          - test_hab_plan_cli
+      source_sha:
+        description: Commit containing the end-to-end tests to run
+        required: true
+        type: string
+      request_id:
+        description: Unique Buildkite request identifier
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aarch64-windows-e2e-${{ inputs.request_id }}
+  cancel-in-progress: false
+
+jobs:
+  e2e:
+    name: ${{ inputs.test_name }}
+    runs-on: windows-11-arm
+    timeout-minutes: 30
+    environment: habitat-release
+    env:
+      SOURCE_SHA: ${{ inputs.source_sha }}
+      REQUEST_ID: ${{ inputs.request_id }}
+      TEST_NAME: ${{ inputs.test_name }}
+      BUILD_PKG_TARGET: aarch64-windows
+      HAB_LICENSE: accept-no-persist
+      HAB_ORIGIN: habitat-testing
+      HAB_BLDR_URL: https://bldr.habitat.sh
+      HAB_BLDR_CHANNEL: dev
+      HAB_INTERNAL_BLDR_CHANNEL: dev
+      HAB_STUDIO_SUP: "false"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate dispatch and source
+        shell: powershell
+        run: |
+          if ($env:TEST_NAME -notin @(
+              "test_studio_version", "test_studio_profile", "test_studio_can_build_packages",
+              "test_studio_can_build_packages_with_pkg_version_function",
+              "test_studio_can_build_scaffolded_package", "test_studio_with_ssl_cert_file_envvar_set",
+              "test_ssl_certificate_loading", "test_pkg_install", "test_pkg_uninstall_hook", "test_hab_plan_cli"
+          )) {
+              throw "Unsupported end-to-end test: $env:TEST_NAME"
+          }
+          if ($env:REQUEST_ID -notmatch '^[A-Za-z0-9-]+$') {
+              throw "Invalid request id: $env:REQUEST_ID"
+          }
+          if ($env:SOURCE_SHA -notmatch '^[0-9a-fA-F]{40}$') {
+              throw "Invalid source commit: $env:SOURCE_SHA"
+          }
+          git merge-base --is-ancestor $env:SOURCE_SHA "origin/$env:GITHUB_REF_NAME"
+          if ($LASTEXITCODE -ne 0) {
+              throw "Source commit is not reachable from the dispatched branch"
+          }
+          # The tests use /hab paths, which must resolve on the system drive,
+          # regardless of the drive used for the hosted runner's checkout.
+          git worktree add --detach C:\habitat-e2e $env:SOURCE_SHA
+          if ($LASTEXITCODE -ne 0) {
+              throw "Could not check out source commit $env:SOURCE_SHA"
+          }
+
+      - name: Run end-to-end test against dev packages
+        shell: powershell
+        working-directory: C:\habitat-e2e
+        env:
+          HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
+        run: |
+          Start-Transcript -Path e2e.log
+          try {
+              .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev $env:TEST_NAME
+          } finally {
+              Stop-Transcript
+          }
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-aarch64-windows-${{ inputs.test_name }}
+          path: C:/habitat-e2e/*.log
+          if-no-files-found: warn
+          retention-days: 7
