@@ -1,15 +1,17 @@
-function Stop-ProcessTree($Id) {
-    Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $Id } | ForEach-Object { Stop-ProcessTree $_.ProcessId }
-    Stop-Process -Id $Id -ErrorAction SilentlyContinue
-}
-
 Describe "hab studio enter with studio_profile.ps1" {
     BeforeAll {
+        function Stop-ProcessTree($Id) {
+            Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $Id } | ForEach-Object { Stop-ProcessTree $_.ProcessId }
+            Stop-Process -Id $Id -ErrorAction SilentlyContinue
+        }
+
         Set-Content studio_profile.ps1 -Value "write-host 'hohoho';kill `$PID"
         hab origin key generate $env:HAB_ORIGIN
     }
     Context "No HAB_STUDIO_NOPROFILE set" {
-        $env:HAB_STUDIO_NOPROFILE = $null
+        BeforeEach {
+            $env:HAB_STUDIO_NOPROFILE = $null
+        }
 
         It "sources studio_profile.ps1" {
             if($env:DOCKER_STUDIO_TEST) {
@@ -22,7 +24,9 @@ Describe "hab studio enter with studio_profile.ps1" {
         }
     }
     Context "HAB_STUDIO_NOPROFILE is set" {
-        $env:HAB_STUDIO_NOPROFILE = $true
+        BeforeEach {
+            $env:HAB_STUDIO_NOPROFILE = $true
+        }
 
         It "does not source studio_profile.ps1" {
             $studioArgs = @("studio", "enter")
