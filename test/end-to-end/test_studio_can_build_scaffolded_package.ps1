@@ -1,25 +1,27 @@
-hab origin key generate $env:HAB_ORIGIN
-
-Function Invoke-PlanBuild($package) {
-    hab pkg build test/fixtures/$package -R | Out-Null
-    if ($IsLinux) {
-        # This changes the format of last_build from `var=value` to `$var='value'`
-        # so that powershell can parse and source the script
-        Set-Content -Path "results/last_build.ps1" -Value ""
-        Get-Content "results/last_build.env" | ForEach-Object { Add-Content "results/last_build.ps1" -Value "`$$($_.Replace("=", '="'))`"" }
-    }
-    . results/last_build.ps1
-    @{ Artifact = $pkg_artifact; Ident = $pkg_ident }
-}
-
 Describe "package using scaffolding" {
-    $minimal = Invoke-PlanBuild minimal-package
-    $depPkg = Invoke-PlanBuild dep-pkg-1
-    if ($IsLinux) {
-        hab studio run "rm -rf /hab/pkgs/$($depPkg.Ident)/hooks"
+    BeforeAll {
+        Function Invoke-PlanBuild($package) {
+            hab pkg build test/fixtures/$package -R | Out-Null
+            if ($IsLinux) {
+                # This changes the format of last_build from `var=value` to `$var='value'`
+                # so that powershell can parse and source the script
+                Set-Content -Path "results/last_build.ps1" -Value ""
+                Get-Content "results/last_build.env" | ForEach-Object { Add-Content "results/last_build.ps1" -Value "`$$($_.Replace("=", '="'))`"" }
+            }
+            . results/last_build.ps1
+            @{ Artifact = $pkg_artifact; Ident = $pkg_ident }
+        }
+
+        hab origin key generate $env:HAB_ORIGIN
+        $minimal = Invoke-PlanBuild minimal-package
+        $depPkg = Invoke-PlanBuild dep-pkg-1
+        if ($IsLinux) {
+            hab studio run "rm -rf /hab/pkgs/$($depPkg.Ident)/hooks"
+        }
+        $scaffolding = Invoke-PlanBuild scaffolding
+        $consumer = Invoke-PlanBuild use_scaffolding
     }
-    $scaffolding = Invoke-PlanBuild scaffolding
-    $consumer = Invoke-PlanBuild use_scaffolding
+
     It "inherits scaffolding dependencies" {
         hab pkg install "results/$($minimal.Artifact)"
         hab pkg install "results/$($depPkg.Artifact)"
