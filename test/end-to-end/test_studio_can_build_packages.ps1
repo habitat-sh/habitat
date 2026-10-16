@@ -175,7 +175,8 @@ Describe "Targeting different refresh channels" {
         }
     }
 
-    if($IsWindows) {
+    # ARM64 packages were introduced after the historical refresh channels.
+    if($IsWindows -and $env:BUILD_PKG_TARGET -ne "aarch64-windows") {
         hab studio run "hab pkg install core/libarchive"
 
         It "Can target a downgraded channel" {
