@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.134 -->
-## [2.1.134](https://github.com/habitat-sh/habitat/tree/2.1.134) (2026-10-16)
+<!-- latest_release 2.1.135 -->
+## [2.1.135](https://github.com/habitat-sh/habitat/tree/2.1.135) (2026-10-16)
 
 #### Merged Pull Requests
-- Bump actix-web from 4.15.0 to 4.16.0 [#10620](https://github.com/habitat-sh/habitat/pull/10620) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump wincode from 0.6.2 to 0.6.3 [#10619](https://github.com/habitat-sh/habitat/pull/10619) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump wincode from 0.6.2 to 0.6.3 [#10619](https://github.com/habitat-sh/habitat/pull/10619) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.135 -->
 - Bump actix-web from 4.15.0 to 4.16.0 [#10620](https://github.com/habitat-sh/habitat/pull/10620) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.134 -->
 - Bump syn from 3.0.7 to 3.0.8 [#10617](https://github.com/habitat-sh/habitat/pull/10617) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.133 -->
 - Bump syn from 3.0.6 to 3.0.7 [#10614](https://github.com/habitat-sh/habitat/pull/10614) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.133 -->
