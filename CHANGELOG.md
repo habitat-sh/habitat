@@ -1,16 +1,20 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.132 -->
-## [2.1.132](https://github.com/habitat-sh/habitat/tree/2.1.132) (2026-10-15)
+<!-- latest_release 2.1.133 -->
+## [2.1.133](https://github.com/habitat-sh/habitat/tree/2.1.133) (2026-10-16)
 
 #### Merged Pull Requests
-- Release pipeline for aarch64-windows [#10603](https://github.com/habitat-sh/habitat/pull/10603) ([mwrock](https://github.com/mwrock))
+- Bump syn from 3.0.7 to 3.0.8 [#10617](https://github.com/habitat-sh/habitat/pull/10617) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump syn from 3.0.7 to 3.0.8 [#10617](https://github.com/habitat-sh/habitat/pull/10617) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.133 -->
+- Bump syn from 3.0.6 to 3.0.7 [#10614](https://github.com/habitat-sh/habitat/pull/10614) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.133 -->
+- Bump actix-http from 3.18.12 to 3.18.13 [#10613](https://github.com/habitat-sh/habitat/pull/10613) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.133 -->
+- Bump System.Security.Cryptography.Xml from 9.0.18 to 9.0.21 [#10616](https://github.com/habitat-sh/habitat/pull/10616) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.133 -->
 - Release pipeline for aarch64-windows [#10603](https://github.com/habitat-sh/habitat/pull/10603) ([mwrock](https://github.com/mwrock)) <!-- 2.1.132 -->
 - Added RUSTSEC-2024-0449 to ignore list [#10615](https://github.com/habitat-sh/habitat/pull/10615) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.1.131 -->
 - Bump serde_json from 1.0.151 to 1.0.154 [#10611](https://github.com/habitat-sh/habitat/pull/10611) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.130 -->
