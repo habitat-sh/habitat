@@ -1,7 +1,9 @@
 $env:HAB_NOCOLORING="true"
 
 Describe "pkg uninstall with uninstall hook" {
-    $log = Join-Path -Path $env:SystemDrive -ChildPath hab -AdditionalChildPath @("svc", "uninstall-hook", "logs", "uninstall.stdout.log")
+    BeforeAll {
+        $log = Join-Path -Path $env:SystemDrive -ChildPath hab -AdditionalChildPath @("svc", "uninstall-hook", "logs", "uninstall.stdout.log")
+    }
     BeforeEach {
         hab origin key generate $env:HAB_ORIGIN
         Invoke-BuildAndInstall uninstall-hook1

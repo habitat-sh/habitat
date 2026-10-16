@@ -15,7 +15,11 @@ if($IsWindows -Or !($env:DOCKER_STUDIO_TEST)) {
         }
 
         It "should match hab cli" {
-            (Invoke-Expression $habVersionCmd) | Should -Match "hab-studio $(($cliVersion -split '/')[0])*"
+            $output = Invoke-Expression $habVersionCmd
+            $LASTEXITCODE | Should -Be 0
+            $version = [regex]::Escape(($cliVersion -split '/')[0])
+            # The native Studio also prints a warning outside a container.
+            ($output | Out-String) | Should -Match "(?m)^hab-studio $version(?:/\S+)?\r?$"
         }
     }
 }
