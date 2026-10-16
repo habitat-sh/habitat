@@ -1,13 +1,15 @@
 $ErrorActionPreference="stop"
-$coreChannel = if ($env:BUILD_PKG_TARGET -eq "aarch64-windows") { "base" } else { "stable" }
-
-Write-Host "--- Generating a signing key"
-hab origin key generate "$env:HAB_ORIGIN"
-
-Write-Host "--- Testing fresh install of Habitat can communicate with builder"
 Context "Habitat SSL Cache" {
+    BeforeAll {
+        $coreChannel = if ($env:BUILD_PKG_TARGET -eq "aarch64-windows") { "base" } else { "stable" }
+        Write-Host "--- Generating a signing key"
+        Invoke-NativeCommand hab origin key generate "$env:HAB_ORIGIN"
+    }
+
     BeforeEach {
-        Remove-Item c:\hab\cache\ssl -Recurse -Force
+        if (Test-Path c:\hab\cache\ssl) {
+            Remove-Item c:\hab\cache\ssl -Recurse -Force
+        }
     }
 
     Describe "Fresh Install" {
@@ -32,8 +34,8 @@ Context "Habitat SSL Cache" {
 
         It "Loads custom certificates" {
             New-Item -Type Directory -Path c:\hab\cache\ssl
-            hab pkg install core/openssl --channel $coreChannel
-            hab pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout key.pem -x509 -days 365 -out c:\hab\cache\ssl\custom-certificate.pem
+            Invoke-NativeCommand hab pkg install core/openssl --channel $coreChannel
+            Invoke-NativeCommand hab pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout key.pem -x509 -days 365 -out c:\hab\cache\ssl\custom-certificate.pem
 
             $env:RUST_LOG="debug"
             Start-Process hab -ArgumentList "pkg search core/lessmsi" -RedirectStandardError err.log -Wait
@@ -50,8 +52,8 @@ Context "Habitat SSL Cache" {
             # CWD ever changes from 'workdir'
             $studioCertFile = "/hab/cache/ssl/custom-certificate.pem"
             New-Item -Type Directory -Path c:\hab\cache\ssl
-            hab pkg install core/openssl --channel $coreChannel
-            hab pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout key.pem -x509 -days 365 -out $customCertFile
+            Invoke-NativeCommand hab pkg install core/openssl --channel $coreChannel
+            Invoke-NativeCommand hab pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout key.pem -x509 -days 365 -out $customCertFile
 
             $result = hab studio run "(Test-Path $studioCertFile).ToString()"
             Write-Host $result

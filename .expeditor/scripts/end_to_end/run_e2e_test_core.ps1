@@ -290,7 +290,11 @@ Function Invoke-BuildAndInstall($PackageName, $RefreshChannel) {
     Invoke-Build @PSBoundParameters
     . ./results/last_build.ps1
     hab pkg install ./results/$pkg_artifact
-    hab studio run "rm /hab/pkgs/$pkg_ident/hooks"
+    if ($IsWindows) {
+        hab studio run "if (Test-Path /hab/pkgs/$pkg_ident/hooks) { Remove-Item -Recurse -Force /hab/pkgs/$pkg_ident/hooks }"
+    } else {
+        hab studio run "rm /hab/pkgs/$pkg_ident/hooks"
+    }
 }
 
 function Stop-ComposeSupervisor($Remote) {
