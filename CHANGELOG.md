@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.136 -->
-## [2.1.136](https://github.com/habitat-sh/habitat/tree/2.1.136) (2026-10-19)
+<!-- latest_release 2.1.137 -->
+## [2.1.137](https://github.com/habitat-sh/habitat/tree/2.1.137) (2026-10-19)
 
 #### Merged Pull Requests
-- Bump actix-http from 3.18.13 to 3.19.0 [#10625](https://github.com/habitat-sh/habitat/pull/10625) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libsodium-rs from 0.2.5 to 0.3.0 [#10626](https://github.com/habitat-sh/habitat/pull/10626) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump libsodium-rs from 0.2.5 to 0.3.0 [#10626](https://github.com/habitat-sh/habitat/pull/10626) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.137 -->
+- Bump github/codeql-action from 4.38.3 to 4.39.0 [#10624](https://github.com/habitat-sh/habitat/pull/10624) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.137 -->
+- Bump actix-web from 4.16.0 to 4.17.0 [#10623](https://github.com/habitat-sh/habitat/pull/10623) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.137 -->
 - Bump actix-http from 3.18.13 to 3.19.0 [#10625](https://github.com/habitat-sh/habitat/pull/10625) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.136 -->
 - Bump wincode from 0.6.2 to 0.6.3 [#10619](https://github.com/habitat-sh/habitat/pull/10619) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.135 -->
 - Bump actix-web from 4.15.0 to 4.16.0 [#10620](https://github.com/habitat-sh/habitat/pull/10620) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.134 -->
