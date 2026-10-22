@@ -38,10 +38,9 @@ Invoke-NativeCommand hab pkg install core/powershell `
     --url="$BuilderUrl"
 Write-Host "--- Using core/powershell $(pwsh --version)"
 
-$pesterChannel = if ($isWindowsArm64) { "base" } else { "stable" }
-Write-Host "--- Installing latest core/pester from $BuilderUrl, $pesterChannel channel"
+Write-Host "--- Installing latest core/pester from $BuilderUrl, base channel"
 # use --ignore-local because there is a local base-2025 pester package that is broken
 Invoke-NativeCommand hab pkg install core/pester `
-    --channel=$pesterChannel `
+    --channel=base `
     --ignore-local `
     --url="$BuilderUrl"

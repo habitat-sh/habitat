@@ -1,7 +1,7 @@
 $ErrorActionPreference="stop"
 Context "Habitat SSL Cache" {
     BeforeAll {
-        $coreChannel = if ($env:BUILD_PKG_TARGET -eq "aarch64-windows") { "unstable" } else { "stable" }
+        $coreChannel = "base"
         Write-Host "--- Generating a signing key"
         Invoke-NativeCommand hab origin key generate "$env:HAB_ORIGIN"
     }
@@ -28,7 +28,8 @@ Context "Habitat SSL Cache" {
             New-Item -Type File -Path c:\hab\cache\ssl\invalid-certifcate.pem
             Add-Content -Path c:\hab\cache\ssl\invalid-certificate.pem "I AM NOT A CERTIFICATE"
 
-            hab pkg install core/nginx --channel $coreChannel
+            # Resolve against Builder even if the earlier test installed 7zip.
+            hab pkg install core/7zip --channel $coreChannel --ignore-local
             $LASTEXITCODE | Should -Be 0
         }
 

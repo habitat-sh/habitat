@@ -269,9 +269,9 @@ function Get-Leader($Remote, $ServiceGroup) {
 }
 
 function New-TestCertificate($Path, $KeyPath = "key.pem") {
-    if ($env:BUILD_PKG_TARGET -eq "aarch64-windows") {
-        # core/openssl is not published for Windows ARM64. Only a PEM fixture is
-        # needed to exercise Habitat's certificate loading and Studio copying.
+    if ($IsWindows) {
+        # Use .NET on both Windows architectures to generate the PEM fixture
+        # for Habitat's certificate loading and Studio copying tests.
         $key = [System.Security.Cryptography.RSA]::Create(2048)
         $certificate = $null
         try {
