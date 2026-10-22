@@ -14,7 +14,9 @@ Describe "Studio build" {
             "plan-in-target",
             "plan-in-habitat-target"
         )) {
-        It "builds $plan" {
+        It "builds $plan" -TestCases @{ Plan = $plan } {
+            param($Plan)
+
             hab pkg build test/fixtures/$plan
             $LASTEXITCODE | Should -Be 0
         }
@@ -82,66 +84,78 @@ Describe "Studio build" {
 }
 
 Describe "working after success callback" {
-    $result = hab pkg build test/fixtures/after-success-plan
-    $exit = $LASTEXITCODE
+    BeforeAll {
+        $script:result = hab pkg build test/fixtures/after-success-plan
+        $script:exit = $LASTEXITCODE
+    }
+
     It "exits 0" {
-        $exit | Should -Be 0
+        $script:exit | Should -Be 0
     }
 
     It "fires after success callback" {
-        $result | Should -Contain "I am a success"
+        $script:result | Should -Contain "I am a success"
     }
 
     It "does not fire after failure callback" {
-        $result | Should -Not -Contain "I am a failure"
+        $script:result | Should -Not -Contain "I am a failure"
     }
 }
 
 Describe "failing after success callback" {
-    $result = hab pkg build test/fixtures/broken-after-success-plan
-    $exit = $LASTEXITCODE
+    BeforeAll {
+        $script:result = hab pkg build test/fixtures/broken-after-success-plan
+        $script:exit = $LASTEXITCODE
+    }
+
     It "exits 0" {
-        $exit | Should -Be 0
+        $script:exit | Should -Be 0
     }
 
     It "outputs success callback error" {
-        ($result | Out-String) | Should -BeLike "*success' callback failed*"
+        ($script:result | Out-String) | Should -BeLike "*success' callback failed*"
     }
 
     It "does not fire after failure callback" {
-        $result | Should -Not -Contain "I am a failure"
+        $script:result | Should -Not -Contain "I am a failure"
     }
 }
 
 Describe "working after failure callback" {
-    $result = hab pkg build test/fixtures/after-failure-plan
-    $exit = $LASTEXITCODE
+    BeforeAll {
+        $script:result = hab pkg build test/fixtures/after-failure-plan
+        $script:exit = $LASTEXITCODE
+    }
+
     It "exits 1" {
-        $exit | Should -Be 1
+        $script:exit | Should -Be 1
     }
 
     It "fires after failure callback" {
-        $result | Should -Contain "I am a failure"
+        $script:result | Should -Contain "I am a failure"
     }
 
     It "does not fire after success callback" {
-        $result | Should -Not -Contain "I am a success"
+        $script:result | Should -Not -Contain "I am a success"
     }
 }
 
 Describe "failing after failure callback" {
-    $result = hab pkg build test/fixtures/broken-after-failure-plan
-    $exit = $LASTEXITCODE
+    BeforeAll {
+        $script:result = hab pkg build test/fixtures/broken-after-failure-plan
+        $script:exit = $LASTEXITCODE
+    }
+
     It "exits 1" {
-        $exit | Should -Be 1
+        $script:exit | Should -Be 1
     }
 
     It "outputs failure callback error" {
-        ($result | Out-String) | Should -BeLike "*failure' callback failed*"
+        ($script:result | Out-String) | Should -BeLike "*failure' callback failed*"
     }
 
     It "does not fire after success callback" {
-        $result | Should -Not -Contain "I am a success"
+        $script:result | Should -Not -Contain "I am a success"
     }
 }
 
@@ -175,7 +189,8 @@ Describe "Targeting different refresh channels" {
         }
     }
 
-    if($IsWindows) {
+    # ARM64 packages were introduced after the historical refresh channels.
+    if($IsWindows -and $env:BUILD_PKG_TARGET -ne "aarch64-windows") {
         hab studio run "hab pkg install core/libarchive"
 
         It "Can target a downgraded channel" {
