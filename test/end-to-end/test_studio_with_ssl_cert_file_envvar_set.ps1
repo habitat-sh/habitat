@@ -4,7 +4,7 @@ $ErrorActionPreference="stop"
 
 Describe "Studio SSL certificates" {
     BeforeAll {
-        $originalSslCertFile = $env:SSL_CERT_FILE
+        $script:originalSslCertFile = $env:SSL_CERT_FILE
         $env:SSL_CERT_FILE = $null
         function Remove-CachedCertificate {
             $hab_ssl_cache="/hab/cache/ssl"
@@ -18,15 +18,15 @@ Describe "Studio SSL certificates" {
         New-TestCertificate -Path (Join-Path $tempdir $e2e_certname) -KeyPath (Join-Path $tempdir "key.pem")
 
         if($IsLinux) {
-            $sslCertFileCheck = "test -f `$SSL_CERT_FILE"
-            $sslCertFilePrint = "echo `$SSL_CERT_FILE"
-            $sslCacheCertFileCheck = "test -f '/hab/cache/ssl/$e2e_certname'"
-            $sslCertFileNotSetCheck = "test `$SSL_CERT_FILE = `$(hab pkg path core/cacerts)/ssl/certs/cacert.pem"
+            $script:sslCertFileCheck = "test -f `$SSL_CERT_FILE"
+            $script:sslCertFilePrint = "echo `$SSL_CERT_FILE"
+            $script:sslCacheCertFileCheck = "test -f '/hab/cache/ssl/$e2e_certname'"
+            $script:sslCertFileNotSetCheck = "test `$SSL_CERT_FILE = `$(hab pkg path core/cacerts)/ssl/certs/cacert.pem"
         } else {
-            $sslCertFileCheck = "exit (!(Test-Path `$env:SSL_CERT_FILE))"
-            $sslCertFilePrint = "`$env:SSL_CERT_FILE.Replace('\','/')"
-            $sslCacheCertFileCheck = "exit (!(Test-Path '/hab/cache/ssl/$e2e_certname'))"
-            $sslCertFIleNotSetCheck = "exit `$(!!(`$env:SSL_CERT_FILE))"
+            $script:sslCertFileCheck = "exit (!(Test-Path `$env:SSL_CERT_FILE))"
+            $script:sslCertFilePrint = "`$env:SSL_CERT_FILE.Replace('\','/')"
+            $script:sslCacheCertFileCheck = "exit (!(Test-Path '/hab/cache/ssl/$e2e_certname'))"
+            $script:sslCertFileNotSetCheck = "exit `$(!!(`$env:SSL_CERT_FILE))"
         }
     }
 
@@ -38,7 +38,7 @@ Describe "Studio SSL certificates" {
     }
 
     AfterAll {
-        $env:SSL_CERT_FILE = $originalSslCertFile
+        $env:SSL_CERT_FILE = $script:originalSslCertFile
         if ($tempdir -and (Test-Path $tempdir)) {
             Remove-Item -Recurse -Force $tempdir
         }
@@ -51,12 +51,12 @@ Describe "Studio SSL certificates" {
             }
             It "Sets env:SSL_CERT_FILE in the studio"  {
                 $expected = "/hab/cache/ssl/$e2e_certname"
-                $result = Invoke-StudioRun $sslCertFilePrint
+                $result = Invoke-StudioRun $script:sslCertFilePrint
                 $result[-1] | Should -BeLike "*$expected"
             }
 
             It "Copies the certificate described by SSL_CERT_FILE into the studio" {
-                Invoke-StudioRun $sslCertFileCheck
+                Invoke-StudioRun $script:sslCertFileCheck
                 $LASTEXITCODE | Should -Be 0
             }
 
@@ -76,7 +76,7 @@ Describe "Studio SSL certificates" {
             }
 
             It "is available in studio" {
-                Invoke-StudioRun $sslCacheCertFileCheck
+                Invoke-StudioRun $script:sslCacheCertFileCheck
                 $LASTEXITCODE | Should -Be 0
             }
         }
@@ -115,7 +115,7 @@ Describe "Studio SSL certificates" {
             }
 
             It "Should not set SSL_CERT_FILE" {
-                Invoke-StudioRun $sslCertFileNotSetCheck
+                Invoke-StudioRun $script:sslCertFileNotSetCheck
                 $LASTEXITCODE | Should -Be 0
             }
 
@@ -123,7 +123,7 @@ Describe "Studio SSL certificates" {
                 if($isLinux) {
                     Invoke-StudioRun "test -e /hab/cache/ssl/cert-as-directory"
                 } else {
-                    Invoke-StudioRun $sslCertFileCheck
+                    Invoke-StudioRun $script:sslCertFileCheck
                 }
 
                 $LASTEXITCODE | Should -Be 1
@@ -147,13 +147,13 @@ Describe "Studio SSL certificates" {
                 if($isLinux) {
                     Invoke-StudioRun "test -e /hab/cache/ssl/non-existant-file"
                 } else {
-                    Invoke-StudioRun $sslCertFileCheck
+                    Invoke-StudioRun $script:sslCertFileCheck
                 }
                 $LASTEXITCODE | Should -Be 1
             }
 
             It "Should not set SSL_CERT_FILE" {
-                Invoke-StudioRun $sslCertFileNotSetCheck
+                Invoke-StudioRun $script:sslCertFileNotSetCheck
                 $LASTEXITCODE | Should -Be 0
             }
 
@@ -171,7 +171,7 @@ Describe "Studio SSL certificates" {
 
         Describe "Studio is auto-installed on first run" {
             It "Should not set SSL_CERT_FILE in the studio" {
-                Invoke-StudioRun $sslCertFileNotSetCheck
+                Invoke-StudioRun $script:sslCertFileNotSetCheck
                 $LASTEXITCODE | Should -Be 0
             }
         }

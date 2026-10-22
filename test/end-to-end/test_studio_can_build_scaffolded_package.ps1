@@ -13,24 +13,24 @@ Describe "package using scaffolding" {
         }
 
         hab origin key generate $env:HAB_ORIGIN
-        $minimal = Invoke-PlanBuild minimal-package
+        $script:minimal = Invoke-PlanBuild minimal-package
         $depPkg = Invoke-PlanBuild dep-pkg-1
         if ($IsLinux) {
             hab studio run "rm -rf /hab/pkgs/$($depPkg.Ident)/hooks"
         }
-        $scaffolding = Invoke-PlanBuild scaffolding
-        $consumer = Invoke-PlanBuild use_scaffolding
+        $script:scaffolding = Invoke-PlanBuild scaffolding
+        $script:consumer = Invoke-PlanBuild use_scaffolding
     }
 
     It "inherits scaffolding dependencies" {
-        hab pkg install "results/$($minimal.Artifact)"
+        hab pkg install "results/$($script:minimal.Artifact)"
         hab pkg install "results/$($depPkg.Artifact)"
         Remove-Item "/hab/pkgs/$($depPkg.Ident)/hooks" -Recurse -Force
-        hab pkg install "results/$($scaffolding.Artifact)"
-        hab pkg install "results/$($consumer.Artifact)"
+        hab pkg install "results/$($script:scaffolding.Artifact)"
+        hab pkg install "results/$($script:consumer.Artifact)"
         # scaffolding has minimal_package as runtime and dep-pkg-1 as build time deps
 
-        "/hab/pkgs/$($consumer.Ident)/DEPS" | Should -FileContentMatch "$env:HAB_ORIGIN/minimal_package"
-        "/hab/pkgs/$($consumer.Ident)/BUILD_DEPS" | Should -FileContentMatch "$env:HAB_ORIGIN/dep-pkg-1"
+        "/hab/pkgs/$($script:consumer.Ident)/DEPS" | Should -FileContentMatch "$env:HAB_ORIGIN/minimal_package"
+        "/hab/pkgs/$($script:consumer.Ident)/BUILD_DEPS" | Should -FileContentMatch "$env:HAB_ORIGIN/dep-pkg-1"
     }
 }

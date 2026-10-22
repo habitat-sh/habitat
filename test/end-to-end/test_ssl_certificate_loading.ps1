@@ -1,7 +1,6 @@
 $ErrorActionPreference="stop"
 Context "Habitat SSL Cache" {
     BeforeAll {
-        $coreChannel = "base"
         Write-Host "--- Generating a signing key"
         Invoke-NativeCommand hab origin key generate "$env:HAB_ORIGIN"
     }
@@ -17,7 +16,7 @@ Context "Habitat SSL Cache" {
         # The previous release in order to test the current build.  However, the BeforeEach
         # block above ensures we don't have any cached certs that this may be pulling in.
         It "Can install packages" {
-            hab pkg install core/7zip --channel $coreChannel
+            hab pkg install core/7zip --channel base
             $LASTEXITCODE | Should -Be 0
         }
     }
@@ -29,7 +28,7 @@ Context "Habitat SSL Cache" {
             Add-Content -Path c:\hab\cache\ssl\invalid-certificate.pem "I AM NOT A CERTIFICATE"
 
             # Resolve against Builder even if the earlier test installed 7zip.
-            hab pkg install core/7zip --channel $coreChannel --ignore-local
+            hab pkg install core/7zip --channel base --ignore-local
             $LASTEXITCODE | Should -Be 0
         }
 
