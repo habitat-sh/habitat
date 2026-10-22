@@ -268,6 +268,33 @@ function Get-Leader($Remote, $ServiceGroup) {
     }
 }
 
+function New-TestCertificate($Path, $KeyPath = "key.pem") {
+    if ($env:BUILD_PKG_TARGET -eq "aarch64-windows") {
+        # core/openssl is not published for Windows ARM64. Only a PEM fixture is
+        # needed to exercise Habitat's certificate loading and Studio copying.
+        $key = [System.Security.Cryptography.RSA]::Create(2048)
+        $certificate = $null
+        try {
+            $request = [System.Security.Cryptography.X509Certificates.CertificateRequest]::new(
+                "CN=habitat-e2e",
+                $key,
+                [System.Security.Cryptography.HashAlgorithmName]::SHA256,
+                [System.Security.Cryptography.RSASignaturePadding]::Pkcs1
+            )
+            $now = [DateTimeOffset]::UtcNow
+            $certificate = $request.CreateSelfSigned($now.AddMinutes(-5), $now.AddDays(365))
+            Set-Content -LiteralPath $Path -Value $certificate.ExportCertificatePem() -Encoding ascii
+            Set-Content -LiteralPath $KeyPath -Value $key.ExportPkcs8PrivateKeyPem() -Encoding ascii
+        } finally {
+            if ($certificate) { $certificate.Dispose() }
+            $key.Dispose()
+        }
+    } else {
+        Invoke-NativeCommand hab pkg install core/openssl --channel stable
+        Invoke-NativeCommand hab pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout $KeyPath -x509 -days 365 -out $Path
+    }
+}
+
 function Invoke-Build($PackageName, $RefreshChannel) {
     $commandArgs = @()
     if (!$IsMacOS) {

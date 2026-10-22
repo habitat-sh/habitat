@@ -15,9 +15,7 @@ Describe "Studio SSL certificates" {
 
         $tempdir = New-TemporaryDirectory
         $e2e_certname = "e2e-ssl.pem"
-        $coreChannel = if ($env:BUILD_PKG_TARGET -eq "aarch64-windows") { "base" } else { "stable" }
-        Invoke-NativeCommand hab pkg install core/openssl --channel $coreChannel
-        Invoke-NativeCommand hab pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout (Join-Path $tempdir "key.pem") -x509 -days 365 -out (Join-Path $tempdir $e2e_certname)
+        New-TestCertificate -Path (Join-Path $tempdir $e2e_certname) -KeyPath (Join-Path $tempdir "key.pem")
 
         if($IsLinux) {
             $sslCertFileCheck = "test -f `$SSL_CERT_FILE"
