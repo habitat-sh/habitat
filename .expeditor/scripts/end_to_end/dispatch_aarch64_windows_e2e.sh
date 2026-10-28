@@ -107,9 +107,16 @@ mkdir -p "${artifact_dir}"
 download_status=0
 gh run download "${run_id}" --repo "${repository}" --dir "${artifact_dir}" || download_status=$?
 
+echo "--- GitHub Actions logs for ${test_name} (aarch64-windows)"
+log_status=0
+gh run view "${run_id}" --repo "${repository}" --log \
+    | tee "${artifact_dir}/github-actions.log" || log_status=$?
+
 if [[ "${conclusion}" != "success" ]]; then
     echo "GitHub Actions e2e run ${run_id} finished with conclusion '${conclusion}'" >&2
-    gh run view "${run_id}" --repo "${repository}" --log-failed || true
     exit 1
 fi
-exit "${download_status}"
+if [[ "${download_status}" -ne 0 ]]; then
+    exit "${download_status}"
+fi
+exit "${log_status}"
