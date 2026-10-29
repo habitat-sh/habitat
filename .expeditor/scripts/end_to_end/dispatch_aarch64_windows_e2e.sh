@@ -107,12 +107,25 @@ mkdir -p "${artifact_dir}"
 download_status=0
 gh run download "${run_id}" --repo "${repository}" --dir "${artifact_dir}" || download_status=$?
 
-echo "--- GitHub Actions logs for ${test_name} (aarch64-windows)"
 log_status=0
 gh run view "${run_id}" --repo "${repository}" --log \
-    | tee "${artifact_dir}/github-actions.log" || log_status=$?
+    > "${artifact_dir}/github-actions.log" || log_status=$?
+
+echo "--- Test output for ${test_name} (aarch64-windows)"
+test_step="Run end-to-end test against dev packages"
+# gh prefixes each log line with tab-separated job and step names. Keep the
+# timestamp and message, including any tabs within the message itself.
+awk -F '\t' -v step="${test_step}" '
+    $2 == step { sub(/^[^\t]*\t[^\t]*\t/, ""); print }
+' "${artifact_dir}/github-actions.log"
+echo "Full GitHub Actions log: ${artifact_dir}/github-actions.log"
 
 if [[ "${conclusion}" != "success" ]]; then
+    echo "--- Failed GitHub Actions steps (excluding test output above)"
+    gh run view "${run_id}" --repo "${repository}" --log-failed \
+        | awk -F '\t' -v step="${test_step}" '
+            $2 != step { sub(/^[^\t]*\t[^\t]*\t/, ""); print }
+        ' || true
     echo "GitHub Actions e2e run ${run_id} finished with conclusion '${conclusion}'" >&2
     exit 1
 fi

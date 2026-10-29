@@ -325,7 +325,7 @@ steps:
             - HAB_BLDR_URL
             - HAB_ORIGIN
 
-  - label: "[:windows-arm: test_studio_with_ssl_cert_file_envvar_set]"
+  - label: "[:windows: ARM64 test_studio_with_ssl_cert_file_envvar_set]"
     command:
       - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_studio_with_ssl_cert_file_envvar_set
     artifact_paths:
@@ -373,7 +373,7 @@ steps:
           single-use: true
           privileged: true
 
-  - label: "[:windows-arm: test_studio_version]"
+  - label: "[:windows: ARM64 test_studio_version]"
     command:
       - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_studio_version
     artifact_paths:
@@ -518,7 +518,7 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[:windows-arm: test_studio_profile]"
+  - label: "[:windows: ARM64 test_studio_profile]"
     command:
       - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_studio_profile
     artifact_paths:
@@ -588,7 +588,7 @@ steps:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_ORIGIN
 
-  - label: "[:windows-arm: test_studio_can_build_packages]"
+  - label: "[:windows: ARM64 test_studio_can_build_packages]"
     command:
       - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_studio_can_build_packages
     artifact_paths:
@@ -622,7 +622,7 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[:windows-arm: test_studio_can_build_packages_with_pkg_version_function]"
+  - label: "[:windows: ARM64 test_studio_can_build_packages_with_pkg_version_function]"
     command:
       - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_studio_can_build_packages_with_pkg_version_function
     artifact_paths:
@@ -656,7 +656,7 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[:windows-arm: test_studio_can_build_scaffolded_package]"
+  - label: "[:windows: ARM64 test_studio_can_build_scaffolded_package]"
     command:
       - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_studio_can_build_scaffolded_package
     artifact_paths:
@@ -743,7 +743,7 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[:windows-arm: test_ssl_certificate_loading]"
+  - label: "[:windows: ARM64 test_ssl_certificate_loading]"
     command:
       - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_ssl_certificate_loading
     artifact_paths:
@@ -777,7 +777,7 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[:windows-arm: test_pkg_install]"
+  - label: "[:windows: ARM64 test_pkg_install]"
     command:
       - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_pkg_install
     artifact_paths:
@@ -956,7 +956,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  - label: "[:windows-arm: test_pkg_uninstall_hook]"
+  - label: "[:windows: ARM64 test_pkg_uninstall_hook]"
     command:
       - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_pkg_uninstall_hook
     artifact_paths:
@@ -1299,7 +1299,7 @@ steps:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_AUTH_TOKEN
 
-  - label: "[:windows-arm: test_hab_plan_cli]"
+  - label: "[:windows: ARM64 test_hab_plan_cli]"
     command:
       - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_hab_plan_cli
     artifact_paths:
