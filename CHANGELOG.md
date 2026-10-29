@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.141 -->
-## [2.1.141](https://github.com/habitat-sh/habitat/tree/2.1.141) (2026-10-28)
+<!-- latest_release 2.1.142 -->
+## [2.1.142](https://github.com/habitat-sh/habitat/tree/2.1.142) (2026-10-29)
 
 #### Merged Pull Requests
-- Bump actix-web from 4.17.0 to 4.18.1 [#10638](https://github.com/habitat-sh/habitat/pull/10638) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump actix-http from 3.19.0 to 3.20.0 [#10639](https://github.com/habitat-sh/habitat/pull/10639) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump actix-http from 3.19.0 to 3.20.0 [#10639](https://github.com/habitat-sh/habitat/pull/10639) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.142 -->
+- Bump cc from 1.8.0 to 1.10.0 [#10637](https://github.com/habitat-sh/habitat/pull/10637) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.142 -->
+- Bump notify from 8.2.0 to 8.2.1 [#10636](https://github.com/habitat-sh/habitat/pull/10636) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.142 -->
 - Bump actix-web from 4.17.0 to 4.18.1 [#10638](https://github.com/habitat-sh/habitat/pull/10638) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.141 -->
 - Bump tokio from 1.53.3 to 1.54.1 [#10631](https://github.com/habitat-sh/habitat/pull/10631) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.140 -->
 - Bump aws-credential-types from 1.3.0 to 1.3.1 [#10632](https://github.com/habitat-sh/habitat/pull/10632) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.140 -->
