@@ -1,21 +1,36 @@
-Remove-Item *.tar.gz
-
 $IsDarwinArm64 = $IsLinux -eq $false -and $IsWindows -eq $false -and ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64)
 
-# On aarch64-darwin, packages live under opt/hab; everywhere else under hab
-$HabRoot = if ($IsDarwinArm64) { "opt/hab" } else { "hab" }
+$setup = {
+    Remove-Item *.tar.gz
+    $IsDarwinArm64 = $IsLinux -eq $false -and $IsWindows -eq $false -and ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64)
 
-function Get-Ident($pkg, $tar) {
-    $ident = tar --list --file $tar | Where-Object { $_ -like "$HabRoot/pkgs/$pkg/**/IDENT" }
-    if ($null -ne $ident) {
-        tar --extract --to-stdout --file $tar $ident
+    # On aarch64-darwin, packages live under opt/hab; everywhere else under hab
+    $HabRoot = if ($IsDarwinArm64) { "opt/hab" } else { "hab" }
+
+    function Get-Ident($pkg, $tar) {
+        $ident = tar --list --file $tar | Where-Object { $_ -like "$HabRoot/pkgs/$pkg/**/IDENT" }
+        if ($null -ne $ident) {
+            tar --extract --to-stdout --file $tar $ident
+        }
     }
+}
+if ($useWindowsPester5) {
+    BeforeAll $setup
+} else {
+    . $setup
 }
 
 Describe "hab pkg export tar core/nginx" {
-    hab pkg export tar core/nginx --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
-    $tar = Get-Item core-nginx-*.tar.gz
-    $version = ((((hab --version) -split " ")[1]) -split "/")[0]
+    $setup = {
+        hab pkg export tar core/nginx --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+        $tar = Get-Item core-nginx-*.tar.gz
+        $version = ((((hab --version) -split " ")[1]) -split "/")[0]
+    }
+    if ($useWindowsPester5) {
+        BeforeAll $setup
+    } else {
+        . $setup
+    }
     It "Creates tarball" {
         $tar | Should -Not -Be $null
     }
@@ -44,8 +59,15 @@ Describe "hab pkg export tar core/nginx" {
 }
 
 Describe "hab pkg export tar core/nginx --no-hab-bin" {
-    hab pkg export tar core/nginx --no-hab-bin --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
-    $tar = Get-Item core-nginx-*.tar.gz
+    $setup = {
+        hab pkg export tar core/nginx --no-hab-bin --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+        $tar = Get-Item core-nginx-*.tar.gz
+    }
+    if ($useWindowsPester5) {
+        BeforeAll $setup
+    } else {
+        . $setup
+    }
     It "Creates tarball" {
         $tar | Should -Not -Be $null
     }
@@ -82,8 +104,15 @@ Context "hab pkg export tar core/nginx --no-hab-sup" {
             $LASTEXITCODE | Should -Not -Be 0
         }
     } else {
-        hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
-        $tar = Get-Item core-nginx-*.tar.gz
+        $setup = {
+            hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+            $tar = Get-Item core-nginx-*.tar.gz
+        }
+        if ($useWindowsPester5) {
+            BeforeAll $setup
+        } else {
+            . $setup
+        }
         It "Creates tarball" {
             $tar | Should -Not -Be $null
         }

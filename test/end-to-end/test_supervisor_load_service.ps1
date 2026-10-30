@@ -1,16 +1,30 @@
-if ($IsMacOS) {
-    $pkgChannel = "aarch64-darwin"
-} else {
-    $pkgChannel = "stable"
-}
-hab pkg install core/nginx --channel $pkgChannel
+$setup = {
+    if ($IsMacOS) {
+        $pkgChannel = "aarch64-darwin"
+    } else {
+        $pkgChannel = "stable"
+    }
+    hab pkg install core/nginx --channel $pkgChannel
 
-$job = Start-Job { hab sup run }
-Wait-Supervisor -Timeout 120
+}
+if ($useWindowsPester5) {
+    BeforeAll $setup
+} else {
+    . $setup
+}
 
 Describe 'hab svc load' {
-    $loadOut = hab svc load core/nginx
-    Wait-SupervisorService nginx -Timeout 20
+    $setup = {
+        $job = Start-Job { hab sup run }
+        Wait-Supervisor -Timeout 120
+        $loadOut = hab svc load core/nginx
+        Wait-SupervisorService nginx -Timeout 20
+    }
+    if ($useWindowsPester5) {
+        BeforeAll $setup
+    } else {
+        . $setup
+    }
 
     It 'Successfully loads service' {
         ($loadOut | Out-String) | Should -Match 'The core/nginx service was successfully loaded'

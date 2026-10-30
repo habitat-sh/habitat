@@ -1,28 +1,42 @@
-# This endures that given a 'hab' user, a plan with no pkg_svc_user will
-# not produce a service that will be run by the hab user. This used to be
-# the case but we are no longer using the hab account by default on windows.
-# see https://github.com/habitat-sh/habitat/issues/6847
-$username = "hab"
-$password = "Pass@word1"
-net user /add $username $password
-net localgroup administrators $username /add
-Add-Type -TypeDefinition (Get-Content ".expeditor\scripts\end_to_end\LsaWrapper.cs" | Out-String)
-$lsa_wrapper = New-Object -type LsaWrapper
-$lsa_wrapper.SetRight($username, "SeServiceLogonRight")
+$setup = {
+    # This endures that given a 'hab' user, a plan with no pkg_svc_user will
+    # not produce a service that will be run by the hab user. This used to be
+    # the case but we are no longer using the hab account by default on windows.
+    # see https://github.com/habitat-sh/habitat/issues/6847
+    $username = "hab"
+    $password = "Pass@word1"
+    net user /add $username $password
+    net localgroup administrators $username /add
+    Add-Type -TypeDefinition (Get-Content ".expeditor\scripts\end_to_end\LsaWrapper.cs" | Out-String)
+    $lsa_wrapper = New-Object -type LsaWrapper
+    $lsa_wrapper.SetRight($username, "SeServiceLogonRight")
 
-$env:HAB_ORIGIN = "ci"
-hab origin key generate ci
+    $env:HAB_ORIGIN = "ci"
+    hab origin key generate ci
 
-hab pkg install core/windows-service
-Start-Service Habitat
-Wait-Supervisor -Timeout 45
+    hab pkg install core/windows-service
+    Start-Service Habitat
+    Wait-Supervisor -Timeout 45
+}
+if ($useWindowsPester5) {
+    BeforeAll $setup
+} else {
+    . $setup
+}
 
 Describe "with no svc_user" {
-    hab pkg build test/fixtures/windows_plans/dummy
-    . .\results\last_build.ps1
-    hab pkg install .\results\$pkg_artifact
-    $loadOut = hab svc load ci/dummy
-    Wait-SupervisorService dummy -Timeout 20
+    $setup = {
+        hab pkg build test/fixtures/windows_plans/dummy
+        . .\results\last_build.ps1
+        hab pkg install .\results\$pkg_artifact
+        $loadOut = hab svc load ci/dummy
+        Wait-SupervisorService dummy -Timeout 20
+    }
+    if ($useWindowsPester5) {
+        BeforeAll $setup
+    } else {
+        . $setup
+    }
 
     It "does not create a SVC_USR metafile" {
         Test-Path c:\hab\pkgs\$pkg_ident\SVC_USER | Should -Be $false
@@ -45,11 +59,18 @@ Describe "with no svc_user" {
 }
 
 Describe "with svc_user" {
-    hab pkg build test/fixtures/windows_plans/dummy_hab_svc_user
-    . .\results\last_build.ps1
-    hab pkg install .\results\$pkg_artifact
-    $loadOut = hab svc load ci/dummy-hab-user --password $password
-    Wait-SupervisorService dummy-hab-user -Timeout 20
+    $setup = {
+        hab pkg build test/fixtures/windows_plans/dummy_hab_svc_user
+        . .\results\last_build.ps1
+        hab pkg install .\results\$pkg_artifact
+        $loadOut = hab svc load ci/dummy-hab-user --password $password
+        Wait-SupervisorService dummy-hab-user -Timeout 20
+    }
+    if ($useWindowsPester5) {
+        BeforeAll $setup
+    } else {
+        . $setup
+    }
 
     It "does create a SVC_USR metafile" {
         Test-Path c:\hab\pkgs\$pkg_ident\SVC_USER | Should -Be $true

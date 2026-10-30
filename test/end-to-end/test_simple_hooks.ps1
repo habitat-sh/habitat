@@ -1,12 +1,18 @@
-$TestStartTime = Get-Date
-$supLog = New-SupervisorLogFile("test_simple_hooks")
-Start-Supervisor -LogFile $supLog -Timeout 45 | Out-Null
-
-$pkg = "$(Get-EndToEndTestingOrigin)/simple-hooks"
-
 Describe "Simple hooks output" {
-    $svc = Load-SupervisorService -PackageName $pkg
-    $pkgLogsPath = Join-Path -Path $env:SystemDrive -ChildPath hab -AdditionalChildPath @("svc", $svc, "logs")
+    $setup = {
+        $TestStartTime = Get-Date
+        $supLog = New-SupervisorLogFile("test_simple_hooks")
+        Start-Supervisor -LogFile $supLog -Timeout 45 | Out-Null
+
+        $pkg = "$(Get-EndToEndTestingOrigin)/simple-hooks"
+        $svc = Load-SupervisorService -PackageName $pkg
+        $pkgLogsPath = Join-Path -Path $env:SystemDrive -ChildPath hab -AdditionalChildPath @("svc", $svc, "logs")
+    }
+    if ($useWindowsPester5) {
+        BeforeAll $setup
+    } else {
+        . $setup
+    }
 
     It "Has correct 'install' hook stdout" {
         $path = Join-Path $pkgLogsPath "install.stdout.log"
@@ -31,12 +37,26 @@ Describe "Simple hooks output" {
         $path | Should -FileContentMatchExactly "post-run hook $svc"
     }
 
-    $beforeUnloadTime = Get-Date
-    Unload-SupervisorService -PackageName $pkg -Timeout 20
+    $orderedTests = {
+        $setup = {
+            $beforeUnloadTime = Get-Date
+            Unload-SupervisorService -PackageName $pkg -Timeout 20
+        }
+        if ($useWindowsPester5) {
+            BeforeAll $setup
+        } else {
+            . $setup
+        }
 
-    It "Has correct 'post-stop' hook stdout" {
-        $path = Join-Path $pkgLogsPath "post-stop.stdout.log"
-        Wait-PathHasContentUpdatedAfter $path $beforeUnloadTime 10
-        $path | Should -FileContentMatchExactly "post-stop hook $svc"
+        It "Has correct 'post-stop' hook stdout" {
+            $path = Join-Path $pkgLogsPath "post-stop.stdout.log"
+            Wait-PathHasContentUpdatedAfter $path $beforeUnloadTime 10
+            $path | Should -FileContentMatchExactly "post-stop hook $svc"
+        }
+    }
+    if ($useWindowsPester5) {
+        Context "after unloading the service" $orderedTests
+    } else {
+        . $orderedTests
     }
 }
