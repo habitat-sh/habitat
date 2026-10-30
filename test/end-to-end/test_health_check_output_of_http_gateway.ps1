@@ -7,7 +7,7 @@ Describe "HTTP gateway" {
         }
         $supLog = New-SupervisorLogFile("test_health_check_output_of_http_gateway")
         Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
-        "--health-check-interval=10"
+                "--health-check-interval=10"
         ) | Out-Null
         Load-SupervisorService $test_probe_release
         Wait-Release -Ident $test_probe_release

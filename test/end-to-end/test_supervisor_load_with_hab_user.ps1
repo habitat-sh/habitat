@@ -1,3 +1,4 @@
+# Initialize shared setup values in the current scope for sibling Pester blocks.
 $setup = {
     # This endures that given a 'hab' user, a plan with no pkg_svc_user will
     # not produce a service that will be run by the hab user. This used to be
@@ -29,7 +30,7 @@ Describe "with no svc_user" {
         hab pkg build test/fixtures/windows_plans/dummy
         . .\results\last_build.ps1
         hab pkg install .\results\$pkg_artifact
-        $loadOut = hab svc load ci/dummy
+        Set-Variable -Name loadOut -Value (hab svc load ci/dummy) -Scope Local
         Wait-SupervisorService dummy -Timeout 20
     }
     if ($useWindowsPester5) {
@@ -63,7 +64,7 @@ Describe "with svc_user" {
         hab pkg build test/fixtures/windows_plans/dummy_hab_svc_user
         . .\results\last_build.ps1
         hab pkg install .\results\$pkg_artifact
-        $loadOut = hab svc load ci/dummy-hab-user --password $password
+        Set-Variable -Name loadOut -Value (hab svc load ci/dummy-hab-user --password $password) -Scope Local
         Wait-SupervisorService dummy-hab-user -Timeout 20
     }
     if ($useWindowsPester5) {

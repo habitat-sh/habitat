@@ -1,21 +1,22 @@
+# Initialize shared setup values in the current scope for sibling Pester blocks.
 Describe "hab svc update" {
     $setup = {
         # For *some reason* this incoming environment variable has quotes,
         # which throws everything off, but apparently only on Windows.
         $env:HAB_AUTH_TOKEN = $env:HAB_AUTH_TOKEN.Replace("`"", "")
 
-        $testChannelOne="dynamic-update-one-$([DateTime]::Now.Ticks)"
-        $testChannelTwo="dynamic-update-two-$([DateTime]::Now.Ticks)"
-        $nginx_pkg="habitat-testing/nginx"
+        Set-Variable -Name testChannelOne -Value ("dynamic-update-one-$([DateTime]::Now.Ticks)") -Scope Local
+        Set-Variable -Name testChannelTwo -Value ("dynamic-update-two-$([DateTime]::Now.Ticks)") -Scope Local
+        Set-Variable -Name nginx_pkg -Value ("habitat-testing/nginx") -Scope Local
         if ($IsWindows) {
             $nginx_release="habitat-testing/nginx/1.18.0/20200626143933"
         } else {
             $nginx_release="habitat-testing/nginx/1.18.0/20200626184200"
         }
         if ($IsWindows) {
-            $test_probe_release="habitat-testing/test-probe/0.1.0/20230620183252"
+            Set-Variable -Name test_probe_release -Value ("habitat-testing/test-probe/0.1.0/20230620183252") -Scope Local
         } else {
-            $test_probe_release="habitat-testing/test-probe/0.1.0/20230621013852"
+            Set-Variable -Name test_probe_release -Value ("habitat-testing/test-probe/0.1.0/20230621013852") -Scope Local
         }
         $supLog = New-SupervisorLogFile("test_svc_update")
         Start-Supervisor -LogFile $supLog -Timeout 45
@@ -62,7 +63,7 @@ Describe "hab svc update" {
             Wait-Release -Ident $test_probe_release
             Start-Sleep 15 # test-probe has a long init hook
 
-            $proc = Get-Process "test-probe"
+            Set-Variable -Name proc -Value (Get-Process "test-probe") -Scope Local
 
             # This is the same as saying "remove binds"... we might
             # find a better way to express this, though.
@@ -105,7 +106,7 @@ Describe "hab svc update" {
             Wait-Release -Ident $test_probe_release
             Start-Sleep 15 # test-probe has a long init hook
 
-            $proc = Get-Process test-probe
+            Set-Variable -Name proc -Value (Get-Process test-probe) -Scope Local
 
             hab svc update habitat-testing/test-probe --strategy=at-once
 
@@ -175,7 +176,7 @@ Describe "hab svc update" {
             Load-SupervisorService $nginx_pkg -Force -Strategy "at-once" -Channel $testChannelOne
             Start-Sleep 10
 
-            $proc = Get-Process "nginx*"
+            Set-Variable -Name proc -Value (Get-Process "nginx*") -Scope Local
         }
         if ($useWindowsPester5) {
             BeforeAll $setup

@@ -383,7 +383,7 @@ $pester5Tests = @(
 $useWindowsPester5 = $IsWindows -and
     ((Get-RustHostTriple) -eq "x86_64-pc-windows-msvc") -and
     ((Get-Module Pester).Version.Major -ge 5) -and
-    !$env:DOCKER_STUDIO_TEST -and
+    (-not $env:DOCKER_STUDIO_TEST) -and
     ([IO.Path]::GetFileNameWithoutExtension($testPath) -in $pester5Tests)
 
 if ($useWindowsPester5) {

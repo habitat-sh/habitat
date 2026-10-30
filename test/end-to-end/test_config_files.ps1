@@ -1,7 +1,8 @@
+# Initialize shared setup values in the current scope for sibling Pester blocks.
 $setup = {
-    $configPath = "/hab/sup/default/config"
-    $supConfig = "/hab/sup/default/config/sup.toml"
-    $supBadConfig = "/hab/sup/default/config/bad_sup.toml"
+    Set-Variable -Name configPath -Value ("/hab/sup/default/config") -Scope Local
+    Set-Variable -Name supConfig -Value ("/hab/sup/default/config/sup.toml") -Scope Local
+    Set-Variable -Name supBadConfig -Value ("/hab/sup/default/config/bad_sup.toml") -Scope Local
 }
 if ($useWindowsPester5) {
     BeforeAll $setup
@@ -53,7 +54,7 @@ Describe "reading from supervisor and service config files" {
 
         {
             Start-Supervisor -Timeout 3 -LogFile $supLog -SupArgs @( `
-            "--config-files=$supBadConfig" `
+                    "--config-files=$supBadConfig" `
             )
         } | Should -Throw
     }

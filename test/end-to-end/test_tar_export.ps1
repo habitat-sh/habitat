@@ -1,3 +1,4 @@
+# Initialize shared setup values in the current scope for sibling Pester blocks.
 $IsDarwinArm64 = $IsLinux -eq $false -and $IsWindows -eq $false -and ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64)
 
 $setup = {
@@ -23,8 +24,8 @@ if ($useWindowsPester5) {
 Describe "hab pkg export tar core/nginx" {
     $setup = {
         hab pkg export tar core/nginx --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
-        $tar = Get-Item core-nginx-*.tar.gz
-        $version = ((((hab --version) -split " ")[1]) -split "/")[0]
+        Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
+        Set-Variable -Name version -Value (((((hab --version) -split " ")[1]) -split "/")[0]) -Scope Local
     }
     if ($useWindowsPester5) {
         BeforeAll $setup
@@ -61,7 +62,7 @@ Describe "hab pkg export tar core/nginx" {
 Describe "hab pkg export tar core/nginx --no-hab-bin" {
     $setup = {
         hab pkg export tar core/nginx --no-hab-bin --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
-        $tar = Get-Item core-nginx-*.tar.gz
+        Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
     }
     if ($useWindowsPester5) {
         BeforeAll $setup
@@ -106,7 +107,7 @@ Context "hab pkg export tar core/nginx --no-hab-sup" {
     } else {
         $setup = {
             hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
-            $tar = Get-Item core-nginx-*.tar.gz
+            Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
         }
         if ($useWindowsPester5) {
             BeforeAll $setup

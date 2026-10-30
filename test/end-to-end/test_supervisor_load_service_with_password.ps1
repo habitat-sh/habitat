@@ -1,3 +1,4 @@
+# Initialize shared setup values in the current scope for sibling Pester blocks.
 $setup = {
     $username = "hab_test"
     $password = "Pass@word1"
@@ -25,7 +26,7 @@ if ($useWindowsPester5) {
 
 Describe "hab svc load" {
     $setup = {
-        $loadOut = hab svc load ci/dummy --password $password
+        Set-Variable -Name loadOut -Value (hab svc load ci/dummy --password $password) -Scope Local
         Wait-SupervisorService dummy -Timeout 20
     }
     if ($useWindowsPester5) {

@@ -1,12 +1,13 @@
+# Initialize shared setup values in the current scope for sibling Pester blocks.
 Describe "Simple hooks output" {
     $setup = {
-        $TestStartTime = Get-Date
+        Set-Variable -Name TestStartTime -Value (Get-Date) -Scope Local
         $supLog = New-SupervisorLogFile("test_simple_hooks")
         Start-Supervisor -LogFile $supLog -Timeout 45 | Out-Null
 
         $pkg = "$(Get-EndToEndTestingOrigin)/simple-hooks"
         $svc = Load-SupervisorService -PackageName $pkg
-        $pkgLogsPath = Join-Path -Path $env:SystemDrive -ChildPath hab -AdditionalChildPath @("svc", $svc, "logs")
+        Set-Variable -Name pkgLogsPath -Value (Join-Path -Path $env:SystemDrive -ChildPath hab -AdditionalChildPath @("svc", $svc, "logs")) -Scope Local
     }
     if ($useWindowsPester5) {
         BeforeAll $setup
@@ -39,7 +40,7 @@ Describe "Simple hooks output" {
 
     $orderedTests = {
         $setup = {
-            $beforeUnloadTime = Get-Date
+            Set-Variable -Name beforeUnloadTime -Value (Get-Date) -Scope Local
             Unload-SupervisorService -PackageName $pkg -Timeout 20
         }
         if ($useWindowsPester5) {

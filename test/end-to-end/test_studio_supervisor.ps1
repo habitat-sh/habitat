@@ -1,5 +1,6 @@
+# Initialize shared setup values in the current scope for sibling Pester blocks.
 $setup = {
-    $cliVersion = ((hab --version) -split " ")[1]
+    Set-Variable -Name cliVersion -Value (((hab --version) -split " ")[1]) -Scope Local
     $env:HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL="dev"
     hab origin key generate $env:HAB_ORIGIN
 }

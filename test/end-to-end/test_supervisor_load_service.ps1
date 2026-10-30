@@ -1,3 +1,4 @@
+# Initialize shared setup values in the current scope for sibling Pester blocks.
 $setup = {
     if ($IsMacOS) {
         $pkgChannel = "aarch64-darwin"
@@ -15,9 +16,9 @@ if ($useWindowsPester5) {
 
 Describe 'hab svc load' {
     $setup = {
-        $job = Start-Job { hab sup run }
+        Set-Variable -Name job -Value (Start-Job { hab sup run }) -Scope Local
         Wait-Supervisor -Timeout 120
-        $loadOut = hab svc load core/nginx
+        Set-Variable -Name loadOut -Value (hab svc load core/nginx) -Scope Local
         Wait-SupervisorService nginx -Timeout 20
     }
     if ($useWindowsPester5) {
@@ -58,12 +59,12 @@ if ($IsLinux) {
     # away that hierarchy at this point to start clean
     (bash -c 'rm -rf /hab/svc')
 
-    $job = Start-Job { bash -c 'umask 077; hab sup run' }
+    Set-Variable -Name job -Value (Start-Job { bash -c 'umask 077; hab sup run' }) -Scope Local
     Wait-Supervisor -Timeout 120
 
     Describe 'hab svc load on Linux with umask 077' {
 
-        $loadOut = hab svc load core/nginx
+        Set-Variable -Name loadOut -Value (hab svc load core/nginx) -Scope Local
         Wait-SupervisorService nginx -Timeout 20
 
         It 'Successfully loads service' {
