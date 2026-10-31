@@ -1,23 +1,32 @@
 # Initialize shared setup values in the current scope for sibling Pester blocks.
+# Pester 4 teardown reads these values from the file scope.
+$initialize = {
+    # For *some reason* this incoming environment variable has quotes,
+    # which throws everything off, but apparently only on Windows.
+    $env:HAB_AUTH_TOKEN = $env:HAB_AUTH_TOKEN.Replace("`"", "")
+
+    Set-Variable -Name testChannelOne -Value ("dynamic-update-one-$([DateTime]::Now.Ticks)") -Scope Local
+    Set-Variable -Name testChannelTwo -Value ("dynamic-update-two-$([DateTime]::Now.Ticks)") -Scope Local
+    Set-Variable -Name nginx_pkg -Value ("habitat-testing/nginx") -Scope Local
+    if ($IsWindows) {
+        Set-Variable -Name nginx_release -Value ("habitat-testing/nginx/1.18.0/20200626143933") -Scope Local
+    } else {
+        Set-Variable -Name nginx_release -Value ("habitat-testing/nginx/1.18.0/20200626184200") -Scope Local
+    }
+    if ($IsWindows) {
+        Set-Variable -Name test_probe_release -Value ("habitat-testing/test-probe/0.1.0/20230620183252") -Scope Local
+    } else {
+        Set-Variable -Name test_probe_release -Value ("habitat-testing/test-probe/0.1.0/20230621013852") -Scope Local
+    }
+}
+if ($useWindowsPester5) {
+    BeforeAll $initialize
+} else {
+    . $initialize
+}
+
 Describe "hab svc update" {
     $setup = {
-        # For *some reason* this incoming environment variable has quotes,
-        # which throws everything off, but apparently only on Windows.
-        $env:HAB_AUTH_TOKEN = $env:HAB_AUTH_TOKEN.Replace("`"", "")
-
-        Set-Variable -Name testChannelOne -Value ("dynamic-update-one-$([DateTime]::Now.Ticks)") -Scope Local
-        Set-Variable -Name testChannelTwo -Value ("dynamic-update-two-$([DateTime]::Now.Ticks)") -Scope Local
-        Set-Variable -Name nginx_pkg -Value ("habitat-testing/nginx") -Scope Local
-        if ($IsWindows) {
-            $nginx_release="habitat-testing/nginx/1.18.0/20200626143933"
-        } else {
-            $nginx_release="habitat-testing/nginx/1.18.0/20200626184200"
-        }
-        if ($IsWindows) {
-            Set-Variable -Name test_probe_release -Value ("habitat-testing/test-probe/0.1.0/20230620183252") -Scope Local
-        } else {
-            Set-Variable -Name test_probe_release -Value ("habitat-testing/test-probe/0.1.0/20230621013852") -Scope Local
-        }
         $supLog = New-SupervisorLogFile("test_svc_update")
         Start-Supervisor -LogFile $supLog -Timeout 45
         Load-SupervisorService $nginx_release

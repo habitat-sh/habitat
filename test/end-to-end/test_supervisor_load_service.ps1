@@ -12,12 +12,17 @@ if ($useWindowsPester5) {
     BeforeAll $setup
 } else {
     . $setup
+    # Pester 4 teardown reads the job from the file scope.
+    Set-Variable -Name job -Value (Start-Job { hab sup run }) -Scope Local
+    Wait-Supervisor -Timeout 120
 }
 
 Describe 'hab svc load' {
     $setup = {
-        Set-Variable -Name job -Value (Start-Job { hab sup run }) -Scope Local
-        Wait-Supervisor -Timeout 120
+        if ($useWindowsPester5) {
+            Set-Variable -Name job -Value (Start-Job { hab sup run }) -Scope Local
+            Wait-Supervisor -Timeout 120
+        }
         Set-Variable -Name loadOut -Value (hab svc load core/nginx) -Scope Local
         Wait-SupervisorService nginx -Timeout 20
     }
