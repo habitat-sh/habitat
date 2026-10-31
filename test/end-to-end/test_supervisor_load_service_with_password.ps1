@@ -1,24 +1,39 @@
-$username = "hab_test"
-$password = "Pass@word1"
-net user /add $username $password
-net localgroup administrators $username /add
-Add-Type -TypeDefinition (Get-Content ".expeditor\scripts\end_to_end\LsaWrapper.cs" | Out-String)
-$lsa_wrapper = New-Object -type LsaWrapper
-$lsa_wrapper.SetRight($username, "SeServiceLogonRight")
+# Initialize shared setup values in the current scope for sibling Pester blocks.
+$setup = {
+    $username = "hab_test"
+    $password = "Pass@word1"
+    net user /add $username $password
+    net localgroup administrators $username /add
+    Add-Type -TypeDefinition (Get-Content ".expeditor\scripts\end_to_end\LsaWrapper.cs" | Out-String)
+    $lsa_wrapper = New-Object -type LsaWrapper
+    $lsa_wrapper.SetRight($username, "SeServiceLogonRight")
 
-$env:HAB_ORIGIN = "ci"
-hab origin key generate ci
-hab pkg build test/fixtures/windows_plans/dummy_svc_user
-. .\results\last_build.ps1
-hab pkg install .\results\$pkg_artifact
+    $env:HAB_ORIGIN = "ci"
+    hab origin key generate ci
+    hab pkg build test/fixtures/windows_plans/dummy_svc_user
+    . .\results\last_build.ps1
+    hab pkg install .\results\$pkg_artifact
 
-hab pkg install core/windows-service
-Start-Service Habitat
-Wait-Supervisor -Timeout 45
+    hab pkg install core/windows-service
+    Start-Service Habitat
+    Wait-Supervisor -Timeout 45
+}
+if ($useWindowsPester5) {
+    BeforeAll $setup
+} else {
+    . $setup
+}
 
 Describe "hab svc load" {
-    $loadOut = hab svc load ci/dummy --password $password
-    Wait-SupervisorService dummy -Timeout 20
+    $setup = {
+        Set-Variable -Name loadOut -Value (hab svc load ci/dummy --password $password) -Scope Local
+        Wait-SupervisorService dummy -Timeout 20
+    }
+    if ($useWindowsPester5) {
+        BeforeAll $setup
+    } else {
+        . $setup
+    }
 
     It "Succesfully loads service" {
         $loadOut | Should -Be "The ci/dummy service was successfully loaded"

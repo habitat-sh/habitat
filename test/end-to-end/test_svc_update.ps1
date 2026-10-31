@@ -1,22 +1,43 @@
-# For *some reason* this incoming environment variable has quotes,
-# which throws everything off, but apparently only on Windows.
-$env:HAB_AUTH_TOKEN = $env:HAB_AUTH_TOKEN.Replace("`"", "")
+# Initialize shared setup values in the current scope for sibling Pester blocks.
+# Pester 4 teardown reads these values from the file scope.
+$initialize = {
+    # For *some reason* this incoming environment variable has quotes,
+    # which throws everything off, but apparently only on Windows.
+    $env:HAB_AUTH_TOKEN = $env:HAB_AUTH_TOKEN.Replace("`"", "")
 
-$testChannelOne="dynamic-update-one-$([DateTime]::Now.Ticks)"
-$testChannelTwo="dynamic-update-two-$([DateTime]::Now.Ticks)"
-$nginx_pkg="habitat-testing/nginx"
-if ($IsWindows) {
-    $nginx_release="habitat-testing/nginx/1.18.0/20200626143933"
-} else {
-    $nginx_release="habitat-testing/nginx/1.18.0/20200626184200"
+    Set-Variable -Name testChannelOne -Value ("dynamic-update-one-$([DateTime]::Now.Ticks)") -Scope Local
+    Set-Variable -Name testChannelTwo -Value ("dynamic-update-two-$([DateTime]::Now.Ticks)") -Scope Local
+    Set-Variable -Name nginx_pkg -Value ("habitat-testing/nginx") -Scope Local
+    if ($IsWindows) {
+        Set-Variable -Name nginx_release -Value ("habitat-testing/nginx/1.18.0/20200626143933") -Scope Local
+    } else {
+        Set-Variable -Name nginx_release -Value ("habitat-testing/nginx/1.18.0/20200626184200") -Scope Local
+    }
+    if ($IsWindows) {
+        Set-Variable -Name test_probe_release -Value ("habitat-testing/test-probe/0.1.0/20230620183252") -Scope Local
+    } else {
+        Set-Variable -Name test_probe_release -Value ("habitat-testing/test-probe/0.1.0/20230621013852") -Scope Local
+    }
 }
-if ($IsWindows) {
-    $test_probe_release="habitat-testing/test-probe/0.1.0/20230620183252"
+if ($useWindowsPester5) {
+    BeforeAll $initialize
 } else {
-    $test_probe_release="habitat-testing/test-probe/0.1.0/20230621013852"
+    . $initialize
 }
 
 Describe "hab svc update" {
+    $setup = {
+        $supLog = New-SupervisorLogFile("test_svc_update")
+        Start-Supervisor -LogFile $supLog -Timeout 45
+        Load-SupervisorService $nginx_release
+        Wait-Release -Ident $nginx_release
+    }
+    if ($useWindowsPester5) {
+        BeforeAll $setup
+    } else {
+        . $setup
+    }
+
     AfterAll {
         hab bldr channel destroy $testChannelOne --origin habitat-testing
         hab bldr channel destroy $testChannelTwo --origin habitat-testing
@@ -24,15 +45,17 @@ Describe "hab svc update" {
         Stop-Supervisor
     }
 
-    $supLog = New-SupervisorLogFile("test_svc_update")
-    Start-Supervisor -LogFile $supLog -Timeout 45
-    Load-SupervisorService $nginx_release
-    Wait-Release -Ident $nginx_release
-
     Context "with a bound service" {
-        Load-SupervisorService habitat-testing/test-probe -Bind "thing_with_a_port:nginx.default"
-        Wait-Release -Ident $test_probe_release
-        Start-Sleep 15 # test-probe has a long init hook
+        $setup = {
+            Load-SupervisorService habitat-testing/test-probe -Bind "thing_with_a_port:nginx.default"
+            Wait-Release -Ident $test_probe_release
+            Start-Sleep 15 # test-probe has a long init hook
+        }
+        if ($useWindowsPester5) {
+            BeforeAll $setup
+        } else {
+            . $setup
+        }
 
         It "starts test-probe bound to nginx" {
             '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly 'binds = \["thing_with_a_port:nginx.default"\]'
@@ -44,21 +67,28 @@ Describe "hab svc update" {
     }
 
     Context "removing binds via hab svc update" {
-        Load-SupervisorService habitat-testing/test-probe -Bind "thing_with_a_port:nginx.default"
-        Wait-Release -Ident $test_probe_release
-        Start-Sleep 15 # test-probe has a long init hook
+        $setup = {
+            Load-SupervisorService habitat-testing/test-probe -Bind "thing_with_a_port:nginx.default"
+            Wait-Release -Ident $test_probe_release
+            Start-Sleep 15 # test-probe has a long init hook
 
-        $proc = Get-Process "test-probe"
+            Set-Variable -Name proc -Value (Get-Process "test-probe") -Scope Local
 
-        # This is the same as saying "remove binds"... we might
-        # find a better way to express this, though.
-        hab svc update habitat-testing/test-probe --bind
+            # This is the same as saying "remove binds"... we might
+            # find a better way to express this, though.
+            hab svc update habitat-testing/test-probe --bind
 
-        # Currently, test-probe has some long-running post-stop
-        # and init hooks. They should be done within 30 seconds,
-        # but we'll give *plenty* of extra time for the full
-        # restart, just in case gremlins appear.
-        Start-Sleep -Seconds 45
+            # Currently, test-probe has some long-running post-stop
+            # and init hooks. They should be done within 30 seconds,
+            # but we'll give *plenty* of extra time for the full
+            # restart, just in case gremlins appear.
+            Start-Sleep -Seconds 45
+        }
+        if ($useWindowsPester5) {
+            BeforeAll $setup
+        } else {
+            . $setup
+        }
 
         It "has the new binds in the spec file" {
             '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly 'binds = \[\]'
@@ -69,25 +99,37 @@ Describe "hab svc update" {
             $proc.Id | Should -Not -Be $currentProc.Id
         }
 
-        #AfterAll {
-        Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
-        #}
+        $cleanup = {
+            Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
+        }
+        if ($useWindowsPester5) {
+            AfterAll $cleanup
+        } else {
+            . $cleanup
+        }
     }
 
     Context "updating another field does not wipe out existing binds" {
-        Load-SupervisorService habitat-testing/test-probe -Bind "thing_with_a_port:nginx.default"
-        Wait-Release -Ident $test_probe_release
-        Start-Sleep 15 # test-probe has a long init hook
+        $setup = {
+            Load-SupervisorService habitat-testing/test-probe -Bind "thing_with_a_port:nginx.default"
+            Wait-Release -Ident $test_probe_release
+            Start-Sleep 15 # test-probe has a long init hook
 
-        $proc = Get-Process test-probe
+            Set-Variable -Name proc -Value (Get-Process test-probe) -Scope Local
 
-        hab svc update habitat-testing/test-probe --strategy=at-once
+            hab svc update habitat-testing/test-probe --strategy=at-once
 
-        # This shouldn't take too long to register, and shouldn't
-        # trigger a restart, but to catch potential regressions
-        # that *do* restart the service, we'll wait for the long
-        # post-stop and init hooks to run, as before.
-        Start-Sleep -Seconds 45
+            # This shouldn't take too long to register, and shouldn't
+            # trigger a restart, but to catch potential regressions
+            # that *do* restart the service, we'll wait for the long
+            # post-stop and init hooks to run, as before.
+            Start-Sleep -Seconds 45
+        }
+        if ($useWindowsPester5) {
+            BeforeAll $setup
+        } else {
+            . $setup
+        }
 
         It "leaves the existing binds alone" {
             '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly 'binds = \["thing_with_a_port:nginx.default"\]'
@@ -102,9 +144,14 @@ Describe "hab svc update" {
             $proc.Id | Should -Be $currentProc.Id
         }
 
-        #AfterAll {
-        Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
-        #}
+        $cleanup = {
+            Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
+        }
+        if ($useWindowsPester5) {
+            AfterAll $cleanup
+        } else {
+            . $cleanup
+        }
     }
 
     # This is an imperfect test, but useful nevertheless.
@@ -131,13 +178,20 @@ Describe "hab svc update" {
     # breaking the process of discovering a change to the spec file on
     # disk would yield the same result), but it's better than nothing.
     Context "an updating service" {
-        hab pkg promote $nginx_release $testChannelOne
-        hab pkg promote $nginx_release $testChannelTwo
+        $setup = {
+            hab pkg promote $nginx_release $testChannelOne
+            hab pkg promote $nginx_release $testChannelTwo
 
-        Load-SupervisorService $nginx_pkg -Force -Strategy "at-once" -Channel $testChannelOne
-        Start-Sleep 10
+            Load-SupervisorService $nginx_pkg -Force -Strategy "at-once" -Channel $testChannelOne
+            Start-Sleep 10
 
-        $proc = Get-Process "nginx*"
+            Set-Variable -Name proc -Value (Get-Process "nginx*") -Scope Local
+        }
+        if ($useWindowsPester5) {
+            BeforeAll $setup
+        } else {
+            . $setup
+        }
 
         It "reflects channel in spec file" {
             '/hab/sup/default/specs/nginx.spec' | Should -FileContentMatchExactly "channel = `"$testChannelOne`""
@@ -147,25 +201,39 @@ Describe "hab svc update" {
             ((Invoke-WebRequest "http://localhost:9631/services/nginx/default" -UseBasicParsing).content | ConvertFrom-Json).channel | Should -Be $testChannelOne
         }
 
-        hab svc update $nginx_pkg --channel $testChannelTwo
+        $orderedTests = {
+            $setup = {
+                hab svc update $nginx_pkg --channel $testChannelTwo
 
-        # Give *plenty* of time to pick up the new spec (as well as
-        # time for a service to restart, if things are broken and
-        # that's a thing that could happen).
-        Start-Sleep -Seconds 10
+                # Give *plenty* of time to pick up the new spec (as well as
+                # time for a service to restart, if things are broken and
+                # that's a thing that could happen).
+                Start-Sleep -Seconds 10
+            }
+            if ($useWindowsPester5) {
+                BeforeAll $setup
+            } else {
+                . $setup
+            }
 
-        It "has the new channel in the spec file" {
-            '/hab/sup/default/specs/nginx.spec' | Should -FileContentMatchExactly "channel = `"$testChannelTwo`""
-            '/hab/sup/default/specs/nginx.spec' | Should -FileContentMatchExactly 'update_strategy = "at-once"'
+            It "has the new channel in the spec file" {
+                '/hab/sup/default/specs/nginx.spec' | Should -FileContentMatchExactly "channel = `"$testChannelTwo`""
+                '/hab/sup/default/specs/nginx.spec' | Should -FileContentMatchExactly 'update_strategy = "at-once"'
+            }
+
+            It "reflects updated channel in api" {
+                ((Invoke-WebRequest "http://localhost:9631/services/nginx/default" -UseBasicParsing).content | ConvertFrom-Json).channel | Should -Be $testChannelTwo
+            }
+
+            It "does not restart the service process" {
+                $currentProc = Get-Process "nginx*"
+                $proc.Id | Should -Be $currentProc.Id
+            }
         }
-
-        It "reflects updated channel in api" {
-            ((Invoke-WebRequest "http://localhost:9631/services/nginx/default" -UseBasicParsing).content | ConvertFrom-Json).channel | Should -Be $testChannelTwo
-        }
-
-        It "does not restart the service process" {
-            $currentProc = Get-Process "nginx*"
-            $proc.Id | Should -Be $currentProc.Id
+        if ($useWindowsPester5) {
+            Context "after changing the channel" $orderedTests
+        } else {
+            . $orderedTests
         }
     }
 }

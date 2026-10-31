@@ -325,6 +325,23 @@ steps:
             - HAB_BLDR_URL
             - HAB_ORIGIN
 
+  - label: "[:windows: ARM64 test_studio_with_ssl_cert_file_envvar_set]"
+    command:
+      - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_studio_with_ssl_cert_file_envvar_set
+    artifact_paths:
+      - "e2e-aarch64-windows/**/*"
+    env:
+      BUILD_PKG_TARGET: aarch64-windows
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[:windows: test_studio_with_ssl_cert_file_envvar_set]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_with_ssl_cert_file_envvar_set
@@ -355,6 +372,23 @@ steps:
         linux:
           single-use: true
           privileged: true
+
+  - label: "[:windows: ARM64 test_studio_version]"
+    command:
+      - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_studio_version
+    artifact_paths:
+      - "e2e-aarch64-windows/**/*"
+    env:
+      BUILD_PKG_TARGET: aarch64-windows
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:windows: test_studio_version]"
     command:
@@ -484,6 +518,23 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[:windows: ARM64 test_studio_profile]"
+    command:
+      - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_studio_profile
+    artifact_paths:
+      - "e2e-aarch64-windows/**/*"
+    env:
+      BUILD_PKG_TARGET: aarch64-windows
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[:windows: test_studio_profile]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_profile
@@ -537,6 +588,23 @@ steps:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_ORIGIN
 
+  - label: "[:windows: ARM64 test_studio_can_build_packages]"
+    command:
+      - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_studio_can_build_packages
+    artifact_paths:
+      - "e2e-aarch64-windows/**/*"
+    env:
+      BUILD_PKG_TARGET: aarch64-windows
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[:windows: test_studio_can_build_packages]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_can_build_packages
@@ -554,6 +622,23 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[:windows: ARM64 test_studio_can_build_packages_with_pkg_version_function]"
+    command:
+      - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_studio_can_build_packages_with_pkg_version_function
+    artifact_paths:
+      - "e2e-aarch64-windows/**/*"
+    env:
+      BUILD_PKG_TARGET: aarch64-windows
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[:windows: test_studio_can_build_packages_with_pkg_version_function]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_can_build_packages_with_pkg_version_function
@@ -567,6 +652,23 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_ORIGIN
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[:windows: ARM64 test_studio_can_build_scaffolded_package]"
+    command:
+      - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_studio_can_build_scaffolded_package
+    artifact_paths:
+      - "e2e-aarch64-windows/**/*"
+    env:
+      BUILD_PKG_TARGET: aarch64-windows
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
     retry:
       automatic:
         limit: 1
@@ -641,6 +743,23 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[:windows: ARM64 test_ssl_certificate_loading]"
+    command:
+      - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_ssl_certificate_loading
+    artifact_paths:
+      - "e2e-aarch64-windows/**/*"
+    env:
+      BUILD_PKG_TARGET: aarch64-windows
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[:windows: test_ssl_certificate_loading]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_ssl_certificate_loading
@@ -654,6 +773,23 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_ORIGIN
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[:windows: ARM64 test_pkg_install]"
+    command:
+      - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_pkg_install
+    artifact_paths:
+      - "e2e-aarch64-windows/**/*"
+    env:
+      BUILD_PKG_TARGET: aarch64-windows
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
     retry:
       automatic:
         limit: 1
@@ -819,6 +955,23 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:windows: ARM64 test_pkg_uninstall_hook]"
+    command:
+      - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_pkg_uninstall_hook
+    artifact_paths:
+      - "e2e-aarch64-windows/**/*"
+    env:
+      BUILD_PKG_TARGET: aarch64-windows
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:windows: test_pkg_uninstall_hook]"
     command:
@@ -1145,6 +1298,20 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_AUTH_TOKEN
+
+  - label: "[:windows: ARM64 test_hab_plan_cli]"
+    command:
+      - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_hab_plan_cli
+    artifact_paths:
+      - "e2e-aarch64-windows/**/*"
+    env:
+      BUILD_PKG_TARGET: aarch64-windows
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
 
   - label: "[:windows: test_hab_plan_cli]"
     command:

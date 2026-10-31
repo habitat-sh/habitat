@@ -268,6 +268,33 @@ function Get-Leader($Remote, $ServiceGroup) {
     }
 }
 
+function New-TestCertificate($Path, $KeyPath = "key.pem") {
+    if ($IsWindows) {
+        # Use .NET on both Windows architectures to generate the PEM fixture
+        # for Habitat's certificate loading and Studio copying tests.
+        $key = [System.Security.Cryptography.RSA]::Create(2048)
+        $certificate = $null
+        try {
+            $request = [System.Security.Cryptography.X509Certificates.CertificateRequest]::new(
+                "CN=habitat-e2e",
+                $key,
+                [System.Security.Cryptography.HashAlgorithmName]::SHA256,
+                [System.Security.Cryptography.RSASignaturePadding]::Pkcs1
+            )
+            $now = [DateTimeOffset]::UtcNow
+            $certificate = $request.CreateSelfSigned($now.AddMinutes(-5), $now.AddDays(365))
+            Set-Content -LiteralPath $Path -Value $certificate.ExportCertificatePem() -Encoding ascii
+            Set-Content -LiteralPath $KeyPath -Value $key.ExportPkcs8PrivateKeyPem() -Encoding ascii
+        } finally {
+            if ($certificate) { $certificate.Dispose() }
+            $key.Dispose()
+        }
+    } else {
+        Invoke-NativeCommand hab pkg install core/openssl --channel stable
+        Invoke-NativeCommand hab pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout $KeyPath -x509 -days 365 -out $Path
+    }
+}
+
 function Invoke-Build($PackageName, $RefreshChannel) {
     $commandArgs = @()
     if (!$IsMacOS) {
@@ -290,7 +317,11 @@ Function Invoke-BuildAndInstall($PackageName, $RefreshChannel) {
     Invoke-Build @PSBoundParameters
     . ./results/last_build.ps1
     hab pkg install ./results/$pkg_artifact
-    hab studio run "rm /hab/pkgs/$pkg_ident/hooks"
+    if ($IsWindows) {
+        hab studio run "if (Test-Path /hab/pkgs/$pkg_ident/hooks) { Remove-Item -Recurse -Force /hab/pkgs/$pkg_ident/hooks }"
+    } else {
+        hab studio run "rm /hab/pkgs/$pkg_ident/hooks"
+    }
 }
 
 function Stop-ComposeSupervisor($Remote) {
@@ -335,4 +366,31 @@ if(Test-Path $TestName) {
 } else {
     $testPath = Join-Path -Path test end-to-end "$($TestName).ps1"
 }
-Invoke-Pester $testPath -EnableExit
+# Defer setup only for the native x86 Windows tests migrated to Pester 5.
+# Other jobs retain discovery-time setup and their original Pester invocation.
+$pester5Tests = @(
+    "test_alternate_error_exit_codes",
+    "test_config_files",
+    "test_health_check_output_of_http_gateway",
+    "test_simple_hooks",
+    "test_studio_supervisor",
+    "test_supervisor_load_service",
+    "test_supervisor_load_service_with_password",
+    "test_supervisor_load_with_hab_user",
+    "test_svc_update",
+    "test_tar_export"
+)
+$useWindowsPester5 = $IsWindows -and
+    ((Get-RustHostTriple) -eq "x86_64-pc-windows-msvc") -and
+    ((Get-Module Pester).Version.Major -ge 5) -and
+    (-not $env:DOCKER_STUDIO_TEST) -and
+    ([IO.Path]::GetFileNameWithoutExtension($testPath) -in $pester5Tests)
+
+if ($useWindowsPester5) {
+    $configuration = New-PesterConfiguration
+    $configuration.Run.Path = $testPath
+    $configuration.Run.Exit = $true
+    Invoke-Pester -Configuration $configuration
+} else {
+    Invoke-Pester $testPath -EnableExit
+}

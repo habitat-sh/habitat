@@ -1,16 +1,36 @@
-if ($IsMacOS) {
-    $pkgChannel = "aarch64-darwin"
-} else {
-    $pkgChannel = "stable"
-}
-hab pkg install core/nginx --channel $pkgChannel
+# Initialize shared setup values in the current scope for sibling Pester blocks.
+$setup = {
+    if ($IsMacOS) {
+        $pkgChannel = "aarch64-darwin"
+    } else {
+        $pkgChannel = "stable"
+    }
+    hab pkg install core/nginx --channel $pkgChannel
 
-$job = Start-Job { hab sup run }
-Wait-Supervisor -Timeout 120
+}
+if ($useWindowsPester5) {
+    BeforeAll $setup
+} else {
+    . $setup
+    # Pester 4 teardown reads the job from the file scope.
+    Set-Variable -Name job -Value (Start-Job { hab sup run }) -Scope Local
+    Wait-Supervisor -Timeout 120
+}
 
 Describe 'hab svc load' {
-    $loadOut = hab svc load core/nginx
-    Wait-SupervisorService nginx -Timeout 20
+    $setup = {
+        if ($useWindowsPester5) {
+            Set-Variable -Name job -Value (Start-Job { hab sup run }) -Scope Local
+            Wait-Supervisor -Timeout 120
+        }
+        Set-Variable -Name loadOut -Value (hab svc load core/nginx) -Scope Local
+        Wait-SupervisorService nginx -Timeout 20
+    }
+    if ($useWindowsPester5) {
+        BeforeAll $setup
+    } else {
+        . $setup
+    }
 
     It 'Successfully loads service' {
         ($loadOut | Out-String) | Should -Match 'The core/nginx service was successfully loaded'
@@ -44,12 +64,12 @@ if ($IsLinux) {
     # away that hierarchy at this point to start clean
     (bash -c 'rm -rf /hab/svc')
 
-    $job = Start-Job { bash -c 'umask 077; hab sup run' }
+    Set-Variable -Name job -Value (Start-Job { bash -c 'umask 077; hab sup run' }) -Scope Local
     Wait-Supervisor -Timeout 120
 
     Describe 'hab svc load on Linux with umask 077' {
 
-        $loadOut = hab svc load core/nginx
+        Set-Variable -Name loadOut -Value (hab svc load core/nginx) -Scope Local
         Wait-SupervisorService nginx -Timeout 20
 
         It 'Successfully loads service' {
