@@ -371,12 +371,14 @@ if(Test-Path $TestName) {
 $pester5Tests = @(
     "test_alternate_error_exit_codes",
     "test_config_files",
+    "test_container_exporter",
     "test_health_check_output_of_http_gateway",
     "test_simple_hooks",
     "test_studio_supervisor",
     "test_supervisor_load_service",
     "test_supervisor_load_service_with_password",
     "test_supervisor_load_with_hab_user",
+    "test_supervisor_term",
     "test_svc_update",
     "test_tar_export"
 )

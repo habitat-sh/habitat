@@ -1,6 +1,14 @@
-$tempFile = Join-Path ([System.IO.Path]::GetTempPath()) "testpkgstophook.out"
-$supLog = New-SupervisorLogFile("test_supervisor_term")
-$launcherProc = Start-Supervisor -LogFile $supLog -Timeout 45
+# Initialize shared setup values in the current scope for sibling Pester blocks.
+$setup = {
+    Set-Variable -Name tempFile -Value (Join-Path ([System.IO.Path]::GetTempPath()) "testpkgstophook.out") -Scope Local
+    $supLog = New-SupervisorLogFile("test_supervisor_term")
+    Set-Variable -Name launcherProc -Value (Start-Supervisor -LogFile $supLog -Timeout 45) -Scope Local
+}
+if ($useWindowsPester5) {
+    BeforeAll $setup
+} else {
+    . $setup
+}
 
 Describe "hab sup term" {
     BeforeAll {
