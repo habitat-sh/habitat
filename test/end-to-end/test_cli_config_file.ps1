@@ -1,6 +1,8 @@
-$etcPath = "/hab/etc"
-$configPath = "$etcPath/cli.toml"
-$ctlSecretPath = "/hab/sup/default/CTL_SECRET"
+BeforeAll {
+    $etcPath = "/hab/etc"
+    Set-Variable -Name configPath -Value ("$etcPath/cli.toml") -Scope Local
+    Set-Variable -Name ctlSecretPath -Value ("/hab/sup/default/CTL_SECRET") -Scope Local
+}
 
 Describe "reading from supervisor and service config files" {
     BeforeAll {

@@ -9,13 +9,17 @@
 # as its own test.
 
 # Ensure there are no studios installed
-if(Test-Path /hab/pkgs/chef/hab-studio) {
-    hab pkg uninstall chef/hab-studio
+BeforeAll {
+    if(Test-Path /hab/pkgs/chef/hab-studio) {
+        hab pkg uninstall chef/hab-studio
+    }
 }
 
 Describe "Studio install" {
     # 'studio enter' requires a signing key to be present for the current origin
-    hab origin key generate "$env:HAB_ORIGIN"
+    BeforeAll {
+        hab origin key generate "$env:HAB_ORIGIN"
+    }
 
     It "can create a new studio when no studio package is installed" {
         hab studio new

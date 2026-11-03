@@ -15,7 +15,7 @@ $setup = {
         }
     }
 }
-if ($useWindowsPester5) {
+if ($usePester5) {
     BeforeAll $setup
 } else {
     . $setup
@@ -27,7 +27,7 @@ Describe "hab pkg export tar core/nginx" {
         Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
         Set-Variable -Name version -Value (((((hab --version) -split " ")[1]) -split "/")[0]) -Scope Local
     }
-    if ($useWindowsPester5) {
+    if ($usePester5) {
         BeforeAll $setup
     } else {
         . $setup
@@ -64,7 +64,7 @@ Describe "hab pkg export tar core/nginx --no-hab-bin" {
         hab pkg export tar core/nginx --no-hab-bin --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
         Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
     }
-    if ($useWindowsPester5) {
+    if ($usePester5) {
         BeforeAll $setup
     } else {
         . $setup
@@ -109,7 +109,7 @@ Context "hab pkg export tar core/nginx --no-hab-sup" {
             hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
             Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
         }
-        if ($useWindowsPester5) {
+        if ($usePester5) {
             BeforeAll $setup
         } else {
             . $setup

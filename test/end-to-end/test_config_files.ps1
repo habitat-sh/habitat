@@ -4,7 +4,7 @@ $setup = {
     Set-Variable -Name supConfig -Value ("/hab/sup/default/config/sup.toml") -Scope Local
     Set-Variable -Name supBadConfig -Value ("/hab/sup/default/config/bad_sup.toml") -Scope Local
 }
-if ($useWindowsPester5) {
+if ($usePester5) {
     BeforeAll $setup
 } else {
     . $setup
@@ -15,7 +15,7 @@ Describe "reading from supervisor and service config files" {
         Remove-Item -Force -Recurse -ErrorAction Ignore $supConfig
         New-Item -ItemType directory -Force -Path $configPath
     }
-    if ($useWindowsPester5) {
+    if ($usePester5) {
         BeforeAll $setup
         AfterEach { Stop-Supervisor }
     } else {
@@ -32,7 +32,7 @@ Describe "reading from supervisor and service config files" {
         Start-Supervisor -LogFile $supLog -Timeout 45
     }
 
-    if (!$useWindowsPester5) { Stop-Supervisor }
+    if (!$usePester5) { Stop-Supervisor }
 
     It "Supervisor starts with correctly configured gossip address" {
         $address = "127.0.0.1:1234"
@@ -46,7 +46,7 @@ Describe "reading from supervisor and service config files" {
         $out | Should -Contain "hab-sup(MR): Starting gossip-listener on $address"
     }
 
-    if (!$useWindowsPester5) { Stop-Supervisor }
+    if (!$usePester5) { Stop-Supervisor }
 
     It "Supervisor does not start with invalid config file" {
         $supLog = New-SupervisorLogFile("supervisor_does_not_start_with_invalid_config_file")
@@ -59,10 +59,10 @@ Describe "reading from supervisor and service config files" {
         } | Should -Throw
     }
 
-    if ($useWindowsPester5) {
+    if ($usePester5) {
         AfterAll { Remove-Item -Force -Recurse -ErrorAction Ignore $supConfig }
     } else {
         Remove-Item -Force -Recurse -ErrorAction Ignore $supConfig
     }
-    if (!$useWindowsPester5) { Stop-Supervisor }
+    if (!$usePester5) { Stop-Supervisor }
 }

@@ -1,24 +1,27 @@
-$pkg = "core/redis"
-$pkgs = @(
-    "$pkg/3.2.3/20161102201135",
-    "$pkg/3.2.4/20161104175435",
-    "$pkg/3.2.4/20161210004233",
-    "$pkg/3.2.4/20161215055911",
-    "$pkg/3.2.4/20170103160441",
-    "$pkg/3.2.4/20170106011058",
-    "$pkg/4.0.10/20180801003001",
-    "$pkg/4.0.10/20190116005049",
-    "$pkg/4.0.14/20200319184753",
-    "$pkg/4.0.14/20200319200053"
-)
-$nginxPkg = "core/nginx"
-$env:HAB_NOCOLORING="true"
+BeforeAll {
+    $pkg = "core/redis"
+    $packageReleases = @(
+        "$pkg/3.2.3/20161102201135",
+        "$pkg/3.2.4/20161104175435",
+        "$pkg/3.2.4/20161210004233",
+        "$pkg/3.2.4/20161215055911",
+        "$pkg/3.2.4/20170103160441",
+        "$pkg/3.2.4/20170106011058",
+        "$pkg/4.0.10/20180801003001",
+        "$pkg/4.0.10/20190116005049",
+        "$pkg/4.0.14/20200319184753",
+        "$pkg/4.0.14/20200319200053"
+    )
+    Set-Variable -Name pkgs -Value $packageReleases -Scope Local
+    Set-Variable -Name nginxPkg -Value ("core/nginx") -Scope Local
+    $env:HAB_NOCOLORING="true"
 
-hab origin key generate $env:HAB_ORIGIN
+    hab origin key generate $env:HAB_ORIGIN
 
-# Start the supervisor and load nginx
-$job = Start-Job { hab sup run }
-Wait-Supervisor -Timeout 120
+    # Start the supervisor and load nginx
+    Set-Variable -Name job -Value (Start-Job { hab sup run }) -Scope Local
+    Wait-Supervisor -Timeout 120
+}
 
 Describe "pkg uninstall" {
     It "installs core/redis" {

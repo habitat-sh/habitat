@@ -58,7 +58,7 @@ $helpers = {
         [string]$headers.Server | Should -BeLike "nginx/*"
     }
 }
-if ($useWindowsPester5) {
+if ($usePester5) {
     BeforeAll $helpers
 } else {
     . $helpers
@@ -162,9 +162,11 @@ if ($IsLinux) {
         # incompatible with core/netavark versions currently available
         # in our test environment, causing netavark to fail parsing
         # network options: "IO error: invalid type: sequence, expected a map"
-        hab pkg install core/buildah/1.43.1/20260410222715 --binlink
-        hab pkg install core/netavark --binlink --channel=base
-        $env:CONTAINERS_HELPER_BINARY_DIR="$(hab pkg path core/netavark)/bin"
+        BeforeAll {
+            hab pkg install core/buildah/1.43.1/20260410222715 --binlink
+            hab pkg install core/netavark --binlink --channel=base
+            $env:CONTAINERS_HELPER_BINARY_DIR="$(hab pkg path core/netavark)/bin"
+        }
         It "Runs successfully" {
             $tag = New-CustomTag
             Invoke-NativeCommand hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --engine=buildah --tag-custom="$tag"

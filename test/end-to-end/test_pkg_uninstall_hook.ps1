@@ -1,4 +1,6 @@
-$env:HAB_NOCOLORING="true"
+BeforeAll {
+    $env:HAB_NOCOLORING="true"
+}
 
 Describe "pkg uninstall with uninstall hook" {
     BeforeAll {

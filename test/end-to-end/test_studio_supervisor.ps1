@@ -4,7 +4,7 @@ $setup = {
     $env:HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL="dev"
     hab origin key generate $env:HAB_ORIGIN
 }
-if ($useWindowsPester5) {
+if ($usePester5) {
     BeforeAll $setup
 } else {
     . $setup

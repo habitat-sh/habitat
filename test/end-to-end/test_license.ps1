@@ -1,6 +1,8 @@
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "$HOME/.hab/accepted-licenses"
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "/hab/accepted-licenses"
-$env:HAB_LICENSE = $null
+BeforeAll {
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "$HOME/.hab/accepted-licenses"
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "/hab/accepted-licenses"
+    $env:HAB_LICENSE = $null
+}
 
 Describe "license" {
     It "version check without license works" {

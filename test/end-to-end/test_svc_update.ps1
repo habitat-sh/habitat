@@ -19,7 +19,7 @@ $initialize = {
         Set-Variable -Name test_probe_release -Value ("habitat-testing/test-probe/0.1.0/20230621013852") -Scope Local
     }
 }
-if ($useWindowsPester5) {
+if ($usePester5) {
     BeforeAll $initialize
 } else {
     . $initialize
@@ -32,7 +32,7 @@ Describe "hab svc update" {
         Load-SupervisorService $nginx_release
         Wait-Release -Ident $nginx_release
     }
-    if ($useWindowsPester5) {
+    if ($usePester5) {
         BeforeAll $setup
     } else {
         . $setup
@@ -51,7 +51,7 @@ Describe "hab svc update" {
             Wait-Release -Ident $test_probe_release
             Start-Sleep 15 # test-probe has a long init hook
         }
-        if ($useWindowsPester5) {
+        if ($usePester5) {
             BeforeAll $setup
         } else {
             . $setup
@@ -84,7 +84,7 @@ Describe "hab svc update" {
             # restart, just in case gremlins appear.
             Start-Sleep -Seconds 45
         }
-        if ($useWindowsPester5) {
+        if ($usePester5) {
             BeforeAll $setup
         } else {
             . $setup
@@ -102,7 +102,7 @@ Describe "hab svc update" {
         $cleanup = {
             Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
         }
-        if ($useWindowsPester5) {
+        if ($usePester5) {
             AfterAll $cleanup
         } else {
             . $cleanup
@@ -125,7 +125,7 @@ Describe "hab svc update" {
             # post-stop and init hooks to run, as before.
             Start-Sleep -Seconds 45
         }
-        if ($useWindowsPester5) {
+        if ($usePester5) {
             BeforeAll $setup
         } else {
             . $setup
@@ -147,7 +147,7 @@ Describe "hab svc update" {
         $cleanup = {
             Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
         }
-        if ($useWindowsPester5) {
+        if ($usePester5) {
             AfterAll $cleanup
         } else {
             . $cleanup
@@ -187,7 +187,7 @@ Describe "hab svc update" {
 
             Set-Variable -Name proc -Value (Get-Process "nginx*") -Scope Local
         }
-        if ($useWindowsPester5) {
+        if ($usePester5) {
             BeforeAll $setup
         } else {
             . $setup
@@ -210,7 +210,7 @@ Describe "hab svc update" {
                 # that's a thing that could happen).
                 Start-Sleep -Seconds 10
             }
-            if ($useWindowsPester5) {
+            if ($usePester5) {
                 BeforeAll $setup
             } else {
                 . $setup
@@ -230,7 +230,7 @@ Describe "hab svc update" {
                 $proc.Id | Should -Be $currentProc.Id
             }
         }
-        if ($useWindowsPester5) {
+        if ($usePester5) {
             Context "after changing the channel" $orderedTests
         } else {
             . $orderedTests

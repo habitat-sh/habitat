@@ -1,7 +1,9 @@
 # Test the event stream connection to a NATS server
 
 Describe "event stream not connected to nats" {
-    $env:RUST_LOG = "rants=trace"
+    BeforeAll {
+        $env:RUST_LOG = "rants=trace"
+    }
 
     It "fails to start with --event-stream-connect-timeout set" {
         {

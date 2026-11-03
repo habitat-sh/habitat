@@ -4,7 +4,7 @@ $setup = {
     $supLog = New-SupervisorLogFile("test_supervisor_term")
     Set-Variable -Name launcherProc -Value (Start-Supervisor -LogFile $supLog -Timeout 45) -Scope Local
 }
-if ($useWindowsPester5) {
+if ($usePester5) {
     BeforeAll $setup
 } else {
     . $setup

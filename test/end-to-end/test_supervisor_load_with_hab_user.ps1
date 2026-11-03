@@ -19,7 +19,7 @@ $setup = {
     Start-Service Habitat
     Wait-Supervisor -Timeout 45
 }
-if ($useWindowsPester5) {
+if ($usePester5) {
     BeforeAll $setup
 } else {
     . $setup
@@ -33,7 +33,7 @@ Describe "with no svc_user" {
         Set-Variable -Name loadOut -Value (hab svc load ci/dummy) -Scope Local
         Wait-SupervisorService dummy -Timeout 20
     }
-    if ($useWindowsPester5) {
+    if ($usePester5) {
         BeforeAll $setup
     } else {
         . $setup
@@ -67,7 +67,7 @@ Describe "with svc_user" {
         Set-Variable -Name loadOut -Value (hab svc load ci/dummy-hab-user --password $password) -Scope Local
         Wait-SupervisorService dummy-hab-user -Timeout 20
     }
-    if ($useWindowsPester5) {
+    if ($usePester5) {
         BeforeAll $setup
     } else {
         . $setup

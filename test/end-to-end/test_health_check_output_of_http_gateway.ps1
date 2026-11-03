@@ -12,7 +12,7 @@ Describe "HTTP gateway" {
         Load-SupervisorService $test_probe_release
         Wait-Release -Ident $test_probe_release
     }
-    if ($useWindowsPester5) {
+    if ($usePester5) {
         BeforeAll $setup
     } else {
         . $setup
@@ -29,7 +29,7 @@ Describe "HTTP gateway" {
             # to let the health-check hoo
             Start-Sleep 20
         }
-        if ($useWindowsPester5) {
+        if ($usePester5) {
             BeforeAll $setup
         } else {
             . $setup
@@ -56,7 +56,7 @@ Describe "HTTP gateway" {
             Set-Content -Path "/hab/pkgs/$test_probe_release/health_exit" -Value 1
             Start-Sleep 30
         }
-        if ($useWindowsPester5) {
+        if ($usePester5) {
             BeforeAll $setup
         } else {
             . $setup

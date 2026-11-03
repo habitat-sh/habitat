@@ -1,7 +1,11 @@
-hab origin key generate $env:HAB_ORIGIN
+BeforeAll {
+    hab origin key generate $env:HAB_ORIGIN
+}
 
 Describe "package defining pkg_version function" {
-    hab pkg build test/fixtures/pkg_version
+    BeforeAll {
+        hab pkg build test/fixtures/pkg_version
+    }
     It "builds without error" {
         $LASTEXITCODE | Should -Be 0
     }

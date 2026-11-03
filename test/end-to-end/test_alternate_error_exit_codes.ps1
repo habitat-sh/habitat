@@ -8,7 +8,7 @@ $setup = {
     Invoke-Build $PkgName
     . ./results/last_build.ps1
 }
-if ($useWindowsPester5) {
+if ($usePester5) {
     BeforeAll $setup
 } else {
     . $setup

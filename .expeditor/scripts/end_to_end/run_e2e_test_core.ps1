@@ -366,15 +366,13 @@ if(Test-Path $TestName) {
 } else {
     $testPath = Join-Path -Path test end-to-end "$($TestName).ps1"
 }
-$useWindowsPester5 = $IsWindows -and
-    ((Get-Module Pester).Version.Major -ge 5) -and
-    (-not $env:DOCKER_STUDIO_TEST)
-
-if ($useWindowsPester5) {
-    $configuration = New-PesterConfiguration
-    $configuration.Run.Path = $testPath
-    $configuration.Run.Exit = $true
-    Invoke-Pester -Configuration $configuration
-} else {
-    Invoke-Pester $testPath -EnableExit
+$pesterVersion = (Get-Module Pester).Version
+if ($pesterVersion.Major -ne 5) {
+    throw "Pester 5 is required for end-to-end tests; loaded version is $pesterVersion"
 }
+
+Set-Variable -Name usePester5 -Value $true -Scope Local
+$configuration = New-PesterConfiguration
+$configuration.Run.Path = $testPath
+$configuration.Run.Exit = $true
+Invoke-Pester -Configuration $configuration

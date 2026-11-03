@@ -5,23 +5,25 @@
 # See https://github.com/habitat-sh/habitat/blob/master/BUILDING.md#testing-changes
 
 Describe "Supervisor restarts on abrupt exit" {
-    $exit_file = New-TemporaryFile
-    $env:HAB_FEAT_TEST_EXIT = $exit_file
-    $supLog = New-SupervisorLogFile("supervisor_restarts_on_abrupt_exit")
-    $launcher_proc = Start-Supervisor -Timeout 45 -LogFile $supLog
-    $supervisor_proc = Get-Process hab-sup
-    Set-Content $exit_file -Value 1
+    BeforeAll {
+        $exit_file = New-TemporaryFile
+        $env:HAB_FEAT_TEST_EXIT = $exit_file
+        $supLog = New-SupervisorLogFile("supervisor_restarts_on_abrupt_exit")
+        $launcher_proc = Start-Supervisor -Timeout 45 -LogFile $supLog
+        $supervisor_proc = Get-Process hab-sup
+        Set-Content $exit_file -Value 1
 
-    $testScript = { $supervisor_proc.HasExited }
-    $timeoutScript = { Write-Error "Timed out waiting for Supervisor to exit" }
-    Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout 45
+        $testScript = { $supervisor_proc.HasExited }
+        $timeoutScript = { Write-Error "Timed out waiting for Supervisor to exit" }
+        Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout 45
 
-    $testScript = { Get-Process hab-sup -ErrorAction SilentlyContinue }
-    $timeoutScript = { Write-Error "Timed out waiting for Supervisor to be restarted" }
-    Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout 45
+        $testScript = { Get-Process hab-sup -ErrorAction SilentlyContinue }
+        $timeoutScript = { Write-Error "Timed out waiting for Supervisor to be restarted" }
+        Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout 45
 
-    $new_supervisor_proc = Get-Process hab-sup
-    $new_launcher_proc = Get-Process hab-launch
+        $new_supervisor_proc = Get-Process hab-sup
+        $new_launcher_proc = Get-Process hab-launch
+    }
 
     It "will not exit the launcher" {
         $launcher_proc.HasExited | Should -Be $false
@@ -39,21 +41,23 @@ Describe "Supervisor restarts on abrupt exit" {
 }
 
 Describe "Supervisor restarts on 'hab sup restart'" {
-    $supLog = New-SupervisorLogFile("supervisor_restarts_on_hab_sup_restart")
-    $launcher_proc = Start-Supervisor -Timeout 45 -LogFile $supLog
-    $supervisor_proc = Get-Process hab-sup
-    Invoke-NativeCommand hab sup restart
+    BeforeAll {
+        $supLog = New-SupervisorLogFile("supervisor_restarts_on_hab_sup_restart")
+        $launcher_proc = Start-Supervisor -Timeout 45 -LogFile $supLog
+        $supervisor_proc = Get-Process hab-sup
+        Invoke-NativeCommand hab sup restart
 
-    $testScript = { $supervisor_proc.HasExited }
-    $timeoutScript = { Write-Error "Timed out waiting for Supervisor to exit" }
-    Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout 45
+        $testScript = { $supervisor_proc.HasExited }
+        $timeoutScript = { Write-Error "Timed out waiting for Supervisor to exit" }
+        Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout 45
 
-    $testScript = { Get-Process hab-sup -ErrorAction SilentlyContinue }
-    $timeoutScript = { Write-Error "Timed out waiting for Supervisor to be restarted" }
-    Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout 45
+        $testScript = { Get-Process hab-sup -ErrorAction SilentlyContinue }
+        $timeoutScript = { Write-Error "Timed out waiting for Supervisor to be restarted" }
+        Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout 45
 
-    $new_supervisor_proc = Get-Process hab-sup
-    $new_launcher_proc = Get-Process hab-launch
+        $new_supervisor_proc = Get-Process hab-sup
+        $new_launcher_proc = Get-Process hab-launch
+    }
 
     It "will not exit the launcher" {
         $launcher_proc.HasExited | Should -Be $false

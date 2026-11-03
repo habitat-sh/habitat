@@ -3,24 +3,28 @@
 # locally-built code, set overrides in the environment of the script.
 # See https://github.com/habitat-sh/habitat/blob/master/BUILDING.md#testing-changes
 
-$env:HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS=2
-$env:HAB_FEAT_BOOT_FAIL=1
+BeforeAll {
+    $env:HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS=2
+    $env:HAB_FEAT_BOOT_FAIL=1
 
-Add-Type -TypeDefinition (Get-Content "$PSScriptroot/../../.expeditor/scripts/end_to_end/SupervisorRunner.cs" | Out-String)
+    Add-Type -TypeDefinition (Get-Content "$PSScriptroot/../../.expeditor/scripts/end_to_end/SupervisorRunner.cs" | Out-String)
 
-# Preinstall these packages. If we don't, then we spend the bulk of
-# our time in the following `while` loop downloading them, rather than
-# actually exercising the functionality we're after. That leads to
-# spurious failures, depending on how long the downloading takes.
-#
-# Doing things this way, we eliminate that concern.
-hab pkg install chef/hab-sup --channel="${env:HAB_BLDR_CHANNEL}"
-hab pkg install chef/hab-launcher --channel="${env:HAB_BLDR_CHANNEL}"
+    # Preinstall these packages. If we don't, then we spend the bulk of
+    # our time in the following `while` loop downloading them, rather than
+    # actually exercising the functionality we're after. That leads to
+    # spurious failures, depending on how long the downloading takes.
+    #
+    # Doing things this way, we eliminate that concern.
+    hab pkg install chef/hab-sup --channel="${env:HAB_BLDR_CHANNEL}"
+    hab pkg install chef/hab-launcher --channel="${env:HAB_BLDR_CHANNEL}"
+}
 
 Describe "Supervisor boot failure" {
-    $sup = New-Object SupervisorRunner
-    $supLog = New-SupervisorLogFile("supervisor_boot_failure")
-    $supPid = $sup.Run($supLog)
+    BeforeAll {
+        $sup = New-Object SupervisorRunner
+        $supLog = New-SupervisorLogFile("supervisor_boot_failure")
+        Set-Variable -Name supPid -Value ($sup.Run($supLog)) -Scope Local
+    }
 
     It "exits launcher before timeout" {
         $retries=0
