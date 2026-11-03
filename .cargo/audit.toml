@@ -7,11 +7,6 @@
 [advisories]
 
 # advisory IDs to ignore e.g. ["RUSTSEC-2019-0001", ...]
-# RUSTSEC-2026-0258: h2 unbounded empty DATA frames (low severity DoS).
-# Only patched in h2 >= 0.4.16, but actix-http 3.13.3 (latest) still
-# requires h2 0.3.x / http 0.2.x, so this cannot be resolved via a
-# normal dependency update. Tracking upstream actix-web's migration to
-# http 1.0/h2 0.4 before this can be cleared.
 # RUSTSEC-2024-0449: unsafe-libyaml is unmaintained, with no patched versions.
 # It is pulled in by serde_yaml, used directly and through log4rs.
 # Ignore until these dependencies migrate away from unsafe-libyaml.
@@ -21,7 +16,6 @@
 # (build-time use), and habitat does not extract untrusted zip archives with it.
 # Ignore until libsodium-sys-stable moves to zip 9.x.
 ignore = [
-    "RUSTSEC-2026-0258",
     "RUSTSEC-2024-0449",
     "RUSTSEC-2026-0367",
     "RUSTSEC-2026-0368",
