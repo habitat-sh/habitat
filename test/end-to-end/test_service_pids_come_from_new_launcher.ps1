@@ -16,7 +16,7 @@ Describe "Service PIDs from Launcher feature" {
 
     Context "Supervisor is restarted" {
         BeforeAll {
-            $supProc = Get-Process hab-sup
+            $script:supProc = Get-Process hab-sup
             $redisProc = Get-Process "redis-server *:6379"
 
             # Write a bogus PID to the file; the Supervisor should not
@@ -32,15 +32,15 @@ Describe "Service PIDs from Launcher feature" {
 
             Restart-Supervisor
             Wait-ProcessStart redis-server -Timeout 10
-            $newSupProc = Get-Process hab-sup
-            $newRedisProc = Get-Process "redis-server *:6379"
+            $script:newSupProc = Get-Process hab-sup
+            $script:newRedisProc = Get-Process "redis-server *:6379"
         }
 
         It "starts a new supervisor process" {
-            $supProc.Id | Should -Not -Be $newSupProc.Id
+            $script:supProc.Id | Should -Not -Be $script:newSupProc.Id
         }
         It "runs the same redis process" {
-            $redisProc.Id | Should -Be $newRedisProc.Id
+            $redisProc.Id | Should -Be $script:newRedisProc.Id
         }
 
         It "should not have gotten the service PID from the PID file" {
@@ -52,7 +52,7 @@ Describe "Service PIDs from Launcher feature" {
 
             # Despite the bogus PID in the file, the Supervisor itself
             # knows the correct PID
-            Get-HabServicePID "core/redis" | Should -Be $newRedisProc.Id
+            Get-HabServicePID "core/redis" | Should -Be $script:newRedisProc.Id
         }
     }
 }

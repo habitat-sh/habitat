@@ -31,7 +31,7 @@ Describe "Supervisor package cleanup" {
     Context "start the Supervisor with package cleanup" {
         BeforeAll {
             $supLog = New-SupervisorLogFile("start_the_supervisor_with_package_cleanup")
-            $expected = hab pkg list chef/hab-sup | Select-Object -Last 2
+            $script:expected = hab pkg list chef/hab-sup | Select-Object -Last 2
             Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
                     "--keep-latest-packages=2"
             ) | Out-Null
@@ -39,7 +39,7 @@ Describe "Supervisor package cleanup" {
 
         It "removes old Supervisor packages" {
             Wait-CommandLinesOfOutput "hab pkg list $pkg" 2
-            hab pkg list $pkg | Should -Be $expected
+            hab pkg list $pkg | Should -Be $script:expected
         }
     }
 

@@ -11,6 +11,6 @@ Describe "bldr channel list --sandbox" {
                 break
             }
         }
-        $success | Should be $true
+        $success | Should -BeTrue
     }
 }
