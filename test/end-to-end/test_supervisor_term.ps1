@@ -4,11 +4,7 @@ $setup = {
     $supLog = New-SupervisorLogFile("test_supervisor_term")
     Set-Variable -Name launcherProc -Value (Start-Supervisor -LogFile $supLog -Timeout 45) -Scope Local
 }
-if ($usePester5) {
-    BeforeAll $setup
-} else {
-    . $setup
-}
+BeforeAll $setup
 
 Describe "hab sup term" {
     BeforeAll {

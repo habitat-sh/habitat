@@ -19,11 +19,7 @@ $setup = {
     Start-Service Habitat
     Wait-Supervisor -Timeout 45
 }
-if ($usePester5) {
-    BeforeAll $setup
-} else {
-    . $setup
-}
+BeforeAll $setup
 
 Describe "with no svc_user" {
     $setup = {
@@ -33,11 +29,7 @@ Describe "with no svc_user" {
         Set-Variable -Name loadOut -Value (hab svc load ci/dummy) -Scope Local
         Wait-SupervisorService dummy -Timeout 20
     }
-    if ($usePester5) {
-        BeforeAll $setup
-    } else {
-        . $setup
-    }
+    BeforeAll $setup
 
     It "does not create a SVC_USR metafile" {
         Test-Path c:\hab\pkgs\$pkg_ident\SVC_USER | Should -Be $false
@@ -67,11 +59,7 @@ Describe "with svc_user" {
         Set-Variable -Name loadOut -Value (hab svc load ci/dummy-hab-user --password $password) -Scope Local
         Wait-SupervisorService dummy-hab-user -Timeout 20
     }
-    if ($usePester5) {
-        BeforeAll $setup
-    } else {
-        . $setup
-    }
+    BeforeAll $setup
 
     It "does create a SVC_USR metafile" {
         Test-Path c:\hab\pkgs\$pkg_ident\SVC_USER | Should -Be $true

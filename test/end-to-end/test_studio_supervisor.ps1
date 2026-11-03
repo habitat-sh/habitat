@@ -4,11 +4,7 @@ $setup = {
     $env:HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL="dev"
     hab origin key generate $env:HAB_ORIGIN
 }
-if ($usePester5) {
-    BeforeAll $setup
-} else {
-    . $setup
-}
+BeforeAll $setup
 
 Describe "Studio supervisor" {
     It "version should match hab cli" {

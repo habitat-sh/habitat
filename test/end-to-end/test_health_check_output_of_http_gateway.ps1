@@ -12,11 +12,7 @@ Describe "HTTP gateway" {
         Load-SupervisorService $test_probe_release
         Wait-Release -Ident $test_probe_release
     }
-    if ($usePester5) {
-        BeforeAll $setup
-    } else {
-        . $setup
-    }
+    BeforeAll $setup
 
     AfterAll {
         Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
@@ -29,11 +25,7 @@ Describe "HTTP gateway" {
             # to let the health-check hoo
             Start-Sleep 20
         }
-        if ($usePester5) {
-            BeforeAll $setup
-        } else {
-            . $setup
-        }
+        BeforeAll $setup
 
         It "returns output of the hook when queried" {
             $stdout = (Invoke-WebRequest "http://localhost:9631/services/test-probe/default/health" | ConvertFrom-Json).stdout
@@ -56,11 +48,7 @@ Describe "HTTP gateway" {
             Set-Content -Path "/hab/pkgs/$test_probe_release/health_exit" -Value 1
             Start-Sleep 30
         }
-        if ($usePester5) {
-            BeforeAll $setup
-        } else {
-            . $setup
-        }
+        BeforeAll $setup
 
         It "returns status of the hook when queried" {
             $status = (Invoke-WebRequest "http://localhost:9631/services/test-probe/default/health" | ConvertFrom-Json).status

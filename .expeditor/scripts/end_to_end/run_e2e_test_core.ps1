@@ -371,7 +371,6 @@ if ($pesterVersion.Major -ne 5) {
     throw "Pester 5 is required for end-to-end tests; loaded version is $pesterVersion"
 }
 
-Set-Variable -Name usePester5 -Value $true -Scope Local
 $configuration = New-PesterConfiguration
 $configuration.Run.Path = $testPath
 $configuration.Run.Exit = $true

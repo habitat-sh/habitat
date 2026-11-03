@@ -9,11 +9,7 @@ Describe "Simple hooks output" {
         $svc = Load-SupervisorService -PackageName $pkg
         Set-Variable -Name pkgLogsPath -Value (Join-Path -Path $env:SystemDrive -ChildPath hab -AdditionalChildPath @("svc", $svc, "logs")) -Scope Local
     }
-    if ($usePester5) {
-        BeforeAll $setup
-    } else {
-        . $setup
-    }
+    BeforeAll $setup
 
     It "Has correct 'install' hook stdout" {
         $path = Join-Path $pkgLogsPath "install.stdout.log"
@@ -43,11 +39,7 @@ Describe "Simple hooks output" {
             Set-Variable -Name beforeUnloadTime -Value (Get-Date) -Scope Local
             Unload-SupervisorService -PackageName $pkg -Timeout 20
         }
-        if ($usePester5) {
-            BeforeAll $setup
-        } else {
-            . $setup
-        }
+        BeforeAll $setup
 
         It "Has correct 'post-stop' hook stdout" {
             $path = Join-Path $pkgLogsPath "post-stop.stdout.log"
@@ -55,9 +47,5 @@ Describe "Simple hooks output" {
             $path | Should -FileContentMatchExactly "post-stop hook $svc"
         }
     }
-    if ($usePester5) {
-        Context "after unloading the service" $orderedTests
-    } else {
-        . $orderedTests
-    }
+    Context "after unloading the service" $orderedTests
 }

@@ -58,11 +58,7 @@ $helpers = {
         [string]$headers.Server | Should -BeLike "nginx/*"
     }
 }
-if ($usePester5) {
-    BeforeAll $helpers
-} else {
-    . $helpers
-}
+BeforeAll $helpers
 
 Describe "hab pkg export container" {
     BeforeAll {

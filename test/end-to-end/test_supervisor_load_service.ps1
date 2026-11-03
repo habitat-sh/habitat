@@ -8,29 +8,16 @@ $setup = {
     hab pkg install core/nginx --channel $pkgChannel
 
 }
-if ($usePester5) {
-    BeforeAll $setup
-} else {
-    . $setup
-    # Pester 4 teardown reads the job from the file scope.
-    Set-Variable -Name job -Value (Start-Job { hab sup run }) -Scope Local
-    Wait-Supervisor -Timeout 120
-}
+BeforeAll $setup
 
 Describe 'hab svc load' {
     $setup = {
-        if ($usePester5) {
-            Set-Variable -Name job -Value (Start-Job { hab sup run }) -Scope Local
-            Wait-Supervisor -Timeout 120
-        }
+        Set-Variable -Name job -Value (Start-Job { hab sup run }) -Scope Local
+        Wait-Supervisor -Timeout 120
         Set-Variable -Name loadOut -Value (hab svc load core/nginx) -Scope Local
         Wait-SupervisorService nginx -Timeout 20
     }
-    if ($usePester5) {
-        BeforeAll $setup
-    } else {
-        . $setup
-    }
+    BeforeAll $setup
 
     It 'Successfully loads service' {
         ($loadOut | Out-String) | Should -Match 'The core/nginx service was successfully loaded'

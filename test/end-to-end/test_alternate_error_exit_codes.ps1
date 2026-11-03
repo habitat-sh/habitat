@@ -8,11 +8,7 @@ $setup = {
     Invoke-Build $PkgName
     . ./results/last_build.ps1
 }
-if ($usePester5) {
-    BeforeAll $setup
-} else {
-    . $setup
-}
+BeforeAll $setup
 
 Describe "install and uninstall hook error codes are propogated" {
     It "`hab pkg install` exits with install hook exit code" {

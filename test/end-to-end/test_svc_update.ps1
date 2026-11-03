@@ -1,5 +1,4 @@
 # Initialize shared setup values in the current scope for sibling Pester blocks.
-# Pester 4 teardown reads these values from the file scope.
 $initialize = {
     # For *some reason* this incoming environment variable has quotes,
     # which throws everything off, but apparently only on Windows.
@@ -19,11 +18,7 @@ $initialize = {
         Set-Variable -Name test_probe_release -Value ("habitat-testing/test-probe/0.1.0/20230621013852") -Scope Local
     }
 }
-if ($usePester5) {
-    BeforeAll $initialize
-} else {
-    . $initialize
-}
+BeforeAll $initialize
 
 Describe "hab svc update" {
     $setup = {
@@ -32,11 +27,7 @@ Describe "hab svc update" {
         Load-SupervisorService $nginx_release
         Wait-Release -Ident $nginx_release
     }
-    if ($usePester5) {
-        BeforeAll $setup
-    } else {
-        . $setup
-    }
+    BeforeAll $setup
 
     AfterAll {
         hab bldr channel destroy $testChannelOne --origin habitat-testing
@@ -51,11 +42,7 @@ Describe "hab svc update" {
             Wait-Release -Ident $test_probe_release
             Start-Sleep 15 # test-probe has a long init hook
         }
-        if ($usePester5) {
-            BeforeAll $setup
-        } else {
-            . $setup
-        }
+        BeforeAll $setup
 
         It "starts test-probe bound to nginx" {
             '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly 'binds = \["thing_with_a_port:nginx.default"\]'
@@ -84,11 +71,7 @@ Describe "hab svc update" {
             # restart, just in case gremlins appear.
             Start-Sleep -Seconds 45
         }
-        if ($usePester5) {
-            BeforeAll $setup
-        } else {
-            . $setup
-        }
+        BeforeAll $setup
 
         It "has the new binds in the spec file" {
             '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly 'binds = \[\]'
@@ -102,11 +85,7 @@ Describe "hab svc update" {
         $cleanup = {
             Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
         }
-        if ($usePester5) {
-            AfterAll $cleanup
-        } else {
-            . $cleanup
-        }
+        AfterAll $cleanup
     }
 
     Context "updating another field does not wipe out existing binds" {
@@ -125,11 +104,7 @@ Describe "hab svc update" {
             # post-stop and init hooks to run, as before.
             Start-Sleep -Seconds 45
         }
-        if ($usePester5) {
-            BeforeAll $setup
-        } else {
-            . $setup
-        }
+        BeforeAll $setup
 
         It "leaves the existing binds alone" {
             '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly 'binds = \["thing_with_a_port:nginx.default"\]'
@@ -147,11 +122,7 @@ Describe "hab svc update" {
         $cleanup = {
             Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
         }
-        if ($usePester5) {
-            AfterAll $cleanup
-        } else {
-            . $cleanup
-        }
+        AfterAll $cleanup
     }
 
     # This is an imperfect test, but useful nevertheless.
@@ -187,11 +158,7 @@ Describe "hab svc update" {
 
             Set-Variable -Name proc -Value (Get-Process "nginx*") -Scope Local
         }
-        if ($usePester5) {
-            BeforeAll $setup
-        } else {
-            . $setup
-        }
+        BeforeAll $setup
 
         It "reflects channel in spec file" {
             '/hab/sup/default/specs/nginx.spec' | Should -FileContentMatchExactly "channel = `"$testChannelOne`""
@@ -210,11 +177,7 @@ Describe "hab svc update" {
                 # that's a thing that could happen).
                 Start-Sleep -Seconds 10
             }
-            if ($usePester5) {
-                BeforeAll $setup
-            } else {
-                . $setup
-            }
+            BeforeAll $setup
 
             It "has the new channel in the spec file" {
                 '/hab/sup/default/specs/nginx.spec' | Should -FileContentMatchExactly "channel = `"$testChannelTwo`""
@@ -230,10 +193,6 @@ Describe "hab svc update" {
                 $proc.Id | Should -Be $currentProc.Id
             }
         }
-        if ($usePester5) {
-            Context "after changing the channel" $orderedTests
-        } else {
-            . $orderedTests
-        }
+        Context "after changing the channel" $orderedTests
     }
 }

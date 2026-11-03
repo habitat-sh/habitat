@@ -18,22 +18,14 @@ $setup = {
     Start-Service Habitat
     Wait-Supervisor -Timeout 45
 }
-if ($usePester5) {
-    BeforeAll $setup
-} else {
-    . $setup
-}
+BeforeAll $setup
 
 Describe "hab svc load" {
     $setup = {
         Set-Variable -Name loadOut -Value (hab svc load ci/dummy --password $password) -Scope Local
         Wait-SupervisorService dummy -Timeout 20
     }
-    if ($usePester5) {
-        BeforeAll $setup
-    } else {
-        . $setup
-    }
+    BeforeAll $setup
 
     It "Succesfully loads service" {
         $loadOut | Should -Be "The ci/dummy service was successfully loaded"
