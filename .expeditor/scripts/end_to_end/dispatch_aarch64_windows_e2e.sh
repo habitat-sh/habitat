@@ -3,17 +3,6 @@
 set -euo pipefail
 
 test_name="${1:?test name argument required}"
-case "${test_name}" in
-    test_studio_version | test_studio_profile | test_studio_can_build_packages \
-        | test_studio_can_build_packages_with_pkg_version_function \
-        | test_studio_can_build_scaffolded_package | test_studio_with_ssl_cert_file_envvar_set \
-        | test_ssl_certificate_loading | test_pkg_install | test_pkg_uninstall_hook | test_hab_plan_cli) ;;
-    *)
-        echo "Unsupported aarch64-windows e2e test: ${test_name}" >&2
-        exit 2
-        ;;
-esac
-
 : "${BUILDKITE_BRANCH:?BUILDKITE_BRANCH is required}"
 : "${BUILDKITE_BUILD_ID:?BUILDKITE_BUILD_ID is required}"
 : "${BUILDKITE_COMMIT:?BUILDKITE_COMMIT is required}"
