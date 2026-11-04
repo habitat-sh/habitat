@@ -37,7 +37,7 @@ env:
 
 jobs:
   build-hab:
-    name: "[build] :windows-arm: hab"
+    name: "[build] :windows: ARM64 hab"
     runs-on: windows-11-arm
     env:
       HAB_INTERNAL_BLDR_CHANNEL: "dev"
@@ -48,7 +48,7 @@ jobs:
         shell: powershell
 
   build-plan-build-ps1:
-    name: "[build] :windows-arm: plan-build-ps1"
+    name: "[build] :windows: ARM64 plan-build-ps1"
     runs-on: windows-11-arm
     env:
       HAB_INTERNAL_BLDR_CHANNEL: "dev"
@@ -59,7 +59,7 @@ jobs:
         shell: powershell
 
   build-studio:
-    name: "[build] :windows-arm: studio"
+    name: "[build] :windows: ARM64 studio"
     runs-on: windows-11-arm
     env:
       HAB_INTERNAL_BLDR_CHANNEL: "dev"
@@ -69,8 +69,41 @@ jobs:
         run: .expeditor/scripts/verify/build_package.ps1 components/studio
         shell: powershell
 
+  build-launcher:
+    name: "[build] :windows: ARM64 launcher"
+    runs-on: windows-11-arm
+    env:
+      HAB_INTERNAL_BLDR_CHANNEL: "dev"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build components/launcher
+        run: .expeditor/scripts/verify/build_package.ps1 components/launcher
+        shell: powershell
+
+  build-sup:
+    name: "[build] :windows: ARM64 sup"
+    runs-on: windows-11-arm
+    env:
+      HAB_INTERNAL_BLDR_CHANNEL: "dev"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build components/sup
+        run: .expeditor/scripts/verify/build_package.ps1 components/sup
+        shell: powershell
+
+  build-pkg-export-tar:
+    name: "[build] :windows: ARM64 pkg-export-tar"
+    runs-on: windows-11-arm
+    env:
+      HAB_INTERNAL_BLDR_CHANNEL: "dev"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build components/pkg-export-tar
+        run: .expeditor/scripts/verify/build_package.ps1 components/pkg-export-tar
+        shell: powershell
+
   build-test-probe:
-    name: "[build] :windows-arm: test-probe"
+    name: "[build] :windows: ARM64 test-probe"
     runs-on: windows-11-arm
     env:
       HAB_INTERNAL_BLDR_CHANNEL: "dev"
@@ -86,7 +119,7 @@ jobs:
   #######################################################################
 
   test-builder-api-client:
-    name: "[unit] :windows-arm: builder-api-client"
+    name: "[unit] :windows: ARM64 builder-api-client"
     runs-on: windows-11-arm
     steps:
       - uses: actions/checkout@v7
@@ -94,7 +127,7 @@ jobs:
         shell: powershell
 
   test-common:
-    name: "[unit] :windows-arm: common"
+    name: "[unit] :windows: ARM64 common"
     runs-on: windows-11-arm
     steps:
       - uses: actions/checkout@v7
@@ -102,7 +135,7 @@ jobs:
         shell: powershell
 
   test-core:
-    name: "[unit] :windows-arm: core"
+    name: "[unit] :windows: ARM64 core"
     runs-on: windows-11-arm
     steps:
       - uses: actions/checkout@v7
@@ -110,7 +143,7 @@ jobs:
         shell: powershell
 
   test-core-functional:
-    name: "[unit] :windows-arm: core functional"
+    name: "[unit] :windows: ARM64 core functional"
     runs-on: windows-11-arm
     steps:
       - uses: actions/checkout@v7
@@ -118,7 +151,7 @@ jobs:
         shell: powershell
 
   test-hab:
-    name: "[unit] :windows-arm: hab"
+    name: "[unit] :windows: ARM64 hab"
     runs-on: windows-11-arm
     steps:
       - uses: actions/checkout@v7
@@ -126,15 +159,23 @@ jobs:
         shell: powershell
 
   test-http-client:
-    name: "[unit] :windows-arm: http-client"
+    name: "[unit] :windows: ARM64 http-client"
     runs-on: windows-11-arm
     steps:
       - uses: actions/checkout@v7
       - run: .expeditor/scripts/verify/run_cargo_test.ps1 http-client
         shell: powershell
 
+  test-pkg-export-tar:
+    name: "[unit] :windows: ARM64 pkg-export-tar"
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@v7
+      - run: .expeditor/scripts/verify/run_cargo_test.ps1 pkg-export-tar
+        shell: powershell
+
   test-studio:
-    name: "[unit] :windows-arm: studio"
+    name: "[unit] :windows: ARM64 studio"
     runs-on: windows-11-arm
     env:
       HAB_INTERNAL_BLDR_CHANNEL: "dev"
@@ -144,7 +185,7 @@ jobs:
         shell: powershell
 
   test-plan-build-ps1:
-    name: "[unit] :windows-arm: plan-build-ps1"
+    name: "[unit] :windows: ARM64 plan-build-ps1"
     runs-on: windows-11-arm
     steps:
       - uses: actions/checkout@v7
@@ -152,7 +193,7 @@ jobs:
         shell: powershell
 
   test-install-script:
-    name: "[unit] :windows-arm: install script"
+    name: "[unit] :windows: ARM64 install script"
     runs-on: windows-11-arm
     steps:
       - uses: actions/checkout@v7

@@ -127,7 +127,7 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
-  - label: "[:windows-arm: build aarch64-windows plan-build-ps1]"
+  - label: "[:windows: ARM64 build aarch64-windows plan-build-ps1]"
     command:
       - bash .expeditor/scripts/release_habitat/dispatch_aarch64_windows_build.sh plan-build-ps1
     timeout_in_minutes: 70
@@ -230,7 +230,7 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
-  - label: "[:windows-arm: build aarch64-windows studio]"
+  - label: "[:windows: ARM64 build aarch64-windows studio]"
     command:
       - bash .expeditor/scripts/release_habitat/dispatch_aarch64_windows_build.sh studio
     timeout_in_minutes: 70
@@ -284,6 +284,16 @@ steps:
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh launcher
 
+  - label: "[:windows: ARM64 build aarch64-windows launcher]"
+    command:
+      - bash .expeditor/scripts/release_habitat/dispatch_aarch64_windows_build.sh launcher
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
+
   - label: "[:windows: build launcher]"
     command:
       - powershell .expeditor/scripts/release_habitat/build_component.ps1 launcher
@@ -312,6 +322,16 @@ steps:
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh sup
+
+  - label: "[:windows: ARM64 build aarch64-windows hab-sup]"
+    command:
+      - bash .expeditor/scripts/release_habitat/dispatch_aarch64_windows_build.sh sup
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
 
   - label: "[:windows: build hab-sup]"
     command:
@@ -370,6 +390,16 @@ steps:
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh pkg-export-tar
+
+  - label: "[:windows: ARM64 build aarch64-windows hab-pkg-export-tar]"
+    command:
+      - bash .expeditor/scripts/release_habitat/dispatch_aarch64_windows_build.sh pkg-export-tar
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
 
   - label: "[:windows: build hab-pkg-export-tar]"
     command:
@@ -459,7 +489,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
 
-  - label: "[:windows-arm: upload aarch64-windows hab binary]"
+  - label: "[:windows: ARM64 upload aarch64-windows hab binary]"
     command:
       - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
     if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
@@ -659,7 +689,7 @@ steps:
       automatic:
         limit: 3
 
-  - label: "[:windows-arm: grype scan aarch64-windows]"
+  - label: "[:windows: ARM64 grype scan aarch64-windows]"
     command:
       - bash .expeditor/scripts/release_habitat/dispatch_aarch64_windows_grype_scan.sh
     artifact_paths:

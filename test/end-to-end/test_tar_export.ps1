@@ -14,12 +14,29 @@ $setup = {
             tar --extract --to-stdout --file $tar $ident
         }
     }
+    function Assert-NativePackageTargets($tar) {
+        $expectedTarget = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) {
+            "aarch64-windows"
+        } else {
+            "x86_64-windows"
+        }
+        $targetFiles = @(tar --list --file $tar | Where-Object { $_ -like "$HabRoot/pkgs/**/TARGET" })
+        $LASTEXITCODE | Should -Be 0
+        $targetFiles.Count | Should -BeGreaterThan 0
+        foreach ($targetFile in $targetFiles) {
+            $target = tar --extract --to-stdout --file $tar $targetFile
+            $LASTEXITCODE | Should -Be 0
+            $target.Trim() | Should -Be $expectedTarget
+        }
+    }
+
 }
 BeforeAll $setup
 
 Describe "hab pkg export tar core/nginx" {
     $setup = {
         hab pkg export tar core/nginx --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+        $LASTEXITCODE | Should -Be 0
         Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
         Set-Variable -Name version -Value (((((hab --version) -split " ")[1]) -split "/")[0]) -Scope Local
     }
@@ -29,6 +46,9 @@ Describe "hab pkg export tar core/nginx" {
     }
     It "Includes nginx" {
         Get-Ident core/nginx $tar | Should -Not -Be $null
+    }
+    It "Includes packages for the native Windows architecture" -Skip:(-not $IsWindows) {
+        Assert-NativePackageTargets $tar
     }
     It "Includes hab" {
         Get-Ident chef/hab $tar | Should -BeLike "chef/hab/$version/*"
@@ -54,6 +74,7 @@ Describe "hab pkg export tar core/nginx" {
 Describe "hab pkg export tar core/nginx --no-hab-bin" {
     $setup = {
         hab pkg export tar core/nginx --no-hab-bin --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+        $LASTEXITCODE | Should -Be 0
         Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
     }
     BeforeAll $setup
@@ -62,6 +83,9 @@ Describe "hab pkg export tar core/nginx --no-hab-bin" {
     }
     It "Includes nginx" {
         Get-Ident core/nginx $tar | Should -Not -Be $null
+    }
+    It "Includes packages for the native Windows architecture" -Skip:(-not $IsWindows) {
+        Assert-NativePackageTargets $tar
     }
     It "Does not include hab binary directory" {
         $habBinDir = tar --list --file $tar | Where-Object { $_ -like "$HabRoot/bin/*" }
@@ -95,6 +119,7 @@ Context "hab pkg export tar core/nginx --no-hab-sup" {
     } else {
         $setup = {
             hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+            $LASTEXITCODE | Should -Be 0
             Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
         }
         BeforeAll $setup
@@ -103,6 +128,9 @@ Context "hab pkg export tar core/nginx --no-hab-sup" {
         }
         It "Includes nginx" {
             Get-Ident core/nginx $tar | Should -Not -Be $null
+        }
+        It "Includes packages for the native Windows architecture" -Skip:(-not $IsWindows) {
+            Assert-NativePackageTargets $tar
         }
         It "Includes hab binary directory" {
             $habBinDir = tar --list --file $tar | Where-Object { $_ -like "$HabRoot/bin/*" }
