@@ -1,6 +1,8 @@
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "$HOME/.hab/accepted-licenses"
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "/hab/accepted-licenses"
-$env:HAB_LICENSE = $null
+BeforeAll {
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "$HOME/.hab/accepted-licenses"
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "/hab/accepted-licenses"
+    $env:HAB_LICENSE = $null
+}
 
 Describe "license" {
     It "version check without license works" {
@@ -33,11 +35,13 @@ Describe "license" {
 
     It "non-version and non-help commands timeout on license check" {
         $process = Start-Process "hab" -ArgumentList "svc status" -PassThru
-        {
-            Wait-ProcessExit $process -Timeout 1 -ErrorAction Stop
-        } | Should -Throw "Timed out"
-
-        $process | Stop-Process -Force
+        try {
+            {
+                Wait-ProcessExit $process -Timeout 1 -ErrorAction Stop
+            } | Should -Throw -ExpectedMessage "*Timed out*"
+        } finally {
+            $process | Stop-Process -Force -ErrorAction SilentlyContinue
+        }
     }
 
     It "non-version and non-help commands do no work when denying license" {

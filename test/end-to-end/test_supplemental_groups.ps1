@@ -17,33 +17,37 @@
 # to the file `/tmp/supplemental-group-tester-file-sentinel`; if that
 # file exists, everything is successful.
 
-$test_file="/tmp/supplemental-group-tester-file"
-$sentinel_file="/tmp/supplemental-group-tester-sentinel"
-$supplemental_group="extra_group"
+BeforeAll {
+    $test_file="/tmp/supplemental-group-tester-file"
+    $sentinel_file="/tmp/supplemental-group-tester-sentinel"
+    $supplemental_group="extra_group"
 
-# Ensure the sentinel isn't there already, for some reason
-Remove-Item "$sentinel_file" -Force -ErrorAction SilentlyContinue
+    # Ensure the sentinel isn't there already, for some reason
+    Remove-Item "$sentinel_file" -Force -ErrorAction SilentlyContinue
 
-# Create the testing file... contents aren't important
-"Hello World" | Out-File -FilePath $test_file
+    # Create the testing file... contents aren't important
+    "Hello World" | Out-File -FilePath $test_file
 
-# Create a new group, give the file to that group, prevent non-group
-# members from accessing the file, and add the `hab` user to the
-# group.
-#
-# Dropping back to raw Unix utilities for all this, for convenience.
-groupadd $supplemental_group
-chgrp $supplemental_group $test_file
-chown 740 $test_file
-usermod -G $supplemental_group hab
+    # Create a new group, give the file to that group, prevent non-group
+    # members from accessing the file, and add the `hab` user to the
+    # group.
+    #
+    # Dropping back to raw Unix utilities for all this, for convenience.
+    groupadd $supplemental_group
+    chgrp $supplemental_group $test_file
+    chown 740 $test_file
+    usermod -G $supplemental_group hab
+}
 
 Describe "supplemental group behavior" {
+    BeforeAll {
+        $supLog = New-SupervisorLogFile("test_supplemental_groups")
+        Start-Supervisor -LogFile $supLog -Timeout 45
+    }
+
     AfterAll {
         Stop-Supervisor
     }
-
-    $supLog = New-SupervisorLogFile("test_supplemental_groups")
-    Start-Supervisor -LogFile $supLog -Timeout 45
 
     It "should be able to run a service that depends on supplemental groups being set" {
         # Install the package first so we don't have to wait during

@@ -1,6 +1,8 @@
-$etcPath = "/hab/etc"
-$configPath = "$etcPath/cli.toml"
-$ctlTlsPath = "/hab/cache/keys/ctl"
+BeforeAll {
+    $etcPath = "/hab/etc"
+    Set-Variable -Name configPath -Value ("$etcPath/cli.toml") -Scope Local
+    Set-Variable -Name ctlTlsPath -Value ("/hab/cache/keys/ctl") -Scope Local
+}
 
 Describe "ctl gateway TLS" {
     BeforeAll {

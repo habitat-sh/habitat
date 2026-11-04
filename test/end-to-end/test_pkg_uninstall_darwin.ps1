@@ -1,9 +1,11 @@
 # macOS-specific pkg uninstall tests.
 
-$pkg = "core/sqlite"
-$nginxPkg = "core/nginx"
-$channel = "base-2025"
-$env:HAB_NOCOLORING = "true"
+BeforeAll {
+    Set-Variable -Name pkg -Value ("core/sqlite") -Scope Local
+    Set-Variable -Name nginxPkg -Value ("core/nginx") -Scope Local
+    Set-Variable -Name channel -Value ("base-2025") -Scope Local
+    $env:HAB_NOCOLORING = "true"
+}
 
 Describe "pkg uninstall (macOS)" {
     BeforeAll {

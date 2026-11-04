@@ -49,14 +49,9 @@ sudo -E hab pkg install core/powershell \
 echo "--- Using core/powershell version $(pwsh --version)"
 
 
-if [[ "${BUILD_PKG_TARGET}" == "aarch64-linux" ]]; then
-    pester_channel="base"
-else
-    pester_channel="stable"
-fi
-echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, ${pester_channel} channel"
+echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, base channel"
 sudo -E hab pkg install core/pester \
-    --channel="${pester_channel}" \
+    --channel="base" \
     --url="${HAB_BLDR_URL}"
 
 sudo useradd --system --no-create-home hab

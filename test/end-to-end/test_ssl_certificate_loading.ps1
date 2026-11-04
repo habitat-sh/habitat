@@ -1,12 +1,14 @@
 $ErrorActionPreference="stop"
-
-Write-Host "--- Generating a signing key"
-hab origin key generate "$env:HAB_ORIGIN"
-
-Write-Host "--- Testing fresh install of Habitat can communicate with builder"
 Context "Habitat SSL Cache" {
+    BeforeAll {
+        Write-Host "--- Generating a signing key"
+        Invoke-NativeCommand hab origin key generate "$env:HAB_ORIGIN"
+    }
+
     BeforeEach {
-        Remove-Item c:\hab\cache\ssl -Recurse -Force
+        if (Test-Path c:\hab\cache\ssl) {
+            Remove-Item c:\hab\cache\ssl -Recurse -Force
+        }
     }
 
     Describe "Fresh Install" {
@@ -14,7 +16,7 @@ Context "Habitat SSL Cache" {
         # The previous release in order to test the current build.  However, the BeforeEach
         # block above ensures we don't have any cached certs that this may be pulling in.
         It "Can install packages" {
-            hab pkg install core/7zip --channel stable
+            hab pkg install core/7zip --channel base
             $LASTEXITCODE | Should -Be 0
         }
     }
@@ -25,14 +27,14 @@ Context "Habitat SSL Cache" {
             New-Item -Type File -Path c:\hab\cache\ssl\invalid-certifcate.pem
             Add-Content -Path c:\hab\cache\ssl\invalid-certificate.pem "I AM NOT A CERTIFICATE"
 
-            hab pkg install core/nginx --channel stable
+            # Resolve against Builder even if the earlier test installed 7zip.
+            hab pkg install core/7zip --channel base --ignore-local
             $LASTEXITCODE | Should -Be 0
         }
 
         It "Loads custom certificates" {
             New-Item -Type Directory -Path c:\hab\cache\ssl
-            hab pkg install core/openssl --channel stable
-            hab pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout key.pem -x509 -days 365 -out c:\hab\cache\ssl\custom-certificate.pem
+            New-TestCertificate -Path c:\hab\cache\ssl\custom-certificate.pem
 
             $env:RUST_LOG="debug"
             Start-Process hab -ArgumentList "pkg search core/lessmsi" -RedirectStandardError err.log -Wait
@@ -49,8 +51,7 @@ Context "Habitat SSL Cache" {
             # CWD ever changes from 'workdir'
             $studioCertFile = "/hab/cache/ssl/custom-certificate.pem"
             New-Item -Type Directory -Path c:\hab\cache\ssl
-            hab pkg install core/openssl --channel stable
-            hab pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout key.pem -x509 -days 365 -out $customCertFile
+            New-TestCertificate -Path $customCertFile
 
             $result = hab studio run "(Test-Path $studioCertFile).ToString()"
             Write-Host $result

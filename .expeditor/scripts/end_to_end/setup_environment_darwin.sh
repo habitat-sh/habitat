@@ -86,17 +86,15 @@ fi
 
 pwsh_path="$(command -v pwsh)"
 
-echo "--- Installing latest core/pester from ${HAB_BLDR_URL}, base-2025 channel"
-# Try the hab package first, fall back to PowerShell module
+echo "--- Installing core/pester from ${HAB_BLDR_URL}, base channel"
+# Builder does not currently publish core/pester for aarch64-darwin.
 if ! sudo -E "$hab_binary" pkg install core/pester \
-    --channel="base-2025" \
+    --channel="base" \
     --url="${HAB_BLDR_URL}"; then
-    echo "--- core/pester not available for this platform, installing via PowerShell module"
-    # Pin to Pester 4.x to match core/pester on Linux. All existing test
-    # files use Pester 4 syntax and Pester 5's legacy adapter is unreliable.
-    sudo "$pwsh_path" -Command "Install-Module -Name Pester -MaximumVersion '4.99.99' -Force -SkipPublisherCheck"
-    echo "--- Pester version: $(sudo "$pwsh_path" -Command '(Get-Module -ListAvailable Pester).Version')"
+    echo "--- core/pester not available for this platform; installing Pester 5.5.0 from PowerShell Gallery"
+    sudo "$pwsh_path" -Command "Install-Module -Name Pester -RequiredVersion '5.5.0' -Force -SkipPublisherCheck"
 fi
+echo "--- Pester version: $(sudo "$pwsh_path" -Command '(Get-Module -ListAvailable Pester | Sort-Object Version -Descending | Select-Object -First 1).Version')"
 
 # Create the 'hab' system user using sysadminctl if it does not already exist
 if ! id hab &>/dev/null; then

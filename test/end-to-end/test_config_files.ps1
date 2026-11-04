@@ -1,10 +1,18 @@
-$configPath = "/hab/sup/default/config"
-$supConfig = "/hab/sup/default/config/sup.toml"
-$supBadConfig = "/hab/sup/default/config/bad_sup.toml"
+# Initialize shared setup values in the current scope for sibling Pester blocks.
+$setup = {
+    Set-Variable -Name configPath -Value ("/hab/sup/default/config") -Scope Local
+    Set-Variable -Name supConfig -Value ("/hab/sup/default/config/sup.toml") -Scope Local
+    Set-Variable -Name supBadConfig -Value ("/hab/sup/default/config/bad_sup.toml") -Scope Local
+}
+BeforeAll $setup
 
 Describe "reading from supervisor and service config files" {
-    Remove-Item -Force -Recurse -ErrorAction Ignore $supConfig
-    New-Item -ItemType directory -Force -Path $configPath
+    $setup = {
+        Remove-Item -Force -Recurse -ErrorAction Ignore $supConfig
+        New-Item -ItemType directory -Force -Path $configPath
+    }
+    BeforeAll $setup
+    AfterEach { Stop-Supervisor }
 
     It "Supervisor starts with output of 'hab sup run --generate-config'" {
         # Run this twice. The first time the output is polluted with installing the launcher.
@@ -15,8 +23,6 @@ Describe "reading from supervisor and service config files" {
         $supLog = New-SupervisorLogFile("supervisor_starts_with_output_of_hab_sup_run_--generate-config")
         Start-Supervisor -LogFile $supLog -Timeout 45
     }
-
-    Stop-Supervisor
 
     It "Supervisor starts with correctly configured gossip address" {
         $address = "127.0.0.1:1234"
@@ -30,8 +36,6 @@ Describe "reading from supervisor and service config files" {
         $out | Should -Contain "hab-sup(MR): Starting gossip-listener on $address"
     }
 
-    Stop-Supervisor
-
     It "Supervisor does not start with invalid config file" {
         $supLog = New-SupervisorLogFile("supervisor_does_not_start_with_invalid_config_file")
         Set-Content -Path $supBadConfig -Force -Value "a bad confg"
@@ -43,6 +47,5 @@ Describe "reading from supervisor and service config files" {
         } | Should -Throw
     }
 
-    Remove-Item -Force -Recurse -ErrorAction Ignore $supConfig
-    Stop-Supervisor
+    AfterAll { Remove-Item -Force -Recurse -ErrorAction Ignore $supConfig }
 }

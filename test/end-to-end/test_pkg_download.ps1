@@ -19,68 +19,72 @@
 # Developers most likely want to run:
 # HAB_TEST_CMD=./target/debug/hab test/end-to-end/test_pkg_download.sh
 #
-$cacheDir = "test-cache"
-# use aarch64-darwin channel on macOS
-$downloadChannel = if ($IsMacOS) { "aarch64-darwin" } else { "base" }
+BeforeAll {
+    $cacheDir = "test-cache"
+    # use aarch64-darwin channel on macOS
+    Set-Variable -Name downloadChannel -Value $(if ($IsMacOS) { "aarch64-darwin" } else { "base" }) -Scope Local
 
-function Test-IdentDownloaded($FilePrefix) {
-    $path = Join-Path -Path $cacheDir "artifacts" "$FilePrefix-*"
-    if(!(Test-Path $path)) {
-        Write-Error "$path was not found."
-    }
-}
-
-function Test-GzipIdent {
-    if ($IsMacOS) {
-        # aarch64-darwin has different dependencies than Linux
-        Test-IdentDownloaded "core-gzip"
-        Test-IdentDownloaded "core-coreutils"
-        Test-IdentDownloaded "core-diffutils"
-        Test-IdentDownloaded "core-grep"
-        Test-IdentDownloaded "core-less"
-        Test-IdentDownloaded "core-libpcre2"
-
-        if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 6) {
-            Write-Error "did not find 6 gzip artifacts"
-        }
-    } else {
-        Test-IdentDownloaded "core-acl"
-        Test-IdentDownloaded "core-attr"
-        Test-IdentDownloaded "core-bzip2"
-        Test-IdentDownloaded "core-coreutils"
-        Test-IdentDownloaded "core-diffutils"
-        Test-IdentDownloaded "core-gzip"
-        Test-IdentDownloaded "core-glibc"
-        Test-IdentDownloaded "core-gcc-libs"
-        Test-IdentDownloaded "core-grep"
-        Test-IdentDownloaded "core-libcap"
-        Test-IdentDownloaded "core-libpcre2"
-        Test-IdentDownloaded "core-linux-headers"
-        Test-IdentDownloaded "core-pcre2"
-        Test-IdentDownloaded "core-less"
-        Test-IdentDownloaded "core-ncurses"
-        Test-IdentDownloaded "core-zlib"
-
-        if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 16) {
-            Write-Error "did not find 16 gzip artifacts"
+    function Test-IdentDownloaded($FilePrefix) {
+        $path = Join-Path -Path $cacheDir "artifacts" "$FilePrefix-*"
+        if(!(Test-Path $path)) {
+            Write-Error "$path was not found."
         }
     }
-}
 
-function Test-RustIdent {
-    Test-IdentDownloaded "core-rust"
-    Test-IdentDownloaded "core-visual-cpp-redist-2022"
-    Test-IdentDownloaded "core-visual-build-tools-2022"
-    Test-IdentDownloaded "core-windows-11-sdk"
+    function Test-GzipIdent {
+        if ($IsMacOS) {
+            # aarch64-darwin has different dependencies than Linux
+            Test-IdentDownloaded "core-gzip"
+            Test-IdentDownloaded "core-coreutils"
+            Test-IdentDownloaded "core-diffutils"
+            Test-IdentDownloaded "core-grep"
+            Test-IdentDownloaded "core-less"
+            Test-IdentDownloaded "core-libpcre2"
 
-    if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 4) {
-        Write-Error "did not find 4 rust artifacts"
+            if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 6) {
+                Write-Error "did not find 6 gzip artifacts"
+            }
+        } else {
+            Test-IdentDownloaded "core-acl"
+            Test-IdentDownloaded "core-attr"
+            Test-IdentDownloaded "core-bzip2"
+            Test-IdentDownloaded "core-coreutils"
+            Test-IdentDownloaded "core-diffutils"
+            Test-IdentDownloaded "core-gzip"
+            Test-IdentDownloaded "core-glibc"
+            Test-IdentDownloaded "core-gcc-libs"
+            Test-IdentDownloaded "core-grep"
+            Test-IdentDownloaded "core-libcap"
+            Test-IdentDownloaded "core-libpcre2"
+            Test-IdentDownloaded "core-linux-headers"
+            Test-IdentDownloaded "core-pcre2"
+            Test-IdentDownloaded "core-less"
+            Test-IdentDownloaded "core-ncurses"
+            Test-IdentDownloaded "core-zlib"
+
+            if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 16) {
+                Write-Error "did not find 16 gzip artifacts"
+            }
+        }
+    }
+
+    function Test-RustIdent {
+        Test-IdentDownloaded "core-rust"
+        Test-IdentDownloaded "core-visual-cpp-redist-2022"
+        Test-IdentDownloaded "core-visual-build-tools-2022"
+        Test-IdentDownloaded "core-windows-11-sdk"
+
+        if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 4) {
+            Write-Error "did not find 4 rust artifacts"
+        }
     }
 }
 
 Describe "hab pkg download" {
-    $identFile = "ident_file"
-    $fixtures = "$PSScriptRoot/fixtures/pkg_download"
+    BeforeAll {
+        Set-Variable -Name identFile -Value ("ident_file") -Scope Local
+        Set-Variable -Name fixtures -Value ("$PSScriptRoot/fixtures/pkg_download") -Scope Local
+    }
 
     BeforeEach {
         if(Test-Path $cacheDir) {

@@ -10,22 +10,24 @@
 # the Builder. Of course this introduces significant setup time
 # cost... For now, we'll want to point to the Acceptance Builder, not Production.
 
-$env:HAB_NOCOLORING=true
-$env:HAB_NONINTERACTIVE=true
-# HAB_ORIGIN should never be changed to anything other than an origin used only
-# for testing. It is hardcoded here to our designated origin for this purpose (habitat-testing).
-$env:HAB_ORIGIN = "habitat-testing"
-$env:HAB_BLDR_URL = $env:PIPELINE_HAB_BLDR_URL
-$env:BUILD_PKG_TARGET = "x86_64-linux"
-$env:HAB_BLDR_CHANNEL = $null
+BeforeAll {
+    $env:HAB_NOCOLORING=true
+    $env:HAB_NONINTERACTIVE=true
+    # HAB_ORIGIN should never be changed to anything other than an origin used only
+    # for testing. It is hardcoded here to our designated origin for this purpose (habitat-testing).
+    $env:HAB_ORIGIN = "habitat-testing"
+    $env:HAB_BLDR_URL = $env:PIPELINE_HAB_BLDR_URL
+    $env:BUILD_PKG_TARGET = "x86_64-linux"
+    $env:HAB_BLDR_CHANNEL = $null
 
-$cacheDir = "test-cache"
-$env:HAB_CACHE_KEY_PATH = Join-Path $cacheDir "keys"
-$fixturesDir = "test/fixtures"
-$testPkg1Dir = Join-Path $fixturesDir "testpkg1"
-$testPkg2Dir = Join-Path $fixturesDir "testpkg2"
-$testPkg1Ident = Join-Path $fixturesDir "testpkg1"
-$testPkg2Ident = Join-Path $fixturesDir "testpkg2"
+    $cacheDir = "test-cache"
+    $env:HAB_CACHE_KEY_PATH = Join-Path $cacheDir "keys"
+    $fixturesDir = "test/fixtures"
+    Set-Variable -Name testPkg1Dir -Value (Join-Path $fixturesDir "testpkg1") -Scope Local
+    Set-Variable -Name testPkg2Dir -Value (Join-Path $fixturesDir "testpkg2") -Scope Local
+    Set-Variable -Name testPkg1Ident -Value (Join-Path $fixturesDir "testpkg1") -Scope Local
+    Set-Variable -Name testPkg2Ident -Value (Join-Path $fixturesDir "testpkg2") -Scope Local
+}
 
 Describe "hab pkg bulkupload" {
     It "succeeds with no options" {

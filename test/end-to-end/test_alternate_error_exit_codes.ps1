@@ -1,10 +1,14 @@
-$PkgName = "custom-hook-exit-code"
-$PkgOrigin = "habitat-testing"
-$PkgIdent = "$PkgOrigin/$PkgName"
-$Env:HAB_ORIGIN = $PkgOrigin
-hab origin key generate $PkgOrigin
-Invoke-Build $PkgName
-. ./results/last_build.ps1
+# Initialize shared setup values in the current scope for sibling Pester blocks.
+$setup = {
+    $PkgName = "custom-hook-exit-code"
+    $PkgOrigin = "habitat-testing"
+    Set-Variable -Name PkgIdent -Value ("$PkgOrigin/$PkgName") -Scope Local
+    $Env:HAB_ORIGIN = $PkgOrigin
+    hab origin key generate $PkgOrigin
+    Invoke-Build $PkgName
+    . ./results/last_build.ps1
+}
+BeforeAll $setup
 
 Describe "install and uninstall hook error codes are propogated" {
     It "`hab pkg install` exits with install hook exit code" {

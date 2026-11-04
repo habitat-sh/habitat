@@ -4,7 +4,9 @@
 # hab pkg exec instead, which is the underlying mechanism for running
 # external package binaries.
 
-$channel = "base-2025"
+BeforeAll {
+    Set-Variable -Name channel -Value ("base-2025") -Scope Local
+}
 
 Describe "`hab` correctly executes external binaries" {
     BeforeAll {

@@ -1,4 +1,6 @@
-hab pkg install core/windows-service
+BeforeAll {
+    hab pkg install core/windows-service
+}
 
 Describe "Habitat Windows Service" {
     It "Starts the service" {

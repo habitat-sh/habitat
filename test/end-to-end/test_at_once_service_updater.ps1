@@ -3,25 +3,31 @@
 # HAB_UPDATE_STRATEGY_PERIOD_MS=3000
 # HAB_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK=1
 
-$supLog = New-SupervisorLogFile("test_at_once_service_updater")
-Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
-        "--keep-latest-packages=1"
-) | Out-Null
-$testChannel="at-once-$([DateTime]::Now.Ticks)"
-$pkg="habitat-testing/nginx"
-$initialRelease="habitat-testing/nginx/1.17.4/20191115184838"
-$updatedRelease="habitat-testing/nginx/1.17.4/20191115185517"
+BeforeAll {
+    $supLog = New-SupervisorLogFile("test_at_once_service_updater")
+    Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
+            "--keep-latest-packages=1"
+    ) | Out-Null
+    Set-Variable -Name testChannel -Value ("at-once-$([DateTime]::Now.Ticks)") -Scope Local
+    Set-Variable -Name pkg -Value ("habitat-testing/nginx") -Scope Local
+    Set-Variable -Name initialRelease -Value ("habitat-testing/nginx/1.17.4/20191115184838") -Scope Local
+    Set-Variable -Name updatedRelease -Value ("habitat-testing/nginx/1.17.4/20191115185517") -Scope Local
+}
 
 Describe "at-once update and rollback" {
-    hab pkg promote $initialRelease $testChannel
-    Load-SupervisorService $pkg -Strategy "at-once" -UpdateCondition "track-channel" -Channel $testChannel
+    BeforeAll {
+        hab pkg promote $initialRelease $testChannel
+        Load-SupervisorService $pkg -Strategy "at-once" -UpdateCondition "track-channel" -Channel $testChannel
+    }
 
     It "loads initial release" {
         Wait-Release -Ident $initialRelease
     }
 
     Context "promote update" {
-        hab pkg promote $updatedRelease $testChannel
+        BeforeAll {
+            hab pkg promote $updatedRelease $testChannel
+        }
 
         It "updates release" {
             Wait-CommandLinesOfOutput "hab pkg list $pkg" 2
@@ -33,7 +39,9 @@ Describe "at-once update and rollback" {
     }
 
     Context "demote update" {
-        hab pkg demote $updatedRelease $testChannel
+        BeforeAll {
+            hab pkg demote $updatedRelease $testChannel
+        }
 
         It "rollback release" {
             Wait-Release -Ident $initialRelease

@@ -1,4 +1,6 @@
-$HAB_ORIGIN = "core"
+BeforeAll {
+    Set-Variable -Name HAB_ORIGIN -Value ("core") -Scope Local
+}
 
 Describe "bldr channel list --sandbox" {
     It "Lists all the channels including sandbox for the origin" {
@@ -9,6 +11,6 @@ Describe "bldr channel list --sandbox" {
                 break
             }
         }
-        $success | Should be $true
+        $success | Should -BeTrue
     }
 }
