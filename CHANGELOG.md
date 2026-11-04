@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.142 -->
-## [2.1.142](https://github.com/habitat-sh/habitat/tree/2.1.142) (2026-10-29)
+<!-- latest_release 2.1.143 -->
+## [2.1.143](https://github.com/habitat-sh/habitat/tree/2.1.143) (2026-11-04)
 
 #### Merged Pull Requests
-- Bump actix-http from 3.19.0 to 3.20.0 [#10639](https://github.com/habitat-sh/habitat/pull/10639) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- update ignorelist in audit.toml [#10641](https://github.com/habitat-sh/habitat/pull/10641) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- update ignorelist in audit.toml [#10641](https://github.com/habitat-sh/habitat/pull/10641) ([mwrock](https://github.com/mwrock)) <!-- 2.1.143 -->
 - Bump actix-http from 3.19.0 to 3.20.0 [#10639](https://github.com/habitat-sh/habitat/pull/10639) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.142 -->
 - Bump cc from 1.8.0 to 1.10.0 [#10637](https://github.com/habitat-sh/habitat/pull/10637) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.142 -->
 - Bump notify from 8.2.0 to 8.2.1 [#10636](https://github.com/habitat-sh/habitat/pull/10636) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.142 -->
