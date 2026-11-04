@@ -12,8 +12,6 @@ on:
           - hab
           - plan-build-ps1
           - studio
-          - launcher
-          - sup
           - pkg-export-tar
       release_channel:
         description: Pipeline-scoped Builder channel
@@ -62,7 +60,7 @@ jobs:
       - name: Validate dispatch and release source
         shell: powershell
         run: |
-          if ($env:COMPONENT -notin @("hab", "plan-build-ps1", "studio", "launcher", "sup", "pkg-export-tar")) {
+          if ($env:COMPONENT -notin @("hab", "plan-build-ps1", "studio", "pkg-export-tar")) {
               throw "Unsupported release component: $env:COMPONENT"
           }
           if ($env:RELEASE_CHANNEL -notmatch '^habitat-release-[A-Za-z0-9-]+$') {

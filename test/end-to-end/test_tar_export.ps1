@@ -1,9 +1,11 @@
 # Initialize shared setup values in the current scope for sibling Pester blocks.
 $IsDarwinArm64 = $IsLinux -eq $false -and $IsWindows -eq $false -and ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64)
+$ExcludesSupervisor = $IsDarwinArm64 -or ($IsWindows -and ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64))
 
 $setup = {
     Remove-Item *.tar.gz
     $IsDarwinArm64 = $IsLinux -eq $false -and $IsWindows -eq $false -and ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64)
+    $ExcludesSupervisor = $IsDarwinArm64 -or ($IsWindows -and ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64))
 
     # On aarch64-darwin, packages live under opt/hab; everywhere else under hab
     $HabRoot = if ($IsDarwinArm64) { "opt/hab" } else { "hab" }
@@ -53,8 +55,8 @@ Describe "hab pkg export tar core/nginx" {
     It "Includes hab" {
         Get-Ident chef/hab $tar | Should -BeLike "chef/hab/$version/*"
     }
-    # On aarch64-darwin, supervisor and launcher are never included
-    if ($IsDarwinArm64) {
+    # On ARM64 macOS and Windows, supervisor and launcher are never included
+    if ($ExcludesSupervisor) {
         It "Does not include supervisor" {
             Get-Ident chef/hab-sup $tar | Should -Be $null
         }
@@ -91,8 +93,8 @@ Describe "hab pkg export tar core/nginx --no-hab-bin" {
         $habBinDir = tar --list --file $tar | Where-Object { $_ -like "$HabRoot/bin/*" }
         $habBinDir | Should -Be $null
     }
-    # On aarch64-darwin, supervisor and launcher are never included
-    if ($IsDarwinArm64) {
+    # On ARM64 macOS and Windows, supervisor and launcher are never included
+    if ($ExcludesSupervisor) {
         It "Does not include supervisor" {
             Get-Ident chef/hab-sup $tar | Should -Be $null
         }
@@ -110,8 +112,8 @@ Describe "hab pkg export tar core/nginx --no-hab-bin" {
 }
 
 Context "hab pkg export tar core/nginx --no-hab-sup" {
-    # --no-hab-sup is not available on aarch64-darwin (supervisor is always excluded there)
-    if ($IsDarwinArm64) {
+    # --no-hab-sup is unavailable on ARM64 macOS and Windows (supervisor is always excluded)
+    if ($ExcludesSupervisor) {
         It "Rejects --no-hab-sup flag with a non-zero exit code" {
             hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
             $LASTEXITCODE | Should -Not -Be 0

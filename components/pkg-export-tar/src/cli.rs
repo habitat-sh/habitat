@@ -5,7 +5,8 @@ use habitat_common::{cli::clap_validators::{HabPackageInstallSourceValueParser,
                      consts::{DEFAULT_BUILDER_URL,
                               DEFAULT_HAB_PKG_IDENT}};
 
-#[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+#[cfg(not(all(any(target_os = "macos", target_os = "windows"),
+              target_arch = "aarch64")))]
 use habitat_common::consts::{DEFAULT_HAB_LAUNCHER_PKG_IDENT,
                              DEFAULT_HAB_SUP_PKG_IDENT};
 #[derive(Debug, Clone, Parser)]
@@ -29,7 +30,8 @@ pub(crate) struct Cli {
 
     /// Launcher package identifier (ex: chef/hab-launcher) or filepath to a Habitat artifact
     /// (ex: /home/chef-hab-launcher-19633-20250610094807-x86_64-linux.hart) to install
-    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+    #[cfg(not(all(any(target_os = "macos", target_os = "windows"),
+                  target_arch = "aarch64")))]
     #[arg(name = "HAB_LAUNCHER_PKG",
           long = "launcher-pkg",
           value_name = "HAB_LAUNCHER_PKG",
@@ -39,7 +41,8 @@ pub(crate) struct Cli {
 
     /// Supervisor package identifier (ex: chef/hab-sup) or filepath to a Habitat artifact
     /// (ex: /home/chef-hab-sup-2.0.134-20250610093735-x86_64-linux.hart) to install
-    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+    #[cfg(not(all(any(target_os = "macos", target_os = "windows"),
+                  target_arch = "aarch64")))]
     #[arg(name = "HAB_SUP_PKG",
           long = "sup-pkg",
           value_name = "HAB_SUP_PKG",
@@ -93,7 +96,8 @@ pub(crate) struct Cli {
     pub(crate) no_hab_bin: bool,
 
     /// Exclude supervisor and launcher packages from the exported tar
-    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+    #[cfg(not(all(any(target_os = "macos", target_os = "windows"),
+                  target_arch = "aarch64")))]
     #[arg(name = "NO_HAB_SUP", long = "no-hab-sup")]
     pub(crate) no_hab_sup: bool,
 

@@ -69,28 +69,6 @@ jobs:
         run: .expeditor/scripts/verify/build_package.ps1 components/studio
         shell: powershell
 
-  build-launcher:
-    name: "[build] :windows: ARM64 launcher"
-    runs-on: windows-11-arm
-    env:
-      HAB_INTERNAL_BLDR_CHANNEL: "dev"
-    steps:
-      - uses: actions/checkout@v7
-      - name: Build components/launcher
-        run: .expeditor/scripts/verify/build_package.ps1 components/launcher
-        shell: powershell
-
-  build-sup:
-    name: "[build] :windows: ARM64 sup"
-    runs-on: windows-11-arm
-    env:
-      HAB_INTERNAL_BLDR_CHANNEL: "dev"
-    steps:
-      - uses: actions/checkout@v7
-      - name: Build components/sup
-        run: .expeditor/scripts/verify/build_package.ps1 components/sup
-        shell: powershell
-
   build-pkg-export-tar:
     name: "[build] :windows: ARM64 pkg-export-tar"
     runs-on: windows-11-arm

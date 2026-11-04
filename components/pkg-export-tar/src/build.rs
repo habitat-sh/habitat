@@ -79,16 +79,20 @@ impl<'a> BuildSpec<'a> {
     pub(crate) fn new_from_cli(cli: &'a crate::cli::Cli) -> Self {
         BuildSpec { hab: cli.hab_pkg.as_str(),
 
-                    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+                    #[cfg(all(any(target_os = "macos", target_os = "windows"),
+                              target_arch = "aarch64"))]
                     hab_launcher:
                         "",
-                    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+                    #[cfg(not(all(any(target_os = "macos", target_os = "windows"),
+                                  target_arch = "aarch64")))]
                     hab_launcher:
                         cli.hab_launcher_pkg.as_str(),
 
-                    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+                    #[cfg(all(any(target_os = "macos", target_os = "windows"),
+                              target_arch = "aarch64"))]
                     hab_sup:                                                                "",
-                    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+                    #[cfg(not(all(any(target_os = "macos", target_os = "windows"),
+                                  target_arch = "aarch64")))]
                     hab_sup:
                         cli.hab_sup_pkg.as_str(),
 
@@ -106,9 +110,11 @@ impl<'a> BuildSpec<'a> {
 
                     no_hab_bin: cli.no_hab_bin,
 
-                    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+                    #[cfg(all(any(target_os = "macos", target_os = "windows"),
+                              target_arch = "aarch64"))]
                     no_hab_sup:                                                                true,
-                    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+                    #[cfg(not(all(any(target_os = "macos", target_os = "windows"),
+                                  target_arch = "aarch64")))]
                     no_hab_sup:
                         cli.no_hab_sup, }
     }

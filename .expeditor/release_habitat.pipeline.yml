@@ -284,16 +284,6 @@ steps:
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh launcher
 
-  - label: "[:windows: ARM64 build aarch64-windows launcher]"
-    command:
-      - bash .expeditor/scripts/release_habitat/dispatch_aarch64_windows_build.sh launcher
-    timeout_in_minutes: 70
-    expeditor:
-      secrets:
-        GH_TOKEN:
-          path: account/static/github/chef-ci
-          field: habitat-chefci-enterprise-packages
-
   - label: "[:windows: build launcher]"
     command:
       - powershell .expeditor/scripts/release_habitat/build_component.ps1 launcher
@@ -322,16 +312,6 @@ steps:
       BUILD_PKG_TARGET: "aarch64-linux"
     command:
       - sudo -E .expeditor/scripts/release_habitat/build_component.sh sup
-
-  - label: "[:windows: ARM64 build aarch64-windows hab-sup]"
-    command:
-      - bash .expeditor/scripts/release_habitat/dispatch_aarch64_windows_build.sh sup
-    timeout_in_minutes: 70
-    expeditor:
-      secrets:
-        GH_TOKEN:
-          path: account/static/github/chef-ci
-          field: habitat-chefci-enterprise-packages
 
   - label: "[:windows: build hab-sup]"
     command:
