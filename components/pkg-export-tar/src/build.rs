@@ -81,20 +81,17 @@ impl<'a> BuildSpec<'a> {
 
                     #[cfg(all(any(target_os = "macos", target_os = "windows"),
                               target_arch = "aarch64"))]
-                    hab_launcher:
-                        "",
+                    hab_launcher: "",
                     #[cfg(not(all(any(target_os = "macos", target_os = "windows"),
                                   target_arch = "aarch64")))]
-                    hab_launcher:
-                        cli.hab_launcher_pkg.as_str(),
+                    hab_launcher: cli.hab_launcher_pkg.as_str(),
 
                     #[cfg(all(any(target_os = "macos", target_os = "windows"),
                               target_arch = "aarch64"))]
-                    hab_sup:                                                                "",
+                    hab_sup: "",
                     #[cfg(not(all(any(target_os = "macos", target_os = "windows"),
                                   target_arch = "aarch64")))]
-                    hab_sup:
-                        cli.hab_sup_pkg.as_str(),
+                    hab_sup: cli.hab_sup_pkg.as_str(),
 
                     url: cli.bldr_url.as_str(),
 
@@ -112,11 +109,10 @@ impl<'a> BuildSpec<'a> {
 
                     #[cfg(all(any(target_os = "macos", target_os = "windows"),
                               target_arch = "aarch64"))]
-                    no_hab_sup:                                                                true,
+                    no_hab_sup: true,
                     #[cfg(not(all(any(target_os = "macos", target_os = "windows"),
                                   target_arch = "aarch64")))]
-                    no_hab_sup:
-                        cli.no_hab_sup, }
+                    no_hab_sup: cli.no_hab_sup, }
     }
 
     /// Creates a `BuildRoot` for the given specification.

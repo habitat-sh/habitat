@@ -6,7 +6,7 @@ use habitat_common::{cli::clap_validators::{HabPackageInstallSourceValueParser,
                               DEFAULT_HAB_PKG_IDENT}};
 
 #[cfg(not(all(any(target_os = "macos", target_os = "windows"),
-              target_arch = "aarch64")))]
+                  target_arch = "aarch64")))]
 use habitat_common::consts::{DEFAULT_HAB_LAUNCHER_PKG_IDENT,
                              DEFAULT_HAB_SUP_PKG_IDENT};
 #[derive(Debug, Clone, Parser)]
