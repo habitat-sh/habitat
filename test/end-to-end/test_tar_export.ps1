@@ -36,7 +36,7 @@ BeforeAll $setup
 
 Describe "hab pkg export tar core/nginx" {
     $setup = {
-        hab pkg export tar core/nginx --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+        hab pkg export tar core/nginx --channel unstable --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
         $LASTEXITCODE | Should -Be 0
         Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
         Set-Variable -Name version -Value (((((hab --version) -split " ")[1]) -split "/")[0]) -Scope Local
@@ -74,7 +74,7 @@ Describe "hab pkg export tar core/nginx" {
 
 Describe "hab pkg export tar core/nginx --no-hab-bin" {
     $setup = {
-        hab pkg export tar core/nginx --no-hab-bin --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+        hab pkg export tar core/nginx --no-hab-bin --channel unstable --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
         $LASTEXITCODE | Should -Be 0
         Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
     }
@@ -114,12 +114,12 @@ Context "hab pkg export tar core/nginx --no-hab-sup" {
     # --no-hab-sup is unavailable on ARM64 macOS and Windows (supervisor is always excluded)
     if ($ExcludesSupervisor) {
         It "Rejects --no-hab-sup flag with a non-zero exit code" {
-            hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+            hab pkg export tar core/nginx --no-hab-sup --channel unstable --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
             $LASTEXITCODE | Should -Not -Be 0
         }
     } else {
         $setup = {
-            hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+            hab pkg export tar core/nginx --no-hab-sup --channel unstable --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
             $LASTEXITCODE | Should -Be 0
             Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
         }
