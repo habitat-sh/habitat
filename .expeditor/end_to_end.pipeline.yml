@@ -1570,6 +1570,20 @@ steps:
       automatic:
         limit: 3 # Addressing current Anka system timeouts due to oversubscription
 
+  - label: "[:windows: ARM64 test_tar_export]"
+    command:
+      - bash .expeditor/scripts/end_to_end/dispatch_aarch64_windows_e2e.sh test_tar_export
+    artifact_paths:
+      - "e2e-aarch64-windows/**/*"
+    env:
+      BUILD_PKG_TARGET: aarch64-windows
+    timeout_in_minutes: 70
+    expeditor:
+      secrets:
+        GH_TOKEN:
+          path: account/static/github/chef-ci
+          field: habitat-chefci-enterprise-packages
+
   - label: "[:mac: test_tar_export]"
     commands:
       - ". vault-util-init"

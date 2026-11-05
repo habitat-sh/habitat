@@ -26,7 +26,8 @@ pub(crate) struct PkgExportCommandOptions {
                            {usage}\n\n{all-args}\n")]
 pub(crate) enum PkgExportCommand {
     /// Container Exporter
-    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    #[cfg(any(target_os = "linux",
+              all(target_os = "windows", target_arch = "x86_64")))]
     #[command(disable_help_flag = true)]
     Container(PkgExportCommandOptions),
 
@@ -41,7 +42,8 @@ pub(crate) enum PkgExportCommand {
 impl PkgExportCommand {
     pub(super) async fn do_export(&self, ui: &mut UI) -> HabResult<()> {
         match self {
-            #[cfg(any(target_os = "linux", target_os = "windows"))]
+            #[cfg(any(target_os = "linux",
+                      all(target_os = "windows", target_arch = "x86_64")))]
             PkgExportCommand::Container(opts) => {
                 export::container::start(ui,
                                          &opts.args

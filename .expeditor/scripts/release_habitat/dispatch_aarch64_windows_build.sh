@@ -4,7 +4,7 @@ set -euo pipefail
 
 component="${1:?component argument required}"
 case "${component}" in
-    hab | plan-build-ps1 | studio) ;;
+    hab | plan-build-ps1 | studio | pkg-export-tar) ;;
     *)
         echo "Unsupported aarch64-windows release component: ${component}" >&2
         exit 2

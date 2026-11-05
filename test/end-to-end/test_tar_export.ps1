@@ -1,5 +1,6 @@
 # Initialize shared setup values in the current scope for sibling Pester blocks.
 $IsDarwinArm64 = $IsLinux -eq $false -and $IsWindows -eq $false -and ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64)
+$ExcludesSupervisor = $IsDarwinArm64 -or ($IsWindows -and ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64))
 
 $setup = {
     Remove-Item *.tar.gz
@@ -14,12 +15,29 @@ $setup = {
             tar --extract --to-stdout --file $tar $ident
         }
     }
+    function Assert-NativePackageTarget($tar) {
+        $expectedTarget = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) {
+            "aarch64-windows"
+        } else {
+            "x86_64-windows"
+        }
+        $targetFiles = @(tar --list --file $tar | Where-Object { $_ -like "$HabRoot/pkgs/**/TARGET" })
+        $LASTEXITCODE | Should -Be 0
+        $targetFiles.Count | Should -BeGreaterThan 0
+        foreach ($targetFile in $targetFiles) {
+            $target = tar --extract --to-stdout --file $tar $targetFile
+            $LASTEXITCODE | Should -Be 0
+            $target.Trim() | Should -Be $expectedTarget
+        }
+    }
+
 }
 BeforeAll $setup
 
 Describe "hab pkg export tar core/nginx" {
     $setup = {
-        hab pkg export tar core/nginx --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+        hab pkg export tar core/nginx --channel unstable --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+        $LASTEXITCODE | Should -Be 0
         Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
         Set-Variable -Name version -Value (((((hab --version) -split " ")[1]) -split "/")[0]) -Scope Local
     }
@@ -30,11 +48,14 @@ Describe "hab pkg export tar core/nginx" {
     It "Includes nginx" {
         Get-Ident core/nginx $tar | Should -Not -Be $null
     }
+    It "Includes packages for the native Windows architecture" -Skip:(-not $IsWindows) {
+        Assert-NativePackageTarget $tar
+    }
     It "Includes hab" {
         Get-Ident chef/hab $tar | Should -BeLike "chef/hab/$version/*"
     }
-    # On aarch64-darwin, supervisor and launcher are never included
-    if ($IsDarwinArm64) {
+    # On ARM64 macOS and Windows, supervisor and launcher are never included
+    if ($ExcludesSupervisor) {
         It "Does not include supervisor" {
             Get-Ident chef/hab-sup $tar | Should -Be $null
         }
@@ -53,7 +74,8 @@ Describe "hab pkg export tar core/nginx" {
 
 Describe "hab pkg export tar core/nginx --no-hab-bin" {
     $setup = {
-        hab pkg export tar core/nginx --no-hab-bin --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+        hab pkg export tar core/nginx --no-hab-bin --channel unstable --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+        $LASTEXITCODE | Should -Be 0
         Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
     }
     BeforeAll $setup
@@ -63,12 +85,15 @@ Describe "hab pkg export tar core/nginx --no-hab-bin" {
     It "Includes nginx" {
         Get-Ident core/nginx $tar | Should -Not -Be $null
     }
+    It "Includes packages for the native Windows architecture" -Skip:(-not $IsWindows) {
+        Assert-NativePackageTarget $tar
+    }
     It "Does not include hab binary directory" {
         $habBinDir = tar --list --file $tar | Where-Object { $_ -like "$HabRoot/bin/*" }
         $habBinDir | Should -Be $null
     }
-    # On aarch64-darwin, supervisor and launcher are never included
-    if ($IsDarwinArm64) {
+    # On ARM64 macOS and Windows, supervisor and launcher are never included
+    if ($ExcludesSupervisor) {
         It "Does not include supervisor" {
             Get-Ident chef/hab-sup $tar | Should -Be $null
         }
@@ -86,15 +111,16 @@ Describe "hab pkg export tar core/nginx --no-hab-bin" {
 }
 
 Context "hab pkg export tar core/nginx --no-hab-sup" {
-    # --no-hab-sup is not available on aarch64-darwin (supervisor is always excluded there)
-    if ($IsDarwinArm64) {
+    # --no-hab-sup is unavailable on ARM64 macOS and Windows (supervisor is always excluded)
+    if ($ExcludesSupervisor) {
         It "Rejects --no-hab-sup flag with a non-zero exit code" {
-            hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+            hab pkg export tar core/nginx --no-hab-sup --channel unstable --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
             $LASTEXITCODE | Should -Not -Be 0
         }
     } else {
         $setup = {
-            hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+            hab pkg export tar core/nginx --no-hab-sup --channel unstable --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+            $LASTEXITCODE | Should -Be 0
             Set-Variable -Name tar -Value (Get-Item core-nginx-*.tar.gz) -Scope Local
         }
         BeforeAll $setup
@@ -103,6 +129,9 @@ Context "hab pkg export tar core/nginx --no-hab-sup" {
         }
         It "Includes nginx" {
             Get-Ident core/nginx $tar | Should -Not -Be $null
+        }
+        It "Includes packages for the native Windows architecture" -Skip:(-not $IsWindows) {
+            Assert-NativePackageTarget $tar
         }
         It "Includes hab binary directory" {
             $habBinDir = tar --list --file $tar | Where-Object { $_ -like "$HabRoot/bin/*" }

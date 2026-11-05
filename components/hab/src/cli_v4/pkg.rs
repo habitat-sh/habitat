@@ -28,7 +28,8 @@ mod exec;
 #[cfg(any(all(target_os = "macos", target_arch = "aarch64"),
           all(target_os = "linux",
               any(target_arch = "x86_64", target_arch = "aarch64")),
-          all(target_os = "windows", target_arch = "x86_64")))]
+          all(target_os = "windows",
+              any(target_arch = "x86_64", target_arch = "aarch64"))))]
 mod export;
 
 mod hash;
@@ -97,7 +98,8 @@ pub(super) enum PkgCommand {
     #[cfg(any(all(target_os = "macos", target_arch = "aarch64"),
               all(target_os = "linux",
                   any(target_arch = "x86_64", target_arch = "aarch64")),
-              all(target_os = "windows", target_arch = "x86_64")))]
+              all(target_os = "windows",
+                  any(target_arch = "x86_64", target_arch = "aarch64"))))]
     #[clap(subcommand)]
     /// Exports the package to the specified format
     Export(export::PkgExportCommand),
@@ -166,7 +168,8 @@ impl PkgCommand {
             #[cfg(any(all(target_os = "macos", target_arch = "aarch64"),
                       all(target_os = "linux",
                           any(target_arch = "x86_64", target_arch = "aarch64")),
-                      all(target_os = "windows", target_arch = "x86_64")))]
+                      all(target_os = "windows",
+                          any(target_arch = "x86_64", target_arch = "aarch64"))))]
             Self::Export(cmd) => cmd.do_export(ui).await,
 
             Self::Hash(opts) => opts.do_hash(),
