@@ -5,7 +5,6 @@ $ExcludesSupervisor = $IsDarwinArm64 -or ($IsWindows -and ([System.Runtime.Inter
 $setup = {
     Remove-Item *.tar.gz
     $IsDarwinArm64 = $IsLinux -eq $false -and $IsWindows -eq $false -and ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64)
-    $ExcludesSupervisor = $IsDarwinArm64 -or ($IsWindows -and ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64))
 
     # On aarch64-darwin, packages live under opt/hab; everywhere else under hab
     $HabRoot = if ($IsDarwinArm64) { "opt/hab" } else { "hab" }
@@ -16,7 +15,7 @@ $setup = {
             tar --extract --to-stdout --file $tar $ident
         }
     }
-    function Assert-NativePackageTargets($tar) {
+    function Assert-NativePackageTarget($tar) {
         $expectedTarget = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) {
             "aarch64-windows"
         } else {
@@ -50,7 +49,7 @@ Describe "hab pkg export tar core/nginx" {
         Get-Ident core/nginx $tar | Should -Not -Be $null
     }
     It "Includes packages for the native Windows architecture" -Skip:(-not $IsWindows) {
-        Assert-NativePackageTargets $tar
+        Assert-NativePackageTarget $tar
     }
     It "Includes hab" {
         Get-Ident chef/hab $tar | Should -BeLike "chef/hab/$version/*"
@@ -87,7 +86,7 @@ Describe "hab pkg export tar core/nginx --no-hab-bin" {
         Get-Ident core/nginx $tar | Should -Not -Be $null
     }
     It "Includes packages for the native Windows architecture" -Skip:(-not $IsWindows) {
-        Assert-NativePackageTargets $tar
+        Assert-NativePackageTarget $tar
     }
     It "Does not include hab binary directory" {
         $habBinDir = tar --list --file $tar | Where-Object { $_ -like "$HabRoot/bin/*" }
@@ -132,7 +131,7 @@ Context "hab pkg export tar core/nginx --no-hab-sup" {
             Get-Ident core/nginx $tar | Should -Not -Be $null
         }
         It "Includes packages for the native Windows architecture" -Skip:(-not $IsWindows) {
-            Assert-NativePackageTargets $tar
+            Assert-NativePackageTarget $tar
         }
         It "Includes hab binary directory" {
             $habBinDir = tar --list --file $tar | Where-Object { $_ -like "$HabRoot/bin/*" }
