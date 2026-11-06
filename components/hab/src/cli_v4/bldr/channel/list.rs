@@ -17,6 +17,10 @@ pub(crate) struct ListOpts {
     #[arg(name = "SANDBOX", short = 's', long = "sandbox")]
     sandbox: bool,
 
+    /// Only list channels whose names contain this string (case-sensitive)
+    #[arg(long = "filter", value_name = "STRING", value_parser = non_blank)]
+    filter: Option<String>,
+
     /// Specify an alternate Builder endpoint
     #[arg(short = 'u',
           long = "url",
@@ -30,9 +34,17 @@ pub(crate) struct ListOpts {
     origin: Option<Origin>,
 }
 
+fn non_blank(s: &str) -> Result<String, String> {
+    if s.trim().is_empty() {
+        Err("filter value must not be empty or whitespace-only".to_string())
+    } else {
+        Ok(s.to_string())
+    }
+}
+
 impl ListOpts {
     pub(crate) async fn do_list(&self, ui: &mut UI) -> HabResult<()> {
         let origin = origin_param_or_env(&self.origin)?;
-        start(ui, &self.url, &origin, self.sandbox).await
+        start(ui, &self.url, &origin, self.sandbox, self.filter.as_deref()).await
     }
 }
