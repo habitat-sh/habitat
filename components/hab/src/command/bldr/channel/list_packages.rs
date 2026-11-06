@@ -21,7 +21,7 @@ pub async fn start(ui: &mut UI,
         return Err(Error::ArgumentError("--limit must be greater than zero".into()));
     }
     let client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
-    if !json {
+    if !json && ui.is_out_a_terminal() {
         ui.status(Status::Determining,
                   format!("packages in {}/{}.", origin, channel))?;
     }
