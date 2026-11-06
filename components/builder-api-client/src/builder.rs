@@ -1287,6 +1287,46 @@ impl BuilderAPIClient {
             .await
     }
 
+    /// List packages promoted to a channel, fetching every page up to `limit`.
+    ///
+    /// # Failures
+    /// * Remote Builder is unavailable or rejects the request
+    /// * Builder returns an invalid or incomplete page
+    pub async fn list_channel_packages(&self,
+                                       origin: &Origin,
+                                       channel: &ChannelIdent,
+                                       limit: usize,
+                                       token: Option<&str>)
+                                       -> Result<Vec<PackageIdent>> {
+        let path = format!("depot/channels/{}/{}/pkgs", origin, channel);
+        let mut packages = Vec::new();
+        if limit == 0 {
+            return Ok(packages);
+        }
+
+        loop {
+            let offset = packages.len();
+            let req = self.0.get_with_custom_url(&path, |url| {
+                                url.query_pairs_mut()
+                                   .append_pair("range", &offset.to_string());
+                            });
+            let resp = self.maybe_add_authz(req, token).send().await?;
+            let resp = response::ok_if(resp, &[StatusCode::OK, StatusCode::PARTIAL_CONTENT]).await?;
+            let mut page: PackageResults<PackageIdent> = resp.json().await?;
+            if page.total_count < 0 || page.data.is_empty() && offset < page.total_count as usize {
+                return Err(Error::InvalidPagination(format!("Builder returned an \
+                                                             incomplete package \
+                                                             page for {}/{}",
+                                                            origin, channel)));
+            }
+            packages.append(&mut page.data);
+            if packages.len() >= limit || packages.len() >= page.total_count as usize {
+                packages.truncate(limit);
+                return Ok(packages);
+            }
+        }
+    }
+
     /// Return a list of channels for a given origin
     ///
     /// # Failures
@@ -1463,6 +1503,134 @@ mod tests {
     use super::*;
     use futures::future::{self,
                           Ready};
+
+    #[tokio::test]
+    async fn list_channel_packages_fetches_all_pages() {
+        use tokio::{io::{AsyncReadExt,
+                         AsyncWriteExt},
+                    net::TcpListener};
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            for (offset, status, data) in [(0,
+                                            "206 Partial Content",
+                                            r#"[{"origin":"core","name":"one","version":"1","release":"1"},{"origin":"core","name":"two","version":"1","release":"1"}]"#),
+                                           (2,
+                                            "200 OK",
+                                            r#"[{"origin":"core","name":"three","version":"1","release":"1"}]"#)]
+            {
+                let (mut stream, _) = listener.accept().await.unwrap();
+                let mut request = [0u8; 4096];
+                let length = stream.read(&mut request).await.unwrap();
+                let request = String::from_utf8_lossy(&request[..length]);
+                assert!(request.contains(&format!("/v1/depot/channels/core/stable/pkgs?\
+                                                   range={offset}")),
+                        "{request}");
+                assert!(request.to_ascii_lowercase()
+                               .contains("authorization: bearer secret"));
+                let body = format!(r#"{{"range_start":{offset},"range_end":{},"total_count":3,"data":{data}}}"#,
+                                   offset + if offset == 0 { 1 } else { 0 });
+                let response = format!("HTTP/1.1 {status}\r\nContent-Type: \
+                                        application/json\r\nContent-Length: {}\r\nConnection: \
+                                        close\r\n\r\n{body}",
+                                       body.len());
+                stream.write_all(response.as_bytes()).await.unwrap();
+            }
+        });
+
+        let client = BuilderAPIClient::new(format!("http://{address}"), "test", "1", None).unwrap();
+        let origin: Origin = "core".parse().unwrap();
+        let channel: ChannelIdent = "stable".parse().unwrap();
+        let packages = client.list_channel_packages(&origin, &channel, usize::MAX, Some("secret"))
+                             .await
+                             .unwrap();
+        assert_eq!(packages.iter().map(ToString::to_string).collect::<Vec<_>>(),
+                   ["core/one/1/1", "core/two/1/1", "core/three/1/1"]);
+        server.await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn list_channel_packages_handles_empty_channel() {
+        use tokio::{io::{AsyncReadExt,
+                         AsyncWriteExt},
+                    net::TcpListener};
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            let (mut stream, _) = listener.accept().await.unwrap();
+            let mut request = [0u8; 4096];
+            let length = stream.read(&mut request).await.unwrap();
+            assert!(String::from_utf8_lossy(&request[..length]).contains("?range=0"));
+            let body = r#"{"range_start":0,"range_end":0,"total_count":0,"data":[]}"#;
+            let response = format!("HTTP/1.1 200 OK\r\nContent-Type: \
+                                    application/json\r\nContent-Length: {}\r\nConnection: \
+                                    close\r\n\r\n{body}",
+                                   body.len());
+            stream.write_all(response.as_bytes()).await.unwrap();
+        });
+
+        let client = BuilderAPIClient::new(format!("http://{address}"), "test", "1", None).unwrap();
+        let origin: Origin = "core".parse().unwrap();
+        let channel: ChannelIdent = "empty".parse().unwrap();
+        assert!(client.list_channel_packages(&origin, &channel, usize::MAX, None)
+                      .await
+                      .unwrap()
+                      .is_empty());
+        server.await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn list_channel_packages_reports_builder_errors() {
+        use tokio::{io::{AsyncReadExt,
+                         AsyncWriteExt},
+                    net::TcpListener};
+
+        for status in ["401 Unauthorized",
+                       "404 Not Found",
+                       "500 Internal Server Error"]
+        {
+            let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let address = listener.local_addr().unwrap();
+            let server = tokio::spawn(async move {
+                let (mut stream, _) = listener.accept().await.unwrap();
+                let mut request = [0u8; 4096];
+                let _ = stream.read(&mut request).await.unwrap();
+                let response =
+                    format!("HTTP/1.1 {status}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+                stream.write_all(response.as_bytes()).await.unwrap();
+            });
+            let client =
+                BuilderAPIClient::new(format!("http://{address}"), "test", "1", None).unwrap();
+            let origin: Origin = "core".parse().unwrap();
+            let channel: ChannelIdent = "stable".parse().unwrap();
+            let error = client.list_channel_packages(&origin, &channel, usize::MAX, None)
+                              .await
+                              .unwrap_err();
+            assert!(error.to_string().contains(&status[..3]), "{error}");
+            server.await.unwrap();
+        }
+    }
+
+    #[tokio::test]
+    async fn list_channel_packages_reports_network_error() {
+        use tokio::net::TcpListener;
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            let (stream, _) = listener.accept().await.unwrap();
+            drop(stream);
+        });
+        let client = BuilderAPIClient::new(format!("http://{address}"), "test", "1", None).unwrap();
+        let origin: Origin = "core".parse().unwrap();
+        let channel: ChannelIdent = "stable".parse().unwrap();
+        assert!(client.list_channel_packages(&origin, &channel, usize::MAX, None)
+                      .await
+                      .is_err());
+        server.await.unwrap();
+    }
 
     #[test]
     fn json_round_trip_u64_fields() {
