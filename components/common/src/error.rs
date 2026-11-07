@@ -216,7 +216,7 @@ impl fmt::Display for Error {
             }
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
-            Error::TemplateError(ref err) => format!("{:?}", err),
+            Error::TemplateError(ref err) => err.to_string(),
             Error::TemplateRenderError(ref err) => err.to_string(),
             Error::TomlMergeError(ref e) => format!("Failed to merge TOML: {}", e),
             Error::TomlParser(ref err) => format!("Failed to parse TOML: {}", err),
@@ -276,6 +276,25 @@ impl From<toml::ser::Error> for Error {
 
 impl From<net::AddrParseError> for Error {
     fn from(err: net::AddrParseError) -> Self { Error::NetParseError(err) }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Error;
+
+    #[test]
+    fn template_errors_do_not_display_debug_output() {
+        let mut handlebars = handlebars::Handlebars::new();
+        let error = handlebars.register_template_string("bad-template", "aaa{{ref}aaa")
+                              .expect_err("template syntax should be invalid");
+
+        let message = Error::from(error).to_string();
+
+        assert!(!message.contains("TemplateError {"),
+                "message should not expose raw debug output: {message}");
+        assert!(message.contains("bad-template"),
+                "message should include the template name: {message}");
+    }
 }
 
 impl From<native_tls::Error> for Error {
