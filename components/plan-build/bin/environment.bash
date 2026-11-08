@@ -20,6 +20,10 @@ declare -A -g __well_known_aggregate_env_vars=(
     # Shell
     [PATH]=":"
 
+    # Build tools
+    [ACLOCAL_PATH]=":"
+    [CMAKE_PREFIX_PATH]=":"
+
     # Go
     [GOPATH]=":"
 
