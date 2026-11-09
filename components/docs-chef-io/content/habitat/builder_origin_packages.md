@@ -71,6 +71,18 @@ $ hab pkg promote -z <TOKEN> origin/package/version/release stable
 
 For more information on how to use channels, see [Continuous Deployment Using Channels]({{< relref "pkg_promote" >}}).
 
+### List Packages in a Channel
+
+Use `hab bldr channel list-packages` to see every package promoted to a channel:
+
+```bash
+hab bldr channel list-packages core stable
+```
+
+The command prints one fully qualified `origin/name/version/release` identifier per line and retrieves all pages from Builder. Use `--limit N` to show at most N packages, or `--json` to print a JSON array of identifiers. An empty channel prints a message; with `--json`, it prints `[]`.
+
+For a private origin, pass `--auth <AUTH_TOKEN>` (or `-z`), set `HAB_AUTH_TOKEN`, or configure an auth token in `cli.toml`. Use `--url <BLDR_URL>` to select a different Builder endpoint; `HAB_BLDR_URL` and `cli.toml` are also supported.
+
 ### Running Packages from Builder
 
 > **Note:** When running private packages from Builder, it's necessary to add your [Chef Habitat access token]({{< relref "builder_profile#create-a-personal-access-token" >}}) to the machine where you intend to deploy the package, via `export HAB_AUTH_TOKEN=<token>`.

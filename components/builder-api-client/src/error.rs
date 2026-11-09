@@ -70,6 +70,7 @@ pub enum Error {
     KeyReadError(PathBuf, io::Error),
     MissingHeader(String),
     InvalidHeader(String),
+    InvalidPagination(String),
     NoFilePart,
     PackageReadError(PathBuf, io::Error),
     ParseIntError(num::ParseIntError),
@@ -103,6 +104,7 @@ impl fmt::Display for Error {
             }
             Error::MissingHeader(ref s) => format!("Response is missing a required header: {}", s),
             Error::InvalidHeader(ref s) => format!("Response header is invalid: {}", s),
+            Error::InvalidPagination(ref s) => s.clone(),
             Error::NoFilePart => "An invalid path was passed - we needed a filename, and this \
                                   path does not have one"
                                                          .to_string(),
