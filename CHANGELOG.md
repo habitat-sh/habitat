@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.146 -->
-## [2.1.146](https://github.com/habitat-sh/habitat/tree/2.1.146) (2026-11-09)
+<!-- latest_release 2.1.147 -->
+## [2.1.147](https://github.com/habitat-sh/habitat/tree/2.1.147) (2026-11-09)
 
 #### Merged Pull Requests
-- Bump github/codeql-action from 4.39.1 to 4.39.3 [#10646](https://github.com/habitat-sh/habitat/pull/10646) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump actix-web from 4.18.1 to 4.18.2 [#10647](https://github.com/habitat-sh/habitat/pull/10647) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump actix-web from 4.18.1 to 4.18.2 [#10647](https://github.com/habitat-sh/habitat/pull/10647) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.147 -->
+- Bump toml from 1.1.8+spec-1.1.0 to 1.2.0+spec-1.1.0 [#10649](https://github.com/habitat-sh/habitat/pull/10649) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.147 -->
 - Bump github/codeql-action from 4.39.1 to 4.39.3 [#10646](https://github.com/habitat-sh/habitat/pull/10646) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.146 -->
 - Bump cc from 1.10.0 to 1.11.0 [#10643](https://github.com/habitat-sh/habitat/pull/10643) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.145 -->
 - Added pkg export tar for aarch64 windows [#10642](https://github.com/habitat-sh/habitat/pull/10642) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.1.144 -->
