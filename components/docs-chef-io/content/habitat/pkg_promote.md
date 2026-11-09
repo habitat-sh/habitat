@@ -57,6 +57,16 @@ To start a service with an update strategy and pointing to a channel, specify th
 
 While that service is running, update your package, rebuild it, and then promote it to the same channel that the previous release of that service is currently running in (e.g. `test`). Those running instances should now update according to their update strategy.
 
+### Listing and Filtering Channels
+
+Use `hab bldr channel list` to list the channels of an origin, one name per line. Add `--sandbox` to include sandbox channels. Use `--filter <STRING>` to list only channels whose names contain the string. The match is case-sensitive, and an empty or whitespace-only value is rejected.
+
+```bash
+$ hab bldr channel list <origin> --filter test
+```
+
+If no channels match, the command prints `No channels found matching '<STRING>'` and exits with status 0.
+
 ### Demoting a Package from a Channel
 
 If you need to un-associate a channel from a specific package release, you can do so using the `hab pkg demote` subcommand. Packages can be demoted from all channels except `unstable`.

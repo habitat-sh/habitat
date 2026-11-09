@@ -1212,9 +1212,9 @@ steps:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_AUTH_TOKEN
 
-  - label: "[:linux: test_hab_bldr_channel_list_sandbox]"
+  - label: "[:linux: test_hab_bldr_channel_list]"
     command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_hab_bldr_channel_list_sandbox_optn
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_hab_bldr_channel_list
     artifact_paths:
       - "*.log"
     expeditor:
