@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.152 -->
-## [2.1.152](https://github.com/habitat-sh/habitat/tree/2.1.152) (2026-11-10)
+<!-- latest_release 2.1.153 -->
+## [2.1.153](https://github.com/habitat-sh/habitat/tree/2.1.153) (2026-11-10)
 
 #### Merged Pull Requests
-- fix hab_bldr_list e2e tests [#10654](https://github.com/habitat-sh/habitat/pull/10654) ([mwrock](https://github.com/mwrock))
+- Bump flate2 from 1.1.10 to 1.1.11 [#10653](https://github.com/habitat-sh/habitat/pull/10653) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump flate2 from 1.1.10 to 1.1.11 [#10653](https://github.com/habitat-sh/habitat/pull/10653) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.153 -->
 - fix hab_bldr_list e2e tests [#10654](https://github.com/habitat-sh/habitat/pull/10654) ([mwrock](https://github.com/mwrock)) <!-- 2.1.152 -->
 - Bump toml from 1.2.0+spec-1.1.0 to 1.2.1+spec-1.1.0 [#10650](https://github.com/habitat-sh/habitat/pull/10650) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.151 -->
 - Bump libsodium-rs from 0.3.0 to 0.3.1 [#10651](https://github.com/habitat-sh/habitat/pull/10651) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.150 -->
