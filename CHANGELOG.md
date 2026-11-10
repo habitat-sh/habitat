@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.149 -->
-## [2.1.149](https://github.com/habitat-sh/habitat/tree/2.1.149) (2026-11-09)
+<!-- latest_release 2.1.150 -->
+## [2.1.150](https://github.com/habitat-sh/habitat/tree/2.1.150) (2026-11-10)
 
 #### Merged Pull Requests
-- Added filter argument to hab bldr channel list [#10645](https://github.com/habitat-sh/habitat/pull/10645) ([sougata-progress](https://github.com/sougata-progress))
+- Bump libsodium-rs from 0.3.0 to 0.3.1 [#10651](https://github.com/habitat-sh/habitat/pull/10651) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump libsodium-rs from 0.3.0 to 0.3.1 [#10651](https://github.com/habitat-sh/habitat/pull/10651) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.150 -->
 - Added filter argument to hab bldr channel list [#10645](https://github.com/habitat-sh/habitat/pull/10645) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.1.149 -->
 - Added hab bldr channel list-packages support [#10644](https://github.com/habitat-sh/habitat/pull/10644) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.1.148 -->
 - Bump actix-web from 4.18.1 to 4.18.2 [#10647](https://github.com/habitat-sh/habitat/pull/10647) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.147 -->
