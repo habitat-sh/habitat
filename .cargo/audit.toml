@@ -10,17 +10,8 @@
 # RUSTSEC-2024-0449: unsafe-libyaml is unmaintained, with no patched versions.
 # It is pulled in by serde_yaml, used directly and through log4rs.
 # Ignore until these dependencies migrate away from unsafe-libyaml.
-# RUSTSEC-2026-0367, -0368, -0369, -0429: zip 8.6.0 ZipArchive::extract issues
-# (SUID/SGID preservation, symlink escapes, symlink-based DoS). Fixed in
-# zip >= 9.0.0. zip is only pulled in transitively via libsodium-sys-stable
-# (build-time use), and habitat does not extract untrusted zip archives with it.
-# Ignore until libsodium-sys-stable moves to zip 9.x.
 ignore = [
     "RUSTSEC-2024-0449",
-    "RUSTSEC-2026-0367",
-    "RUSTSEC-2026-0368",
-    "RUSTSEC-2026-0369",
-    "RUSTSEC-2026-0429",
 ]
 
 # warn for categories of informational advisories
