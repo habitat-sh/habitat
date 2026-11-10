@@ -1,10 +1,19 @@
 BeforeAll {
     Set-Variable -Name HAB_ORIGIN -Value ("core") -Scope Local
+
+    # hab prints a "Determining channels for <origin>." status line, styled with
+    # ANSI escapes, that can be captured alongside the channel names, so drop it.
+    function Get-ChannelOutput {
+        param([string[]]$ListArgs)
+        @(hab bldr channel list @ListArgs 2>$null) |
+            ForEach-Object { $_ -replace "\x1b\[[0-9;]*m", "" } |
+            Where-Object { $_ -notmatch "Determining channels for" }
+    }
 }
 
 Describe "bldr channel list" {
     It "Lists the non-sandbox channels for the origin" {
-        $channels = @(hab bldr channel list $HAB_ORIGIN)
+        $channels = @(Get-ChannelOutput -ListArgs $HAB_ORIGIN)
         $LASTEXITCODE | Should -Be 0
         $channels | Should -Contain "stable"
         $channels | Where-Object { $_.StartsWith("bldr-") } | Should -BeNullOrEmpty
@@ -26,21 +35,21 @@ Describe "bldr channel list --sandbox" {
 
 Describe "bldr channel list --filter" {
     It "Only lists channels whose names contain the filter string" {
-        $channels = @(hab bldr channel list --filter "stable" $HAB_ORIGIN)
+        $channels = @(Get-ChannelOutput -ListArgs "--filter", "stable", $HAB_ORIGIN)
         $LASTEXITCODE | Should -Be 0
         $channels | Should -Contain "stable"
         $channels | Where-Object { -not $_.Contains("stable") } | Should -BeNullOrEmpty
     }
 
     It "Applies the filter to sandbox channels" {
-        $channels = @(hab bldr channel list --sandbox --filter "bldr-" $HAB_ORIGIN)
+        $channels = @(Get-ChannelOutput -ListArgs "--sandbox", "--filter", "bldr-", $HAB_ORIGIN)
         $LASTEXITCODE | Should -Be 0
         $channels | Should -Not -BeNullOrEmpty
         $channels | Where-Object { -not $_.StartsWith("bldr-") } | Should -BeNullOrEmpty
     }
 
     It "Reports when no channels match the filter" {
-        $output = hab bldr channel list --filter "no-such-channel-zzz" $HAB_ORIGIN
+        $output = Get-ChannelOutput -ListArgs "--filter", "no-such-channel-zzz", $HAB_ORIGIN
         $LASTEXITCODE | Should -Be 0
         "$output" | Should -Be "No channels found matching 'no-such-channel-zzz'"
     }
