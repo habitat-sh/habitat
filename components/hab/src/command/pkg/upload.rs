@@ -144,8 +144,16 @@ pub async fn start(ui: &mut UI,
     }
 }
 
+fn is_archive_rejection(message: &str) -> bool {
+    let reason = message.strip_prefix("[err: ")
+                        .and_then(|body| body.split_once(", msg: "))
+                        .and_then(|(_, reason)| reason.strip_suffix(']'))
+                        .unwrap_or(message);
+    reason.starts_with("ds:up:")
+}
+
 fn upload_rejection(ident: &PackageIdent, archive_path: &Path, message: String) -> Error {
-    if message.starts_with("ds:up:") {
+    if is_archive_rejection(&message) {
         Error::PackageArchiveMalformed(format!("{}: {}", archive_path.display(), message))
     } else {
         let message = if message.trim().is_empty() {
@@ -340,9 +348,13 @@ mod tests {
     #[test]
     fn archive_rejection_keeps_body() {
         let ident: PackageIdent = "acme/pkg/1/20260101000000".parse().unwrap();
-        let error = upload_rejection(&ident, Path::new("pkg.hart"), "ds:up:0".to_string());
-        assert!(matches!(error, Error::PackageArchiveMalformed(_)));
-        assert!(error.to_string().contains("ds:up:0"));
+        for message in ["ds:up:0", "[err: 42, msg: ds:up:0]"] {
+            let error = upload_rejection(&ident, Path::new("pkg.hart"), message.to_string());
+            assert!(matches!(error, Error::PackageArchiveMalformed(_)));
+            let output = error.to_string();
+            assert!(output.contains("pkg.hart"));
+            assert!(output.contains(message));
+        }
     }
 
     #[tokio::test]
