@@ -34,7 +34,8 @@ use habitat_core::{ChannelIdent,
                              PackageTarget}};
 use log::trace;
 use reqwest::StatusCode;
-use retry::delay;
+use retry::{OperationResult,
+            delay};
 use std::path::{Path,
                 PathBuf};
 
@@ -89,15 +90,22 @@ pub async fn start(ui: &mut UI,
                             None => unreachable!(),
                         };
                         match retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES),
-                                                   attempt_upload_dep(ui,
-                                                                      &api_client,
-                                                                      token,
-                                                                      (&dep, target),
-                                                                      additional_release_channel,
-                                                                      &candidate_path,
-                                                                      key_cache)).await
+                                                   async {
+                                                       classify_upload_result(attempt_upload_dep(
+                                                           ui,
+                                                           &api_client,
+                                                           token,
+                                                           (&dep, target),
+                                                           additional_release_channel,
+                                                           &candidate_path,
+                                                           key_cache,
+                                                       ).await)
+                                                   }).await
                         {
                             Ok(_) => trace!("attempt_upload_dep succeeded"),
+                            Err(e) if is_unprocessable_upload_error(&e.error) => {
+                                return Err(e.error);
+                            }
                             Err(_) => {
                                 return Err(Error::from(api_client::Error::UploadFailed(format!(
                                     "We tried {} times but could not upload {}. Giving up.",
@@ -110,16 +118,18 @@ pub async fn start(ui: &mut UI,
                 }
             }
 
-            match retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES),
-                                       upload_into_depot(ui,
-                                                         &api_client,
-                                                         token,
-                                                         (&ident, target),
-                                                         additional_release_channel,
-                                                         force_upload,
-                                                         &mut archive)).await
+            match retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
+                      classify_upload_result(upload_into_depot(ui,
+                                                               &api_client,
+                                                               token,
+                                                               (&ident, target),
+                                                               additional_release_channel,
+                                                               force_upload,
+                                                               &mut archive).await)
+                  }).await
             {
                 Ok(_) => trace!("upload_into_depot succeeded"),
+                Err(e) if is_unprocessable_upload_error(&e.error) => return Err(e.error),
                 Err(_) => {
                     return Err(Error::from(api_client::Error::UploadFailed(format!(
                         "We tried {} times but could not upload {}. Giving up.",
@@ -131,6 +141,34 @@ pub async fn start(ui: &mut UI,
             Ok(())
         }
         Err(e) => Err(Error::from(e)),
+    }
+}
+
+fn upload_rejection(ident: &PackageIdent, archive_path: &Path, message: String) -> Error {
+    if message.starts_with("ds:up:") {
+        Error::PackageArchiveMalformed(format!("{}: {}", archive_path.display(), message))
+    } else {
+        let message = if message.trim().is_empty() {
+            "HTTP 422 (no reason provided)".to_string()
+        } else {
+            message
+        };
+        Error::PackageUploadRejected(ident.clone(), message)
+    }
+}
+
+fn is_unprocessable_upload_error(error: &Error) -> bool {
+    matches!(error,
+             Error::PackageUploadRejected(..)
+             | Error::PackageArchiveMalformed(_)
+             | Error::APIClient(api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)))
+}
+
+fn classify_upload_result(result: Result<()>) -> OperationResult<(), Error> {
+    match result {
+        Ok(()) => OperationResult::Ok(()),
+        Err(error) if is_unprocessable_upload_error(&error) => OperationResult::Err(error),
+        Err(error) => OperationResult::Retry(error),
     }
 }
 
@@ -157,10 +195,8 @@ async fn upload_into_depot(ui: &mut UI,
                 println!("Package already exists on remote; skipping.");
                 true
             }
-            Err(api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
-                return Err(Error::PackageArchiveMalformed(format!("{}",
-                                                                  archive.path
-                                                                         .display())));
+            Err(api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, message)) => {
+                return Err(upload_rejection(ident, &archive.path, message));
             }
             Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
                 println!("Package platform or architecture not supported by the targeted depot; \
@@ -278,5 +314,66 @@ async fn upload_public_key(ui: &mut UI,
             Ok(())
         }
         Err(err) => Err(Error::from(err)),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{cell::Cell,
+              time::Duration};
+
+    #[test]
+    fn signature_rejections_include_builders_message() {
+        let ident: PackageIdent = "acme/pkg/1/20260101000000".parse().unwrap();
+        for message in ["Package signer origin mismatch",
+                        "Unknown package signing key",
+                        "Invalid package signature",
+                        "Invalid package signature header"]
+        {
+            let error = upload_rejection(&ident, Path::new("pkg.hart"), message.to_string());
+            assert_eq!(error.to_string(),
+                       format!("Upload of {} rejected by Builder: {}", ident, message));
+        }
+    }
+
+    #[test]
+    fn archive_rejection_keeps_body() {
+        let ident: PackageIdent = "acme/pkg/1/20260101000000".parse().unwrap();
+        let error = upload_rejection(&ident, Path::new("pkg.hart"), "ds:up:0".to_string());
+        assert!(matches!(error, Error::PackageArchiveMalformed(_)));
+        assert!(error.to_string().contains("ds:up:0"));
+    }
+
+    #[tokio::test]
+    async fn unprocessable_upload_stops_after_one_attempt() {
+        let ident: PackageIdent = "acme/pkg/1/20260101000000".parse().unwrap();
+        let attempts = Cell::new(0);
+        let result = retry::retry_future!(delay::Fixed::from(Duration::ZERO).take(3), async {
+                         attempts.set(attempts.get() + 1);
+                         classify_upload_result(Err(upload_rejection(&ident,
+                                                        Path::new("pkg.hart"),
+                                                        "Invalid package signature".to_string())))
+                     }).await;
+        assert_eq!(attempts.get(), 1);
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn server_errors_still_retry() {
+        let attempts = Cell::new(0);
+        let result = retry::retry_future!(delay::Fixed::from(Duration::ZERO).take(3), async {
+                         attempts.set(attempts.get() + 1);
+                         if attempts.get() < 3 {
+                             classify_upload_result(Err(Error::from(api_client::Error::APIError(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "temporary error".to_string(),
+                ))))
+                         } else {
+                             classify_upload_result(Ok(()))
+                         }
+                     }).await;
+        assert!(result.is_ok());
+        assert_eq!(attempts.get(), 3);
     }
 }
