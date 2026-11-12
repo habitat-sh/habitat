@@ -62,6 +62,7 @@ pub enum Error {
     NameLookup,
     NetErr(net::NetErr),
     PackageArchiveMalformed(String),
+    PackageUploadRejected(PackageIdent, String),
     PackageSetParseError(String),
     ParseIntError(num::ParseIntError),
     ParseUrlError(url::ParseError),
@@ -182,6 +183,9 @@ impl fmt::Display for Error {
             Error::PackageArchiveMalformed(ref e) => {
                 format!("Package archive was unreadable or contained unexpected contents: {:?}",
                         e)
+            }
+            Error::PackageUploadRejected(ref ident, ref message) => {
+                format!("Upload of {} rejected by Builder: {}", ident, message)
             }
             Error::PackageSetParseError(ref e) => {
                 format!("Package set file could not be parsed: {:?}", e)
