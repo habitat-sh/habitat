@@ -36,6 +36,28 @@ If you have already uploaded your package to a channel and wish to promote it to
 $ hab pkg promote -z <TOKEN> <origin>/<package>/<version>/<release> stable
 ```
 
+### Promoting an Entire Channel
+
+Use `hab bldr channel promote` to promote all packages in one origin channel to another:
+
+```bash
+$ hab bldr channel promote -o <ORIGIN> -z <TOKEN> <SOURCE_CHANNEL> <TARGET_CHANNEL>
+```
+
+Add `--check` to ask Builder to check the combined target and source package dependencies for incompatible versions before promotion. A conflict stops the promotion and exits non-zero. The output names each conflicting package and target platform, its full package identifiers, and the source or target packages that introduced each version. Add `--json` to print Builder's full conflict response as JSON.
+
+```bash
+$ hab bldr channel promote --check -o <ORIGIN> -z <TOKEN> dev stable
+```
+
+Add `--snapshot` to create a channel containing the target channel's packages after promotion. On success, the command prints the snapshot channel name and a package list that includes transitive dependencies. `--check --snapshot` checks first; if the check finds a conflict, Builder creates no snapshot. With `--json`, the snapshot response is printed as JSON.
+
+```bash
+$ hab bldr channel promote --check --snapshot -o <ORIGIN> -z <TOKEN> dev stable
+```
+
+These flags require a recent Builder. Older Builders may ignore them and still promote packages. An empty success response does not confirm that `--check` ran; the CLI reports this uncertainty. With `--snapshot`, an empty success response means no snapshot was confirmed, and the CLI reports that as well.
+
 ### Combining an Update Strategy with Channels
 
 By using both channels and either the `at-once` or `rolling` [update strategies]({{< relref "#using-updates" >}}), you can automatically update packages in a given channel as shown below:
