@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.154 -->
-## [2.1.154](https://github.com/habitat-sh/habitat/tree/2.1.154) (2026-11-12)
+<!-- latest_release 2.1.155 -->
+## [2.1.155](https://github.com/habitat-sh/habitat/tree/2.1.155) (2026-11-12)
 
 #### Merged Pull Requests
-- Bump notify from 8.2.1 to 8.2.2 [#10658](https://github.com/habitat-sh/habitat/pull/10658) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- bump rustix to 1.1.6 [#10659](https://github.com/habitat-sh/habitat/pull/10659) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- bump rustix to 1.1.6 [#10659](https://github.com/habitat-sh/habitat/pull/10659) ([mwrock](https://github.com/mwrock)) <!-- 2.1.155 -->
+- Bump actix-web from 4.18.2 to 4.19.0 [#10657](https://github.com/habitat-sh/habitat/pull/10657) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.155 -->
+- Preserved builder upload rejection messages [#10656](https://github.com/habitat-sh/habitat/pull/10656) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.1.155 -->
 - Bump notify from 8.2.1 to 8.2.2 [#10658](https://github.com/habitat-sh/habitat/pull/10658) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.154 -->
 - Bump flate2 from 1.1.10 to 1.1.11 [#10653](https://github.com/habitat-sh/habitat/pull/10653) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.153 -->
 - fix hab_bldr_list e2e tests [#10654](https://github.com/habitat-sh/habitat/pull/10654) ([mwrock](https://github.com/mwrock)) <!-- 2.1.152 -->
