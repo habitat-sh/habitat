@@ -88,15 +88,8 @@ pub(crate) async fn start(ui: &mut UI,
                           source_channel, target_channel))?;
     }
 
-    if check {
-        if response.snapshot.is_some() {
-            if !json {
-                println!("Compatibility check passed.");
-            }
-        } else {
-            eprintln!("Builder returned no confirmation that the compatibility check ran; an \
-                       older Builder may have ignored --check.");
-        }
+    if check && response.snapshot.is_some() && !json {
+        println!("Compatibility check passed.");
     }
 
     if snapshot {

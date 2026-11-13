@@ -56,7 +56,7 @@ Add `--snapshot` to create a channel containing the target channel's packages af
 $ hab bldr channel promote --check --snapshot -o <ORIGIN> -z <TOKEN> dev stable
 ```
 
-These flags require a recent Builder. Older Builders may ignore them and still promote packages. An empty success response does not confirm that `--check` ran; the CLI reports this uncertainty. With `--snapshot`, an empty success response means no snapshot was confirmed, and the CLI reports that as well.
+These flags require a recent Builder. Older Builders may ignore them and still promote packages. An empty success response is normal for a successful `--check`, so it cannot confirm whether an older Builder ran the check. With `--snapshot`, an empty success response means no snapshot was confirmed, and the CLI reports that.
 
 ### Combining an Update Strategy with Channels
 

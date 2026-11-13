@@ -129,15 +129,25 @@ fn snapshot_json_contains_only_the_builder_response() {
 }
 
 #[test]
-fn empty_legacy_response_warns_about_both_unconfirmed_flags() {
+fn empty_response_warns_only_about_missing_snapshot() {
     let run = run_promotion(&["--check", "--snapshot"], "200 OK", "");
     assert!(run.output.status.success(), "{}", stderr(&run));
     assert!(run.request
                .contains("channel=stable&check=true&snapshot=true"));
     let warnings = stderr(&run);
-    assert!(warnings.contains("no confirmation that the compatibility check ran"),
-            "{warnings}");
     assert!(warnings.contains("No snapshot was created"), "{warnings}");
+    assert!(!warnings.contains("compatibility check"), "{warnings}");
     assert!(!stdout(&run).contains("Compatibility check passed"));
     assert!(!stdout(&run).contains("Snapshot channel:"));
+}
+
+#[test]
+fn successful_check_with_empty_response_has_no_warning() {
+    let run = run_promotion(&["--check"], "200 OK", "");
+    assert!(run.output.status.success(), "{}", stderr(&run));
+    assert!(run.request.contains("channel=stable&check=true"));
+    assert!(!stdout(&run).contains("Compatibility check passed"));
+    assert!(!stderr(&run).contains("compatibility check ran"),
+            "{}",
+            stderr(&run));
 }
