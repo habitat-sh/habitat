@@ -41,7 +41,8 @@ use reqwest::{Body,
 use serde::{Deserialize,
             Serialize};
 use serde_json::json;
-use std::{fs::{self,
+use std::{collections::BTreeMap,
+          fs::{self,
                File},
           future::Future,
           io::{self,
@@ -136,6 +137,70 @@ pub struct OriginChannelWithPromotion {
     pub name:        String,
     pub created_at:  String,
     pub promoted_at: String,
+}
+
+/// The optional response from a bulk channel promotion. Older Builder versions
+/// return an empty 200 even when they ignore the optional query parameters.
+#[derive(Debug, Deserialize)]
+pub struct ChannelPromotionResponse {
+    pub body:     Option<serde_json::Value>,
+    pub snapshot: Option<ChannelSnapshot>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ChannelSnapshot {
+    pub snapshot_channel: String,
+    pub packages: BTreeMap<String, BTreeMap<String, BTreeMap<String, Vec<SnapshotPackage>>>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SnapshotPackage {
+    pub ident: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ChannelCompatibilityError {
+    pub error:                  String,
+    pub conflicts:              BTreeMap<String, BTreeMap<String, Vec<String>>>,
+    pub conflict_within_source: bool,
+    pub details:                BTreeMap<String, BTreeMap<String, CompatibilityDetail>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CompatibilityDetail {
+    pub summary: String,
+    pub idents:  Vec<ConflictingIdent>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ConflictingIdent {
+    pub ident:         String,
+    pub introduced_by: IntroducedBy,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct IntroducedBy {
+    pub target_only: TargetOnlyCarriers,
+    pub source:      SourceCarriers,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TargetOnlyCarriers {
+    pub total_count: usize,
+    pub truncated:   bool,
+    pub packages:    Vec<Carrier>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SourceCarriers {
+    pub total_count: usize,
+    pub examples:    Vec<Carrier>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Carrier {
+    pub package:  String,
+    pub relation: String,
 }
 
 pub struct BuilderAPIClient(ApiClient);
@@ -1246,6 +1311,32 @@ impl BuilderAPIClient {
                              &[StatusCode::OK]).await
     }
 
+    /// Promote a channel, optionally checking compatibility and creating a snapshot.
+    pub async fn promote_channel_packages_with_options(&self,
+                                                       origin: &Origin,
+                                                       token: &str,
+                                                       source_channel: &ChannelIdent,
+                                                       target_channel: &ChannelIdent,
+                                                       check: bool,
+                                                       snapshot: bool)
+                                                       -> Result<ChannelPromotionResponse> {
+        debug!("Promoting packages in channel {:?} to channel {:?}",
+               source_channel, target_channel);
+
+        let path = format!("depot/channels/{}/{}/pkgs/promote", origin, source_channel);
+
+        let response =
+            response::ok_if(self.0
+                                .put_with_custom_url(&path, |url| {
+                                    append_promote_query(url, target_channel, check, snapshot);
+                                })
+                                .bearer_auth(token)
+                                .send()
+                                .await?,
+                            &[StatusCode::OK]).await?;
+        parse_channel_promotion_response(&response.text().await.map_err(Error::BadResponseBody)?)
+    }
+
     /// Demote all packages from channel
     ///
     /// # Failures
@@ -1501,11 +1592,124 @@ fn channel_package_demote(channel: &ChannelIdent, package: &PackageIdent) -> Str
             package.release().unwrap())
 }
 
+fn append_promote_query(url: &mut Url, target_channel: &ChannelIdent, check: bool, snapshot: bool) {
+    let mut pairs = url.query_pairs_mut();
+    pairs.append_pair("channel", target_channel.as_str());
+    if check {
+        pairs.append_pair("check", "true");
+    }
+    if snapshot {
+        pairs.append_pair("snapshot", "true");
+    }
+}
+
+fn parse_channel_promotion_response(body: &str) -> Result<ChannelPromotionResponse> {
+    if body.trim().is_empty() {
+        return Ok(ChannelPromotionResponse { body:     None,
+                                             snapshot: None, });
+    }
+    let value: serde_json::Value = serde_json::from_str(body)?;
+    let snapshot = if value.get("snapshot_channel").is_some() {
+        Some(serde_json::from_value(value.clone())?)
+    } else {
+        None
+    };
+    Ok(ChannelPromotionResponse { body: Some(value),
+                                  snapshot })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use futures::future::{self,
                           Ready};
+
+    #[test]
+    fn promotion_query_only_sends_requested_flags() {
+        let channel: ChannelIdent = "stable".parse().unwrap();
+        for (check, snapshot, expected) in [(false, false, "channel=stable"),
+                                            (true, false, "channel=stable&check=true"),
+                                            (false, true, "channel=stable&snapshot=true"),
+                                            (true, true, "channel=stable&check=true&snapshot=true")]
+        {
+            let mut url = Url::parse("https://builder.example.test/v1").unwrap();
+            append_promote_query(&mut url, &channel, check, snapshot);
+            assert_eq!(url.query(), Some(expected));
+        }
+    }
+
+    #[test]
+    fn promotion_response_accepts_empty_and_snapshot_json() {
+        let empty = parse_channel_promotion_response("").unwrap();
+        assert!(empty.body.is_none());
+        assert!(empty.snapshot.is_none());
+
+        let body = r#"{"snapshot_channel":"stable_SS_example","packages":{"x86_64-linux":{"core":{"app":[{"ident":"core/app/1/1","origin":"core","name":"app","version":"1","release":"1"}]}}}}"#;
+        let result = parse_channel_promotion_response(body).unwrap();
+        let snapshot = result.snapshot.unwrap();
+        assert_eq!(snapshot.snapshot_channel, "stable_SS_example");
+        assert_eq!(snapshot.packages["x86_64-linux"]["core"]["app"][0].ident,
+                   "core/app/1/1");
+    }
+
+    #[tokio::test]
+    async fn promotion_handles_empty_success_snapshot_and_conflict() {
+        use tokio::{io::{AsyncReadExt,
+                         AsyncWriteExt},
+                    net::TcpListener};
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            for (query, status, body) in [("channel=stable", "200 OK", ""),
+                                          ("channel=stable&check=true", "200 OK", ""),
+                                          ("channel=stable&snapshot=true",
+                                           "200 OK",
+                                           r#"{"snapshot_channel":"stable_SS_example","packages":{}}"#),
+                                          ("channel=stable&check=true&snapshot=true",
+                                           "409 Conflict",
+                                           r#"{"error":"compatibility_check_failed","conflicts":{},"conflict_within_source":false,"details":{}}"#)]
+            {
+                let (mut stream, _) = listener.accept().await.unwrap();
+                let mut request = [0u8; 4096];
+                let length = stream.read(&mut request).await.unwrap();
+                let request = String::from_utf8_lossy(&request[..length]);
+                assert!(request.contains(&format!("PUT /v1/depot/channels/core/dev/pkgs/\
+                                                   promote?{query} HTTP/1.1")),
+                        "{request}");
+                let response = format!("HTTP/1.1 {status}\r\nContent-Type: \
+                                        application/json\r\nContent-Length: {}\r\nConnection: \
+                                        close\r\n\r\n{body}",
+                                       body.len());
+                stream.write_all(response.as_bytes()).await.unwrap();
+            }
+        });
+
+        let client = BuilderAPIClient::new(format!("http://{address}"), "test", "1", None).unwrap();
+        let origin: Origin = "core".parse().unwrap();
+        let source: ChannelIdent = "dev".parse().unwrap();
+        let target: ChannelIdent = "stable".parse().unwrap();
+        assert!(client.promote_channel_packages(&origin, "secret", &source, &target)
+                      .await
+                      .is_ok());
+        let checked = client.promote_channel_packages_with_options(&origin, "secret", &source,
+                                                                   &target, true, false)
+                            .await
+                            .unwrap();
+        assert!(checked.body.is_none());
+        let snapshotted = client.promote_channel_packages_with_options(&origin, "secret", &source,
+                                                                       &target, false, true)
+                                .await
+                                .unwrap();
+        assert_eq!(snapshotted.snapshot.unwrap().snapshot_channel,
+                   "stable_SS_example");
+        let conflict = client.promote_channel_packages_with_options(&origin, "secret", &source,
+                                                                    &target, true, true)
+                             .await
+                             .unwrap_err();
+        assert!(matches!(conflict, Error::APIError(StatusCode::CONFLICT, _)));
+        server.await.unwrap();
+    }
 
     #[tokio::test]
     async fn list_channel_packages_fetches_all_pages() {
