@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.156 -->
-## [2.1.156](https://github.com/habitat-sh/habitat/tree/2.1.156) (2026-11-13)
+<!-- latest_release 2.1.157 -->
+## [2.1.157](https://github.com/habitat-sh/habitat/tree/2.1.157) (2026-11-13)
 
 #### Merged Pull Requests
-- Bump syn from 3.0.9 to 3.0.10 [#10662](https://github.com/habitat-sh/habitat/pull/10662) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump aws-config from 1.13.0 to 1.13.1 [#10661](https://github.com/habitat-sh/habitat/pull/10661) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump aws-config from 1.13.0 to 1.13.1 [#10661](https://github.com/habitat-sh/habitat/pull/10661) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.157 -->
 - Bump syn from 3.0.9 to 3.0.10 [#10662](https://github.com/habitat-sh/habitat/pull/10662) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.156 -->
 - bump rustix to 1.1.6 [#10659](https://github.com/habitat-sh/habitat/pull/10659) ([mwrock](https://github.com/mwrock)) <!-- 2.1.155 -->
 - Bump actix-web from 4.18.2 to 4.19.0 [#10657](https://github.com/habitat-sh/habitat/pull/10657) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.155 -->
