@@ -79,8 +79,7 @@ Use `hab bldr channel promote` to promote all packages in an origin channel. `--
 hab bldr channel promote --check -o core -z <TOKEN> dev stable
 ```
 
-Add `--snapshot` to create a snapshot channel after promotion and print its name and packages. The flags can be combined; a failed check leaves the target unchanged and creates no snapshot. Add `--json` for Builder's structured conflict or snapshot response. Older Builders can ignore these flags; the command reports when an empty response cannot confirm the check or snapshot.
-
+Add `--snapshot` to create a snapshot channel after promotion and print its name and packages. The flags can be combined; a failed check leaves the target unchanged and creates no snapshot. Add `--json` for Builder's structured conflict or snapshot response. Older Builders can ignore these flags. An empty success response is normal for `--check`, so the CLI cannot confirm whether the check ran and does not warn. With `--snapshot`, an empty success response produces a warning that no snapshot was confirmed.
 ### List Packages in a Channel
 
 Use `hab bldr channel list-packages` to see every package promoted to a channel:
