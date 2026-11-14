@@ -96,3 +96,11 @@ store_in_s3 "${version}" manifest.json
 
 promote_packages_to_builder_channel manifest.json dev
 promote_version_in_s3 "${version}" dev
+
+# Purge the CDN so packages.chef.io doesn't serve a stale mix of the previous
+# and new dev artifacts (e.g. a zip and .sha256sum from different releases) to
+# the end-to-end tests that install from dev/latest. A purge failure shouldn't
+# fail the release.
+echo "--- Purging the CDN cache for the dev channel"
+export EXPEDITOR_TARGET_CHANNEL=dev
+.expeditor/scripts/purge_cdn.sh || echo "Failed to purge the CDN cache for dev, but continuing anyway."
