@@ -64,7 +64,7 @@ impl LoadCommand {
         } else {
             let remote_sup = self.remote_sup.clone();
             let msg = habitat_sup_protocol::ctl::SvcLoad::try_from(self.clone())?;
-            gateway_util::send(remote_sup.inner(), msg).await
+            gateway_util::send_waiting_for_startup(remote_sup.inner(), msg).await
         }
     }
 }
