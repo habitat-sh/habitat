@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.159 -->
-## [2.1.159](https://github.com/habitat-sh/habitat/tree/2.1.159) (2026-11-16)
+<!-- latest_release 2.1.160 -->
+## [2.1.160](https://github.com/habitat-sh/habitat/tree/2.1.160) (2026-11-16)
 
 #### Merged Pull Requests
-- Bump aws-config from 1.13.1 to 1.13.2 [#10668](https://github.com/habitat-sh/habitat/pull/10668) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Add ACLOCAL_PATH and CMAKE_PREFIX_PATH to aggregate env vars [#10664](https://github.com/habitat-sh/habitat/pull/10664) ([rsertelon](https://github.com/rsertelon))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Add ACLOCAL_PATH and CMAKE_PREFIX_PATH to aggregate env vars [#10664](https://github.com/habitat-sh/habitat/pull/10664) ([rsertelon](https://github.com/rsertelon)) <!-- 2.1.160 -->
 - Bump aws-config from 1.13.1 to 1.13.2 [#10668](https://github.com/habitat-sh/habitat/pull/10668) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.159 -->
 - Bump errno from 0.3.14 to 0.3.15 [#10666](https://github.com/habitat-sh/habitat/pull/10666) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.158 -->
 - Bump aws-config from 1.13.0 to 1.13.1 [#10661](https://github.com/habitat-sh/habitat/pull/10661) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.157 -->
