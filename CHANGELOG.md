@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.1.161 -->
-## [2.1.161](https://github.com/habitat-sh/habitat/tree/2.1.161) (2026-11-17)
+<!-- latest_release 2.1.162 -->
+## [2.1.162](https://github.com/habitat-sh/habitat/tree/2.1.162) (2026-11-17)
 
 #### Merged Pull Requests
-- Added check and snapshot flags to promote [#10660](https://github.com/habitat-sh/habitat/pull/10660) ([sougata-progress](https://github.com/sougata-progress))
+- Bump cc from 1.11.1 to 1.11.2 [#10670](https://github.com/habitat-sh/habitat/pull/10670) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump cc from 1.11.1 to 1.11.2 [#10670](https://github.com/habitat-sh/habitat/pull/10670) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.162 -->
 - Added check and snapshot flags to promote [#10660](https://github.com/habitat-sh/habitat/pull/10660) ([sougata-progress](https://github.com/sougata-progress)) <!-- 2.1.161 -->
 - Add ACLOCAL_PATH and CMAKE_PREFIX_PATH to aggregate env vars [#10664](https://github.com/habitat-sh/habitat/pull/10664) ([rsertelon](https://github.com/rsertelon)) <!-- 2.1.160 -->
 - Bump aws-config from 1.13.1 to 1.13.2 [#10668](https://github.com/habitat-sh/habitat/pull/10668) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.159 -->
