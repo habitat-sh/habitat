@@ -10,8 +10,13 @@
 # RUSTSEC-2024-0449: unsafe-libyaml is unmaintained, with no patched versions.
 # It is pulled in by serde_yaml, used directly and through log4rs.
 # Ignore until these dependencies migrate away from unsafe-libyaml.
+# RUSTSEC-2026-0542, RUSTSEC-2026-0543: these affect the chrono and humantime
+# crates, which are pulled in by log4rs. We can't fix them until log4rs upgrades
+# these upstream dependencies. Ignore until a fixed log4rs release is available.
 ignore = [
     "RUSTSEC-2024-0449",
+    "RUSTSEC-2026-0542",
+    "RUSTSEC-2026-0543",
 ]
 
 # warn for categories of informational advisories
