@@ -71,6 +71,15 @@ $ hab pkg promote -z <TOKEN> origin/package/version/release stable
 
 For more information on how to use channels, see [Continuous Deployment Using Channels]({{< relref "pkg_promote" >}}).
 
+### Promote a Channel
+
+Use `hab bldr channel promote` to promote all packages in an origin channel. `--check` asks Builder to verify that the combined source and target package dependencies do not contain incompatible versions before promoting. A compatibility conflict stops the operation and displays the conflicting package identifiers and their introducing packages by target platform.
+
+```bash
+hab bldr channel promote --check -o core -z <TOKEN> dev stable
+```
+
+Add `--snapshot` to create a snapshot channel after promotion and print its name and packages. The flags can be combined; a failed check leaves the target unchanged and creates no snapshot. Add `--json` for Builder's structured conflict or snapshot response. Older Builders can ignore these flags. An empty success response is normal for `--check`, so the CLI cannot confirm whether the check ran and does not warn. With `--snapshot`, an empty success response produces a warning that no snapshot was confirmed.
 ### List Packages in a Channel
 
 Use `hab bldr channel list-packages` to see every package promoted to a channel:

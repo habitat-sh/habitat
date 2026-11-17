@@ -1,6 +1,7 @@
 use crate::{cli_v4::utils::{AuthToken,
                             origin_param_or_env},
-            command::bldr::channel::promote::start,
+            command::bldr::channel::promote::{PromoteOptions,
+                                              start},
             error::Result as HabResult};
 use clap::Parser;
 use clap_v4 as clap;
@@ -19,6 +20,18 @@ pub(crate) struct PromoteOpts {
     /// The channel to which packages will be promoted
     #[arg(value_name = "TARGET_CHANNEL", value_parser = clap::value_parser!(ChannelIdent))]
     target_channel: ChannelIdent,
+
+    /// Check package compatibility before promotion (requires a recent Builder)
+    #[arg(long)]
+    check: bool,
+
+    /// Create a snapshot of the target channel after promotion (requires a recent Builder)
+    #[arg(long)]
+    snapshot: bool,
+
+    /// Print Builder's structured conflict or snapshot response as JSON
+    #[arg(long)]
+    json: bool,
 
     /// Authentication token for Builder [env: HAB_AUTH_TOKEN]
     #[command(flatten)]
@@ -46,6 +59,30 @@ impl PromoteOpts {
               &token,
               &origin,
               &self.source_channel,
-              &self.target_channel).await
+              &self.target_channel,
+              PromoteOptions { check:    self.check,
+                               snapshot: self.snapshot,
+                               json:     self.json, }).await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_promotion_flags_together_and_separately() {
+        for (flags, check, snapshot, json) in
+            [(&["--check"][..], true, false, false),
+             (&["--snapshot"][..], false, true, false),
+             (&["--check", "--snapshot", "--json"][..], true, true, true),
+             (&[][..], false, false, false)]
+        {
+            let mut args = vec!["promote", "dev", "stable"];
+            args.extend_from_slice(flags);
+            let opts = PromoteOpts::try_parse_from(args).unwrap();
+            assert_eq!((opts.check, opts.snapshot, opts.json),
+                       (check, snapshot, json));
+        }
     }
 }
