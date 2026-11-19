@@ -8,10 +8,10 @@ workspace = "../../"
 [dependencies]
 broadcast = "*"
 bytes = "*"
-chrono = "*"
 futures = "*"
 habitat_core = { path = "../core" }
 habitat_http_client = { path = "../http-client" }
+jiff = { version = "*", default-features = false, features = ["std"] }
 log = "0.4"
 pbr = "*"
 percent-encoding = "*"

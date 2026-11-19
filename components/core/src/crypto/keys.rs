@@ -1,6 +1,6 @@
 use crate::{error::Error,
             fs::Permissions};
-use chrono::Utc;
+use jiff::Timestamp;
 use regex::Regex;
 use std::{self,
           fmt,
@@ -181,8 +181,10 @@ impl KeyRevision {
     ///
     /// Only visible in this crate because nothing outside should be
     /// directly generating these.
-    pub(crate) fn new() -> KeyRevision {
-        KeyRevision(Utc::now().format("%Y%m%d%H%M%S").to_string())
+    pub(crate) fn new() -> KeyRevision { Self::from_timestamp(Timestamp::now()) }
+
+    fn from_timestamp(timestamp: Timestamp) -> Self {
+        KeyRevision(timestamp.strftime("%Y%m%d%H%M%S").to_string())
     }
 }
 
@@ -219,6 +221,13 @@ impl KeyRevision {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn timestamp_revision_uses_utc_seconds() {
+        let instant = "2024-03-01T00:01:02.999999999+01:00".parse().unwrap();
+        assert_eq!(KeyRevision::from_timestamp(instant).to_string(),
+                   "20240229230102");
+    }
 
     mod named_revision {
         use super::*;
