@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.2.1 -->
-## [2.2.1](https://github.com/habitat-sh/habitat/tree/2.2.1) (2026-11-18)
+<!-- latest_release 2.2.2 -->
+## [2.2.2](https://github.com/habitat-sh/habitat/tree/2.2.2) (2026-11-19)
 
 #### Merged Pull Requests
-- Bump prost-build from 0.14.4 to 0.14.6 [#10677](https://github.com/habitat-sh/habitat/pull/10677) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump nix from 0.31.3 to 0.32.0 [#10676](https://github.com/habitat-sh/habitat/pull/10676) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump nix from 0.31.3 to 0.32.0 [#10676](https://github.com/habitat-sh/habitat/pull/10676) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.2.2 -->
 - Bump prost-build from 0.14.4 to 0.14.6 [#10677](https://github.com/habitat-sh/habitat/pull/10677) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.2.1 -->
 - bump minor version to 2.2.0 [#10674](https://github.com/habitat-sh/habitat/pull/10674) ([mwrock](https://github.com/mwrock)) <!-- 2.2.0 -->
 - Bump mio from 1.2.4 to 1.2.5 [#10671](https://github.com/habitat-sh/habitat/pull/10671) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.1.163 -->
