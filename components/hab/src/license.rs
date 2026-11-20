@@ -38,8 +38,7 @@ use crate::{common::ui::{self,
                          ROOT_PATH,
                          am_i_root},
                     users::get_current_username}};
-use chrono::{DateTime,
-             Utc};
+use jiff::Timestamp;
 use serde::{Deserialize,
             Serialize};
 use std::{env,
@@ -54,16 +53,24 @@ const LICENSE_ACCEPT_ENVVAR: &str = "HAB_LICENSE";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LicenseData {
-    pub date_accepted: DateTime<Utc>,
+    #[serde(serialize_with = "serialize_date_accepted")]
+    pub date_accepted: Timestamp,
     pub accepting_product: String,
     pub accepting_product_version: String,
     pub user: Option<String>,
     pub file_format: String,
 }
 
+fn serialize_date_accepted<S: serde::Serializer>(timestamp: &Timestamp,
+                                                 serializer: S)
+                                                 -> std::result::Result<S::Ok, S::Error> {
+    let precision = crate::hcore::util::timestamp_precision(timestamp.subsec_nanosecond());
+    serializer.collect_str(&format_args!("{timestamp:.precision$}"))
+}
+
 impl LicenseData {
     pub fn new() -> Result<Self> {
-        Ok(LicenseData { date_accepted: Utc::now(),
+        Ok(LicenseData { date_accepted: Timestamp::now(),
                          accepting_product: String::from("hab"),
                          accepting_product_version: super::VERSION.to_string(),
                          user: get_current_username()?,
@@ -211,5 +218,23 @@ pub fn license_exists_for_current_user() -> bool {
         license_file(&license_path(&superuser_license_root())).is_file()
     } else {
         license_file(&license_path(&user_license_root())).is_file()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn timestamp_acceptance_yaml_preserves_fractional_precision() {
+        for fraction in ["", ".120", ".123400", ".123456780"] {
+            let input =
+                format!("date_accepted: 2024-01-02T00:04:05{fraction}+01:00\naccepting_product: \
+                         hab\naccepting_product_version: '1'\nuser: null\nfile_format: '1.0'\n");
+            let license: LicenseData = serde_yaml::from_str(&input).unwrap();
+            let output = serde_yaml::to_value(&license).unwrap();
+            assert_eq!(output["date_accepted"].as_str().unwrap(),
+                       format!("2024-01-01T23:04:05{fraction}Z"));
+        }
     }
 }

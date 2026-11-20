@@ -15,7 +15,6 @@ doc = false
 anyhow = { version = "*", features = ["backtrace"] }
 base64 = "*"
 bitflags = "*"
-chrono = { version = "*", features = ["serde"] }
 clap_complete = "*"
 clap_v4 = { version = "4", package = "clap", features = ["env", "derive", "string", "wrap_help"] }
 ctrlc = "*"
@@ -31,6 +30,7 @@ habitat_core = { path = "../core" }
 habitat-sup-client = { path = "../sup-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 handlebars = { version = "*", default-features = false }
+jiff = { version = "*", features = ["serde"] }
 lazy_static = "*"
 libc = "*"
 log = "0.4"

@@ -6,9 +6,9 @@ use crate::{common::ui::{Status,
             hcore::{fs::{FS_ROOT_PATH,
                          ROOT_PATH},
                     os::net::hostname}};
-use chrono::Local;
 use flate2::{Compression,
              write::GzEncoder};
+use jiff::Zoned;
 use std::{env,
           fs::{self,
                File},
@@ -24,9 +24,8 @@ fn lookup_hostname() -> Result<String> {
 }
 
 pub fn start(ui: &mut UI) -> Result<()> {
-    let dt = Local::now();
-    ui.status(Status::Generating,
-              format!("New Support Bundle at {}", dt.format("%Y-%m-%d %H:%M:%S")))?;
+    let dt = Zoned::now();
+    ui.status(Status::Generating, bundle_status(&dt))?;
     let host = match lookup_hostname() {
         Ok(host) => host,
         Err(e) => {
@@ -36,9 +35,7 @@ pub fn start(ui: &mut UI) -> Result<()> {
         }
     };
     let cwd = env::current_dir().unwrap();
-    let tarball_name = format!("support-bundle-{}-{}.tar.gz",
-                               host,
-                               dt.format("%Y%m%d%H%M%S"));
+    let tarball_name = bundle_filename(&host, &dt);
 
     let sup_root = Path::new(&*FS_ROOT_PATH).join(ROOT_PATH).join("sup");
     let tar_gz = File::create(&tarball_name)?;
@@ -64,4 +61,28 @@ pub fn start(ui: &mut UI) -> Result<()> {
               format!("{}{}{}", cwd.display(), MAIN_SEPARATOR, tarball_name))?;
 
     Ok(())
+}
+
+fn bundle_status(dt: &Zoned) -> String {
+    format!("New Support Bundle at {}", dt.strftime("%Y-%m-%d %H:%M:%S"))
+}
+
+fn bundle_filename(host: &str, dt: &Zoned) -> String {
+    format!("support-bundle-{}-{}.tar.gz",
+            host,
+            dt.strftime("%Y%m%d%H%M%S"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn timestamp_bundle_uses_local_date_for_status_and_filename() {
+        let dt: Zoned = "2024-03-01T00:01:02.999+05:30[+05:30]".parse().unwrap();
+        assert_eq!(bundle_status(&dt),
+                   "New Support Bundle at 2024-03-01 00:01:02");
+        assert_eq!(bundle_filename("node", &dt),
+                   "support-bundle-node-20240301000102.tar.gz");
+    }
 }
