@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.2.4 -->
-## [2.2.4](https://github.com/habitat-sh/habitat/tree/2.2.4) (2026-11-20)
+<!-- latest_release 2.2.5 -->
+## [2.2.5](https://github.com/habitat-sh/habitat/tree/2.2.5) (2026-11-20)
 
 #### Merged Pull Requests
-- Bump aws-sdk-ecr from 1.140.0 to 1.141.0 [#10682](https://github.com/habitat-sh/habitat/pull/10682) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump actix-rt from 2.15.0 to 2.16.0 [#10681](https://github.com/habitat-sh/habitat/pull/10681) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump actix-rt from 2.15.0 to 2.16.0 [#10681](https://github.com/habitat-sh/habitat/pull/10681) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.2.5 -->
 - Bump aws-sdk-ecr from 1.140.0 to 1.141.0 [#10682](https://github.com/habitat-sh/habitat/pull/10682) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.2.4 -->
 - Bump actix-web from 4.19.0 to 4.20.0 [#10680](https://github.com/habitat-sh/habitat/pull/10680) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.2.3 -->
 - Bump nix from 0.31.3 to 0.32.0 [#10676](https://github.com/habitat-sh/habitat/pull/10676) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.2.2 -->
