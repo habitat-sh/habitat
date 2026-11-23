@@ -22,6 +22,16 @@ use std::{io::{self,
                BufRead},
           mem};
 
+/// Legacy timestamp formats express subseconds in groups of three digits.
+pub fn timestamp_precision(nanoseconds: i32) -> usize {
+    match nanoseconds {
+        0 => 0,
+        n if n % 1_000_000 == 0 => 3,
+        n if n % 1_000 == 0 => 6,
+        _ => 9,
+    }
+}
+
 // TODO: All of these ok_xxx macros appear to be unused
 
 /// Same as `Result::ok()`, but logs the error case. Useful for

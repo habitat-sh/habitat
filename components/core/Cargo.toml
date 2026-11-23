@@ -15,12 +15,12 @@ pem = "*"
 # Please keep these alphabetized
 base64 = "*"
 blake2b_simd = "*"
-chrono = "*"
 dirs = "*"
 dns-lookup = "*"
 errno = "*"
 glob = "*"
 hex = "*"
+jiff = { version = "*", default-features = false, features = ["std"] }
 lazy_static = "*"
 libc = "*"
 libsodium-rs = "*"

@@ -17,11 +17,11 @@ use std::{fmt,
           io::Write,
           path::Path};
 
-use chrono::{DateTime,
-             Utc};
+use jiff::civil::DateTime;
 use reqwest::IntoUrl;
 use serde::{Deserialize,
             Serialize};
+use std::sync::LazyLock;
 
 use crate::hab_core::package::PackageIdent;
 pub use crate::{builder::{API_RETRY_COUNT,
@@ -89,7 +89,7 @@ impl fmt::Display for SchedulerResponse {
         output.push(format!("Status for Job Group {} ({}): {}",
                             self.id, self.project_name, self.state));
 
-        if let Ok(c) = DateTime::parse_from_rfc3339(&self.created_at) {
+        if let Some(c) = scheduler_date(&self.created_at) {
             output.push(format!("Created at: {}", c));
         }
 
@@ -182,8 +182,8 @@ pub struct OriginInvitation {
     #[serde(with = "util::serde::string")]
     pub account_id:   u64,
     pub account_name: String,
-    #[serde(with = "json_date_format")]
-    pub created_at:   DateTime<Utc>,
+    #[serde(deserialize_with = "deserialize_invitation_date")]
+    pub created_at:   BuilderDateTime,
     pub ignored:      bool,
     pub origin:       String,
     #[serde(with = "util::serde::string")]
@@ -200,27 +200,64 @@ pub struct PendingOriginInvitationsResponse {
     pub invitations: Vec<OriginInvitation>,
 }
 
-// Custom conversion logic to allow `serde` to successfully
-// deserialize `DateTime<Utc>` datatypes.
-//
-// To use it, add `#[serde(with = "json_date_format")]` to any
-// `DateTime<Utc>`-typed struct fields.
-mod json_date_format {
-    use chrono::{DateTime,
-                 NaiveDateTime,
-                 Utc};
-    use serde::{self,
-                Deserialize,
-                Deserializer};
-    const DATE_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.f";
+/// Builder supplies a civil date and time. Invitations use UTC, while job status
+/// retains the supplied offset. Keep leap-second labels for display because Jiff
+/// represents second 60 as second 59.
+#[derive(Clone)]
+pub struct BuilderDateTime {
+    datetime:    DateTime,
+    leap_second: bool,
+}
 
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
-        where D: Deserializer<'de>
-    {
-        let s = String::deserialize(deserializer)?;
-        NaiveDateTime::parse_from_str(&s, DATE_FORMAT).map(|v| v.and_utc())
-                                                      .map_err(serde::de::Error::custom)
+impl BuilderDateTime {
+    fn parse(value: &str) -> std::result::Result<Self, jiff::Error> {
+        let (whole, fraction) = value.split_once('.').unwrap_or((value, ""));
+        // Builder can supply more than nine digits. Its output has nanosecond precision.
+        let value = if fraction.len() > 9 && fraction.bytes().all(|b| b.is_ascii_digit()) {
+            &value[..whole.len() + 1 + 9]
+        } else {
+            value
+        };
+        let datetime = DateTime::strptime("%Y-%m-%dT%H:%M:%S%.f", value)?;
+        Ok(Self { datetime,
+                  leap_second: whole.ends_with(":60") })
     }
+}
+
+impl fmt::Display for BuilderDateTime {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let dt = self.datetime;
+        let second = if self.leap_second { 60 } else { dt.second() };
+        write!(f, "{}:{second:02}", dt.strftime("%Y-%m-%d %H:%M"))?;
+        let nanos = dt.subsec_nanosecond();
+        let precision = util::timestamp_precision(nanos);
+        if precision > 0 {
+            write!(f, ".{}", &format!("{nanos:09}")[..precision])?;
+        }
+        Ok(())
+    }
+}
+
+fn deserialize_invitation_date<'de, D: serde::Deserializer<'de>>(
+    deserializer: D)
+    -> std::result::Result<BuilderDateTime, D::Error> {
+    BuilderDateTime::parse(&String::deserialize(deserializer)?).map_err(serde::de::Error::custom)
+}
+
+fn scheduler_date(value: &str) -> Option<String> {
+    static RFC3339: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(concat!(r"^([0-9]{4}-[0-9]{2}-[0-9]{2})[Tt ]",
+                           r"([0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?)",
+                           r"([Zz]|[+−-](?:[01][0-9]|2[0-3]):[0-5][0-9])$",)).unwrap()
+    });
+    let parts = RFC3339.captures(value)?;
+    let datetime = BuilderDateTime::parse(&format!("{}T{}", &parts[1], &parts[2])).ok()?;
+    let offset = parts[3].replace('−', "-");
+    let offset = match offset.as_str() {
+        "Z" | "z" | "-00:00" => "+00:00",
+        offset => offset,
+    };
+    Some(format!("{datetime} {offset}"))
 }
 
 impl TabularText for UserOriginInvitationsResponse {
@@ -230,7 +267,7 @@ impl TabularText for UserOriginInvitationsResponse {
             let mut body = vec![String::from("Invitation Id\tOrigin Name\tAccount \
                                               Name\tCreation Date\tIgnored")];
             for invitation in self.0.iter() {
-                body.push(format!("{}\t{}\t{}\t{}\t{}",
+                body.push(format!("{}\t{}\t{}\t{} UTC\t{}",
                                   invitation.id,
                                   invitation.origin,
                                   invitation.account_name,
@@ -251,7 +288,7 @@ impl TabularText for PendingOriginInvitationsResponse {
             let mut body =
                 vec![String::from("Invitation Id\tAccount Name\tCreation Date\tIgnored")];
             for invitation in self.invitations.iter() {
-                body.push(format!("{}\t{}\t{}\t{}",
+                body.push(format!("{}\t{}\t{} UTC\t{}",
                                   invitation.id,
                                   invitation.account_name,
                                   invitation.created_at,
@@ -342,6 +379,49 @@ pub struct OriginMemberRoleResponse {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn timestamp_scheduler_preserves_offset_and_omits_invalid_dates() {
+        for (input, expected) in
+            [("2024-03-01T00:01:02.12+05:30", Some("2024-03-01 00:01:02.120 +05:30")),
+             ("2024-03-01t00:01:02z", Some("2024-03-01 00:01:02 +00:00")),
+             ("2016-12-31 23:59:60.1234567891Z", Some("2016-12-31 23:59:60.123456789 +00:00")),
+             ("2024-02-29T20:00:00−04:30", Some("2024-02-29 20:00:00 -04:30")),
+             ("2024-02-30T00:00:00Z", None),
+             ("2024-03-01T00:00:00", None),
+             ("2024-03-01T00:00:00+0530", None)]
+        {
+            let job = SchedulerResponse { created_at: input.into(),
+                                          ..Default::default() };
+            let mut output = String::from("Status for Job Group  (): ");
+            if let Some(date) = expected {
+                output.push_str(&format!("\nCreated at: {date}"));
+            }
+            assert_eq!(job.to_string(), output);
+        }
+    }
+
+    #[test]
+    fn timestamp_invitations_parse_offset_free_dates_and_render_utc_in_both_tables() {
+        for (fraction, expected) in [("", ""),
+                                     (".1", ".100"),
+                                     (".1234", ".123400"),
+                                     (".123456780", ".123456780")]
+        {
+            let mut record = json!({"id":"1", "account_id":"2", "account_name":"sam",
+                                    "created_at":format!("2024-02-29T01:02:03{fraction}"),
+                                    "ignored":false, "origin":"core", "owner_id":"3", "updated_at":""});
+            let invitation: OriginInvitation = serde_json::from_value(record.clone()).unwrap();
+            let user = UserOriginInvitationsResponse(vec![invitation.clone()]);
+            let pending = PendingOriginInvitationsResponse { origin:      "core".into(),
+                                                             invitations: vec![invitation], };
+            for table in [user.as_tabbed().unwrap(), pending.as_tabbed().unwrap()] {
+                assert!(table.contains(&format!("2024-02-29 01:02:03{expected} UTC")));
+            }
+            record["created_at"] = json!("2024-02-29T01:02:03Z");
+            assert!(serde_json::from_value::<OriginInvitation>(record).is_err());
+        }
+    }
 
     #[test]
     fn json_round_trip_u64_fields() {
