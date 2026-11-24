@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.2.7 -->
-## [2.2.7](https://github.com/habitat-sh/habitat/tree/2.2.7) (2026-11-24)
+<!-- latest_release 2.2.8 -->
+## [2.2.8](https://github.com/habitat-sh/habitat/tree/2.2.8) (2026-11-24)
 
 #### Merged Pull Requests
-- Bump github/codeql-action from 4.39.3 to 4.39.4 [#10689](https://github.com/habitat-sh/habitat/pull/10689) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump clap from 4.6.8 to 4.6.9 [#10688](https://github.com/habitat-sh/habitat/pull/10688) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- Bump clap from 4.6.8 to 4.6.9 [#10688](https://github.com/habitat-sh/habitat/pull/10688) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.2.8 -->
 - Bump github/codeql-action from 4.39.3 to 4.39.4 [#10689](https://github.com/habitat-sh/habitat/pull/10689) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.2.7 -->
 - downgrade ipc-channel to 0.21.0 [#10684](https://github.com/habitat-sh/habitat/pull/10684) ([mwrock](https://github.com/mwrock)) <!-- 2.2.6 -->
 - Bump actix-rt from 2.15.0 to 2.16.0 [#10681](https://github.com/habitat-sh/habitat/pull/10681) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.2.5 -->
