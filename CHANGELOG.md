@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.2.8 -->
-## [2.2.8](https://github.com/habitat-sh/habitat/tree/2.2.8) (2026-11-24)
+<!-- latest_release 2.2.9 -->
+## [2.2.9](https://github.com/habitat-sh/habitat/tree/2.2.9) (2026-11-25)
 
 #### Merged Pull Requests
-- Bump clap from 4.6.8 to 4.6.9 [#10688](https://github.com/habitat-sh/habitat/pull/10688) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- revert changes made to install.ps1 to get windows arm from builder [#10690](https://github.com/habitat-sh/habitat/pull/10690) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.23-->
 ### Changes since 2.1.23 release
 
 #### Merged Pull Requests
+- revert changes made to install.ps1 to get windows arm from builder [#10690](https://github.com/habitat-sh/habitat/pull/10690) ([mwrock](https://github.com/mwrock)) <!-- 2.2.9 -->
+- Bump pin-project from 1.1.13 to 1.2.0 [#10685](https://github.com/habitat-sh/habitat/pull/10685) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.2.9 -->
+- Bump bytes from 1.12.1 to 1.12.2 [#10687](https://github.com/habitat-sh/habitat/pull/10687) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.2.9 -->
 - Bump clap from 4.6.8 to 4.6.9 [#10688](https://github.com/habitat-sh/habitat/pull/10688) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.2.8 -->
 - Bump github/codeql-action from 4.39.3 to 4.39.4 [#10689](https://github.com/habitat-sh/habitat/pull/10689) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.2.7 -->
 - downgrade ipc-channel to 0.21.0 [#10684](https://github.com/habitat-sh/habitat/pull/10684) ([mwrock](https://github.com/mwrock)) <!-- 2.2.6 -->
