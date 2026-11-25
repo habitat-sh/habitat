@@ -40,10 +40,11 @@ Describe "Installer archive selection" -Tag "unit" {
         $parseErrors = $null
         $ast = [System.Management.Automation.Language.Parser]::ParseFile($installer, [ref]$tokens, [ref]$parseErrors)
         if ($parseErrors.Count -gt 0) { throw $parseErrors[0] }
-        $function = $ast.Find({
+        $findArchive = {
             param($node)
             $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq "Get-Archive"
-        }, $true)
+        }
+        $function = $ast.Find($findArchive, $true)
         if (!$function) { throw "Get-Archive was not found in install.ps1" }
         . ([scriptblock]::Create($function.Extent.Text.Replace("Function Get-Archive", "Function script:Get-Archive")))
         function script:Get-File($url, $dst) {}

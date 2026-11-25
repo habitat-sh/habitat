@@ -196,7 +196,7 @@ Write-Host "Installing Habitat 'hab' program for target $Target"
 $workdir = Get-WorkDir
 New-Item $workdir -ItemType Directory -Force | Out-Null
 try {
-    $archive = Get-Archive $channel $version $Target
+    $archive = Get-Archive -channel $channel -version $version -target $Target
     if($archive.shasum) {
         Assert-Shasum $archive
     }
